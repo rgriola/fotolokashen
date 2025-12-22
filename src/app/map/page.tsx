@@ -36,6 +36,15 @@ function MapPageInner() {
 
     const handleMapClick = useCallback(async (event: google.maps.MapMouseEvent) => {
         if (event.latLng) {
+            // Close SaveLocationPanel if open (Option A: force user to commit or cancel)
+            if (isSidebarOpen) {
+                setIsSidebarOpen(false);
+                setLocationToSave(null);
+            }
+
+            // Remove all temporary markers before creating a new one
+            setMarkers((prev) => prev.filter((m) => !m.isTemporary));
+
             const position = {
                 lat: event.latLng.lat(),
                 lng: event.latLng.lng(),
@@ -116,6 +125,16 @@ function MapPageInner() {
 
                 setMarkers((prev) => [...prev, newMarker]);
                 setSelectedMarker(newMarker); // Auto-show InfoWindow
+
+                // Zoom to street level for better detail
+                if (map) {
+                    // map.panTo(position);
+                    // map.setZoom(16);
+                    map.setOptions({
+                        center: position,
+                        zoom: 16,
+                    });
+                }
             } catch (error) {
                 console.error('Error geocoding location:', error);
                 // Still create marker even if geocoding fails
@@ -126,9 +145,19 @@ function MapPageInner() {
                 };
                 setMarkers((prev) => [...prev, newMarker]);
                 setSelectedMarker(newMarker);
+
+                // Zoom to street level even on geocoding error
+                if (map) {
+                    // map.panTo(newPosition);
+                    // map.setZoom(16);
+                    map.setOptions({
+                        center: position,
+                        zoom: 16,
+                    });
+                }
             }
         }
-    }, []);
+    }, [map, isSidebarOpen]);
 
     const handlePlaceSelected = useCallback((place: LocationData) => {
         const newPosition = { lat: place.latitude, lng: place.longitude };
@@ -146,8 +175,12 @@ function MapPageInner() {
 
         // Pan to location
         if (map) {
-            map.panTo(newPosition);
-            map.setZoom(15);
+            // map.panTo(newPosition);
+            // map.setZoom(16);
+            map.setOptions({
+                center: newPosition,
+                zoom: 16,
+            });
         }
     }, [map]);
 
@@ -157,8 +190,12 @@ function MapPageInner() {
             setCenter(position);
             setUserLocation(position); // Show blue dot
             if (map) {
-                map.panTo(position);
-                map.setZoom(17); // Closer zoom for street-level detail
+                //   map.panTo(position);
+                //   map.setZoom(17); // Closer zoom for street-level detail
+                map.setOptions({
+                    center: position,
+                    zoom: 15,
+                });
             }
         } catch (error) {
             console.error('Error getting location:', error);
@@ -253,8 +290,15 @@ function MapPageInner() {
         if (selectedMarker?.isTemporary) {
             setMarkers((prev) => prev.filter((m) => m.id !== selectedMarker.id));
         }
+
+        // Close SaveLocationPanel if it's open
+        if (isSidebarOpen) {
+            setIsSidebarOpen(false);
+            setLocationToSave(null);
+        }
+
         setSelectedMarker(null);
-    }, [selectedMarker]);
+    }, [selectedMarker, isSidebarOpen]);
 
     return (
         <div className="h-screen flex flex-col">
@@ -313,6 +357,7 @@ function MapPageInner() {
                             position={marker.position}
                             title={marker.data?.name || 'Custom location'}
                             onClick={() => handleMarkerClick(marker)}
+                            isTemporary={marker.isTemporary} // Pass temporary status
                         />
                     ))}
 
