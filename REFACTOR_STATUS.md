@@ -1,4 +1,8 @@
 # Google Maps Search App - Refactor Status
+# NOTE
+The Github repository for this project is at: https://github.com/rgriola/merkel-vision.git
+The current produciton version is at: https://merkelvision.com/landing.html
+Merkel Vision is name of the public facing application.
 
 **Last Updated**: 2025-12-21 19:22:00 EST  
 **Phase**: Phase 6 - Save/Edit Workflows & Map Integration + Security Hardening + UX Polish (🚧 IN PROGRESS - 88%)  
