@@ -1,0 +1,284 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+// User model
+model User {
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique
+  username           String    @unique
+  passwordHash       String
+  firstName          String?
+  lastName           String?
+  emailVerified      Boolean   @default(false)
+  verificationToken  String?
+  verificationTokenExpiry DateTime?  // Token expiration time
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  isActive           Boolean   @default(true)
+  isAdmin            Boolean   @default(false)
+  
+  // GPS Permission tracking
+  gpsPermission      String?   @default("not_asked") // 'not_asked', 'granted', 'denied'
+  gpsPermissionUpdated DateTime?  // When GPS permission was last changed
+  
+  // Profile fields
+  avatar             String?   @db.Text  // URL to profile picture
+  bio                String?   @db.Text  // User biography/about section
+  phoneNumber        String?
+  city               String?
+  country            String?
+  timezone           String?   // IANA timezone (e.g., "America/New_York")
+  language           String?   @default("en") // ISO 639-1 code (e.g., "en", "es")
+  
+  // Preferences
+  emailNotifications Boolean   @default(true)  // Email notification preference
+  
+  // Two-Factor Authentication
+  twoFactorEnabled   Boolean   @default(false)
+  twoFactorSecret    String?   // TOTP secret for 2FA
+  
+  // OAuth fields
+  googleId           String?   @unique
+  appleId            String?   @unique
+  
+  // Activity tracking
+  lastLoginAt        DateTime?
+  
+  // Soft delete
+  deletedAt          DateTime?  // Null = active, set = soft deleted
+  
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  
+  // Relations
+  savedLocations     UserSave[]
+  sessions           Session[]
+  createdLocations   Location[] @relation("LocationCreator")
+  modifiedLocations  Location[] @relation("LocationModifier")
+  uploadedPhotos     Photo[]    @relation("PhotoUploader")
+  projects           Project[]
+  teamMemberships    TeamMember[] @relation("TeamMember")
+  invitedTeamMembers TeamMember[] @relation("TeamInviter")
+  
+  @@map("users")
+}
+
+// Location model
+model Location {
+  id                 Int       @id @default(autoincrement())
+  placeId            String    @unique
+  name               String
+  address            String?   @db.Text  // formatted_address from old schema
+  lat                Float
+  lng                Float
+  type               String?
+  
+  // Detailed address components
+  street             String?
+  number             String?
+  city               String?
+  state              String?
+  zipcode            String?
+  
+  // Production & access details
+  productionNotes    String?   @db.Text
+  entryPoint         String?   @db.Text
+  parking            String?   @db.Text
+  access             String?   @db.Text
+  
+  // Additional metadata
+  rating             Float?
+  isPermanent        Boolean   @default(false)
+  
+  // Production & Logistics
+  permitRequired     Boolean   @default(false)
+  permitCost         Float?
+  contactPerson      String?
+  contactPhone       String?
+  operatingHours     String?   // "9am-5pm M-F"
+  restrictions       String?   @db.Text  // "No drones", "No flash photography"
+  indoorOutdoor      String?   // "indoor", "outdoor", "both"
+  bestTimeOfDay      String?   // "morning", "afternoon", "golden hour"
+  
+  // Audit trail
+  createdBy          Int       // User who created this location
+  lastModifiedBy     Int?      // User who last modified (null if never modified)
+  lastModifiedAt     DateTime? // When last modified (null if never modified)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  
+  // Relations
+  creator            User              @relation("LocationCreator", fields: [createdBy], references: [id], onDelete: Cascade)
+  lastModifier       User?             @relation("LocationModifier", fields: [lastModifiedBy], references: [id], onDelete: SetNull)
+  savedBy            UserSave[]
+  contacts           LocationContact[]
+  projectLocations   ProjectLocation[]
+  
+  @@map("locations")
+}
+
+// Many-to-many relationship
+model UserSave {
+  id                 Int       @id @default(autoincrement())
+  userId             Int
+  locationId         Int
+  savedAt            DateTime  @default(now())
+  caption            String?   @db.Text
+  
+  // Organization & filtering
+  tags               Json?              // Array of tags: ["restaurant", "filming", "exterior"]
+  isFavorite         Boolean   @default(false)  // Star/favorite flag
+  
+  // Personal tracking
+  personalRating     Float?             // User's own 1-5 rating
+  visitedAt          DateTime?          // When actually visited
+  
+  // UI customization
+  color              String?            // Hex color for map marker (#FF5733)
+  
+  // Relations
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location           Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, locationId])
+  @@map("user_saves")
+}
+
+// Session model - Enhanced with security tracking
+model Session {
+  id                 String    @id @default(cuid())
+  userId             Int
+  token              String    @unique @db.VarChar(500)  // JWT token
+  expiresAt          DateTime
+  createdAt          DateTime  @default(now())
+  
+  // Session tracking
+  lastAccessed       DateTime  @default(now())  // Last time session was used
+  userAgent          String?   @db.Text         // Browser/client info
+  ipAddress          String?                    // IP address
+  isActive           Boolean   @default(true)   // Active/inactive flag
+  
+  // Enhanced device & location tracking
+  deviceType         String?                    // "desktop", "mobile", "tablet"
+  deviceName         String?                    // "Chrome on MacBook", "Safari on iPhone"
+  loginMethod        String?                    // "password", "google", "apple"
+  country            String?                    // Geographic location
+  
+  // Relations
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+// Photo model - ImageKit integration
+model Photo {
+  id                 Int       @id @default(autoincrement())
+  placeId            String    // Google Place ID (not FK to allow photos before location created)
+  userId             Int?      // User who uploaded (nullable for system uploads)
+  
+  // ImageKit fields
+  imagekitFileId     String    // ImageKit unique file ID
+  imagekitFilePath   String    // ImageKit storage path
+  originalFilename   String?   // Original filename from upload
+  
+  // File metadata
+  fileSize           Int?      // File size in bytes
+  mimeType           String?   // MIME type (e.g., image/jpeg)
+  width              Int?      // Image width in pixels
+  height             Int?      // Image height in pixels
+  
+  // Photo properties
+  isPrimary          Boolean   @default(false)  // Primary/featured photo for location
+  caption            String?   @db.Text         // Photo caption/description
+  
+  // Timestamps
+  uploadedAt         DateTime  @default(now())
+  
+  // Relations
+  uploader           User?     @relation("PhotoUploader", fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@map("photos")
+  @@index([placeId])  // Index for fast lookup by place
+  @@index([userId])   // Index for user's photos
+}
+
+// Project model - Organize locations into shoots/campaigns
+model Project {
+  id                 Int       @id @default(autoincrement())
+  userId             Int       // Project owner
+  name               String    // "Summer 2024 Campaign"
+  description        String?   @db.Text
+  startDate          DateTime?
+  endDate            DateTime?
+  budget             Float?
+  status             String    @default("planning")  // planning/active/completed/archived
+  color              String?   // UI color coding (#FF5733)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  
+  // Relations
+  owner              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locations          ProjectLocation[]
+  
+  @@map("projects")
+}
+
+// Many-to-many: Projects to Locations
+model ProjectLocation {
+  id                 Int       @id @default(autoincrement())
+  projectId          Int
+  locationId         Int
+  shootDate          DateTime? // Planned shoot date
+  notes              String?   @db.Text
+  addedAt            DateTime  @default(now())
+  
+  // Relations
+  project            Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  location           Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  
+  @@unique([projectId, locationId])
+  @@map("project_locations")
+}
+
+// Location Contact model - Property owners, managers, etc.
+model LocationContact {
+  id                 Int       @id @default(autoincrement())
+  locationId         Int
+  name               String
+  role               String?   // "Owner", "Manager", "Security"
+  email              String?
+  phone              String?
+  notes              String?   @db.Text
+  createdAt          DateTime  @default(now())
+  
+  // Relations
+  location           Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  
+  @@map("location_contacts")
+}
+
+// Team Member model - Share access with crew
+model TeamMember {
+  id                 Int       @id @default(autoincrement())
+  userId             Int       // Team member user ID
+  invitedBy          Int       // Who invited them
+  role               String    @default("viewer")  // viewer/editor/admin
+  joinedAt           DateTime  @default(now())
+  
+  // Relations
+  user               User      @relation("TeamMember", fields: [userId], references: [id], onDelete: Cascade)
+  inviter            User      @relation("TeamInviter", fields: [invitedBy], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, invitedBy])  // Can't invite same user twice
+  @@map("team_members")
+}

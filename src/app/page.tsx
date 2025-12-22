@@ -1,0 +1,130 @@
+"use client";
+
+import Link from "next/link";
+import { MapPin, Save, Image as ImageIcon, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth-context";
+
+export default function Home() {
+  const { user } = useAuth();
+
+  return (
+    <div className="flex flex-col">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950">
+        <div className="container py-24 md:py-32">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+              <MapPin className="h-4 w-4" />
+              Enhanced Google Maps Experience
+            </div>
+            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl">
+              Save and Organize Your Favorite{" "}
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Locations
+              </span>
+            </h1>
+            <p className="mb-8 text-lg text-muted-foreground sm:text-xl">
+              Search Google Maps, save locations with custom notes and photos,
+              and organize your discoveries all in one place.
+            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+              {user ? (
+                <Button size="lg" asChild>
+                  <Link href="/map">
+                    <MapPin className="mr-2 h-5 w-5" />
+                    Open Map
+                  </Link>
+                </Button>
+              ) : (
+                <>
+                  <Button size="lg" asChild>
+                    <Link href="/register">Get Started</Link>
+                  </Button>
+                  <Button size="lg" variant="outline" asChild>
+                    <Link href="/login">Sign In</Link>
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+        {/* Gradient Blur Effects */}
+        <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl" />
+      </section>
+
+      {/* Features Section */}
+      <section className="container py-16 md:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+              Everything You Need
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Powerful features to enhance your location management
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader>
+                <MapPin className="mb-2 h-10 w-10 text-blue-600" />
+                <CardTitle>Google Maps Integration</CardTitle>
+                <CardDescription>
+                  Search and discover locations using Google Maps Places API
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Save className="mb-2 h-10 w-10 text-green-600" />
+                <CardTitle>Save Locations</CardTitle>
+                <CardDescription>
+                  Save your favorite places with custom captions and notes
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <ImageIcon className="mb-2 h-10 w-10 text-purple-600" />
+                <CardTitle>Photo Uploads</CardTitle>
+                <CardDescription>
+                  Add photos to your saved locations using ImageKit
+                </CardDescription>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader>
+                <Lock className="mb-2 h-10 w-10 text-orange-600" />
+                <CardTitle>Secure & Private</CardTitle>
+                <CardDescription>
+                  Your data is protected with industry-standard security
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      {!user && (
+        <section className="bg-muted/50">
+          <div className="container py-16 md:py-24">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+                Ready to Get Started?
+              </h2>
+              <p className="mb-8 text-lg text-muted-foreground">
+                Create your free account today and start organizing your favorite locations.
+              </p>
+              <Button size="lg" asChild>
+                <Link href="/register">Create Free Account</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
