@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useUpdateLocation } from "@/hooks/useUpdateLocation";
 import { MapPin, Tag, X, Save } from "lucide-react";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
+import { TYPE_COLOR_MAP, LOCATION_TYPES } from "@/lib/location-constants";
 import { UserSave, Location } from "@/types/location";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
 
@@ -46,24 +47,7 @@ interface EditLocationPanelProps {
     onCancel?: () => void;
 }
 
-// Type-to-Color mapping
-const TYPE_COLOR_MAP: Record<string, string> = {
-    "BROLL": "#3B82F6",
-    "STORY": "#EF4444",
-    "INTERVIEW": "#8B5CF6",
-    "LIVE ANCHOR": "#DC2626",
-    "REPORTER LIVE": "#F59E0B",
-    "STAKEOUT": "#6B7280",
-    "DRONE": "#06B6D4",
-    "SCENE": "#22C55E",
-    "EVENT": "#84CC16",
-    "OTHER": "#64748B",
-    "HQ": "#1E40AF",
-    "BUREAU": "#7C3AED",
-    "REMOTE STAFF": "#EC4899",
-};
 
-const LOCATION_TYPES = Object.keys(TYPE_COLOR_MAP);
 
 export function EditLocationPanel({
     locationId,

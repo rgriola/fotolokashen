@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, Star, SlidersHorizontal } from "lucide-react";
+import { LOCATION_TYPES } from "@/lib/location-constants";
 
 interface LocationFiltersProps {
     onSearchChange: (search: string) => void;
@@ -13,16 +14,7 @@ interface LocationFiltersProps {
     onSortChange: (sort: string) => void;
 }
 
-const LOCATION_TYPES = [
-    "restaurant",
-    "cafe",
-    "park",
-    "museum",
-    "hotel",
-    "landmark",
-    "store",
-    "other",
-];
+
 
 export function LocationFilters({
     onSearchChange,
@@ -98,7 +90,7 @@ export function LocationFilters({
                                 <SelectItem value="all">All types</SelectItem>
                                 {LOCATION_TYPES.map((type) => (
                                     <SelectItem key={type} value={type}>
-                                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        {type}
                                     </SelectItem>
                                 ))}
                             </SelectContent>

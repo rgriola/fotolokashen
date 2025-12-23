@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useSaveLocation } from "@/hooks/useSaveLocation";
 import { MapPin, Tag, X, Zap } from "lucide-react";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
+import { TYPE_COLOR_MAP, LOCATION_TYPES } from "@/lib/location-constants";
 
 const saveLocationSchema = z.object({
     placeId: z.string().min(1, "Place ID is required"),
@@ -51,24 +52,7 @@ interface SaveLocationPanelProps {
     onCancel?: () => void;
 }
 
-// Type-to-Color mapping - contrast compliant colors for map markers
-const TYPE_COLOR_MAP: Record<string, string> = {
-    "BROLL": "#3B82F6",        // Blue - general footage
-    "STORY": "#EF4444",        // Red - primary story location
-    "INTERVIEW": "#8B5CF6",    // Purple - interview subjects
-    "LIVE ANCHOR": "#DC2626",  // Dark Red - live broadcast
-    "REPORTER LIVE": "#F59E0B", // Orange - reporter on scene
-    "STAKEOUT": "#6B7280",     // Gray - surveillance
-    "DRONE": "#06B6D4",        // Cyan - aerial footage
-    "SCENE": "#22C55E",        // Green - scene location
-    "EVENT": "#84CC16",        // Lime - special events
-    "OTHER": "#64748B",        // Slate - miscellaneous
-    "HQ": "#1E40AF",           // Dark Blue - headquarters
-    "BUREAU": "#7C3AED",       // Violet - bureau office
-    "REMOTE STAFF": "#EC4899", // Pink - remote workers
-};
 
-const LOCATION_TYPES = Object.keys(TYPE_COLOR_MAP);
 
 export function SaveLocationPanel({
     initialData,

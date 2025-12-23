@@ -8,6 +8,7 @@ import type { Location } from "@/types/location";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
+import { TYPE_COLOR_MAP } from "@/lib/location-constants";
 
 interface LocationCardProps {
     location: Location;
@@ -19,21 +20,7 @@ interface LocationCardProps {
 }
 
 // Type-to-Color mapping (same as map markers)
-const TYPE_COLOR_MAP: Record<string, string> = {
-    "BROLL": "#3B82F6",
-    "STORY": "#EF4444",
-    "INTERVIEW": "#8B5CF6",
-    "LIVE ANCHOR": "#DC2626",
-    "REPORTER LIVE": "#F59E0B",
-    "STAKEOUT": "#6B7280",
-    "DRONE": "#06B6D4",
-    "SCENE": "#22C55E",
-    "EVENT": "#84CC16",
-    "OTHER": "#64748B",
-    "HQ": "#1E40AF",
-    "BUREAU": "#7C3AED",
-    "REMOTE STAFF": "#EC4899",
-};
+
 
 export function LocationCard({
     location,
