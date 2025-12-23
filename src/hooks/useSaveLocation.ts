@@ -9,6 +9,7 @@ interface SaveLocationData {
     lat: number;
     lng: number;
     type?: string;
+    indoorOutdoor?: string; // "indoor" | "outdoor" | "both"
     street?: string;
     number?: string;
     city?: string;
@@ -32,6 +33,8 @@ export function useSaveLocation() {
 
     return useMutation({
         mutationFn: async (data: SaveLocationData) => {
+            console.log('[useSaveLocation] Original data:', data);
+
             // Map frontend field names to API field names
             const apiData = {
                 ...data,
@@ -47,6 +50,8 @@ export function useSaveLocation() {
             const photos = data.photos;
             delete (apiData as any).photos;
 
+            console.log('[useSaveLocation] Transformed apiData:', apiData);
+
             // Save location first
             const response = await fetch('/api/locations', {
                 method: 'POST',
@@ -59,7 +64,10 @@ export function useSaveLocation() {
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.message || 'Failed to save location');
+                // Create a custom error with code for better handling
+                const customError: any = new Error(error.message || 'Failed to save location');
+                customError.code = error.code;
+                throw customError;
             }
 
             const result = await response.json();
@@ -90,8 +98,13 @@ export function useSaveLocation() {
             queryClient.invalidateQueries({ queryKey: ['locations'] });
             toast.success('Location saved successfully!');
         },
-        onError: (error: Error) => {
-            toast.error(error.message || 'Failed to save location');
+        onError: (error: any) => {
+            // Show different message for "already saved" vs other errors
+            if (error.code === 'ALREADY_SAVED') {
+                toast.warning(error.message || 'This location is already in your saved locations');
+            } else {
+                toast.error(error.message || 'Failed to save location');
+            }
         },
     });
 }

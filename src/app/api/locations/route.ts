@@ -70,7 +70,24 @@ export async function GET(request: NextRequest) {
             take: 100, // Limit for performance
         });
 
-        return apiResponse({ locations: userSaves });
+        // Fetch photos for each location (Photo model uses placeId)
+        const locationsWithPhotos = await Promise.all(
+            userSaves.map(async (userSave) => {
+                const photos = await prisma.photo.findMany({
+                    where: { placeId: userSave.location.placeId },
+                    orderBy: [{ isPrimary: 'desc' }, { uploadedAt: 'asc' }],
+                });
+                return {
+                    ...userSave,
+                    location: {
+                        ...userSave.location,
+                        photos,
+                    },
+                };
+            })
+        );
+
+        return apiResponse({ locations: locationsWithPhotos });
     } catch (error: any) {
         console.error('Error fetching locations:', error);
         return apiError('Failed to fetch locations', 500, 'FETCH_ERROR');
@@ -100,6 +117,8 @@ export async function POST(request: NextRequest) {
             street, number, city, state, zipcode,
             // Production details
             productionNotes, entryPoint, parking, access,
+            // Indoor/Outdoor
+            indoorOutdoor,
             // Photo data
             isPermanent
         } = body;
@@ -113,9 +132,26 @@ export async function POST(request: NextRequest) {
         parking = parking ? sanitizeText(parking) : undefined;
         access = access ? sanitizeText(access) : undefined;
 
+        // Debug logging - see what we received
+        console.log('[Save Location] Received data:', {
+            placeId,
+            name,
+            address,
+            latitude,
+            longitude,
+            type,
+            indoorOutdoor,
+        });
+
         // Validation - Required fields
         if (!placeId || !name || !address || latitude === undefined || longitude === undefined) {
-            console.error('[Save Location] Missing required fields:', { placeId: !!placeId, name: !!name, address: !!address, latitude, longitude });
+            console.error('[Save Location] Missing required fields:', {
+                placeId: !!placeId,
+                name: !!name,
+                address: !!address,
+                latitude,
+                longitude
+            });
             return apiError('Missing required fields', 400, 'VALIDATION_ERROR');
         }
 
@@ -164,6 +200,7 @@ export async function POST(request: NextRequest) {
 
         // If location doesn't exist, create it
         if (!location) {
+            console.log('[Save Location] Creating new location in database:', { placeId, name });
             location = await prisma.location.create({
                 data: {
                     placeId,
@@ -184,10 +221,19 @@ export async function POST(request: NextRequest) {
                     ...(entryPoint && { entryPoint }),
                     ...(parking && { parking }),
                     ...(access && { access }),
+                    // Indoor/Outdoor
+                    ...(indoorOutdoor && { indoorOutdoor }),
                     // Metadata
                     ...(isPermanent !== undefined && { isPermanent }),
                     createdBy: user.id, // Set creator
                 },
+            });
+            console.log('[Save Location] New location created with ID:', location.id);
+        } else {
+            console.log('[Save Location] Location already exists in database:', {
+                locationId: location.id,
+                placeId,
+                name: location.name
             });
         }
 
@@ -202,8 +248,16 @@ export async function POST(request: NextRequest) {
         });
 
         if (existingSave) {
+            console.error('[Save Location] Location already saved:', {
+                userId: user.id,
+                locationId: location.id,
+                placeId,
+                existingSaveId: existingSave.id
+            });
             return apiError('Location already saved', 400, 'ALREADY_SAVED');
         }
+
+        console.log('[Save Location] Location not yet saved, proceeding with UserSave creation');
 
         // Extract UserSave fields from body
         const { tags, isFavorite, personalRating, color } = body;

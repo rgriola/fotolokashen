@@ -9,9 +9,10 @@ interface CustomMarkerProps {
     onClick?: () => void;
     isTemporary?: boolean; // New prop to identify temporary markers
     icon?: string | google.maps.Icon | google.maps.Symbol; // Allow custom icons
+    color?: string; // Marker color (hex code)
 }
 
-export function CustomMarker({ position, title, onClick, isTemporary = false, icon }: CustomMarkerProps) {
+export function CustomMarker({ position, title, onClick, isTemporary = false, icon, color = '#EF4444' }: CustomMarkerProps) {
     const [marker, setMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
     const markerRef = useRef<HTMLDivElement | null>(null);
 
@@ -35,7 +36,7 @@ export function CustomMarker({ position, title, onClick, isTemporary = false, ic
                 <div style="
                     width: 40px;
                     height: 40px;
-                    background: #EF4444;
+                    background: ${color};
                     border-radius: 4px;
                     display: flex;
                     align-items: center;
@@ -60,7 +61,7 @@ export function CustomMarker({ position, title, onClick, isTemporary = false, ic
                     height: 0;
                     border-left: 8px solid transparent;
                     border-right: 8px solid transparent;
-                    border-top: 8px solid #EF4444;
+                    border-top: 8px solid ${color};
                 "></div>
             </div>
         `;
@@ -86,7 +87,7 @@ export function CustomMarker({ position, title, onClick, isTemporary = false, ic
             }
             advancedMarker.map = null;
         };
-    }, [position, title, onClick, isTemporary]);
+    }, [position, title, onClick, isTemporary, color]);
 
     // Attach marker to map when it changes
     useEffect(() => {
@@ -96,8 +97,9 @@ export function CustomMarker({ position, title, onClick, isTemporary = false, ic
         }
     }, [marker]);
 
-    // For non-temporary markers or fallback, use standard Marker
-    if (!isTemporary || icon) {
+    // Only use standard marker if a custom icon is explicitly provided
+    // Otherwise, use the camera marker for all locations (with type-specific colors)
+    if (icon) {
         return (
             <MarkerF
                 position={position}
@@ -108,9 +110,8 @@ export function CustomMarker({ position, title, onClick, isTemporary = false, ic
         );
     }
 
-    // For temporary markers with Advanced Marker support
-    // We need to use a different approach since AdvancedMarker isn't directly supported by react-google-maps
-    // Let's use a custom icon instead for now
+    // Camera marker for all locations (with type-specific colors)
+    // Uses custom SVG icon with dynamic color fill
     return (
         <MarkerF
             position={position}
@@ -120,7 +121,7 @@ export function CustomMarker({ position, title, onClick, isTemporary = false, ic
                 url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
                     <svg width="40" height="48" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
                         <!-- Square with border -->
-                        <rect x="0" y="0" width="40" height="40" rx="4" fill="#EF4444" stroke="white" stroke-width="2"/>
+                        <rect x="0" y="0" width="40" height="40" rx="4" fill="${color}" stroke="white" stroke-width="2"/>
                         
                         <!-- Camera icon -->
                         <g transform="translate(10, 10)">
@@ -130,7 +131,7 @@ export function CustomMarker({ position, title, onClick, isTemporary = false, ic
                         </g>
                         
                         <!-- Pointer/Pin at bottom (pointing down) -->
-                        <path d="M 20 48 L 12 40 L 28 40 Z" fill="#EF4444"/>
+                        <path d="M 20 48 L 12 40 L 28 40 Z" fill="${color}"/>
                     </svg>
                 `),
                 scaledSize: new google.maps.Size(40, 48),

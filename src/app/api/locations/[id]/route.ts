@@ -119,6 +119,7 @@ export async function PATCH(
                 ...(body.entryPoint !== undefined && { entryPoint: body.entryPoint }),
                 ...(body.parking !== undefined && { parking: body.parking }),
                 ...(body.access !== undefined && { access: body.access }),
+                ...(body.indoorOutdoor !== undefined && { indoorOutdoor: body.indoorOutdoor }),
                 // Metadata
                 ...(body.isPermanent !== undefined && { isPermanent: body.isPermanent }),
                 // Audit trail
@@ -147,7 +148,109 @@ export async function PATCH(
             },
         });
 
-        return apiResponse({ location: updatedLocation });
+        // Update UserSave fields if provided
+        let userSave = null;
+        const hasUserSaveUpdates = body.caption !== undefined ||
+            body.tags !== undefined ||
+            body.isFavorite !== undefined ||
+            body.personalRating !== undefined ||
+            body.color !== undefined;
+
+        if (hasUserSaveUpdates) {
+            // Find user's save for this location
+            const existingUserSave = await prisma.userSave.findFirst({
+                where: {
+                    userId: user.id,
+                    locationId: id,
+                },
+            });
+
+            if (existingUserSave) {
+                userSave = await prisma.userSave.update({
+                    where: { id: existingUserSave.id },
+                    data: {
+                        ...(body.caption !== undefined && { caption: body.caption }),
+                        ...(body.tags !== undefined && { tags: body.tags }),
+                        ...(body.isFavorite !== undefined && { isFavorite: body.isFavorite }),
+                        ...(body.personalRating !== undefined && { personalRating: body.personalRating }),
+                        ...(body.color !== undefined && { color: body.color }),
+                    },
+                });
+            }
+        }
+
+        // Handle photo updates if provided
+        if (body.photos && Array.isArray(body.photos)) {
+            // Separate new photos from existing photos
+            const newPhotos = body.photos.filter((photo: any) => !photo.id);
+            const existingPhotos = body.photos.filter((photo: any) => photo.id);
+
+            // Update existing photos (caption, isPrimary, etc.)
+            for (const photo of existingPhotos) {
+                await prisma.photo.update({
+                    where: { id: photo.id },
+                    data: {
+                        caption: photo.caption || null,
+                        isPrimary: photo.isPrimary || false,
+                    },
+                });
+            }
+
+            // Create new photos
+            if (newPhotos.length > 0) {
+                await prisma.photo.createMany({
+                    data: newPhotos.map((photo: any, index: number) => ({
+                        placeId: location.placeId,
+                        userId: user.id,
+                        imagekitFileId: photo.imagekitFileId,
+                        imagekitFilePath: photo.imagekitFilePath,
+                        originalFilename: photo.originalFilename,
+                        fileSize: photo.fileSize,
+                        mimeType: photo.mimeType,
+                        width: photo.width,
+                        height: photo.height,
+                        isPrimary: index === 0 && body.photos.length === newPhotos.length, // Only set primary if all photos are new
+                        caption: photo.caption || null,
+                    })),
+                });
+            }
+        }
+
+        // Fetch updated location with photos to return
+        const finalLocation = await prisma.location.findUnique({
+            where: { id },
+            include: {
+                creator: {
+                    select: {
+                        id: true,
+                        username: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                    },
+                },
+                lastModifier: {
+                    select: {
+                        id: true,
+                        username: true,
+                        email: true,
+                        firstName: true,
+                        lastName: true,
+                    },
+                },
+            },
+        });
+
+        // Fetch photos separately (Photo model uses placeId, not locationId FK)
+        const photos = await prisma.photo.findMany({
+            where: { placeId: location.placeId },
+            orderBy: [{ isPrimary: 'desc' }, { uploadedAt: 'asc' }],
+        });
+
+        return apiResponse({
+            location: { ...finalLocation, photos },
+            userSave
+        });
     } catch (error: any) {
         if (error.message === 'UNAUTHORIZED') {
             return apiError('Authentication required', 401, 'UNAUTHORIZED');

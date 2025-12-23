@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
 import { Header } from "@/components/layout/Header";
 import { ConditionalFooter } from "@/components/layout/ConditionalFooter";
+import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { GoogleMapsProvider } from "@/lib/GoogleMapsProvider";
 
 const geistSans = Geist({
@@ -34,11 +35,11 @@ export default function RootLayout({
       >
         <Providers>
           <GoogleMapsProvider>
-            <div className="flex min-h-screen flex-col">
+            <LayoutWrapper>
               <Header />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 overflow-hidden">{children}</main>
               <ConditionalFooter />
-            </div>
+            </LayoutWrapper>
             <Toaster />
           </GoogleMapsProvider>
         </Providers>

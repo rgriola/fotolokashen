@@ -10,25 +10,18 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useSaveLocation } from "@/hooks/useSaveLocation";
-import { MapPin, Tag, X, Zap } from "lucide-react";
+import { useUpdateLocation } from "@/hooks/useUpdateLocation";
+import { MapPin, Tag, X, Save } from "lucide-react";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
+import { UserSave, Location } from "@/types/location";
+import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
 
-const saveLocationSchema = z.object({
-    placeId: z.string().min(1, "Place ID is required"),
+const editLocationSchema = z.object({
+    id: z.number(),
     name: z.string().min(1, "Location name is required"),
     address: z.string().optional(),
-    lat: z.number(),
-    lng: z.number(),
-    type: z.string().min(1, "Type is required"), // Made required
+    type: z.string().min(1, "Type is required"),
     indoorOutdoor: z.enum(["indoor", "outdoor", "both"]).optional(),
-
-    // Address components
-    street: z.string().optional(),
-    number: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    zipcode: z.string().optional(),
 
     // Production details
     productionNotes: z.string().max(500).optional(),
@@ -40,140 +33,139 @@ const saveLocationSchema = z.object({
     caption: z.string().max(200).optional(),
     isFavorite: z.boolean().optional(),
     personalRating: z.number().min(0).max(5).optional(),
-    color: z.string().optional(), // Will be auto-assigned based on type
+    color: z.string().optional(),
 });
 
-type SaveLocationFormData = z.infer<typeof saveLocationSchema>;
+type EditLocationFormData = z.infer<typeof editLocationSchema>;
 
-interface SaveLocationPanelProps {
-    initialData?: Partial<SaveLocationFormData>;
+interface EditLocationPanelProps {
+    locationId: number;
+    location: Location;
+    userSave: UserSave;
     onSuccess?: () => void;
     onCancel?: () => void;
 }
 
-// Type-to-Color mapping - contrast compliant colors for map markers
+// Type-to-Color mapping
 const TYPE_COLOR_MAP: Record<string, string> = {
-    "BROLL": "#3B82F6",        // Blue - general footage
-    "STORY": "#EF4444",        // Red - primary story location
-    "INTERVIEW": "#8B5CF6",    // Purple - interview subjects
-    "LIVE ANCHOR": "#DC2626",  // Dark Red - live broadcast
-    "REPORTER LIVE": "#F59E0B", // Orange - reporter on scene
-    "STAKEOUT": "#6B7280",     // Gray - surveillance
-    "DRONE": "#06B6D4",        // Cyan - aerial footage
-    "SCENE": "#22C55E",        // Green - scene location
-    "EVENT": "#84CC16",        // Lime - special events
-    "OTHER": "#64748B",        // Slate - miscellaneous
-    "HQ": "#1E40AF",           // Dark Blue - headquarters
-    "BUREAU": "#7C3AED",       // Violet - bureau office
-    "REMOTE STAFF": "#EC4899", // Pink - remote workers
+    "BROLL": "#3B82F6",
+    "STORY": "#EF4444",
+    "INTERVIEW": "#8B5CF6",
+    "LIVE ANCHOR": "#DC2626",
+    "REPORTER LIVE": "#F59E0B",
+    "STAKEOUT": "#6B7280",
+    "DRONE": "#06B6D4",
+    "SCENE": "#22C55E",
+    "EVENT": "#84CC16",
+    "OTHER": "#64748B",
+    "HQ": "#1E40AF",
+    "BUREAU": "#7C3AED",
+    "REMOTE STAFF": "#EC4899",
 };
 
 const LOCATION_TYPES = Object.keys(TYPE_COLOR_MAP);
 
-export function SaveLocationPanel({
-    initialData,
+export function EditLocationPanel({
+    locationId,
+    location,
+    userSave,
     onSuccess,
     onCancel,
-}: SaveLocationPanelProps) {
-    const [tags, setTags] = useState<string[]>([]);
+}: EditLocationPanelProps) {
+    const [tags, setTags] = useState<string[]>(userSave.tags || []);
     const [tagInput, setTagInput] = useState("");
+
     const [photos, setPhotos] = useState<any[]>([]);
 
-    const saveLocation = useSaveLocation();
+    const updateLocation = useUpdateLocation();
 
-    const form = useForm<SaveLocationFormData>({
-        resolver: zodResolver(saveLocationSchema),
+    const form = useForm<EditLocationFormData>({
+        resolver: zodResolver(editLocationSchema),
         defaultValues: {
-            placeId: initialData?.placeId || "",
-            name: initialData?.name || "",
-            address: initialData?.address || "",
-            lat: initialData?.lat || 0,
-            lng: initialData?.lng || 0,
-            type: initialData?.type || "",
-            indoorOutdoor: initialData?.indoorOutdoor || "outdoor", // Default to outdoor
-            street: initialData?.street || "",
-            number: initialData?.number || "",
-            city: initialData?.city || "",
-            state: initialData?.state || "",
-            zipcode: initialData?.zipcode || "",
-            isFavorite: initialData?.isFavorite || false,
-            personalRating: initialData?.personalRating || 0,
-            color: initialData?.color || "", // Auto-assigned based on type
-            ...initialData,
+            id: locationId,
+            name: location.name,
+            address: location.address || "",
+            type: location.type || "",
+            indoorOutdoor: (location.indoorOutdoor as "indoor" | "outdoor" | "both") || "outdoor",
+            productionNotes: location.productionNotes || "",
+            entryPoint: location.entryPoint || "",
+            parking: location.parking || "",
+            access: location.access || "",
+            caption: userSave.caption || "",
+            isFavorite: userSave.isFavorite || false,
+            personalRating: userSave.personalRating || 0,
+            color: userSave.color || TYPE_COLOR_MAP[location.type || ""] || "",
         },
     });
 
-    // Update form when initialData changes
+    // Reset form and state when location changes
     useEffect(() => {
-        if (initialData) {
-            form.reset({
-                placeId: initialData.placeId || "",
-                name: initialData.name || "",
-                address: initialData.address || "",
-                lat: initialData.lat || 0,
-                lng: initialData.lng || 0,
-                type: initialData.type || "",
-                street: initialData.street || "",
-                number: initialData.number || "",
-                city: initialData.city || "",
-                state: initialData.state || "",
-                zipcode: initialData.zipcode || "",
-                isFavorite: initialData.isFavorite || false,
-                personalRating: initialData.personalRating || 0,
-                color: initialData.color || "#EF4444",
-                ...initialData,
-            });
-        }
-    }, [initialData, form]);
+        // Recalculate photos from current location data
+        const newPhotos = (location.photos || []).map((photo: any) => ({
+            id: photo.id,
+            imagekitFileId: photo.imagekitFileId,
+            imagekitFilePath: photo.imagekitFilePath,
+            originalFilename: photo.originalFilename,
+            fileSize: photo.fileSize || 0,
+            mimeType: photo.mimeType || 'image/jpeg',
+            width: photo.width,
+            height: photo.height,
+            url: `${IMAGEKIT_URL_ENDPOINT}${photo.imagekitFilePath}`, // Construct full ImageKit URL
+            isPrimary: photo.isPrimary,
+            caption: photo.caption,
+        }));
 
-    const onSubmit = (data: SaveLocationFormData) => {
-        // Ensure color is assigned based on type
+        // Reset photos
+        setPhotos(newPhotos);
+
+        // Reset tags
+        setTags(userSave.tags || []);
+
+        // Reset form with new location data
+        form.reset({
+            id: locationId,
+            name: location.name,
+            address: location.address || "",
+            type: location.type || "",
+            indoorOutdoor: (location.indoorOutdoor as "indoor" | "outdoor" | "both") || "outdoor",
+            productionNotes: location.productionNotes || "",
+            entryPoint: location.entryPoint || "",
+            parking: location.parking || "",
+            access: location.access || "",
+            caption: userSave.caption || "",
+            isFavorite: userSave.isFavorite || false,
+            personalRating: userSave.personalRating || 0,
+            color: userSave.color || TYPE_COLOR_MAP[location.type || ""] || "",
+        });
+    }, [locationId, location.photos, userSave.tags, userSave.caption, userSave.isFavorite, userSave.personalRating, userSave.color]); // Re-run when location or userSave changes
+
+    const onSubmit = (data: EditLocationFormData) => {
         const finalColor = data.color || TYPE_COLOR_MAP[data.type || ""] || "";
-        // Default indoorOutdoor to outdoor if not set
         const finalIndoorOutdoor = data.indoorOutdoor || "outdoor";
 
         const submitData = {
-            ...data,
-            color: finalColor,
+            id: data.id,
+            name: data.name,
+            type: data.type,
             indoorOutdoor: finalIndoorOutdoor,
+            productionNotes: data.productionNotes,
+            entryPoint: data.entryPoint,
+            parking: data.parking,
+            access: data.access,
+            caption: data.caption,
             tags: tags.length > 0 ? tags : undefined,
+            isFavorite: data.isFavorite,
+            personalRating: data.personalRating,
+            color: finalColor,
             photos: photos.length > 0 ? photos : undefined,
         };
 
-        // Debug: Log what we're about to send
-        console.log('[SaveLocationPanel] Submitting data:', submitData);
+        console.log('[EditLocationPanel] Updating location:', submitData);
 
-        saveLocation.mutate(
+        updateLocation.mutate(
             submitData,
             {
                 onSuccess: () => {
-                    form.reset();
-                    setTags([]);
-                    setPhotos([]);
-                    onSuccess?.();
-                },
-            }
-        );
-    };
-
-    const handleQuickSave = () => {
-        const data = form.getValues();
-        saveLocation.mutate(
-            {
-                placeId: data.placeId,
-                name: data.name,
-                address: data.address,
-                lat: data.lat,
-                lng: data.lng,
-                type: data.type,
-                isPermanent: false,
-            },
-            {
-                onSuccess: () => {
-                    console.log("Quick save successful - reminder email queued");
-                    form.reset();
-                    setTags([]);
-                    setPhotos([]);
                     onSuccess?.();
                 },
             }
@@ -184,8 +176,6 @@ export function SaveLocationPanel({
         if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 20) {
             setTags([...tags, tagInput.trim()]);
             setTagInput("");
-        } else if (tags.length >= 20) {
-            // Show error toast if needed
         }
     };
 
@@ -233,73 +223,18 @@ export function SaveLocationPanel({
                                 </div>
                             </div>
 
-                            {/* Address Components - Hidden for now */}
-                            {/* 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <Label htmlFor="number">Street Number</Label>
-                                    <Input
-                                        id="number"
-                                        {...form.register("number")}
-                                        placeholder="123"
-                                        readOnly
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="street">Street Name</Label>
-                                    <Input
-                                        id="street"
-                                        {...form.register("street")}
-                                        placeholder="Main St"
-                                        readOnly
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-3">
-                                <div className="col-span-2">
-                                    <Label htmlFor="city">City</Label>
-                                    <Input
-                                        id="city"
-                                        {...form.register("city")}
-                                        placeholder="New York"
-                                        readOnly
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="state">State</Label>
-                                    <Input
-                                        id="state"
-                                        {...form.register("state")}
-                                        placeholder="NY"
-                                        readOnly
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <Label htmlFor="zipcode">ZIP Code</Label>
-                                <Input
-                                    id="zipcode"
-                                    {...form.register("zipcode")}
-                                    placeholder="10001"
-                                    readOnly
-                                />
-                            </div>
-                            */}
-
                             {/* GPS Coordinates Display */}
                             <div className="grid grid-cols-2 gap-3 p-3 bg-muted/50 rounded-md border">
                                 <div>
                                     <Label className="text-xs text-muted-foreground">Latitude</Label>
                                     <p className="text-sm font-mono font-medium">
-                                        {form.watch("lat")?.toFixed(6) || "0.000000"}
+                                        {location.lat?.toFixed(6) || "0.000000"}
                                     </p>
                                 </div>
                                 <div>
                                     <Label className="text-xs text-muted-foreground">Longitude</Label>
                                     <p className="text-sm font-mono font-medium">
-                                        {form.watch("lng")?.toFixed(6) || "0.000000"}
+                                        {location.lng?.toFixed(6) || "0.000000"}
                                     </p>
                                 </div>
                             </div>
@@ -361,7 +296,7 @@ export function SaveLocationPanel({
                         </div>
                     </div>
 
-                    {/* Production Details - No header, Production Notes first */}
+                    {/* Production Details */}
                     <div className="space-y-4">
                         <div className="space-y-3">
                             <div>
@@ -490,12 +425,13 @@ export function SaveLocationPanel({
 
                     {/* Photo Upload */}
                     <div className="space-y-4">
-                        <h3 className="text-sm font-semibold">Photos (Optional)</h3>
+                        <h3 className="text-sm font-semibold">Photos (Max 20)</h3>
                         <ImageKitUploader
-                            placeId={form.watch("placeId")}
+                            placeId={location.placeId}
                             onPhotosChange={setPhotos}
                             maxPhotos={20}
                             maxFileSize={1.5}
+                            existingPhotos={photos}
                         />
                     </div>
                 </form>
@@ -508,34 +444,19 @@ export function SaveLocationPanel({
                         type="button"
                         variant="outline"
                         onClick={onCancel}
-                        disabled={saveLocation.isPending}
+                        disabled={updateLocation.isPending}
                         className="flex-1"
                     >
                         Cancel
                     </Button>
                     <Button
                         onClick={form.handleSubmit(onSubmit)}
-                        disabled={saveLocation.isPending}
+                        disabled={updateLocation.isPending}
                         className="flex-1"
                     >
-                        {saveLocation.isPending ? "Saving..." : "Save"}
+                        {updateLocation.isPending ? "Updating..." : "Update"}
                     </Button>
                 </div>
-
-                {/* Quick Save Button */}
-                <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleQuickSave}
-                    disabled={saveLocation.isPending || !form.watch("name")}
-                    className="w-full"
-                >
-                    <Zap className="w-4 h-4 mr-2" />
-                    Quick Save (Complete Later)
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                    Quick save stores basic info. You'll get a reminder email to complete details.
-                </p>
             </div>
         </div>
     );

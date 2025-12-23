@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 import { CustomMarker } from '@/components/maps/CustomMarker';
 import { InfoWindow } from '@/components/maps/InfoWindow';
@@ -8,18 +9,24 @@ import { PlacesAutocomplete } from '@/components/maps/PlacesAutocomplete';
 import { UserLocationMarker } from '@/components/maps/UserLocationMarker';
 import { RightSidebar } from '@/components/layout/RightSidebar';
 import { SaveLocationPanel } from '@/components/panels/SaveLocationPanel';
+import { EditLocationPanel } from '@/components/panels/EditLocationPanel';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LocationData, getUserLocation } from '@/lib/maps-utils';
 import { parseAddressComponents } from '@/lib/address-utils';
+import { useLocations } from '@/hooks/useLocations';
+import { UserSave } from '@/types/location';
 
 interface MarkerData {
     id: string;
     position: { lat: number; lng: number };
     data?: LocationData;
     isTemporary?: boolean; // True for markers not yet saved
+    userSave?: UserSave; // User save data if this is a saved location
+    color?: string; // Marker color for saved locations
 }
 
 function MapPageInner() {
+    const searchParams = useSearchParams();
     const [center, setCenter] = useState({ lat: 40.7128, lng: -74.006 }); // NYC default
     const [markers, setMarkers] = useState<MarkerData[]>([]);
     const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
@@ -28,7 +35,67 @@ function MapPageInner() {
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [sidebarView, setSidebarView] = useState<'save' | 'edit'>('save');
     const [locationToSave, setLocationToSave] = useState<MarkerData | null>(null);
+    const [locationToEdit, setLocationToEdit] = useState<MarkerData | null>(null);
+
+    // Load saved locations
+    const { data: locationsData, isLoading: isLoadingLocations } = useLocations();
+
+    // Populate markers from saved locations
+    useEffect(() => {
+        if (locationsData?.locations) {
+            const savedMarkers: MarkerData[] = locationsData.locations.map((userSave: any) => ({
+                id: `saved-${userSave.id}`,
+                position: {
+                    lat: userSave.location.lat,
+                    lng: userSave.location.lng,
+                },
+                data: {
+                    placeId: userSave.location.placeId,
+                    name: userSave.location.name,
+                    address: userSave.location.address,
+                    latitude: userSave.location.lat,
+                    longitude: userSave.location.lng,
+                    type: userSave.location.type,
+                    street: userSave.location.street,
+                    number: userSave.location.number,
+                    city: userSave.location.city,
+                    state: userSave.location.state,
+                    zipcode: userSave.location.zipcode,
+                },
+                isTemporary: false, // Saved locations are NOT temporary
+                userSave: userSave,
+                color: userSave.color || '#EF4444', // Use user's custom color or default red
+            }));
+
+            // Update markers, preserving any temporary markers
+            setMarkers(prev => {
+                const tempMarkers = prev.filter(m => m.isTemporary);
+                return [...savedMarkers, ...tempMarkers];
+            });
+        }
+    }, [locationsData]);
+
+    // Handle URL parameters (from My Locations page navigation)
+    useEffect(() => {
+        const lat = searchParams.get('lat');
+        const lng = searchParams.get('lng');
+        const zoom = searchParams.get('zoom');
+
+        if (lat && lng && map) {
+            const position = {
+                lat: parseFloat(lat),
+                lng: parseFloat(lng),
+            };
+
+            // Pan to the location with smooth animation
+            map.setOptions({
+                center: position,
+                zoom: zoom ? parseInt(zoom) : 17,
+            });
+        }
+    }, [searchParams, map]);
 
     const handleMapLoad = useCallback((mapInstance: google.maps.Map) => {
         setMap(mapInstance);
@@ -160,6 +227,15 @@ function MapPageInner() {
     }, [map, isSidebarOpen]);
 
     const handlePlaceSelected = useCallback((place: LocationData) => {
+        // Close SaveLocationPanel if open (same as map click flow)
+        if (isSidebarOpen) {
+            setIsSidebarOpen(false);
+            setLocationToSave(null);
+        }
+
+        // Remove all temporary markers before creating a new one (same as map click flow)
+        setMarkers((prev) => prev.filter((m) => !m.isTemporary));
+
         const newPosition = { lat: place.latitude, lng: place.longitude };
         setCenter(newPosition);
 
@@ -167,7 +243,7 @@ function MapPageInner() {
             id: place.placeId,
             position: newPosition,
             data: place,
-            isTemporary: false, // Search results are not temporary
+            isTemporary: true, // Mark as temporary so it uses custom red camera marker
         };
 
         setMarkers((prev) => [...prev, newMarker]);
@@ -175,14 +251,12 @@ function MapPageInner() {
 
         // Pan to location
         if (map) {
-            // map.panTo(newPosition);
-            // map.setZoom(16);
             map.setOptions({
                 center: newPosition,
                 zoom: 16,
             });
         }
-    }, [map]);
+    }, [map, isSidebarOpen]);
 
     const handleGPSClick = async () => {
         try {
@@ -283,7 +357,19 @@ function MapPageInner() {
 
     const handleMarkerClick = useCallback((marker: MarkerData) => {
         setSelectedMarker(marker);
-    }, []);
+
+        // Zoom to street level and pan to marker
+        if (map) {
+            //  map.panTo(marker.position);
+            //  map.setZoom(17);
+
+            map.setOptions({
+                center: marker.position,
+                zoom: 17,
+            });
+
+        }
+    }, [map]);
 
     const handleInfoWindowClose = useCallback(() => {
         // If the selected marker is temporary (not saved), remove it from the map
@@ -358,6 +444,7 @@ function MapPageInner() {
                             title={marker.data?.name || 'Custom location'}
                             onClick={() => handleMarkerClick(marker)}
                             isTemporary={marker.isTemporary} // Pass temporary status
+                            color={marker.color} // Pass marker color
                         />
                     ))}
 
@@ -389,62 +476,82 @@ function MapPageInner() {
                                     </div>
                                 )}
                                 <div className="flex gap-2 mt-2">
-                                    <button
-                                        onClick={() => {
-                                            setLocationToSave(selectedMarker);
-                                            setIsSidebarOpen(true);
-                                        }}
-                                        className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 transition-colors"
-                                    >
-                                        Save
-                                    </button>
-                                    <button
-                                        onClick={async () => {
-                                            // Quick Save: save with minimal info
-                                            if (!selectedMarker.data) return;
+                                    {/* Edit button for saved locations */}
+                                    {selectedMarker.userSave && (
+                                        <button
+                                            onClick={() => {
+                                                setLocationToEdit(selectedMarker);
+                                                setSidebarView('edit');
+                                                setIsSidebarOpen(true);
+                                            }}
+                                            className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+                                        >
+                                            Edit
+                                        </button>
+                                    )}
+                                    {/* Save button for temporary markers */}
+                                    {selectedMarker.isTemporary && (
+                                        <button
+                                            onClick={() => {
+                                                setLocationToSave(selectedMarker);
+                                                setSidebarView('save');
+                                                setIsSidebarOpen(true);
+                                            }}
+                                            className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700 transition-colors"
+                                        >
+                                            Save
+                                        </button>
+                                    )}
+                                    {/* Quick Save button - only for temporary markers */}
+                                    {selectedMarker.isTemporary && (
+                                        <button
+                                            onClick={async () => {
+                                                // Quick Save: save with minimal info
+                                                if (!selectedMarker.data) return;
 
-                                            try {
-                                                const response = await fetch('/api/locations', {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({
-                                                        placeId: selectedMarker.data.placeId || selectedMarker.id,
-                                                        name: selectedMarker.data.name,
-                                                        address: selectedMarker.data.address,
-                                                        lat: selectedMarker.position.lat,
-                                                        lng: selectedMarker.position.lng,
-                                                        quickSave: true, // Flag for quick save
-                                                    }),
-                                                });
+                                                try {
+                                                    const response = await fetch('/api/locations', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            placeId: selectedMarker.data.placeId || selectedMarker.id,
+                                                            name: selectedMarker.data.name,
+                                                            address: selectedMarker.data.address,
+                                                            lat: selectedMarker.position.lat,
+                                                            lng: selectedMarker.position.lng,
+                                                            quickSave: true, // Flag for quick save
+                                                        }),
+                                                    });
 
-                                                if (response.ok) {
-                                                    // Mark marker as permanent (saved)
-                                                    setMarkers((prev) =>
-                                                        prev.map((m) =>
-                                                            m.id === selectedMarker.id
-                                                                ? { ...m, isTemporary: false }
-                                                                : m
-                                                        )
-                                                    );
+                                                    if (response.ok) {
+                                                        // Mark marker as permanent (saved)
+                                                        setMarkers((prev) =>
+                                                            prev.map((m) =>
+                                                                m.id === selectedMarker.id
+                                                                    ? { ...m, isTemporary: false }
+                                                                    : m
+                                                            )
+                                                        );
 
-                                                    // Close InfoWindow
-                                                    setSelectedMarker(null);
+                                                        // Close InfoWindow
+                                                        setSelectedMarker(null);
 
-                                                    // Show success feedback
-                                                    alert('Location quick saved! You can add more details later.');
-                                                } else {
+                                                        // Show success feedback
+                                                        alert('Location quick saved! You can add more details later.');
+                                                    } else {
+                                                        alert('Failed to save location');
+                                                    }
+                                                } catch (error) {
+                                                    console.error('Quick save error:', error);
                                                     alert('Failed to save location');
                                                 }
-                                            } catch (error) {
-                                                console.error('Quick save error:', error);
-                                                alert('Failed to save location');
-                                            }
-                                        }}
-                                        className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
-                                        title="Quick save with basic info"
-                                    >
-                                        Quick Save
-                                    </button>
+                                            }}
+                                            className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors"
+                                            title="Quick save with basic info"
+                                        >
+                                            Quick Save
+                                        </button>
+                                    )}
                                     {selectedMarker.data && (
                                         <a
                                             href={`https://www.google.com/maps/dir/?api=1&destination=${selectedMarker.position.lat},${selectedMarker.position.lng}`}
@@ -469,17 +576,19 @@ function MapPageInner() {
                 </p>
             </div>
 
-            {/* Right Sidebar with SaveLocationPanel */}
+            {/* Right Sidebar - Save or Edit */}
             <RightSidebar
                 isOpen={isSidebarOpen}
                 onClose={() => {
                     setIsSidebarOpen(false);
                     setLocationToSave(null);
+                    setLocationToEdit(null);
                 }}
-                view="save-location"
-                title="Save Location"
+                view={sidebarView === 'save' ? 'save-location' : 'edit-location'}
+                title={sidebarView === 'save' ? 'Save Location' : 'Edit Location'}
             >
-                {locationToSave && (
+                {/* Save Location Panel */}
+                {sidebarView === 'save' && locationToSave && (
                     <SaveLocationPanel
                         initialData={{
                             placeId: locationToSave.data?.placeId || locationToSave.id,
@@ -513,6 +622,59 @@ function MapPageInner() {
                         onCancel={() => {
                             setIsSidebarOpen(false);
                             setLocationToSave(null);
+                        }}
+                    />
+                )}
+
+                {/* Edit Location Panel */}
+                {sidebarView === 'edit' && locationToEdit?.userSave && locationToEdit?.data && (
+                    <EditLocationPanel
+                        locationId={locationToEdit.userSave.locationId}
+                        location={{
+                            id: locationToEdit.userSave.locationId,
+                            placeId: locationToEdit.data.placeId || locationToEdit.id,
+                            name: locationToEdit.data.name || 'Selected Location',
+                            address: locationToEdit.data.address,
+                            lat: locationToEdit.position.lat,
+                            lng: locationToEdit.position.lng,
+                            type: locationToEdit.data.type || locationToEdit.userSave.location?.type || '',
+                            rating: locationToEdit.data.rating ?? null,
+                            street: locationToEdit.data.street ?? null,
+                            number: locationToEdit.data.number ?? null,
+                            city: locationToEdit.data.city ?? null,
+                            state: locationToEdit.data.state ?? null,
+                            zipcode: locationToEdit.data.zipcode ?? null,
+                            productionNotes: locationToEdit.userSave.location?.productionNotes ?? null,
+                            entryPoint: locationToEdit.userSave.location?.entryPoint ?? null,
+                            parking: locationToEdit.userSave.location?.parking ?? null,
+                            access: locationToEdit.userSave.location?.access ?? null,
+                            indoorOutdoor: locationToEdit.userSave.location?.indoorOutdoor ?? null,
+                            isPermanent: locationToEdit.userSave.location?.isPermanent ?? false,
+                            photoUrls: locationToEdit.userSave.location?.photoUrls ?? null,
+                            permitRequired: locationToEdit.userSave.location?.permitRequired ?? false,
+                            permitCost: locationToEdit.userSave.location?.permitCost ?? null,
+                            contactPerson: locationToEdit.userSave.location?.contactPerson ?? null,
+                            contactPhone: locationToEdit.userSave.location?.contactPhone ?? null,
+                            operatingHours: locationToEdit.userSave.location?.operatingHours ?? null,
+                            restrictions: locationToEdit.userSave.location?.restrictions ?? null,
+                            bestTimeOfDay: locationToEdit.userSave.location?.bestTimeOfDay ?? null,
+                            lastModifiedBy: locationToEdit.userSave.location?.lastModifiedBy ?? null,
+                            lastModifiedAt: locationToEdit.userSave.location?.lastModifiedAt ?? null,
+                            createdAt: locationToEdit.userSave.location?.createdAt || new Date(),
+                            updatedAt: locationToEdit.userSave.location?.updatedAt || new Date(),
+                            createdBy: locationToEdit.userSave.location?.createdBy || 0,
+                            photos: locationToEdit.userSave.location?.photos ?? [],
+                        }}
+                        userSave={locationToEdit.userSave}
+                        onSuccess={() => {
+                            // Close sidebar and InfoWindow
+                            setIsSidebarOpen(false);
+                            setSelectedMarker(null);
+                            setLocationToEdit(null);
+                        }}
+                        onCancel={() => {
+                            setIsSidebarOpen(false);
+                            setLocationToEdit(null);
                         }}
                     />
                 )}

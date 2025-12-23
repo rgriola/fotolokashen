@@ -32,8 +32,14 @@ function LocationsPageInner() {
     // Delete mutation
     const deleteLocation = useDeleteLocation();
 
+    // Transform UserSave[] to Location[] (API returns UserSave with nested location)
+    const allLocations = data?.locations?.map((userSave: any) => ({
+        ...userSave.location,
+        userSave: userSave, // Attach the UserSave data
+    })) || [];
+
     // Filter and sort locations client-side
-    let filteredLocations = data?.locations || [];
+    let filteredLocations = allLocations;
 
     // Filter favorites
     if (favoritesOnly) {
@@ -46,9 +52,9 @@ function LocationsPageInner() {
     filteredLocations = [...filteredLocations].sort((a, b) => {
         switch (sortBy) {
             case "recent":
-                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                return new Date(b.userSave?.savedAt || b.createdAt).getTime() - new Date(a.userSave?.savedAt || a.createdAt).getTime();
             case "oldest":
-                return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                return new Date(a.userSave?.savedAt || a.createdAt).getTime() - new Date(b.userSave?.savedAt || b.createdAt).getTime();
             case "name-asc":
                 return a.name.localeCompare(b.name);
             case "name-desc":

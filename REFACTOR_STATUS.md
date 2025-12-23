@@ -4,17 +4,131 @@ The Github repository for this project is at: https://github.com/rgriola/merkel-
 The current produciton version is at: https://merkelvision.com/landing.html
 Merkel Vision is name of the public facing application.
 
-**Last Updated**: 2025-12-22 12:00:00 EST  
-**Phase**: Phase 6 - Location Management Features (🚧 IN PROGRESS - 95%)  
-**Overall Progress**: ~95% Complete
+**Last Updated**: 2025-12-22 16:35:00 EST  
+**Phase**: Phase 6 - Location Management Features (🚧 IN PROGRESS - 99%)  
+**Overall Progress**: ~99% Complete
 
 > [!WARNING]
 > **Migration Alert**: Schema has been significantly enhanced beyond legacy Merkel-Vision. Some fields are NEW and will require implementation. Full schema comparison completed - see `MIGRATION_READINESS.md`.
 
 > [!NOTE]
-> **Session Update (Dec 22, 2024)**: Save Location Panel completely overhauled. Fixed critical bugs where UserSave fields weren't saving. Implemented full ImageKit photo upload with compression. Added Google Places address component parsing. Created custom temporary marker with camera icon. Improved map UX with smooth animations and better click-to-save workflow.
+> **Session Update (Dec 22, 2024 - Evening)**: Implemented complete Edit Location workflow with API, hook, and panel integration. Enhanced My Locations page with beautiful cards, production details, and click-to-navigate functionality. Fixed layout overflow issues and data structure transformation for proper display.
 
-## Recent Changes (Dec 22, 2024) - Save Location Panel Overhaul
+## Recent Changes (Dec 22, 2024) - Edit Location & My Locations Enhancement
+
+### Evening Session - Edit Workflow & My Locations (16:00 - 16:35 EST)
+
+**Edit Location Complete Workflow**:
+- ✅ Enhanced PATCH `/api/locations/[id]` endpoint to update UserSave fields
+- ✅ Added support for `caption`, `tags`, `isFavorite`, `personalRating`, `color` updates
+- ✅ Added `indoorOutdoor` field support to Location updates
+- ✅ Created `EditLocationPanel` component (reuses SaveLocationPanel pattern)
+- ✅ Wired up "Edit" button in InfoWindow for saved locations
+- ✅ Updated RightSidebar to conditionally render Save or Edit panels
+- ✅ Pre-populates all fields from location and userSave data
+- ✅ Uses `useUpdateLocation` hook with optimistic updates
+- **Files**:
+  - [`src/app/api/locations/[id]/route.ts`](./src/app/api/locations/[id]/route.ts) - Enhanced PATCH endpoint
+  - [`src/components/panels/EditLocationPanel.tsx`](./src/components/panels/EditLocationPanel.tsx) - NEW
+  - [`src/app/map/page.tsx`](./src/app/map/page.tsx) - Integration
+
+**Map Navigation Improvements**:
+- ✅ Clicking any marker zooms to street level 17 automatically
+- ✅ Smooth pan and zoom animation to marker position
+- ✅ URL parameter handling for navigation from My Locations
+- ✅ Supports `lat`, `lng`, and `zoom` query parameters
+- **Files**: [`src/app/map/page.tsx`](./src/app/map/page.tsx)
+
+**My Locations Page Enhancements**:
+- ✅ **Enhanced LocationCard Design**:
+  - Larger image area (h-56) with gradient overlay
+  - Type-specific colored badges matching map markers
+  - Photo count indicator for multiple photos
+  - Hover effects with scale and shadow transitions
+  - Production details display (notes, parking, access, indoor/outdoor)
+  - Better caption display with italic styling and border accent
+- ✅ **Click-to-Navigate**: Cards navigate to `/map?lat=X&lng=Y&zoom=17`
+- ✅ **Photo Support**: ImageKit photos and photoUrls with fallback
+- ✅ **Data Structure Fix**:
+  - Transform UserSave[] (from API) → Location[] (for components)
+  - Fixed empty cards showing no data
+  - Fixed all cards navigating to same location
+  - Proper delete using UserSave ID instead of Location ID
+- **Files**:
+  - [`src/components/locations/LocationCard.tsx`](./src/components/locations/LocationCard.tsx) - Complete redesign
+  - [`src/app/locations/page.tsx`](./src/app/locations/page.tsx) - Data transformation
+
+**Layout Fixes**:
+- ✅ Fixed footer overlap on home, login, and registration pages
+- ✅ Changed root layout from `h-screen overflow-hidden` to `min-h-screen`
+- ✅ Removed `overflow-hidden` from main element
+- ✅ Map page maintains its own `h-screen` for fixed layout
+- **File**: [`src/app/layout.tsx`](./src/app/layout.tsx)
+
+### Afternoon Session 2 - Saved Locations Display & Custom Markers (15:00 - 16:00 EST)
+
+**Duplicate Save Prevention**:
+- ✅ Enhanced error handling in `useSaveLocation` hook
+- ✅ Parse API error codes to differentiate error types
+- ✅ Show **warning toast** (yellow) instead of error toast for "ALREADY_SAVED" errors
+- ✅ User-friendly message: *"This location is already in your saved locations"*
+- **File**: [`src/hooks/useSaveLocation.ts`](./src/hooks/useSaveLocation.ts)
+
+**Saved Locations Display on Map**:
+- ✅ Integrated `useLocations()` hook to fetch all saved locations
+- ✅ Created `useEffect` to convert saved locations into map markers
+- ✅ Updated `MarkerData` interface with `userSave` and `color` properties
+- ✅ Saved locations load automatically when map mounts
+- ✅ Markers preserve temp markers while adding saved markers
+- ✅ Visual distinction: Saved markers use type-specific colors
+- **Files**:
+  - [`src/app/map/page.tsx`](./src/app/map/page.tsx) - Added locations loading and display
+  - [`src/hooks/useLocations.ts`](./src/hooks/useLocations.ts) - Already existed, now integrated
+
+**Custom Camera Markers with Type Colors**:
+- ✅ Updated `CustomMarker` to use camera icon for **ALL** locations
+- ✅ Removed temporary-only restriction
+- ✅ Dynamic color fill based on location type (13 production-specific colors)
+- ✅ Consistent visual language across all map markers
+- ✅ Easy type identification at a glance
+- **Color Mapping**:
+  - 🔵 Blue (#3B82F6) - BROLL
+  - 🔴 Red (#EF4444) - STORY  
+  - 🟣 Purple (#8B5CF6) - INTERVIEW
+  - 🔴 Dark Red (#DC2626) - LIVE ANCHOR
+  - 🟠 Orange (#F59E0B) - REPORTER LIVE
+  - ⚫ Gray (#6B7280) - STAKEOUT
+  - 🔵 Cyan (#06B6D4) - DRONE
+  - 🟢 Green (#22C55E) - SCENE
+  - 🟢 Lime (#84CC16) - EVENT
+  - ⚫ Slate (#64748B) - OTHER
+  - 🔵 Dark Blue (#1E40AF) - HQ
+  - 🟣 Violet (#7C3AED) - BUREAU
+  - 🩷 Pink (#EC4899) - REMOTE STAFF
+- **File**: [`src/components/maps/CustomMarker.tsx`](./src/components/maps/CustomMarker.tsx)
+
+**InfoWindow Improvements**:
+- ✅ Conditional button display based on marker state
+- ✅ Save/Quick Save buttons only show for **unsaved** (temporary) markers
+- ✅ Prevents duplicate save attempts via UI
+- ✅ Saved locations get "View Details" button (placeholder for future edit feature)
+- **File**: [`src/app/map/page.tsx`](./src/app/map/page.tsx)
+
+**Enhanced Logging**:
+- ✅ Added comprehensive debug logging to `/api/locations` POST endpoint
+- ✅ Logs location creation vs reuse scenarios
+- ✅ Logs "already saved" checks with user/location IDs
+- ✅ Better diagnostics for troubleshooting save issues
+- **File**: [`src/app/api/locations/route.ts`](./src/app/api/locations/route.ts)
+
+**User Experience Impact**:
+- 🎯 Users can now see all their saved locations on the map
+- 🎯 Duplicate saves prevented with friendly warnings
+- 🎯 Color-coded markers make it easy to identify location types
+- 🎯 No more confusion about which locations are already saved
+- 🎯 Unified camera marker design across the application
+
+---
 
 ### Afternoon Session - UI Refinements & Per-Photo Captions
 

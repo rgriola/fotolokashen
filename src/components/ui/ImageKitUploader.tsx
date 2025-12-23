@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -38,6 +38,18 @@ export function ImageKitUploader({
     const [uploading, setUploading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const prevExistingPhotosRef = useRef<string>(JSON.stringify(existingPhotos));
+
+    // Update photos when existingPhotos prop changes (comparing to previous value, not current state)
+    useEffect(() => {
+        const existingPhotosJson = JSON.stringify(existingPhotos);
+
+        // Only update if existingPhotos actually changed from last time
+        if (existingPhotosJson !== prevExistingPhotosRef.current) {
+            prevExistingPhotosRef.current = existingPhotosJson;
+            setPhotos(existingPhotos);
+        }
+    }, [existingPhotos]);
 
     // Fetch ImageKit auth parameters
     const getAuthParams = async () => {
@@ -243,7 +255,40 @@ export function ImageKitUploader({
     }, [photos]);
 
     // Handle remove photo
-    const handleRemove = (index: number) => {
+    const handleRemove = async (index: number) => {
+        const photoToRemove = photos[index];
+
+        // Show confirmation dialog
+        const confirmMessage = photoToRemove.id
+            ? 'This will permanently remove the photo from storage. Are you sure?'
+            : 'Remove this photo?';
+
+        if (!window.confirm(confirmMessage)) {
+            return; // User cancelled
+        }
+
+        // If photo has a database ID, delete from server (ImageKit + DB)
+        if (photoToRemove.id) {
+            try {
+                const response = await fetch(`/api/photos/${photoToRemove.id}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete photo');
+                }
+
+                toast.success('Photo deleted successfully');
+            } catch (error: any) {
+                console.error('Error deleting photo:', error);
+                toast.error(error.message || 'Failed to delete photo');
+                return; // Don't remove from UI if server deletion failed
+            }
+        }
+
+        // Remove from local state (for both new uploads and successfully deleted DB photos)
         const newPhotos = photos.filter((_, i) => i !== index);
         setPhotos(newPhotos);
         onPhotosChange?.(newPhotos);
@@ -267,14 +312,14 @@ export function ImageKitUploader({
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 className={`
-                    border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-                    transition-colors duration-200
+border - 2 border - dashed rounded - lg p - 8 text - center cursor - pointer
+transition - colors duration - 200
                     ${dragActive
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:border-primary/50'
                     }
                     ${uploading ? 'opacity-50 cursor-not-allowed' : ''}
-                `}
+`}
             >
                 <input
                     ref={fileInputRef}
