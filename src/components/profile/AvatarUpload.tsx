@@ -112,22 +112,22 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
 
     return (
         <Card>
-            <CardContent className="pt-6">
-                <div className="flex flex-col items-center space-y-4">
+            <CardContent className="py-4 px-6">
+                <div className="flex flex-col md:flex-row items-center gap-4">
                     {/* Avatar Display */}
-                    <div className="relative">
-                        <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-white shadow-lg">
+                    <div className="relative flex-shrink-0">
+                        <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center border-4 border-white shadow-lg">
                             {previewUrl ? (
                                 <Image
                                     src={getOptimizedAvatarUrl(previewUrl, 128) || previewUrl}
                                     alt="Profile avatar"
-                                    width={128}
-                                    height={128}
+                                    width={96}
+                                    height={96}
                                     className="w-full h-full object-cover"
                                     priority
                                 />
                             ) : (
-                                <User className="w-16 h-16 text-white" />
+                                <User className="w-12 h-12 text-white" />
                             )}
                         </div>
 
@@ -135,21 +135,52 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isUploading}
-                            className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-lg transition-colors disabled:opacity-50"
+                            className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-1.5 shadow-lg transition-colors disabled:opacity-50"
                             title="Change avatar"
                         >
-                            <Camera className="w-4 h-4" />
+                            <Camera className="w-3.5 h-3.5" />
                         </button>
                     </div>
 
-                    {/* User Info */}
-                    <div className="text-center">
-                        <p className="font-semibold text-lg">
-                            {user?.firstName && user?.lastName
-                                ? `${user.firstName} ${user.lastName}`
-                                : user?.username}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    {/* User Info & Actions */}
+                    <div className="flex-1 flex flex-col md:flex-row items-center md:items-start gap-3 w-full">
+                        {/* User Info */}
+                        <div className="text-center md:text-left flex-1">
+                            <p className="font-semibold text-base">
+                                {user?.firstName && user?.lastName
+                                    ? `${user.firstName} ${user.lastName}`
+                                    : user?.username}
+                            </p>
+                            <p className="text-sm text-muted-foreground">{user?.email}</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Square image, at least 400x400px • Max 5MB
+                            </p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={isUploading}
+                            >
+                                <Upload className="w-3.5 h-3.5 mr-1.5" />
+                                {isUploading ? 'Uploading...' : 'Upload'}
+                            </Button>
+
+                            {currentAvatar && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleRemoveAvatar}
+                                    disabled={isUploading}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </Button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Hidden File Input */}
@@ -161,37 +192,6 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                         className="hidden"
                         disabled={isUploading}
                     />
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 w-full">
-                        <Button
-                            variant="outline"
-                            onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading}
-                            className="flex-1"
-                        >
-                            <Upload className="w-4 h-4 mr-2" />
-                            {isUploading ? 'Uploading...' : 'Upload Photo'}
-                        </Button>
-
-                        {currentAvatar && (
-                            <Button
-                                variant="outline"
-                                onClick={handleRemoveAvatar}
-                                disabled={isUploading}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                                <X className="w-4 h-4" />
-                            </Button>
-                        )}
-                    </div>
-
-                    {/* Help Text */}
-                    <p className="text-xs text-muted-foreground text-center">
-                        Recommended: Square image, at least 400x400px
-                        <br />
-                        Max file size: 5MB (JPG, PNG, GIF)
-                    </p>
                 </div>
             </CardContent>
         </Card>
