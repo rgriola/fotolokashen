@@ -47,6 +47,10 @@ model User {
   twoFactorEnabled   Boolean   @default(false)
   twoFactorSecret    String?   // TOTP secret for 2FA
   
+  // Rate Limiting & Account Security
+  failedLoginAttempts Int      @default(0)     // Count of consecutive failed logins
+  lockedUntil        DateTime?                 // Account locked until this time (null = not locked)
+  
   // OAuth fields
   googleId           String?   @unique
   appleId            String?   @unique

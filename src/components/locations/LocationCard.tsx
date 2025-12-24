@@ -14,6 +14,9 @@ import { useRouter } from "next/navigation";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
 import { TYPE_COLOR_MAP } from "@/lib/location-constants";
 
+// Get Google Maps API key for static images
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+
 interface LocationCardProps {
     location: Location;
     onEdit?: (location: Location) => void;
@@ -31,7 +34,8 @@ export function LocationCard({
     onClick,
     canEdit = false,
 }: LocationCardProps) {
-    const [imageError, setImageError] = useState(false);
+    const [photoError, setPhotoError] = useState(false);
+    const [mapError, setMapError] = useState(false);
     const [showAllData, setShowAllData] = useState(false);
     const router = useRouter();
     const userSave = location.userSave;
@@ -43,8 +47,12 @@ export function LocationCard({
             ? location.photoUrls[0]
             : null;
 
-    // Get type color (use custom color if available)
+    // Get type color for the marker
     const typeColor = userSave?.color || (location.type ? TYPE_COLOR_MAP[location.type] || "#64748B" : "#64748B");
+
+    // Generate Google Maps Static API URL as fallback
+    // Docs: https://developers.google.com/maps/documentation/maps-static
+    const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${location.lat},${location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
 
     // Navigate to map view at this location
     const handleCardClick = (e: React.MouseEvent) => {
@@ -65,12 +73,23 @@ export function LocationCard({
         >
             {/* Image Section */}
             <div className="relative h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
-                {photoUrl && !imageError ? (
+                {photoUrl && !photoError ? (
                     <img
                         src={photoUrl}
                         alt={location.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={() => setImageError(true)}
+                        onError={() => setPhotoError(true)}
+                    />
+                ) : !mapError ? (
+                    <img
+                        src={mapImageUrl}
+                        alt={`Map of ${location.name}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={() => {
+                            console.error('Google Maps Static API image failed to load:', mapImageUrl);
+                            console.error('Troubleshooting: 1) Verify Maps Static API is enabled in Google Cloud Console, 2) Check billing is set up, 3) Verify API key is correct');
+                            setMapError(true);
+                        }}
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
@@ -103,6 +122,12 @@ export function LocationCard({
 
                 {/* Photo Count & Status Badges - Bottom Right */}
                 <div className="absolute bottom-3 right-3 flex flex-col gap-2 items-end">
+                    {(!photoUrl || photoError) && !mapError && (
+                        <div className="bg-blue-500/90 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
+                            <MapPinned className="w-3 h-3" />
+                            Map View
+                        </div>
+                    )}
                     {((location.photos && location.photos.length > 1) || (location.photoUrls && location.photoUrls.length > 1)) && (
                         <div className="bg-black/70 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
                             <Camera className="w-3 h-3" />

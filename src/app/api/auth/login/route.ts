@@ -4,16 +4,25 @@ import prisma from '@/lib/prisma';
 import { comparePassword, generateToken } from '@/lib/auth';
 import { apiResponse, apiError, setAuthCookie } from '@/lib/api-middleware';
 
-// Validation schema for login
+// Rate limiting constants
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MINUTES = 30;
+
+// Validation schema for login with enhanced security
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string()
+    .email('Invalid email address')
+    .toLowerCase()  // Normalize email
+    .trim(),        // Remove whitespace
+  password: z.string()
+    .min(1, 'Password is required')
+    .max(255, 'Password is too long'),  // Prevent DOS attacks with huge passwords
   rememberMe: z.boolean().optional(),
 });
 
 /**
  * POST /api/auth/login
- * Login existing user
+ * Login existing user with rate limiting and account lockout
  */
 export async function POST(request: NextRequest) {
   try {
@@ -49,17 +58,86 @@ export async function POST(request: NextRequest) {
         country: true,
         language: true,
         createdAt: true,
+        failedLoginAttempts: true,
+        lockedUntil: true,
       },
     });
 
     if (!user) {
+      // Use generic error message to prevent email enumeration
       return apiError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+    }
+
+    // Check if account is currently locked
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+      return apiError(
+        `Account is temporarily locked due to multiple failed login attempts. Please try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}.`,
+        429,
+        'ACCOUNT_LOCKED'
+      );
+    }
+
+    // If lock period has expired, reset the failed attempts
+    if (user.lockedUntil && user.lockedUntil <= new Date()) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      });
     }
 
     // Verify password
     const passwordValid = await comparePassword(password, user.passwordHash);
     if (!passwordValid) {
-      return apiError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+      // Increment failed login attempts
+      const newFailedAttempts = (user.failedLoginAttempts || 0) + 1;
+
+      // Lock account if max attempts reached
+      if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
+        const lockUntil = new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000);
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            failedLoginAttempts: newFailedAttempts,
+            lockedUntil: lockUntil,
+          },
+        });
+
+        return apiError(
+          `Account locked due to ${MAX_FAILED_ATTEMPTS} failed login attempts. Please try again in ${LOCKOUT_DURATION_MINUTES} minutes.`,
+          429,
+          'ACCOUNT_LOCKED'
+        );
+      }
+
+      // Update failed attempts count
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginAttempts: newFailedAttempts,
+        },
+      });
+
+      const attemptsLeft = MAX_FAILED_ATTEMPTS - newFailedAttempts;
+      return apiError(
+        `Invalid email or password. ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining before account lockout.`,
+        401,
+        'INVALID_CREDENTIALS'
+      );
+    }
+
+    // Password is valid - reset failed login attempts
+    if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedLoginAttempts: 0,
+          lockedUntil: null,
+        },
+      });
     }
 
     // Check if email is verified
@@ -98,6 +176,13 @@ export async function POST(request: NextRequest) {
 
     // Single-session enforcement: Delete all existing sessions for this user
     // This ensures only one active session per user at a time
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLoginAt: new Date(),
+      },
+    });
+
     await prisma.session.deleteMany({
       where: { userId: user.id },
     });

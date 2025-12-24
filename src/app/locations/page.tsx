@@ -24,9 +24,8 @@ function LocationsPageInner() {
     const [editLocation, setEditLocation] = useState<Location | null>(null);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
 
-    // Fetch locations
+    // Fetch locations (search is handled client-side)
     const { data, isLoading, error } = useLocations({
-        search: search || undefined,
         type: typeFilter !== "all" ? typeFilter : undefined,
     });
 
@@ -41,6 +40,26 @@ function LocationsPageInner() {
 
     // Filter and sort locations client-side
     let filteredLocations = allLocations;
+
+    // Filter by search query
+    if (search && search.trim()) {
+        const searchLower = search.toLowerCase().trim();
+        filteredLocations = filteredLocations.filter((loc) => {
+            // Search in primary location fields
+            const nameMatch = loc.name?.toLowerCase().includes(searchLower);
+            const addressMatch = loc.address?.toLowerCase().includes(searchLower);
+            const streetMatch = loc.street?.toLowerCase().includes(searchLower);
+            const cityMatch = loc.city?.toLowerCase().includes(searchLower);
+            const stateMatch = loc.state?.toLowerCase().includes(searchLower);
+
+            // Search in user tags (array of strings)
+            const tagsMatch = loc.userSave?.tags?.some((tag: string) =>
+                tag.toLowerCase().includes(searchLower)
+            );
+
+            return nameMatch || addressMatch || streetMatch || cityMatch || stateMatch || tagsMatch;
+        });
+    }
 
     // Filter favorites
     if (favoritesOnly) {

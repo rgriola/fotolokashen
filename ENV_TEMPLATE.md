@@ -35,6 +35,19 @@ JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
 
 ```bash
 # Get your API key from: https://console.cloud.google.com/google/maps-apis
+# Last verified: December 24, 2025
+# The following Google Maps APIs must be ENABLED for this key:
+#   - Geolocation API
+#   - Geocoding API
+#   - Directions API
+#   - Maps JavaScript API
+#   - Places API (New)
+#   - Places API
+#   - Maps Static API
+# To enable these APIs:
+#   1. Go to Google Cloud Console > APIs & Services > Library
+#   2. Search for each API above and click "Enable"
+#   3. Ensure billing is set up (required for most Maps APIs)
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="AIzaSyCHQECnK2DXcNXIQR0ZfvIEPrAJWIH8JsM"
 ```
 
