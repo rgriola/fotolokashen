@@ -118,9 +118,11 @@ export function RegisterForm() {
                 placeholder="John"
                 {...register('firstName')}
                 disabled={isLoading}
+                className={errors.firstName ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                aria-invalid={errors.firstName ? 'true' : 'false'}
               />
               {errors.firstName && (
-                <p className="text-sm text-red-500">{errors.firstName.message}</p>
+                <p className="text-sm text-red-500 font-medium">{errors.firstName.message}</p>
               )}
             </div>
 
@@ -132,9 +134,11 @@ export function RegisterForm() {
                 placeholder="Doe"
                 {...register('lastName')}
                 disabled={isLoading}
+                className={errors.lastName ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                aria-invalid={errors.lastName ? 'true' : 'false'}
               />
               {errors.lastName && (
-                <p className="text-sm text-red-500">{errors.lastName.message}</p>
+                <p className="text-sm text-red-500 font-medium">{errors.lastName.message}</p>
               )}
             </div>
           </div>
@@ -147,9 +151,11 @@ export function RegisterForm() {
               placeholder="you@example.com"
               {...register('email')}
               disabled={isLoading}
+              className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              aria-invalid={errors.email ? 'true' : 'false'}
             />
             {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
+              <p className="text-sm text-red-500 font-medium">{errors.email.message}</p>
             )}
           </div>
 
@@ -161,9 +167,11 @@ export function RegisterForm() {
               placeholder="johndoe"
               {...register('username')}
               disabled={isLoading}
+              className={errors.username ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              aria-invalid={errors.username ? 'true' : 'false'}
             />
             {errors.username && (
-              <p className="text-sm text-red-500">{errors.username.message}</p>
+              <p className="text-sm text-red-500 font-medium">{errors.username.message}</p>
             )}
           </div>
 
@@ -176,7 +184,8 @@ export function RegisterForm() {
                 placeholder="••••••••"
                 {...register('password')}
                 disabled={isLoading}
-                className="pr-10"
+                className={`pr-10 ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                aria-invalid={errors.password ? 'true' : 'false'}
               />
               <button
                 type="button"
@@ -192,7 +201,7 @@ export function RegisterForm() {
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-red-500">{errors.password.message}</p>
+              <p className="text-sm text-red-500 font-medium">{errors.password.message}</p>
             )}
 
             {/* Password Strength Indicator */}
@@ -203,12 +212,12 @@ export function RegisterForm() {
                     <div
                       key={i}
                       className={`h-1 flex-1 rounded ${i < passwordStrength
-                          ? passwordStrength <= 2
-                            ? 'bg-red-500'
-                            : passwordStrength <= 3
-                              ? 'bg-yellow-500'
-                              : 'bg-green-500'
-                          : 'bg-gray-200'
+                        ? passwordStrength <= 2
+                          ? 'bg-red-500'
+                          : passwordStrength <= 3
+                            ? 'bg-yellow-500'
+                            : 'bg-green-500'
+                        : 'bg-gray-200'
                         }`}
                     />
                   ))}
@@ -232,7 +241,8 @@ export function RegisterForm() {
                 placeholder="••••••••"
                 {...register('confirmPassword')}
                 disabled={isLoading}
-                className="pr-10"
+                className={`pr-10 ${errors.confirmPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                aria-invalid={errors.confirmPassword ? 'true' : 'false'}
               />
               <button
                 type="button"
@@ -248,7 +258,7 @@ export function RegisterForm() {
               </button>
             </div>
             {errors.confirmPassword && (
-              <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+              <p className="text-sm text-red-500 font-medium">{errors.confirmPassword.message}</p>
             )}
           </div>
 

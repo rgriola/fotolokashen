@@ -86,9 +86,11 @@ export function LoginForm() {
               placeholder="you@example.com"
               {...register('email')}
               disabled={isLoading}
+              className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              aria-invalid={errors.email ? 'true' : 'false'}
             />
             {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
+              <p className="text-sm text-red-500 font-medium">{errors.email.message}</p>
             )}
           </div>
 
@@ -109,7 +111,8 @@ export function LoginForm() {
                 placeholder="••••••••"
                 {...register('password')}
                 disabled={isLoading}
-                className="pr-10"
+                className={`pr-10 ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                aria-invalid={errors.password ? 'true' : 'false'}
               />
               <button
                 type="button"
@@ -125,7 +128,7 @@ export function LoginForm() {
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-red-500">{errors.password.message}</p>
+              <p className="text-sm text-red-500 font-medium">{errors.password.message}</p>
             )}
           </div>
 

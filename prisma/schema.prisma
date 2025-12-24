@@ -73,6 +73,7 @@ model User {
   projects           Project[]
   teamMemberships    TeamMember[] @relation("TeamMember")
   invitedTeamMembers TeamMember[] @relation("TeamInviter")
+  securityLogs       SecurityLog[]
   
   @@map("users")
 }
@@ -285,4 +286,24 @@ model TeamMember {
   
   @@unique([userId, invitedBy])  // Can't invite same user twice
   @@map("team_members")
+}
+
+// Security Log model - Audit trail for security events
+model SecurityLog {
+  id                 Int       @id @default(autoincrement())
+  userId             Int?      // Null for failed login attempts with invalid email
+  eventType          String    // "login", "logout", "password_reset_request", "password_reset_success", "password_change", "failed_login", "account_locked"
+  ipAddress          String?
+  userAgent          String?   @db.Text
+  location           String?   // Geographic location (city, country)
+  success            Boolean   @default(true)
+  metadata           Json?     // Additional event-specific data
+  createdAt          DateTime  @default(now())
+  
+  // Relations
+  user               User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, createdAt])
+  @@index([eventType, createdAt])
+  @@map("security_logs")
 }
