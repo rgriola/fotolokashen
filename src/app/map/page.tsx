@@ -346,6 +346,7 @@ function MapPageInner() {
                     id: 'user-location-info',
                     position: userLocation,
                     data: locationData,
+                    isTemporary: true, // Make it temporary so Save button appears
                 };
 
                 setSelectedMarker(newMarker);
