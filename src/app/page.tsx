@@ -22,26 +22,35 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950">
-        <div className="container py-24 md:py-32">
+      <section className="relative overflow-hidden min-h-screen flex items-center justify-center">
+        {/* Background Image Layer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-90"
+          style={{ backgroundImage: 'url(/images/landing/hero/hero-background.jpg)' }}
+        />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
+
+        {/* Content */}
+        <div className="relative z-10 container py-24 md:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white border border-white/20">
               <MapPin className="h-4 w-4" />
               Enhanced Google Maps Experience
             </div>
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl">
+            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl text-white">
               Save and Organize Your Favorite{" "}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
                 Locations
               </span>
             </h1>
-            <p className="mb-8 text-lg text-muted-foreground sm:text-xl">
+            <p className="mb-8 text-lg sm:text-xl text-gray-200">
               Search Google Maps, save locations with custom notes and photos,
               and organize your discoveries all in one place.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
               {user ? (
-                <Button size="lg" asChild>
+                <Button size="lg" asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/50">
                   <Link href="/map">
                     <MapPin className="mr-2 h-5 w-5" />
                     Open Map
@@ -49,10 +58,10 @@ export default function Home() {
                 </Button>
               ) : (
                 <>
-                  <Button size="lg" asChild>
+                  <Button size="lg" asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/50">
                     <Link href="/register">Get Started</Link>
                   </Button>
-                  <Button size="lg" variant="outline" asChild>
+                  <Button size="lg" variant="outline" asChild className="bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20">
                     <Link href="/login">Sign In</Link>
                   </Button>
                 </>
@@ -60,9 +69,10 @@ export default function Home() {
             </div>
           </div>
         </div>
-        {/* Gradient Blur Effects */}
-        <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl" />
+
+        {/* Animated Gradient Blur Effects */}
+        <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl animate-pulse" />
       </section>
 
       {/* Features Section */}

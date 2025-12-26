@@ -9,6 +9,7 @@ const navItems = [
     { href: "/", label: "Home", authRequired: false }, // Only show when NOT logged in
     { href: "/map", label: "Map", authRequired: true }, // Only show when logged in
     { href: "/locations", label: "My Locations", authRequired: true }, // Only show when logged in
+    { href: "/projects", label: "My Projects", authRequired: true }, // Only show when logged in
 ];
 
 export function Navigation() {
@@ -31,13 +32,17 @@ export function Navigation() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                        "text-sm font-medium transition-colors hover:text-primary",
+                        "text-sm font-medium transition-colors hover:text-primary relative",
                         pathname === item.href
-                            ? "text-foreground"
+                            ? "text-primary font-semibold"
                             : "text-muted-foreground"
                     )}
                 >
                     {item.label}
+                    {/* Active indicator - underline */}
+                    {pathname === item.href && (
+                        <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                    )}
                 </Link>
             ))}
         </nav>

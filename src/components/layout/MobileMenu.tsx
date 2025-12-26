@@ -17,15 +17,25 @@ import { useAuth } from "@/lib/auth-context";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-    { href: "/", label: "Home" },
-    { href: "/map", label: "Map" },
-    { href: "/my-locations", label: "My Locations" },
+    { href: "/", label: "Home", authRequired: false },
+    { href: "/map", label: "Map", authRequired: true },
+    { href: "/locations", label: "My Locations", authRequired: true },
+    { href: "/projects", label: "My Projects", authRequired: true },
 ];
 
 export function MobileMenu() {
     const [open, setOpen] = useState(false);
     const pathname = usePathname();
     const { user, logout } = useAuth();
+
+    // Filter nav items based on auth status (same as desktop navigation)
+    const visibleItems = navItems.filter((item) => {
+        if (item.authRequired) {
+            return !!user; // Show only if user is authenticated
+        } else {
+            return !user; // Show only if user is NOT authenticated
+        }
+    });
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -41,7 +51,7 @@ export function MobileMenu() {
                 </SheetHeader>
                 <div className="mt-6 flex flex-col gap-4">
                     <nav className="flex flex-col gap-2">
-                        {navItems.map((item) => (
+                        {visibleItems.map((item) => (
                             <Link
                                 key={item.href}
                                 href={item.href}
@@ -49,7 +59,7 @@ export function MobileMenu() {
                                 className={cn(
                                     "px-3 py-2 rounded-md text-sm font-medium transition-colors",
                                     pathname === item.href
-                                        ? "bg-primary text-primary-foreground"
+                                        ? "bg-primary text-primary-foreground font-semibold"
                                         : "hover:bg-muted"
                                 )}
                             >

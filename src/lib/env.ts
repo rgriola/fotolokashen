@@ -95,7 +95,7 @@ const envSchema = z.object({
 
     EMAIL_FROM_NAME: z
         .string()
-        .default('Google Search Me')
+        .default('Merkel Vision')
         .describe('Email sender name'),
 
     EMAIL_FROM_ADDRESS: z

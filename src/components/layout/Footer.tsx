@@ -13,7 +13,7 @@ export function Footer() {
                     <div className="col-span-1 md:col-span-2">
                         <Link href="/" className="flex items-center gap-2 mb-4">
                             <MapPin className="h-6 w-6 text-primary" />
-                            <span className="font-bold text-lg">Google Search Me</span>
+                            <span className="font-bold text-lg">Merkel Vision</span>
                         </Link>
                         <p className="text-sm text-muted-foreground max-w-md">
                             Enhance your Google Maps experience. Search, save, and organize
@@ -88,7 +88,7 @@ export function Footer() {
 
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     <p className="text-sm text-muted-foreground">
-                        © {currentYear} Google Search Me. All rights reserved.
+                        © {currentYear} Merkel Vision. All rights reserved.
                     </p>
                     <div className="flex gap-4 text-sm">
                         <Link

@@ -46,7 +46,7 @@ async function sendEmail(
   subject: string,
   html: string
 ): Promise<boolean> {
-  const fromName = process.env.EMAIL_FROM_NAME || 'Google Search Me';
+  const fromName = process.env.EMAIL_FROM_NAME || 'Merkel Vision';
   const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'noreply@example.com';
 
   try {
@@ -111,7 +111,7 @@ export async function sendVerificationEmail(
     email,
     'Verify your email address',
     `
-      <h2>Welcome to Google Search Me!</h2>
+      <h2>Welcome to Merkel Vision!</h2>
       <p>Hi ${username},</p>
       <p>Thank you for registering. Please click the link below to verify your email address:</p>
       <a href="${verificationUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4285f4; color: white; text-decoration: none; border-radius: 4px; margin: 16px 0;">Verify Email</a>

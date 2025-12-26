@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Google Maps Search",
-  description: "Save and manage your favorite Google Maps locations",
+  title: "Merkel Vision | Location Management",
+  description: "Save, organize, and manage your favorite locations with Merkel Vision",
 };
 
 export default function RootLayout({

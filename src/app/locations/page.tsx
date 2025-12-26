@@ -8,11 +8,9 @@ import { LocationListCompact } from "@/components/locations/LocationListCompact"
 import { LocationsMapView } from "@/components/locations/LocationsMapView";
 import { LocationFilters } from "@/components/locations/LocationFilters";
 import { ShareLocationDialog } from "@/components/locations/ShareLocationDialog";
-import { SaveLocationDialog } from "@/components/locations/SaveLocationDialog";
 import { EditLocationDialog } from "@/components/locations/EditLocationDialog";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Plus, MapIcon, List, LayoutGrid } from "lucide-react";
 import type { Location } from "@/types/location";
 
@@ -23,7 +21,6 @@ function LocationsPageInner() {
     const [sortBy, setSortBy] = useState("recent");
     const [shareLocation, setShareLocation] = useState<Location | null>(null);
     const [editLocation, setEditLocation] = useState<Location | null>(null);
-    const [showSaveDialog, setShowSaveDialog] = useState(false);
 
     // Fetch locations (search is handled client-side)
     const { data, isLoading, error } = useLocations({
@@ -95,25 +92,11 @@ function LocationsPageInner() {
 
     return (
         <Tabs defaultValue="grid" className="fixed inset-0 top-16 flex flex-col">
-            {/* Fixed Controls Section */}
+            {/* Fixed Controls Section - MADE MORE COMPACT */}
             <div className="flex-shrink-0 bg-background border-b">
-                <div className="container mx-auto px-4 py-6 max-w-7xl">
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                        <div>
-                            <h1 className="text-3xl font-bold">My Locations</h1>
-                            <p className="text-muted-foreground mt-1">
-                                {filteredLocations.length} saved location{filteredLocations.length !== 1 ? 's' : ''}
-                            </p>
-                        </div>
-                        <Button size="lg" onClick={() => setShowSaveDialog(true)}>
-                            <Plus className="w-5 h-5 mr-2" />
-                            Add Location
-                        </Button>
-                    </div>
-
+                <div className="container mx-auto px-4 py-3 max-w-7xl">
                     {/* Filters */}
-                    <div className="mb-4">
+                    <div className="mb-3">
                         <LocationFilters
                             onSearchChange={setSearch}
                             onTypeChange={setTypeFilter}
@@ -124,7 +107,7 @@ function LocationsPageInner() {
 
                     {/* Error State */}
                     {error && (
-                        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg mb-4">
+                        <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-lg mb-3">
                             <p className="font-medium">Error loading locations</p>
                             <p className="text-sm">{error.message}</p>
                         </div>
@@ -179,12 +162,6 @@ function LocationsPageInner() {
                     </TabsContent>
                 </div>
             </div>
-
-            {/* Save Dialog */}
-            <SaveLocationDialog
-                open={showSaveDialog}
-                onOpenChange={setShowSaveDialog}
-            />
 
             {/* Edit Dialog */}
             <EditLocationDialog

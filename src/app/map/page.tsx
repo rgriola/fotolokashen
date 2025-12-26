@@ -390,21 +390,21 @@ function MapPageInner() {
 
     return (
         <div className="fixed inset-0 top-16 flex flex-col">
-            {/* Search Bar - Fixed below header */}
-            <div className="bg-white shadow-md p-4 z-10 flex-shrink-0">
-                <div className="max-w-4xl mx-auto flex gap-4 items-center">
+            {/* Search Bar - Fixed below header - MADE MORE COMPACT */}
+            <div className="bg-white shadow-sm border-b p-2 z-10 flex-shrink-0">
+                <div className="max-w-4xl mx-auto flex gap-2 items-center">
                     <div className="flex-1">
                         <PlacesAutocomplete
                             onPlaceSelected={handlePlaceSelected}
-                            placeholder="Search for a place (e.g., Central Park NYC)..."
+                            placeholder="Search for a place..."
                         />
                     </div>
                     <button
                         onClick={handleGPSClick}
-                        className="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors flex items-center gap-2"
+                        className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors flex items-center gap-1.5 flex-shrink-0"
                         title="Use my location"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -418,8 +418,19 @@ function MapPageInner() {
                                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                             />
                         </svg>
-                        <span className="hidden sm:inline">GPS</span>
+                        <span className="hidden sm:inline text-sm">GPS</span>
                     </button>
+                    <a
+                        href="/create-with-photo"
+                        className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center gap-1.5 flex-shrink-0"
+                        title="Create location from photo with GPS data"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span className="hidden md:inline text-sm">Photo</span>
+                    </a>
                 </div>
             </div>
 

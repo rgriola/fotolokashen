@@ -49,6 +49,11 @@ export function ChangePasswordForm() {
     });
 
     const newPassword = watch('newPassword');
+    const confirmPassword = watch('confirmPassword');
+
+    // Check if passwords match in real-time
+    const passwordsMatch = newPassword && confirmPassword && newPassword === confirmPassword;
+    const passwordsDontMatch = newPassword && confirmPassword && newPassword !== confirmPassword;
 
     // Password strength indicator
     const getPasswordStrength = (pass: string): number => {
@@ -213,9 +218,30 @@ export function ChangePasswordForm() {
                                 placeholder="••••••••"
                                 {...register('confirmPassword')}
                                 disabled={isLoading}
-                                className={`pl-9 pr-10 ${errors.confirmPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                className={`pl-9 pr-20 ${errors.confirmPassword
+                                        ? 'border-red-500 focus-visible:ring-red-500'
+                                        : passwordsMatch
+                                            ? 'border-green-500 focus-visible:ring-green-500'
+                                            : passwordsDontMatch
+                                                ? 'border-red-500 focus-visible:ring-red-500'
+                                                : ''
+                                    }`}
                                 aria-invalid={errors.confirmPassword ? 'true' : 'false'}
                             />
+                            {/* Password Match Indicator */}
+                            {confirmPassword && (
+                                <div className="absolute right-12 top-1/2 -translate-y-1/2">
+                                    {passwordsMatch ? (
+                                        <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    ) : passwordsDontMatch ? (
+                                        <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    ) : null}
+                                </div>
+                            )}
                             <button
                                 type="button"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -229,6 +255,13 @@ export function ChangePasswordForm() {
                                 )}
                             </button>
                         </div>
+                        {/* Real-time feedback message */}
+                        {confirmPassword && !errors.confirmPassword && (
+                            <p className={`text-sm font-medium ${passwordsMatch ? 'text-green-600' : 'text-red-600'}`}>
+                                {passwordsMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
+                            </p>
+                        )}
+                        {/* Validation error message */}
                         {errors.confirmPassword && (
                             <p className="text-sm text-red-500 font-medium">{errors.confirmPassword.message}</p>
                         )}

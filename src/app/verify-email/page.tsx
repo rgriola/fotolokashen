@@ -57,8 +57,21 @@ export default function VerifyEmailPage() {
     }, [shouldRedirect, countdown, router]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-            <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
+        <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+            {/* Background Image Layer */}
+            <div
+                className="absolute inset-0 bg-cover bg-center opacity-90"
+                style={{ backgroundImage: 'url(/images/landing/hero/verify-email-bg.jpg)' }}
+            />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
+
+            {/* Animated Gradient Blur Effects */}
+            <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl animate-pulse" />
+            <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl animate-pulse" />
+
+            {/* Content */}
+            <div className="relative z-10 max-w-md w-full bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-8 mx-4">
                 {status === 'loading' && (
                     <div className="text-center">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>

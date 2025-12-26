@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -62,18 +62,33 @@ export function AccountSettingsForm() {
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors },
     } = useForm<AccountSettingsFormData>({
         resolver: zodResolver(accountSettingsSchema),
         defaultValues: {
-            firstName: user?.firstName || '',
-            lastName: user?.lastName || '',
-            bio: user?.bio || '',
-            phoneNumber: user?.phoneNumber || '',
-            city: user?.city || '',
-            country: user?.country || '',
+            firstName: '',
+            lastName: '',
+            bio: '',
+            phoneNumber: '',
+            city: '',
+            country: '',
         },
     });
+
+    // Update form when user data is loaded
+    useEffect(() => {
+        if (user) {
+            reset({
+                firstName: user.firstName || '',
+                lastName: user.lastName || '',
+                bio: (user as any).bio || '',
+                phoneNumber: (user as any).phoneNumber || '',
+                city: (user as any).city || '',
+                country: (user as any).country || '',
+            });
+        }
+    }, [user, reset]);
 
     const onSubmit = async (data: AccountSettingsFormData) => {
         setIsLoading(true);
@@ -117,74 +132,80 @@ export function AccountSettingsForm() {
             </CardHeader>
             <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {/* Email (Read-only) */}
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                            <Input
-                                id="email"
-                                type="email"
-                                value={user?.email || ''}
-                                disabled
-                                className="pl-9 bg-muted"
-                            />
+                    {/* Email and Username (Read-only) - Side by Side */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Email (Read-only) */}
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    value={user?.email || ''}
+                                    disabled
+                                    className="pl-9 bg-muted"
+                                />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Email cannot be changed
+                            </p>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                            Email cannot be changed. Contact support if you need to update it.
-                        </p>
+
+                        {/* Username (Read-only) */}
+                        <div className="space-y-2">
+                            <Label htmlFor="username">Username</Label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                                <Input
+                                    id="username"
+                                    type="text"
+                                    value={user?.username || ''}
+                                    disabled
+                                    className="pl-9 bg-muted"
+                                />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Username cannot be changed
+                            </p>
+                        </div>
                     </div>
 
-                    {/* Username (Read-only) */}
-                    <div className="space-y-2">
-                        <Label htmlFor="username">Username</Label>
-                        <div className="relative">
-                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                    {/* First Name and Last Name - Side by Side */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* First Name */}
+                        <div className="space-y-2">
+                            <Label htmlFor="firstName">First Name</Label>
                             <Input
-                                id="username"
+                                id="firstName"
                                 type="text"
-                                value={user?.username || ''}
-                                disabled
-                                className="pl-9 bg-muted"
+                                placeholder="John"
+                                {...register('firstName')}
+                                disabled={isLoading}
+                                className={errors.firstName ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                                aria-invalid={errors.firstName ? 'true' : 'false'}
                             />
+                            {errors.firstName && (
+                                <p className="text-sm text-red-500 font-medium">{errors.firstName.message}</p>
+                            )}
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                            Username cannot be changed.
-                        </p>
-                    </div>
 
-                    {/* First Name */}
-                    <div className="space-y-2">
-                        <Label htmlFor="firstName">First Name</Label>
-                        <Input
-                            id="firstName"
-                            type="text"
-                            placeholder="John"
-                            {...register('firstName')}
-                            disabled={isLoading}
-                            className={errors.firstName ? 'border-red-500 focus-visible:ring-red-500' : ''}
-                            aria-invalid={errors.firstName ? 'true' : 'false'}
-                        />
-                        {errors.firstName && (
-                            <p className="text-sm text-red-500 font-medium">{errors.firstName.message}</p>
-                        )}
-                    </div>
-
-                    {/* Last Name */}
-                    <div className="space-y-2">
-                        <Label htmlFor="lastName">Last Name</Label>
-                        <Input
-                            id="lastName"
-                            type="text"
-                            placeholder="Doe"
-                            {...register('lastName')}
-                            disabled={isLoading}
-                            className={errors.lastName ? 'border-red-500 focus-visible:ring-red-500' : ''}
-                            aria-invalid={errors.lastName ? 'true' : 'false'}
-                        />
-                        {errors.lastName && (
-                            <p className="text-sm text-red-500 font-medium">{errors.lastName.message}</p>
-                        )}
+                        {/* Last Name */}
+                        <div className="space-y-2">
+                            <Label htmlFor="lastName">Last Name</Label>
+                            <Input
+                                id="lastName"
+                                type="text"
+                                placeholder="Doe"
+                                {...register('lastName')}
+                                disabled={isLoading}
+                                className={errors.lastName ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                                aria-invalid={errors.lastName ? 'true' : 'false'}
+                            />
+                            {errors.lastName && (
+                                <p className="text-sm text-red-500 font-medium">{errors.lastName.message}</p>
+                            )}
+                        </div>
                     </div>
 
                     {/* Bio */}
