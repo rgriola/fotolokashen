@@ -1,7 +1,7 @@
 'use client';
 
 import { Marker, MarkerF } from '@react-google-maps/api';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 
 interface CustomMarkerProps {
     position: { lat: number; lng: number };
@@ -12,7 +12,7 @@ interface CustomMarkerProps {
     color?: string; // Marker color (hex code)
 }
 
-export function CustomMarker({ position, title, onClick, isTemporary = false, icon, color = '#EF4444' }: CustomMarkerProps) {
+export const CustomMarker = memo(function CustomMarker({ position, title, onClick, isTemporary = false, icon, color = '#EF4444' }: CustomMarkerProps) {
     const [marker, setMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
     const markerRef = useRef<HTMLDivElement | null>(null);
 
@@ -139,4 +139,4 @@ export function CustomMarker({ position, title, onClick, isTemporary = false, ic
             }}
         />
     );
-}
+});

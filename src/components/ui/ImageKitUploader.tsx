@@ -5,6 +5,8 @@ import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { FOLDER_PATHS, PHOTO_LIMITS, FILE_SIZE_LIMITS } from "@/lib/constants/upload";
+import { ERROR_MESSAGES } from "@/lib/constants/messages";
 
 interface UploadedPhoto {
     id?: number; // Database ID (if already saved)
@@ -164,9 +166,9 @@ export function ImageKitUploader({
 
             // User-first folder structure
             if (placeId) {
-                formData.append('folder', `/users/${user.id}/locations/${placeId}`);
+                formData.append('folder', FOLDER_PATHS.userLocation(user.id, placeId));
             } else {
-                formData.append('folder', `/users/${user.id}/uploads`);
+                formData.append('folder', FOLDER_PATHS.userUploads(user.id));
             }
 
             // Upload to ImageKit

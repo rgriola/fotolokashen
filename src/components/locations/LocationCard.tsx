@@ -9,7 +9,7 @@ import {
     Navigation, Building2, MapPinned, Shield
 } from "lucide-react";
 import type { Location } from "@/types/location";
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useRouter } from "next/navigation";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
 import { TYPE_COLOR_MAP } from "@/lib/location-constants";
@@ -26,7 +26,7 @@ interface LocationCardProps {
     canEdit?: boolean;
 }
 
-export function LocationCard({
+export const LocationCard = memo(function LocationCard({
     location,
     onEdit,
     onDelete,
@@ -411,4 +411,4 @@ export function LocationCard({
             </CardFooter>
         </Card>
     );
-}
+});

@@ -15,33 +15,60 @@ import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
 import { TYPE_COLOR_MAP, LOCATION_TYPES } from "@/lib/location-constants";
 import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR, INDOOR_OUTDOOR_OPTIONS } from "@/lib/form-constants";
 
+// Security: Regex to prevent XSS and SQL injection in text fields
+const safeTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()]+$/;
+const safeLongTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()\n\r]+$/; // Allows newlines
+
 const saveLocationSchema = z.object({
-    placeId: z.string().min(1, "Place ID is required"),
-    name: z.string().min(1, "Location name is required"),
-    address: z.string().optional(),
-    lat: z.number(),
-    lng: z.number(),
+    placeId: z.string().min(1, "Place ID is required").max(255),
+    name: z.string()
+        .min(1, "Location name is required")
+        .max(200, "Name must be 200 characters or less")
+        .regex(safeTextRegex, "Name contains invalid characters"),
+    address: z.string().max(500).optional(),
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
     type: z.string().min(1, "Type is required"),
     indoorOutdoor: indoorOutdoorSchema,
 
-    // Address components
-    street: z.string().optional(),
-    number: z.string().optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    zipcode: z.string().optional(),
+    // Address components (read-only from Google, but validate anyway)
+    street: z.string().max(200).optional(),
+    number: z.string().max(50).optional(),
+    city: z.string().max(100).optional(),
+    state: z.string().max(100).optional(),
+    zipcode: z.string().max(20).optional(),
 
-    // Production details
-    productionNotes: z.string().max(500).optional(),
-    entryPoint: z.string().optional(),
-    parking: z.string().optional(),
-    access: z.string().optional(),
+    // Production details - User editable, needs strict validation
+    productionNotes: z.string()
+        .max(500, "Production notes must be 500 characters or less")
+        .regex(safeLongTextRegex, "Production notes contain invalid characters")
+        .or(z.literal("")) // Allow empty string
+        .optional(),
+    entryPoint: z.string()
+        .max(200, "Entry point must be 200 characters or less")
+        .regex(safeTextRegex, "Entry point contains invalid characters")
+        .or(z.literal("")) // Allow empty string
+        .optional(),
+    parking: z.string()
+        .max(200, "Parking info must be 200 characters or less")
+        .regex(safeTextRegex, "Parking info contains invalid characters")
+        .or(z.literal("")) // Allow empty string
+        .optional(),
+    access: z.string()
+        .max(200, "Access info must be 200 characters or less")
+        .regex(safeTextRegex, "Access info contains invalid characters")
+        .or(z.literal("")) // Allow empty string
+        .optional(),
 
-    // User save details
-    caption: z.string().max(200).optional(),
+    // User save details - Personal notes, needs validation
+    caption: z.string()
+        .max(200, "Caption must be 200 characters or less")
+        .regex(safeLongTextRegex, "Caption contains invalid characters")
+        .or(z.literal("")) // Allow empty string
+        .optional(),
     isFavorite: z.boolean().optional(),
     personalRating: z.number().min(0).max(5).optional(),
-    color: z.string().optional(),
+    color: z.string().max(20).optional(),
 });
 
 type SaveLocationFormData = z.infer<typeof saveLocationSchema>;
@@ -127,9 +154,21 @@ export function SaveLocationForm({
     };
 
     const handleAddTag = () => {
-        if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 20) {
-            setTags([...tags, tagInput.trim()]);
+        const trimmedTag = tagInput.trim();
+
+        // Validate tag: alphanumeric, spaces, hyphens only (max 25 chars)
+        const tagRegex = /^[a-zA-Z0-9\s\-]+$/;
+
+        if (trimmedTag &&
+            !tags.includes(trimmedTag) &&
+            tags.length < 20 &&
+            trimmedTag.length <= 25 &&
+            tagRegex.test(trimmedTag)) {
+            setTags([...tags, trimmedTag]);
             setTagInput("");
+        } else if (trimmedTag && !tagRegex.test(trimmedTag)) {
+            // Optionally show error for invalid characters
+            console.warn('Tag contains invalid characters');
         }
     };
 
