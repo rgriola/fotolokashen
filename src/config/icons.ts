@@ -7,6 +7,32 @@
  * Usage:
  * import { AppIcons } from '@/config/icons';
  * <AppIcons.Home className="w-6 h-6" />
+ * 
+ * 
+ * // src/components/icons/CustomHouse.tsx
+export function CustomHouse({ className }: { className?: string }) {
+    return (
+        <svg 
+            className={className}
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor"
+        >
+            /* Your custom SVG paths here */
+/*            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+    );
+}   
+
+place this in icons.ts
+ * import { CustomHouse } from '@/components/icons/CustomHouse';
+export const AppIcons = {
+    Home: CustomHouse,  // Use your custom icon
+    // ... other icons
+}
+ * 
+ * 
  */
 
 import {
