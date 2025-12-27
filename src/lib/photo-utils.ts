@@ -52,8 +52,6 @@ export async function extractPhotoGPS(file: File): Promise<PhotoMetadata> {
             ihdr: false,
             // Merge all GPS formats
             mergeOutput: true,
-            // Be lenient with malformed data
-            silentErrors: true,
             // Get everything
             pick: [
                 // GPS - try all variations

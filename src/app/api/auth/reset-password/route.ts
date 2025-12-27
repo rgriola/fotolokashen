@@ -62,6 +62,14 @@ export async function POST(request: NextRequest) {
         city: true,
         country: true,
         language: true,
+        timezone: true,
+        emailNotifications: true,
+        gpsPermission: true,
+        gpsPermissionUpdated: true,
+        homeLocationName: true,
+        homeLocationLat: true,
+        homeLocationLng: true,
+        homeLocationUpdated: true,
         createdAt: true,
       },
     });
@@ -136,6 +144,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Auto-login: Generate JWT token for the user
+    // We construct the PublicUser object manually here since we have all the fields
     const jwtToken = generateToken(
       {
         id: user.id,
@@ -150,6 +159,14 @@ export async function POST(request: NextRequest) {
         city: user.city,
         country: user.country,
         language: user.language,
+        timezone: user.timezone,
+        emailNotifications: user.emailNotifications,
+        gpsPermission: user.gpsPermission,
+        gpsPermissionUpdated: user.gpsPermissionUpdated,
+        homeLocationName: user.homeLocationName,
+        homeLocationLat: user.homeLocationLat,
+        homeLocationLng: user.homeLocationLng,
+        homeLocationUpdated: user.homeLocationUpdated,
         createdAt: user.createdAt,
       },
       false // Don't use "remember me" for auto-login after password reset
@@ -187,6 +204,18 @@ export async function POST(request: NextRequest) {
         emailVerified: user.emailVerified,
         isActive: user.isActive,
         isAdmin: user.isAdmin,
+        avatar: user.avatar,
+        city: user.city,
+        country: user.country,
+        language: user.language,
+        timezone: user.timezone,
+        emailNotifications: user.emailNotifications,
+        gpsPermission: user.gpsPermission,
+        gpsPermissionUpdated: user.gpsPermissionUpdated,
+        homeLocationName: user.homeLocationName,
+        homeLocationLat: user.homeLocationLat,
+        homeLocationLng: user.homeLocationLng,
+        homeLocationUpdated: user.homeLocationUpdated,
         createdAt: user.createdAt,
       },
       token: jwtToken,

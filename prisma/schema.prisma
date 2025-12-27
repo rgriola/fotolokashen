@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 model User {
@@ -23,7 +24,7 @@ model User {
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
   appleId                 String?       @unique
-  avatar                  String?       @db.Text
+  avatar                  String?
   city                    String?
   country                 String?
   googleId                String?       @unique
@@ -41,7 +42,7 @@ model User {
   homeLocationUpdated     DateTime?
   
   verificationTokenExpiry DateTime?
-  bio                     String?       @db.Text
+  bio                     String?
   deletedAt               DateTime?
   emailNotifications      Boolean       @default(true)
   twoFactorEnabled        Boolean       @default(false)
@@ -57,15 +58,32 @@ model User {
   invitedTeamMembers      TeamMember[]  @relation("TeamInviter")
   teamMemberships         TeamMember[]  @relation("TeamMember")
   savedLocations          UserSave[]
+  phoneVerification       PhoneVerification[]
 
   @@map("users")
+}
+
+model PhoneVerification {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  phoneNumber String
+  code        String
+  expiresAt   DateTime
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([phoneNumber])
+  @@index([code])
 }
 
 model Location {
   id               Int               @id @default(autoincrement())
   placeId          String            @unique
   name             String
-  address          String?           @db.Text
+  address          String?
   lat              Float
   lng              Float
   type             String?
@@ -75,13 +93,13 @@ model Location {
   lastModifiedAt   DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-  access           String?           @db.Text
+  access           String?
   city             String?
-  entryPoint       String?           @db.Text
+  entryPoint       String?
   isPermanent      Boolean           @default(false)
   number           String?
-  parking          String?           @db.Text
-  productionNotes  String?           @db.Text
+  parking          String?
+  productionNotes  String?
   state            String?
   street           String?
   zipcode          String?
@@ -92,15 +110,15 @@ model Location {
   operatingHours   String?
   permitCost       Float?
   permitRequired   Boolean           @default(false)
-  restrictions     String?           @db.Text
+  restrictions     String?
   contacts         LocationContact[]
   creator          User              @relation("LocationCreator", fields: [createdBy], references: [id], onDelete: Cascade)
   lastModifier     User?             @relation("LocationModifier", fields: [lastModifiedBy], references: [id])
   projectLocations ProjectLocation[]
   savedBy          UserSave[]
 
-  @@index([createdBy], map: "locations_createdBy_fkey")
-  @@index([lastModifiedBy], map: "locations_lastModifiedBy_fkey")
+  @@index([createdBy])
+  @@index([lastModifiedBy])
   @@map("locations")
 }
 
@@ -118,27 +136,27 @@ model UserSave {
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, locationId])
-  @@index([locationId], map: "user_saves_locationId_fkey")
+  @@index([locationId])
   @@map("user_saves")
 }
 
 model Session {
   id           String   @id @default(cuid())
   userId       Int
-  token        String   @unique @db.VarChar(500)
+  token        String   @unique
   expiresAt    DateTime
   createdAt    DateTime @default(now())
   ipAddress    String?
   isActive     Boolean  @default(true)
   lastAccessed DateTime @default(now())
-  userAgent    String?  @db.Text
+  userAgent    String?
   country      String?
   deviceName   String?
   deviceType   String?
   loginMethod  String?
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId], map: "sessions_userId_fkey")
+  @@index([userId])
   @@map("sessions")
 }
 
@@ -154,28 +172,28 @@ model Photo {
   width            Int?
   height           Int?
   isPrimary        Boolean   @default(false)
-  caption          String?   @db.Text
+  caption          String?
   uploadedAt       DateTime  @default(now())
   gpsLatitude      Float?
   gpsLongitude     Float?
   gpsAltitude      Float?
   gpsAccuracy      Float?
-  cameraMake       String?   @db.VarChar(100)
-  cameraModel      String?   @db.VarChar(100)
-  lensMake         String?   @db.VarChar(100)
-  lensModel        String?   @db.VarChar(100)
-  dateTaken        DateTime? @db.DateTime(0)
+  cameraMake       String?
+  cameraModel      String?
+  lensMake         String?
+  lensModel        String?
+  dateTaken        DateTime?
   iso              Int?
-  focalLength      String?   @db.VarChar(20)
-  aperture         String?   @db.VarChar(20)
-  shutterSpeed     String?   @db.VarChar(50)
-  exposureMode     String?   @db.VarChar(50)
-  whiteBalance     String?   @db.VarChar(50)
-  flash            String?   @db.VarChar(50)
+  focalLength      String?
+  aperture         String?
+  shutterSpeed     String?
+  exposureMode     String?
+  whiteBalance     String?
+  flash            String?
   orientation      Int?
-  colorSpace       String?   @db.VarChar(50)
-  tags             String?   @db.Text
-  uploadSource     String?   @default("manual") @db.VarChar(50)
+  colorSpace       String?
+  tags             String?
+  uploadSource     String?   @default("manual")
   hasGpsData       Boolean   @default(false)
   uploader         User?     @relation("PhotoUploader", fields: [userId], references: [id])
 
@@ -191,7 +209,7 @@ model Project {
   id          Int               @id @default(autoincrement())
   userId      Int
   name        String
-  description String?           @db.Text
+  description String?
   startDate   DateTime?
   endDate     DateTime?
   budget      Float?
@@ -202,7 +220,7 @@ model Project {
   locations   ProjectLocation[]
   owner       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId], map: "projects_userId_fkey")
+  @@index([userId])
   @@map("projects")
 }
 
@@ -211,13 +229,13 @@ model ProjectLocation {
   projectId  Int
   locationId Int
   shootDate  DateTime?
-  notes      String?   @db.Text
+  notes      String?
   addedAt    DateTime  @default(now())
   location   Location  @relation(fields: [locationId], references: [id], onDelete: Cascade)
   project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, locationId])
-  @@index([locationId], map: "project_locations_locationId_fkey")
+  @@index([locationId])
   @@map("project_locations")
 }
 
@@ -228,11 +246,11 @@ model LocationContact {
   role       String?
   email      String?
   phone      String?
-  notes      String?  @db.Text
+  notes      String?
   createdAt  DateTime @default(now())
   location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
 
-  @@index([locationId], map: "location_contacts_locationId_fkey")
+  @@index([locationId])
   @@map("location_contacts")
 }
 
@@ -246,7 +264,7 @@ model TeamMember {
   user      User     @relation("TeamMember", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, invitedBy])
-  @@index([invitedBy], map: "team_members_invitedBy_fkey")
+  @@index([invitedBy])
   @@map("team_members")
 }
 
@@ -255,7 +273,7 @@ model SecurityLog {
   userId    Int?
   eventType String
   ipAddress String?
-  userAgent String?  @db.Text
+  userAgent String?
   location  String?
   success   Boolean  @default(true)
   metadata  Json?

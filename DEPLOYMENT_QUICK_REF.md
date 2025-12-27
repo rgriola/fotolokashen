@@ -28,21 +28,34 @@ Monitoring      → Sentry (already setup ✅)
 ## Deployment Order (30 minutes total)
 
 ### Phase 1: Email (5 min)
-1. Sign up at resend.com
-2. Add + verify domain in Cloudflare
-3. Generate API key
-4. Save for Vercel setup
+1. Sign up at resend.com - done RG
+2. Add + verify domain in Cloudflare - done RG
+3. Generate API key - done RG
+4. Save for Vercel setup 
+
+### Phase 1.5: Email Receiving (Free)
+1. Go to Cloudflare Dashboard > Email
+2. Enable "Email Routing"
+3. Create custom address `admin@merkelvision.com`
+4. Forward it to your personal Gmail (so you can read incoming mail)
 
 ### Phase 2: Database (10 min)
-1. Sign up at planetscale.com
+*Note: PlanetScale no longer has a free tier ($39/mo). Alternatives: Railway (MySQL), TiDB (MySQL free tier), or Vercel Postgres (requires schema change).*
+
+1. Sign up at planetscale.com (or alternative)
 2. Create database: `google-search-me`
 3. Get connection string
-4. Import local data (optional)
+### Phase 2: Database (5 min) - Vercel Postgres ⚡️
+1. Go to your Vercel Project Dashboard
+2. Click **Storage** tab -> **Create Database** -> Select **Postgres**
+3. Choose Region (e.g., Washington, D.C. - same as your functions)
+4. Click **Connect**
+5. **Done!** Vercel automatically adds the env vars (`POSTGRES_PRISMA_URL`, etc.) to your project.
 
 ### Phase 3: Deploy App (10 min)
 1. Link GitHub to Vercel
-2. Import project
-3. Add all environment variables
+2. Project Settings -> Environment Variables
+3. Add the *missing* ones (see below)
 4. Deploy!
 
 ### Phase 4: Custom Domain (5 min)
@@ -54,24 +67,21 @@ Monitoring      → Sentry (already setup ✅)
 
 ## Environment Variables (Copy-Paste for Vercel)
 
-When you deploy, you'll need these from your `.env.local` **PLUS** these new ones:
+**Note:** Vercel automatically adds all `POSTGRES_*` variables when you connect the database. You only need to add these:
 
 ### 🆕 New for Production:
 ```bash
-# Database (from PlanetScale)
-DATABASE_URL=mysql://xxxxx@aws.connect.psdb.cloud/google-search-me?sslaccept=strict
-
 # JWT Secret (GENERATE NEW - don't reuse local!)
 JWT_SECRET=<run: openssl rand -base64 48>
 
 # Email (from Resend)
 EMAIL_SERVICE=resend
 EMAIL_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
-EMAIL_FROM_ADDRESS=noreply@yourdomain.com
+EMAIL_FROM_ADDRESS=admin@merkelvision.com
 EMAIL_MODE=production
 
-# App URL (after first deploy, update with custom domain)
-NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+# App URL
+NEXT_PUBLIC_APP_URL=https://merkelvision.com
 ```
 
 ### ✅ Same as Local:

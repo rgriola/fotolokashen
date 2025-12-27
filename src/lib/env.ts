@@ -16,7 +16,10 @@ const envSchema = z.object({
     // ============================================
     // Database
     // ============================================
-    DATABASE_URL: z.string().min(1, 'DATABASE_URL is required').url('DATABASE_URL must be a valid URL'),
+    // Support both standard DATABASE_URL and Vercel Postgres POSTGRES_PRISMA_URL
+    // We allow empty strings or undefined to pass initial validation, but the refine block below ensures at least one is valid
+    DATABASE_URL: z.string().url().or(z.literal('')).optional(),
+    POSTGRES_PRISMA_URL: z.string().url().or(z.literal('')).optional(),
 
     // ============================================
     // Authentication & Security
@@ -93,6 +96,7 @@ const envSchema = z.object({
         .default('development')
         .describe('Email mode (development logs to console, production sends emails)'),
 
+
     EMAIL_FROM_NAME: z
         .string()
         .default('Merkel Vision')
@@ -118,6 +122,7 @@ const envSchema = z.object({
         .string()
         .url('NEXT_PUBLIC_SENTRY_DSN must be a valid URL')
         .describe('Sentry DSN for error tracking'),
+
 });
 
 /**
