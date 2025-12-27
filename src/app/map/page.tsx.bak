@@ -8,7 +8,6 @@ import { ClusteredMarkers } from '@/components/maps/ClusteredMarkers';
 import { InfoWindow } from '@/components/maps/InfoWindow';
 import { PlacesAutocomplete } from '@/components/maps/PlacesAutocomplete';
 import { UserLocationMarker } from '@/components/maps/UserLocationMarker';
-import { HomeLocationMarker } from '@/components/maps/HomeLocationMarker';
 import { RightSidebar } from '@/components/layout/RightSidebar';
 import { SaveLocationPanel } from '@/components/panels/SaveLocationPanel';
 import { EditLocationPanel } from '@/components/panels/EditLocationPanel';
@@ -35,6 +34,7 @@ interface MarkerData {
 
 function MapPageInner() {
     const searchParams = useSearchParams();
+    const [center, setCenter] = useState({ lat: 40.7128, lng: -74.006 }); // NYC default
     const [markers, setMarkers] = useState<MarkerData[]>([]);
     const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
@@ -538,18 +538,6 @@ function MapPageInner() {
                     className="w-full h-full"
                 >
                     {/* User location blue dot */}
-
-                    {/* Home location marker (house icon) */}
-                    {user?.homeLocationLat && user?.homeLocationLng && (
-                        <HomeLocationMarker
-                            position={{
-                                lat: user.homeLocationLat,
-                                lng: user.homeLocationLng,
-                            }}
-                            name={user.homeLocationName || undefined}
-                        />
-                    )}
-
                     <UserLocationMarker
                         position={userLocation}
                         onClick={handleUserLocationClick}

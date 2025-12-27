@@ -46,6 +46,12 @@ const updateProfileSchema = z.object({
         .regex(/^[a-z]{2}(-[A-Z]{2})?$/, 'Language must be a valid language code (e.g., en, en-US)')
         .optional(),
     emailNotifications: z.boolean().optional(),
+    gpsPermission: z.enum(['not_asked', 'granted', 'denied']).optional(),
+
+    // Home Location
+    homeLocationName: z.string().max(255).optional(),
+    homeLocationLat: z.number().min(-90).max(90).optional(),
+    homeLocationLng: z.number().min(-180).max(180).optional(),
 });
 
 /**
@@ -73,9 +79,21 @@ export async function PATCH(request: NextRequest) {
         }
 
         // Update user profile
+        const updateData: any = { ...validation.data };
+
+        // If gpsPermission is being updated, also update the timestamp
+        if (validation.data.gpsPermission !== undefined) {
+            updateData.gpsPermissionUpdated = new Date();
+        }
+
+        // If home location is being updated, also update the timestamp
+        if (validation.data.homeLocationLat !== undefined || validation.data.homeLocationLng !== undefined) {
+            updateData.homeLocationUpdated = new Date();
+        }
+
         const updatedUser = await prisma.user.update({
             where: { id: authResult.user.id },
-            data: validation.data,
+            data: updateData,
             select: {
                 id: true,
                 email: true,
@@ -89,6 +107,15 @@ export async function PATCH(request: NextRequest) {
                 timezone: true,
                 language: true,
                 emailNotifications: true,
+                emailVerified: true,
+                isActive: true,
+                isAdmin: true,
+                gpsPermission: true,
+                gpsPermissionUpdated: true,
+                homeLocationName: true,
+                homeLocationLat: true,
+                homeLocationLng: true,
+                homeLocationUpdated: true,
                 avatar: true,
                 createdAt: true,
             },

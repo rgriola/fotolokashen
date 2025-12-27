@@ -17,6 +17,12 @@ export interface User {
     gpsPermission: string | null  // 'not_asked', 'granted', 'denied'
     gpsPermissionUpdated: Date | null
 
+    // Home Location (default map center)
+    homeLocationName: string | null
+    homeLocationLat: number | null
+    homeLocationLng: number | null
+    homeLocationUpdated: Date | null
+
     // Profile fields
     avatar: string | null
     bio: string | null
@@ -62,9 +68,24 @@ export interface PublicUser {
     city: string | null
     country: string | null
     language: string | null
+    timezone: string | null
+
+    // Preferences
+    emailNotifications: boolean
+
+    // GPS Permission
+    gpsPermission: string | null  // 'not_asked', 'granted', 'denied'
+    gpsPermissionUpdated: Date | null
+
+    // Home Location (default map center)
+    homeLocationName: string | null
+    homeLocationLat: number | null
+    homeLocationLng: number | null
+    homeLocationUpdated: Date | null
 
     createdAt: Date
 }
+
 
 export interface AuthResponse {
     user: PublicUser

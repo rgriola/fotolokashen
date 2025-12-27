@@ -33,6 +33,13 @@ model User {
   timezone                String?
   gpsPermission           String?       @default("not_asked")
   gpsPermissionUpdated    DateTime?
+  
+  // Home Location (default map center)
+  homeLocationName        String?
+  homeLocationLat         Float?
+  homeLocationLng         Float?
+  homeLocationUpdated     DateTime?
+  
   verificationTokenExpiry DateTime?
   bio                     String?       @db.Text
   deletedAt               DateTime?
