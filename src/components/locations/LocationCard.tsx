@@ -183,13 +183,6 @@ export const LocationCard = memo(function LocationCard({
             </CardHeader>
 
             <CardContent className="space-y-3 pt-0">
-                {/* User Caption */}
-                {userSave?.caption && (
-                    <p className="text-sm text-foreground/90 italic border-l-2 border-primary pl-2">
-                        "{userSave.caption}"
-                    </p>
-                )}
-
                 {/* Production Notes */}
                 {location.productionNotes && (
                     <div className="text-xs bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-2 rounded-md">

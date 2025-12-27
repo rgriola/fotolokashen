@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/locations
  * Save a new location for the authenticated user
- * Body: { placeId, name, address, latitude, longitude, type?, rating?, caption? }
+ * Body: { placeId, name, address, latitude, longitude, type?, rating? }
  */
 export async function POST(request: NextRequest) {
     try {
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
 
         // Extract and sanitize inputs
         let {
-            placeId, name, address, latitude, longitude, type, rating, caption,
+            placeId, name, address, latitude, longitude, type, rating,
             // Address components
             street, number, city, state, zipcode,
             // Production details
@@ -126,7 +126,6 @@ export async function POST(request: NextRequest) {
         // Sanitize all text inputs
         name = sanitizeText(name);
         address = sanitizeText(address);
-        caption = caption ? sanitizeText(caption) : undefined;
         productionNotes = productionNotes ? sanitizeText(productionNotes) : undefined;
         entryPoint = entryPoint ? sanitizeText(entryPoint) : undefined;
         parking = parking ? sanitizeText(parking) : undefined;
@@ -173,15 +172,6 @@ export async function POST(request: NextRequest) {
             console.error(`[Save Location] Address too long: ${address.length} chars (max ${locationLimits.address.max})`);
             return apiError(
                 `${locationLimits.address.label} must be ${locationLimits.address.max} characters or less`,
-                400,
-                'VALIDATION_ERROR'
-            );
-        }
-
-        if (caption && caption.length > locationLimits.caption.max) {
-            console.error(`[Save Location] Caption too long: ${caption.length} chars (max ${locationLimits.caption.max})`);
-            return apiError(
-                `${locationLimits.caption.label} must be ${locationLimits.caption.max} characters or less`,
                 400,
                 'VALIDATION_ERROR'
             );
@@ -281,7 +271,6 @@ export async function POST(request: NextRequest) {
             data: {
                 userId: user.id,
                 locationId: location.id,
-                caption,
                 tags: tags ? tags : undefined, // Prisma will convert array to JSON
                 isFavorite: isFavorite || false,
                 personalRating: personalRating || undefined,

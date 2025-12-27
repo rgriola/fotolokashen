@@ -61,11 +61,6 @@ const saveLocationSchema = z.object({
         .optional(),
 
     // User save details - Personal notes, needs validation
-    caption: z.string()
-        .max(200, "Caption must be 200 characters or less")
-        .regex(safeLongTextRegex, "Caption contains invalid characters")
-        .or(z.literal("")) // Allow empty string
-        .optional(),
     isFavorite: z.boolean().optional(),
     personalRating: z.number().min(0).max(5).optional(),
     color: z.string().max(20).optional(),
@@ -177,7 +172,6 @@ export function SaveLocationForm({
     };
 
     // Character count helpers
-    const captionCount = form.watch("caption")?.length || 0;
     const productionNotesCount = form.watch("productionNotes")?.length || 0;
 
     return (

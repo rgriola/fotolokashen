@@ -31,14 +31,3 @@ export function canDeleteUserSave(
 ): boolean {
     return user.id === userSave.userId;
 }
-
-/**
- * Check if a user can update their own caption
- * Only the user who saved the location can update their caption
- */
-export function canUpdateCaption(
-    user: PublicUser,
-    userSave: UserSaveForPermission
-): boolean {
-    return user.id === userSave.userId;
-}

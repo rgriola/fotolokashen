@@ -150,8 +150,7 @@ export async function PATCH(
 
         // Update UserSave fields if provided
         let userSave = null;
-        const hasUserSaveUpdates = body.caption !== undefined ||
-            body.tags !== undefined ||
+        const hasUserSaveUpdates = body.tags !== undefined ||
             body.isFavorite !== undefined ||
             body.personalRating !== undefined ||
             body.color !== undefined;
@@ -169,7 +168,6 @@ export async function PATCH(
                 userSave = await prisma.userSave.update({
                     where: { id: existingUserSave.id },
                     data: {
-                        ...(body.caption !== undefined && { caption: body.caption }),
                         ...(body.tags !== undefined && { tags: body.tags }),
                         ...(body.isFavorite !== undefined && { isFavorite: body.isFavorite }),
                         ...(body.personalRating !== undefined && { personalRating: body.personalRating }),

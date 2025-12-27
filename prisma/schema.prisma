@@ -102,7 +102,6 @@ model UserSave {
   userId         Int
   locationId     Int
   savedAt        DateTime  @default(now())
-  caption        String?   @db.Text
   color          String?
   isFavorite     Boolean   @default(false)
   personalRating Float?

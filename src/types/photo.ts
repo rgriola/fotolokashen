@@ -182,7 +182,6 @@ export interface LocationFormData {
     access?: string;
 
     // User save details
-    caption?: string;
     isFavorite?: boolean;
     personalRating?: number;
     color?: string;
