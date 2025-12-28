@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
 import { uploadToImageKit, deleteFromImageKit } from '@/lib/imagekit';
 import prisma from '@/lib/prisma';
+import { FOLDER_PATHS } from '@/lib/constants/upload';
 
 /**
  * POST /api/auth/avatar
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
         const uploadResult = await uploadToImageKit({
             file: buffer,
             fileName: `avatar-${authResult.user.id}-${Date.now()}`,
-            folder: '/avatars',
+            folder: FOLDER_PATHS.userAvatars(authResult.user.id),
             tags: ['avatar', `user-${authResult.user.id}`],
         });
 
