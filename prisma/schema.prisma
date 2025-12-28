@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -143,13 +142,13 @@ model UserSave {
 model Session {
   id           String   @id @default(cuid())
   userId       Int
-  token        String   @unique
+  token        String   @unique @db.VarChar(500)
   expiresAt    DateTime
   createdAt    DateTime @default(now())
   ipAddress    String?
   isActive     Boolean  @default(true)
   lastAccessed DateTime @default(now())
-  userAgent    String?
+  userAgent    String?  @db.Text
   country      String?
   deviceName   String?
   deviceType   String?

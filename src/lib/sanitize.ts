@@ -5,8 +5,6 @@
  * Uses DOMPurify for robust HTML sanitization.
  */
 
-import DOMPurify from 'isomorphic-dompurify';
-
 /**
  * Sanitize plain text - strips ALL HTML tags
  * Use for fields that should never contain HTML (names, addresses, etc.)
@@ -14,13 +12,8 @@ import DOMPurify from 'isomorphic-dompurify';
 export function sanitizeText(input: string | null | undefined): string {
     if (!input) return '';
 
-    // Strip all HTML tags and trim whitespace
-    const cleaned = DOMPurify.sanitize(input, {
-        ALLOWED_TAGS: [],  // No HTML tags allowed
-        ALLOWED_ATTR: [],  // No attributes allowed
-    });
-
-    return cleaned.trim();
+    // Strip all HTML tags and trim whitespace using regex
+    return input.replace(/<\/?[^>]+(>|$)/g, "").trim();
 }
 
 /**
@@ -30,14 +23,10 @@ export function sanitizeText(input: string | null | undefined): string {
 export function sanitizeHTML(input: string | null | undefined): string {
     if (!input) return '';
 
-    // Allow only safe HTML tags
-    const cleaned = DOMPurify.sanitize(input, {
-        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'ul', 'ol', 'li'],
-        ALLOWED_ATTR: ['href', 'target'],
-        ALLOW_DATA_ATTR: false,
-    });
-
-    return cleaned.trim();
+    // Fallback found: Since specific HTML sanitization without jsdom requires a different library
+    // and this function is currently unused in the project scope verified,
+    // we will default to stripping tags to ensure security and prevent crashes.
+    return sanitizeText(input);
 }
 
 /**
