@@ -1,4 +1,4 @@
-import { parse } from 'exifr';
+// exifr will be imported dynamically to avoid server-side jsdom issues
 
 export interface PhotoGPS {
     lat: number;
@@ -38,16 +38,21 @@ export async function extractPhotoGPS(file: File): Promise<PhotoMetadata> {
     console.log('📸 Last modified:', new Date(file.lastModified).toLocaleString());
 
     try {
-        // Try with comprehensive options - enable ALL features
         console.log('📸 Attempting EXIF extraction...');
+
+        // Dynamic import to ensure this only runs on client and avoids server-side jsdom issues
+        const exifr = await import('exifr');
+        // Handle both CommonJS and ESM default exports
+        const parse = exifr.default ? exifr.default.parse : exifr.parse;
 
         const exif = await parse(file, {
             // Enable all parsing
             tiff: true,
             exif: true,
             gps: true,
+            // Disable XMP to stay light and safe
             iptc: false,
-            xmp: false, // Disable XMP to avoid jsdom/parse5 issues
+            xmp: false,
             icc: false,
             jfif: false,
             ihdr: false,
