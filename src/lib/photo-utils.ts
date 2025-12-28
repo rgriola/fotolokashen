@@ -1,4 +1,5 @@
-import { parse } from 'exifr';
+// @ts-ignore - Using lite build to prevent jsdom/parse5 ESM errors on Vercel
+import { parse } from 'exifr/dist/lite.esm.mjs';
 
 export interface PhotoGPS {
     lat: number;
