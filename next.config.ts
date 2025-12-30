@@ -6,9 +6,23 @@ import './src/lib/env';
 
 
 const nextConfig: NextConfig = {
-  webpack: (config) => {
-    // Ignore jsdom to prevent errors with exifr/parse5
-    config.externals = [...(config.externals || []), 'jsdom'];
+  // Exclude problematic packages from server components bundle
+  // exifr and its dependencies (jsdom, parse5) should only run on the client
+  serverExternalPackages: ['exifr', 'jsdom', 'parse5'],
+
+  webpack: (config, { isServer }) => {
+    // Externalize these packages to prevent bundling on the server
+    if (isServer) {
+      config.externals = [
+        ...(config.externals || []),
+        'exifr',
+        'jsdom',
+        'parse5',
+        'canvas',
+        'bufferutil',
+        'utf-8-validate',
+      ];
+    }
     return config;
   },
 

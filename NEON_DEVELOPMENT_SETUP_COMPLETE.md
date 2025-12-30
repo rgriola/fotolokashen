@@ -10,7 +10,7 @@
 
 ### Environment Setup Complete
 
-✅ **Neon development branch created**  
+✅ **Neon development branch created**
 ✅ **Connection string configured** in `.env` and `.env.local`  
 ✅ **Prisma Client generated**  
 ✅ **Database schema synchronized**  
