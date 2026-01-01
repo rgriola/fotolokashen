@@ -71,8 +71,8 @@ export function LoginForm() {
       toast.success('Login successful!');
       console.log('✅ Login successful, redirecting to /map');
 
-      // Redirect to app page
-      window.location.href = '/map';
+      // Use Next.js router for better mobile compatibility
+      router.push('/map');
       router.refresh();
     } catch (error) {
       console.error('💥 Login error:', error);
