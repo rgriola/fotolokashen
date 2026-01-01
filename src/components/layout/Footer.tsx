@@ -7,8 +7,8 @@ export function Footer() {
 
     return (
         <footer className="w-full border-t bg-background">
-            <div className="container py-8 md:py-12">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="px-4 md:px-6 lg:px-8 py-8 md:py-12">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
                     {/* Brand Section */}
                     <div className="col-span-1 md:col-span-2">
                         <Link href="/" className="flex items-center gap-2 mb-4">

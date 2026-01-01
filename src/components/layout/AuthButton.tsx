@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { User, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -31,11 +30,11 @@ export function AuthButton() {
 
     if (!user) {
         return (
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" asChild>
+            <div className="hidden md:flex items-center gap-3">
+                <Button variant="ghost" asChild className="min-w-[90px]">
                     <Link href="/login">Login</Link>
                 </Button>
-                <Button asChild>
+                <Button asChild className="min-w-[100px]">
                     <Link href="/register">Register</Link>
                 </Button>
             </div>
