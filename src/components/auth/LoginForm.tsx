@@ -42,40 +42,26 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      const userAgent = navigator.userAgent;
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
-      
-      console.log('🔐 Login attempt started:', { 
-        email: data.email, 
-        isMobile,
-        userAgent: userAgent.substring(0, 50)
-      });
-      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
-      console.log('📡 Response status:', response.status);
-
       const result = await response.json();
-      console.log('📦 Response data:', result);
 
       if (!response.ok) {
-        console.error('❌ Login failed:', result.error);
         toast.error(result.error || 'Login failed');
         return;
       }
 
       toast.success('Login successful!');
-      console.log('✅ Login successful, redirecting to /map');
 
       // Use Next.js router for better mobile compatibility
       router.push('/map');
       router.refresh();
     } catch (error) {
-      console.error('💥 Login error:', error);
+      console.error('Login error:', error);
       toast.error('An unexpected error occurred');
     } finally {
       setIsLoading(false);
@@ -92,8 +78,6 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Debug info */}
-          <input type="hidden" onClick={() => console.log('📱 Form clicked')} />
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -165,7 +149,6 @@ export function LoginForm() {
             type="submit" 
             className="w-full" 
             disabled={isLoading}
-            onClick={() => console.log('🖱️ Login button clicked')}
           >
             {isLoading ? 'Logging in...' : 'Login'}
           </Button>
