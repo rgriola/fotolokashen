@@ -107,9 +107,9 @@ export function RegisterForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+        <CardTitle className="text-2xl font-bold">Register - Create Account</CardTitle>
         <CardDescription>
-          Enter your information to get started
+          Enter Your Information To Get Access.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -302,13 +302,13 @@ export function RegisterForm() {
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Create account'}
+            {isLoading ? 'Setting You Up...' : 'Create Account'}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
         <div className="text-sm text-gray-600">
-          Already have an account?{' '}
+          Have An Account?{' '}
           <Link href="/login" className="text-blue-600 hover:underline font-medium">
             Log in
           </Link>

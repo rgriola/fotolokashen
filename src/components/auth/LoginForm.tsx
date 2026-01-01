@@ -71,9 +71,9 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+        <CardTitle className="text-2xl font-bold">Login - Welcome Back</CardTitle>
         <CardDescription>
-          Enter your credentials to access your account
+          Enter Your Creds Below
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -101,7 +101,7 @@ export function LoginForm() {
                 href="/forgot-password"
                 className="text-sm text-blue-600 hover:underline"
               >
-                Forgot password?
+                Forgot Password?
               </Link>
             </div>
             <div className="relative">
@@ -152,9 +152,9 @@ export function LoginForm() {
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
         <div className="text-sm text-gray-600">
-          Don't have an account?{' '}
+          No Account? We Got You.{' '}
           <Link href="/register" className="text-blue-600 hover:underline font-medium">
-            Sign up
+            Create Account
           </Link>
         </div>
       </CardFooter>

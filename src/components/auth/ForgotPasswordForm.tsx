@@ -70,17 +70,18 @@ export function ForgotPasswordForm() {
                     </div>
                     <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
                     <CardDescription>
-                        If an account exists with {submittedEmail}, we've sent password reset instructions.
+                        Should Account <strong>{submittedEmail}</strong> Exist, <br />
+                        We Will Throw You An Email.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                         <p className="text-sm text-blue-800">
-                            <strong>Didn't receive an email?</strong>
+                            <strong>Make Sure To:</strong>
                         </p>
                         <ul className="text-sm text-blue-700 mt-2 space-y-1 list-disc list-inside">
                             <li>Check your spam or junk folder</li>
-                            <li>Make sure you entered the correct email</li>
+                            <li>This is the correct email</li>
                             <li>Wait a few minutes and check again</li>
                         </ul>
                     </div>
