@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -23,7 +22,6 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -57,11 +55,10 @@ export function LoginForm() {
 
       toast.success('Login successful!');
 
-      // Use router.replace for better mobile compatibility
-      // Small delay to ensure cookie is set before navigation
-      await new Promise(resolve => setTimeout(resolve, 100));
-      router.replace('/map');
-      router.refresh();
+      // Small delay to ensure cookie is fully set, then hard redirect
+      setTimeout(() => {
+        window.location.href = '/map';
+      }, 200);
     } catch (error) {
       console.error('Login error:', error);
       toast.error('An unexpected error occurred');
