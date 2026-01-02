@@ -31,7 +31,7 @@ Monitoring      → Sentry (already setup ✅)
 1. Sign up at resend.com - done RG
 2. Add + verify domain in Cloudflare - done RG
 3. Generate API key - done RG
-4. Save for Vercel setup 
+4. Save for Vercel setup - done 
 
 ### Phase 1.5: Email Receiving (Free)
 1. Go to Cloudflare Dashboard > Email
@@ -39,7 +39,7 @@ Monitoring      → Sentry (already setup ✅)
 3. Create custom address `admin@merkelvision.com`
 4. Forward it to your personal Gmail (so you can read incoming mail)
 
-### Phase 2: Database (10 min)
+### Phase 2: Database (10 min) - UPDATE Jan 1 - USING POSTGRESQL ON NEON INSTEAD
 *Note: PlanetScale no longer has a free tier ($39/mo). Alternatives: Railway (MySQL), TiDB (MySQL free tier), or Vercel Postgres (requires schema change).*
 
 1. Sign up at planetscale.com (or alternative)
@@ -117,7 +117,7 @@ NODE_ENV=production
 
 ## Testing Checklist (After Deploy)
 
-- [ ] Site loads at Vercel URL
+- [x ] Site loads at Vercel URL
 - [ ] User can sign up
 - [ ] Verification email sent (check Resend)
 - [ ] User can login
