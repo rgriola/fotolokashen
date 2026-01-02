@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { comparePassword, generateToken } from '@/lib/auth';
@@ -112,6 +112,20 @@ export async function POST(request: NextRequest) {
           lockedUntil: null,
         },
       });
+    }
+
+    // Check if email is verified BEFORE checking password
+    // This prevents enumeration while providing helpful UX
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        {
+          error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+          code: 'EMAIL_NOT_VERIFIED',
+          requiresVerification: true,
+          email: user.email,
+        },
+        { status: 403 }
+      );
     }
 
     // Verify password

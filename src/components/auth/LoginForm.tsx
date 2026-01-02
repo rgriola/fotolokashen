@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +23,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -49,6 +51,16 @@ export function LoginForm() {
       const result = await response.json();
 
       if (!response.ok) {
+        // Check if email verification is required
+        if (result.requiresVerification && result.email) {
+          toast.error(result.error || 'Email verification required');
+          // Redirect to verify-email page with option to resend
+          setTimeout(() => {
+            router.push(`/verify-email?email=${encodeURIComponent(result.email)}&resend=true`);
+          }, 1000);
+          return;
+        }
+        
         toast.error(result.error || 'Login failed');
         return;
       }

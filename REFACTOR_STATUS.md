@@ -1,22 +1,36 @@
 # Merkel Vision - Refactor Status
 
-**Last Updated**: 2026-01-01 18:00:00 EST  
-**Current Phase**: Phase 9 - Production Deployment & Mobile UX Optimization (🚀 IN PROGRESS)  
-**Overall Progress**: ~96% Complete - Deployed to Production, Mobile Optimization Complete
+**Last Updated**: 2026-01-02 05:45:00 EST  
+**Current Phase**: Phase 10 - Production DNS Migration & Environment Setup (🚀 COMPLETE)  
+**Overall Progress**: ~98% Complete - Deployed to Production at merkelvision.com
 
 ---
 
 ## 📊 Executive Summary
 **ITEMS TO ADDRESS**: 
-1. How to handle multiple device logins (Example: logged in on phone then logged in on laptop. Best Solution?)
-2. Mobile layout optimization - IN PROGRESS ✅
+**ITEMS TO ADDRESS**: 
+Situation: User registers but then attempts login without confirming email. 
+	
+How to handle: 
+1. If email verification token is still valid remind user to check email - show time until token expires with a running clock - niccce. 
+2. If verification token has expired offer option to send a new verification email, force a reentering of email and Captcha.  If successful overwrite old token with new token. Send email is sent to user. No more than 3 verification emails in 24 hours. 
+3.  User Sessions  - check if email verification = true, then check if password is correct. Update session for user reissue authentication, redirect to /map. Sessions should check IP. 
+
+Situation: User had multiple devices.
+1. Multiple devices - mobile device + 1. No more than 2 active sessions to 1 email/user name.  more than 2 auto log out oldest session checking for moblie status. 
+2. Question can JS check on whether user is active - auto logout. 
+
+Also I am seeing multiple page requests per user. 
+
+2. Mobile layout optimization - COMPLETE ✅
+3. Production DNS migration - COMPLETE ✅
 
 **Project**: Refactoring legacy vanilla JavaScript Google Maps application → Modern Next.js/React/TypeScript stack  
 **Repository**: [github.com/rgriola/merkel-vision](https://github.com/rgriola/merkel-vision.git)  
-**Production**: [merkel-vision.vercel.app](https://merkel-vision.vercel.app) ✅ **LIVE!**  
-**Status**: **Production Deployed & Working** - Data Migration In Progress
+**Production**: [merkelvision.com](https://merkelvision.com) ✅ **LIVE!** (DNS migrated from Render to Vercel)  
+**Status**: **Production Deployed & Working** - DNS Migration Complete
 
-**Stack**: Next.js 16 • React 19 • TypeScript 5 • Tailwind CSS v4 • PostgreSQL (Neon) • Prisma ORM • ImageKit
+**Stack**: Next.js 16.0.10 • React 19.2.1 • TypeScript 5 • Tailwind CSS v4 • PostgreSQL (Neon) • Prisma 6.19.1 • ImageKit 6.0.0 • TanStack Query 5 • Radix UI • Resend • Sentry • React Hook Form • Zod
 
 ---
 
@@ -54,13 +68,28 @@
 - ✅ **Menu Consistency**: MobileMenu repositioned to floating button matching UnauthMobileMenu (100%)
 - ✅ **Map Controls**: Responsive 4-button layout - desktop horizontal, mobile bottom menu (100%)
 
+### Production DNS Migration (Phase 10) ⭐ NEW - Jan 2, 2026
+- ✅ **DNS Configuration**: Migrated from Render to Vercel via Cloudflare (100%)
+- ✅ **SSL Certificate**: Let's Encrypt auto-provisioned by Vercel (100%)
+- ✅ **Domain Verification**: merkelvision.com pointing to Vercel (100%)
+- ✅ **Production JWT**: Generated new 384-bit secret for production security (100%)
+- ✅ **Environment Variables**: Documented all required production settings (100%)
+
+**DNS Setup Details**:
+- Root domain: `CNAME merkelvision.com → f1bb0125b2ec5ad2.vercel-dns-017.com` (DNS only)
+- WWW subdomain: `CNAME www → f1bb0125b2ec5ad2.vercel-dns-017.com` (DNS only)
+- Email DNS: Resend DKIM and DMARC records configured
+- Cloudflare CNAME flattening: Enabled (allows CNAME at root)
+- Propagation: Complete in ~5 minutes
+
 ---
 
 ## 🔜 Remaining Tasks
 
-- � **Phase 9A**: ImageKit Folder Structure Migration (In Progress)
-- � **Phase 9B**: Legacy Data Migration to Production Database (In Progress)
-- 🔜 **Phase 10**: Final Testing & Optimization (Not Started)
+- 🔜 **Phase 11A**: Update Vercel Environment Variables (Next Step)
+- 🔜 **Phase 11B**: Production Testing & Verification (Next Step)
+- 🔜 **Phase 12**: ImageKit Folder Structure Migration (Planned)
+- 🔜 **Phase 13**: Legacy Data Migration to Production Database (Planned)
 
 ---
 
@@ -92,6 +121,68 @@
 - ✅ 100% legacy-compatible schema
 - ✅ **PostgreSQL (Neon)** - Migrated from MySQL
 - ✅ **Production deployed** with Neon cloud database
+
+---
+
+## 🆕 Recent Changes (Jan 1-2, 2026)
+
+### Phase 10: Production DNS Migration (Jan 2, 2026) ✅
+
+**Goal**: Migrate merkelvision.com DNS from Render to Vercel for production deployment
+
+#### DNS Migration Completed
+- ✅ **Custom Domain**: merkelvision.com now points to Vercel
+- ✅ **Vercel DNS**: Generated unique CNAME target (`f1bb0125b2ec5ad2.vercel-dns-017.com`)
+- ✅ **Cloudflare Configuration**: CNAME flattening enabled for root domain
+- ✅ **SSL Certificate**: Let's Encrypt auto-provisioned by Vercel
+- ✅ **Propagation**: DNS changes propagated in ~5 minutes
+- ✅ **Email DNS**: Resend DKIM and DMARC records already configured
+
+#### Production Security Setup
+- ✅ **JWT Secret**: Generated new 384-bit production secret
+  - Command: `openssl rand -base64 48`
+  - Output: `ZJ/Rkypbc3FQXFf98r4lYw5lZ3LbA8Z9wEaLPNBbDiJ2kOKgRk29WLJLEEWFisbS`
+  - Security: 48 bytes = 384 bits entropy (exceeds 256-bit minimum by 50%)
+- ✅ **Environment Variables**: Documented all required production settings
+  - EMAIL_MODE=production (critical for email delivery)
+  - NEXT_PUBLIC_APP_URL=https://merkelvision.com
+  - NODE_ENV=production
+  - JWT_SECRET (new production secret)
+  - EMAIL_FROM_ADDRESS (admin@merkelvision.com)
+
+#### DNS Configuration Details
+**Cloudflare DNS Records**:
+```
+Type    Name                Target                              Proxy
+CNAME   merkelvision.com    f1bb0125b2ec5ad2.vercel-dns-017.com DNS only
+CNAME   www                 f1bb0125b2ec5ad2.vercel-dns-017.com DNS only
+TXT     resend._domainkey   <resend-dkim-key>                   DNS only
+TXT     _dmarc              v=DMARC1; p=none;                   DNS only
+```
+
+**Key Technical Decisions**:
+- Used Cloudflare CNAME flattening (not A record) for better Vercel integration
+- DNS only mode (gray cloud) to avoid SSL conflicts
+- Vercel handles SSL certificate auto-renewal
+- Unique CNAME target allows Vercel dynamic IP updates
+
+**Files Created**:
+- `PRODUCTION_READINESS_CHECKLIST.md` - Complete deployment guide
+- `DNS_MIGRATION_GUIDE.md` - Step-by-step DNS migration instructions
+- `.env.production.example` - Production environment template
+
+**Impact**: 
+- Production site accessible at https://merkelvision.com with valid SSL
+- Automatic SSL certificate renewal by Vercel
+- DNS changes propagate quickly (1-5 minutes vs 24-48 hours)
+- Ready for environment variable updates and production testing
+
+**Next Steps**:
+1. Update Vercel environment variables (EMAIL_MODE=production, etc.)
+2. Redeploy on Vercel to pick up new variables
+3. Test production deployment (registration, email, maps, photos)
+4. Monitor for 24-48 hours
+5. Deprecate Render deployment after stability confirmed
 
 ---
 
@@ -387,11 +478,13 @@ webpack: (config, { isServer }) => {
 - ✅ User-first data organization
 - ✅ Comprehensive error handling
 - ✅ **Mobile responsive** - Optimized for iPhone/Android (Jan 1, 2026)
-- ✅ **Live on Vercel**: https://merkel-vision.vercel.app
+- ✅ **Live at Custom Domain**: https://merkelvision.com (DNS migrated Jan 2, 2026)
 - ✅ **Database**: PostgreSQL (Neon cloud)
 - ✅ **All pages loading**: /locations, /create-with-photo, /profile
 - ✅ **Authentication working**: Login, signup, session management
 - ✅ **Mobile login fixed**: 200ms cookie sync delay for clean redirect
+- ✅ **SSL Certificate**: Let's Encrypt auto-provisioned by Vercel
+- ✅ **DNS Configuration**: Cloudflare CNAME flattening to Vercel
 
 ### 📋 Completed Deployment Tasks
 - [x] Database migration: MySQL → PostgreSQL (Neon)
@@ -401,6 +494,10 @@ webpack: (config, { isServer }) => {
 - [x] Critical bug fixes (exifr/jsdom serverless issue)
 - [x] Build verification (no errors)
 - [x] Runtime testing (all pages accessible)
+- [x] **Custom domain setup**: merkelvision.com (Jan 2, 2026)
+- [x] **DNS migration**: Render → Vercel via Cloudflare
+- [x] **SSL certificate**: Auto-provisioned and verified
+- [x] **Production JWT secret**: Generated 384-bit secure token
 
 ### 🚧 Pending Migration Tasks
 - [ ] **ImageKit Folder Structure**: Migrate to user-first paths
@@ -447,11 +544,11 @@ webpack: (config, { isServer }) => {
 
 ---
 
-## 🎉 Major Milestone Achievement: PRODUCTION DEPLOYED! 🚀
+## 🎉 Major Milestone Achievement: PRODUCTION DEPLOYED AT MERKELVISION.COM! 🚀
 
-**The refactored Merkel Vision application is now LIVE in production**:
+**The refactored Merkel Vision application is now LIVE at its custom domain**:
 
-✅ **Deployed**: https://merkel-vision.vercel.app ⭐ **LIVE!**  
+✅ **Deployed**: https://merkelvision.com ⭐ **LIVE!**  
 ✅ **Features**: Photo upload with GPS, EXIF metadata extraction  
 ✅ **Performance**: 80% faster renders, optimized components  
 ✅ **Type Safety**: 95% TypeScript coverage vs 0% (vanilla JS)  
@@ -461,14 +558,82 @@ webpack: (config, { isServer }) => {
 ✅ **Scalability**: User-first structure, modular components  
 ✅ **Database**: PostgreSQL (Neon cloud) with dev/prod separation  
 ✅ **Bug Fixes**: Serverless compatibility (exifr/jsdom resolved)  
+✅ **DNS Migration**: Render → Vercel via Cloudflare CNAME flattening (Jan 2, 2026)  
+✅ **SSL Certificate**: Let's Encrypt auto-provisioned and verified  
+✅ **Production Security**: 384-bit JWT secret generated  
 
-**Status**: 🎯 Production deployed and working! Migration in progress.
+**Status**: 🎯 Production deployed at merkelvision.com! Environment variable updates pending.
 
 ---
 
-## 🔄 Next Steps (Phase 9 - Migration)
+**Last Updated**: 2026-01-02 at 05:45 EST  
+**Current Status**: DNS migration complete - Ready for environment variable updates  
+**Next Session**: Update Vercel environment variables and test production deployment  
+**Contributors**: Development Team  
+**Repository**: [github.com/rgriola/merkel-vision](https://github.com/rgriola/merkel-vision.git)  
+**Production**: [merkelvision.com](https://merkelvision.com) ✅
 
-### Phase 9A: ImageKit Folder Structure Migration
+---
+
+## 🔄 Next Steps (Phase 11 - Environment & Testing)
+
+### Phase 11A: Update Vercel Environment Variables (IMMEDIATE)
+**Goal**: Configure production environment variables for email delivery and security
+
+**Required Updates**:
+1. [ ] Add EMAIL_MODE=production
+2. [ ] Add NEXT_PUBLIC_APP_URL=https://merkelvision.com
+3. [ ] Add NODE_ENV=production
+4. [ ] Add JWT_SECRET=ZJ/Rkypbc3FQXFf98r4lYw5lZ3LbA8Z9wEaLPNBbDiJ2kOKgRk29WLJLEEWFisbS
+5. [ ] Update EMAIL_FROM_ADDRESS=admin@merkelvision.com
+6. [ ] Verify all other environment variables exist (database, API keys, etc.)
+7. [ ] Redeploy on Vercel to pick up new variables
+
+**Reference**: See `PRODUCTION_READINESS_CHECKLIST.md` and `.env.production.example`
+
+### Phase 11B: Production Testing & Verification (HIGH PRIORITY)
+**Goal**: Comprehensive testing of production deployment
+
+**Test Checklist**:
+1. [ ] Homepage loads at https://merkelvision.com with valid SSL
+2. [ ] User registration works
+3. [ ] Verification email arrives (EMAIL_MODE=production active)
+4. [ ] Email verification link works
+5. [ ] Login successful
+6. [ ] Google Maps loads correctly
+7. [ ] Location CRUD operations work
+8. [ ] Photo upload with GPS extraction works
+9. [ ] ImageKit CDN serving images
+10. [ ] Password reset flow works
+11. [ ] Profile updates work
+12. [ ] Sentry error tracking active
+
+### Phase 11C: Production Monitoring (24-48 hours)
+**Goal**: Ensure stability before deprecating Render
+
+**Monitoring Points**:
+1. [ ] Sentry dashboard for errors
+2. [ ] Vercel Analytics for performance
+3. [ ] Resend dashboard for email delivery rate
+4. [ ] Neon database connection pool and query performance
+5. [ ] User feedback collection
+
+**Success Criteria**: <5 critical errors in 48 hours
+
+### Phase 11D: Deprecate Render Deployment
+**Goal**: Shut down old hosting after confirming Vercel stability
+
+**Tasks**:
+1. [ ] Confirm Vercel stable for 48+ hours
+2. [ ] No critical errors in Sentry
+3. [ ] Suspend Render service (keep option to reactivate)
+4. [ ] Monitor for 1 week, then delete if stable
+
+---
+
+## 🔄 Future Steps (Phase 12-13 - Data Migration)
+
+### Phase 12A: ImageKit Folder Structure Migration
 **Goal**: Update existing ImageKit photos to use user-first folder structure
 
 **Current Structure**:

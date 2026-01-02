@@ -49,6 +49,7 @@ export function UnauthMobileMenu() {
                         {/* Navigation Links */}
                         <Link 
                             href="/" 
+                            prefetch={false}
                             onClick={handleLinkClick}
                             className={cn(
                                 "flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors relative",
@@ -68,6 +69,7 @@ export function UnauthMobileMenu() {
                         {/* Auth Actions */}
                         <Link 
                             href="/login" 
+                            prefetch={false}
                             onClick={handleLinkClick}
                             className={cn(
                                 "flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors relative",
@@ -83,6 +85,7 @@ export function UnauthMobileMenu() {
                         
                         <Link 
                             href="/register" 
+                            prefetch={false}
                             onClick={handleLinkClick}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-colors"
                         >
@@ -92,6 +95,7 @@ export function UnauthMobileMenu() {
                         
                         <Link 
                             href="/forgot-password" 
+                            prefetch={false}
                             onClick={handleLinkClick}
                             className={cn(
                                 "flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors relative",

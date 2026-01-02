@@ -31,6 +31,7 @@ export function Navigation() {
                 <Link
                     key={item.href}
                     href={item.href}
+                    prefetch={false}
                     className={cn(
                         "text-sm font-medium transition-colors hover:text-primary relative",
                         pathname === item.href

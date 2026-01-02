@@ -71,6 +71,7 @@ export function MobileMenu() {
                                 <Link
                                     key={item.href}
                                     href={item.href}
+                                    prefetch={false}
                                     onClick={handleLinkClick}
                                     className={cn(
                                         "flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors relative",
@@ -95,6 +96,7 @@ export function MobileMenu() {
                                 {/* Profile Link */}
                                 <Link
                                     href="/profile"
+                                    prefetch={false}
                                     onClick={handleLinkClick}
                                     className={cn(
                                         "flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors relative",
