@@ -23,7 +23,8 @@ import { toast } from 'sonner';
 import { GpsPermissionDialog } from '@/components/maps/GpsPermissionDialog';
 import { GpsWelcomeBanner } from '@/components/maps/GpsWelcomeBanner';
 import { useGpsLocation } from '@/hooks/useGpsLocation';
-import { MapPin as MapPinIcon, X, Navigation, Users } from 'lucide-react';
+import { MapControls } from '@/components/maps/MapControls';
+import { MapPin as MapPinIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface MarkerData {
@@ -711,98 +712,54 @@ function MapPageInner() {
                     )}
                 </GoogleMap>
 
-                {/* Floating Buttons - Top Right (shifted left to avoid map controls) */}
-                <div className="absolute top-4 right-[65px] flex gap-2 z-10">
-                    {/* GPS Toggle Button */}
-                    <Button
-                        onClick={async () => {
-                            if (userLocation) {
-                                setUserLocation(null);
-                                toast.info('Location hidden');
-                            } else {
-                                const position = await requestLocation();
-                                if (position) {
-                                    setUserLocation({
-                                        lat: position.coords.latitude,
-                                        lng: position.coords.longitude,
-                                    });
-                                    toast.success('Location shown');
-                                }
+                {/* Map Controls - Responsive (Desktop: top-right buttons, Mobile: bottom floating menu) */}
+                <MapControls
+                    userLocation={userLocation}
+                    onGpsToggle={async () => {
+                        if (userLocation) {
+                            setUserLocation(null);
+                            toast.info('Location hidden');
+                        } else {
+                            const position = await requestLocation();
+                            if (position) {
+                                setUserLocation({
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude,
+                                });
+                                toast.success('Location shown');
                             }
-                        }}
-                        className={`shadow-lg border border-gray-200 transition-colors ${userLocation
-                            ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent' // On: Google Blue
-                            : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'   // Off: Dark Blue
-                            }`}
-                        size="sm"
-                        title={userLocation ? "Hide GPS Location" : "Show GPS Location"}
-                    >
-                        <Navigation className={`w-4 h-4 mr-2 ${userLocation ? 'fill-current' : ''}`} />
-                        GPS {userLocation ? 'On' : 'Off'}
-                    </Button>
+                        }
+                    }}
+                    onFriendsClick={() => alert('Friends Locations feature coming soon!')}
+                    onViewAllClick={() => {
+                        if (!map) return;
 
-                    {/* Friends Button (Placeholder) */}
-                    <Button
-                        onClick={() => alert('Friends Locations feature coming soon!')}
-                        className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200"
-                        size="sm"
-                        title="View friends' locations"
-                    >
-                        <Users className="w-4 h-4 mr-2" />
-                        Friends
-                    </Button>
+                        const savedMarkers = markers.filter(m => !m.isTemporary);
 
-                    {/* View All Locations Button - Fits all markers in view */}
-                    <Button
-                        onClick={() => {
-                            if (!map) return;
+                        if (savedMarkers.length === 0) {
+                            toast.info('No saved locations to display');
+                            return;
+                        }
 
-                            const savedMarkers = markers.filter(m => !m.isTemporary);
+                        // Create bounds to fit all markers
+                        const bounds = new google.maps.LatLngBounds();
+                        savedMarkers.forEach(marker => {
+                            bounds.extend(marker.position);
+                        });
 
-                            if (savedMarkers.length === 0) {
-                                toast.info('No saved locations to display');
-                                return;
+                        // Fit map to show all markers
+                        map.fitBounds(bounds);
+
+                        // Add some padding
+                        setTimeout(() => {
+                            if (map.getZoom()! > 16) {
+                                map.setZoom(16);
                             }
-
-                            // Create bounds to fit all markers
-                            const bounds = new google.maps.LatLngBounds();
-                            savedMarkers.forEach(marker => {
-                                bounds.extend(marker.position);
-                            });
-
-                            // Fit map to show all markers
-                            map.fitBounds(bounds);
-
-                            // Add some padding
-                            setTimeout(() => {
-                                if (map.getZoom()! > 16) {
-                                    map.setZoom(16);
-                                }
-                            }, 100);
-                        }}
-                        className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200"
-                        size="sm"
-                        title="View all saved locations on map"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
-                            <path d="M15 5.764v15" />
-                            <path d="M9 3.236v15" />
-                        </svg>
-                        View All
-                    </Button>
-
-                    {/* My Locations List Button */}
-                    <Button
-                        onClick={() => setShowLocationsPanel(true)}
-                        className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200"
-                        size="sm"
-                        title="Show list of saved locations"
-                    >
-                        <MapPinIcon className="w-4 h-4 mr-2" />
-                        My Locations ({markers.filter(m => !m.isTemporary).length})
-                    </Button>
-                </div>
+                        }, 100);
+                    }}
+                    onMyLocationsClick={() => setShowLocationsPanel(true)}
+                    savedLocationsCount={markers.filter(m => !m.isTemporary).length}
+                />
 
                 {/* Locations Panel - Slide in from right */}
                 {showLocationsPanel && (

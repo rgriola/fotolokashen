@@ -46,11 +46,13 @@
 - ✅ **Environment Setup**: Dev, Preview, Production environments (100%)
 - ✅ **Production Testing**: All pages loading successfully (100%)
 
-### Mobile UX Optimization (Phase 8D) ⭐ NEW - Jan 1, 2026
+### Mobile UX Optimization (Phase 8D) ⭐ NEW - Jan 1-2, 2026
 - ✅ **Landing Page**: Button sizing, hero positioning, hamburger menu (100%)
 - ✅ **Navigation**: UnauthMobileMenu with auto-close and active states (100%)
 - ✅ **Auth Pages**: Consistent mobile layout (login, register, forgot-password) (100%)
 - ✅ **Login Redirect**: Fixed mobile navigation with 200ms cookie sync delay (100%)
+- ✅ **Menu Consistency**: MobileMenu repositioned to floating button matching UnauthMobileMenu (100%)
+- ✅ **Map Controls**: Responsive 4-button layout - desktop horizontal, mobile bottom menu (100%)
 
 ---
 
@@ -144,9 +146,31 @@ setTimeout(() => {
 
 **Result**: ✅ 200ms delay ensures cookie is set, then clean hard redirect to `/map`
 
+#### Menu Consistency
+- ✅ Repositioned `MobileMenu` to floating button, matching `UnauthMobileMenu` style
+- ✅ Consistent mobile menu button size and position across authenticated/unauthenticated states
+- ✅ Icons added to all menu items for better visual hierarchy
+- ✅ Active page indicators with underline
+- ✅ Auto-close on link click
+
+#### Map Controls Mobile Optimization ⭐ NEW - Jan 2, 2026
+- ✅ **Desktop Layout**: Horizontal buttons in top-right (preserved existing behavior)
+- ✅ **Mobile Layout**: Floating bottom menu with detailed control cards
+- ✅ **New Component**: `MapControls.tsx` - Responsive 4-button layout
+  - GPS Location On/Off toggle (Google Blue when active)
+  - My Locations panel opener (with count badge)
+  - View All (fits all markers in bounds)
+  - Friends (placeholder for future feature)
+- ✅ **Positioning**: `bottom-24 right-6` (above hamburger at `bottom-6`)
+- ✅ **Z-Index**: `z-[90]` (below hamburger's `z-[100]`)
+- ✅ **Touch Targets**: 56px buttons meet accessibility standards
+- ✅ **Auto-Close**: Sheet closes after action click
+- ✅ **Visual Design**: Gradient styling matches hamburger menu
+
 **Files Modified**:
 - `src/app/page.tsx` - Landing page mobile layout
 - `src/components/layout/Header.tsx` - Logo visibility, conditional menus
+- `src/components/layout/MobileMenu.tsx` - Floating button with icons, auto-close, active states
 - `src/components/layout/UnauthMobileMenu.tsx` - Complete mobile menu with features
 - `src/components/layout/Footer.tsx` - Consistent padding
 - `src/app/login/page.tsx` - Mobile layout consistency
@@ -154,9 +178,12 @@ setTimeout(() => {
 - `src/app/forgot-password/page.tsx` - Mobile layout consistency
 - `src/components/auth/LoginForm.tsx` - Mobile redirect fix
 - `src/components/auth/ForgotPasswordForm.tsx` - Text customization
+- `src/components/maps/MapControls.tsx` - ⭐ NEW: Responsive map controls component
+- `src/app/map/page.tsx` - Integrated MapControls component
 
 **Documentation Created**:
 - `MOBILE_LAYOUT_REVIEW.md` - Comprehensive mobile audit and recommendations
+- `MAP_CONTROLS_MOBILE_OPTIMIZATION.md` - ⭐ NEW: Map controls implementation details
 
 **Impact**: 
 - Smooth mobile UX across all authentication flows
