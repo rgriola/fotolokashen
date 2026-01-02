@@ -66,11 +66,11 @@ export function GoogleMap({
     );
 
     const options: google.maps.MapOptions = {
-        disableDefaultUI: false,
+        disableDefaultUI: true, // Disable all default UI controls first
         zoomControl: false, // Disabled - users can pinch-to-zoom on mobile, scroll on desktop
         panControl: false, // Disabled - the diamond control
-        mapTypeControl: true,
-        scaleControl: true,
+        mapTypeControl: true, // Re-enable only the map type control
+        scaleControl: true, // Re-enable the scale
         streetViewControl: false, // Disabled - removes the pegman/street view button
         rotateControl: false, // Disabled - removes rotate control
         fullscreenControl: false, // Disabled on mobile - not useful when map is already full-screen
@@ -106,24 +106,35 @@ export function GoogleMap({
 
         // Add custom styling to map type control (horizontal bar)
         const styleMapControl = () => {
-            // Style map type control buttons
+            // Style map type control buttons - be very specific to avoid styling other controls
             const allButtons = document.querySelectorAll('button[draggable="false"]');
             
             allButtons.forEach((button) => {
                 const btn = button as HTMLElement;
                 const text = btn.textContent?.toLowerCase() || '';
                 
-                // Check if this is a map type button
+                // ONLY style if this is a map type button (Map, Satellite, Terrain, Hybrid)
                 if (text.includes('map') || text.includes('satellite') || 
                     text.includes('terrain') || text.includes('hybrid')) {
                     
-                    // Find the parent container
+                    // Find the parent container - but verify it contains ONLY map type buttons
                     let container = btn.parentElement;
                     while (container && container.querySelectorAll('button[draggable="false"]').length < 2) {
                         container = container.parentElement;
                     }
                     
                     if (container && container !== document.body) {
+                        // Double-check this container only has map type buttons
+                        const buttons = Array.from(container.querySelectorAll('button[draggable="false"]'));
+                        const allAreMapTypes = buttons.every((b) => {
+                            const btnText = (b as HTMLElement).textContent?.toLowerCase() || '';
+                            return btnText.includes('map') || btnText.includes('satellite') || 
+                                   btnText.includes('terrain') || btnText.includes('hybrid');
+                        });
+                        
+                        // Only style if ALL buttons are map type buttons (not scale, keyboard shortcuts, etc.)
+                        if (!allAreMapTypes) return;
+                        
                         // Style the container
                         const containerDiv = container as HTMLElement;
                         containerDiv.style.backgroundColor = 'white';
@@ -191,27 +202,6 @@ export function GoogleMap({
                             };
                         });
                     }
-                }
-            });
-
-            // Reposition the Map Data attribution bar to avoid floating buttons
-            // Move it to the left side, away from bottom-right buttons
-            const attributionContainers = document.querySelectorAll('.gm-style-cc');
-            attributionContainers.forEach((container) => {
-                const elem = container as HTMLElement;
-                elem.style.left = '0';
-                elem.style.right = 'auto';
-                elem.style.bottom = '0';
-                elem.style.maxWidth = 'calc(100% - 140px)'; // Leave space for right-side buttons
-            });
-
-            // Also style the Google logo container
-            const logoContainers = document.querySelectorAll('a[href^="https://maps.google.com/maps"]');
-            logoContainers.forEach((logo) => {
-                const elem = logo as HTMLElement;
-                if (elem.parentElement) {
-                    elem.parentElement.style.left = '0';
-                    elem.parentElement.style.right = 'auto';
                 }
             });
         };

@@ -843,11 +843,11 @@ function MapPageInner() {
             </div>
 
             {/* Instructions Footer */}
-            <div className="bg-gray-100 p-3 text-center text-sm text-gray-600">
+            {/* <div className="bg-gray-100 p-3 text-center text-sm text-gray-600">
                 <p>
                     <strong>Test Instructions:</strong> Search for places, click GPS button, or click the map to add markers
                 </p>
-            </div>
+            </div> */}
 
             {/* Right Sidebar - Save or Edit */}
             <RightSidebar
