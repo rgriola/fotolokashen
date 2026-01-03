@@ -12,6 +12,7 @@
 Comprehensive IP-based rate limiting to prevent brute force attacks and API abuse.
 
 #### **Features**:
+
 - ✅ IP-based tracking (works with proxies/load balancers)
 - ✅ Configurable limits and time windows
 - ✅ Multiple presets for different security levels
@@ -19,6 +20,7 @@ Comprehensive IP-based rate limiting to prevent brute force attacks and API abus
 - ✅ Standard rate limit headers (X-RateLimit-*)
 
 #### **File Created**:
+
 - `/src/lib/rate-limit.ts` - Core rate limiting utilities
 
 #### **Applied To**:

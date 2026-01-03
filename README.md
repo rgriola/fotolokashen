@@ -9,14 +9,16 @@ A modern location discovery and sharing platform where users can search, save, a
 ## 🚀 Technology Stack
 
 ### Core
+
 - **Framework**: Next.js 16.0.10 (App Router, React 19, TypeScript 5)
 - **Database**: PostgreSQL (Neon Cloud)
-- **ORM**: Prisma 6.19.1
+- **ORM**: Prisma 6.19.1 - ORM (Object-Relational Mapping)
 - **CDN**: ImageKit (photo storage)
 - **Deployment**: Vercel
 - **Authentication**: NextAuth.js with JWT
 
 ### Frontend
+
 - **Styling**: Tailwind CSS v4
 - **Components**: shadcn/ui
 - **Maps**: Google Maps JavaScript API with @react-google-maps/api
@@ -24,6 +26,7 @@ A modern location discovery and sharing platform where users can search, save, a
 - **Forms**: React Hook Form + Zod validation
 
 ### Backend & Infrastructure
+
 - **API**: Next.js API Routes
 - **Email**: Resend
 - **Monitoring**: Sentry (error tracking)
@@ -99,6 +102,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📁 Project Structure
 
 ```
+
 google-search-me-refactor/
 ├── prisma/
 │   └── schema.prisma          # Database schema (9 tables, 128 fields)
@@ -138,6 +142,7 @@ google-search-me-refactor/
 The application uses **9 interconnected tables** with **128 total fields**:
 
 ### Core Tables
+
 - **users** (31 fields) - User accounts with authentication, profile, OAuth, 2FA, GPS permissions
 - **locations** (31 fields) - Saved Google Maps locations with production details
 - **user_saves** (10 fields) - Many-to-many with tags, favorites, ratings, colors
@@ -145,6 +150,7 @@ The application uses **9 interconnected tables** with **128 total fields**:
 - **photos** (13 fields) - ImageKit integration for location photos
 
 ### Production Tables
+
 - **projects** (11 fields) - Campaign/shoot organization
 - **project_locations** (6 fields) - Many-to-many for shoots
 - **location_contacts** (8 fields) - Property managers, owners
@@ -155,6 +161,7 @@ The application uses **9 interconnected tables** with **128 total fields**:
 ## � Key Features
 
 ### Authentication & User Management
+
 - ✅ Email/password registration and login
 - ✅ Email verification with token system
 - ✅ Password reset functionality
@@ -163,6 +170,7 @@ The application uses **9 interconnected tables** with **128 total fields**:
 - ✅ User account deletion
 
 ### Location Discovery & Management
+
 - ✅ Google Maps integration with interactive search
 - ✅ Places Autocomplete for quick location finding
 - ✅ User-specific saved locations (each user has their own saves)
@@ -173,6 +181,7 @@ The application uses **9 interconnected tables** with **128 total fields**:
 - ✅ Home location setting
 
 ### Photo Management
+
 - ✅ Multiple photos per location
 - ✅ ImageKit CDN integration
 - ✅ Flat directory structure for scalability
@@ -180,6 +189,7 @@ The application uses **9 interconnected tables** with **128 total fields**:
 - ✅ Automatic photo metadata storage
 
 ### Map Interface
+
 - ✅ Interactive Google Maps display
 - ✅ Custom markers for saved locations
 - ✅ Saved locations panel with filtering/sorting
@@ -187,6 +197,7 @@ The application uses **9 interconnected tables** with **128 total fields**:
 - ✅ Mobile-responsive map controls
 
 ### Security & Performance
+
 - ✅ XSS protection with DOMPurify
 - ✅ Input validation and sanitization
 - ✅ Session validation on every request
@@ -226,18 +237,21 @@ npm run db:studio    # Open Prisma Studio (uses .env.local)
 ## 📝 Development Guidelines
 
 ### Code Style
+
 - TypeScript strict mode enabled
 - ESLint with Next.js recommended config
 - Prettier for code formatting
 - Tailwind CSS for styling (utility-first)
 
 ### Database Conventions
+
 - Snake_case for database column names
 - CamelCase for TypeScript/JavaScript
 - Soft deletes using `deletedAt` field
 - Timestamps on all tables (createdAt, updatedAt)
 
 ### API Conventions
+
 - RESTful endpoints
 - Standard HTTP status codes
 - Consistent error response format
@@ -260,11 +274,13 @@ npm run db:studio    # Open Prisma Studio (uses .env.local)
 The application is deployed to Vercel at [merkelvision.com](https://merkelvision.com).
 
 ### Automatic Deployment
+
 - Push to `main` branch triggers automatic deployment
 - Environment variables configured in Vercel dashboard
 - Production database: Neon PostgreSQL
 
 ### Manual Deployment
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
