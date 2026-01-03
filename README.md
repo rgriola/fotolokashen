@@ -1,40 +1,41 @@
-nd # Google Maps Search Application - Refactor
+# Merkel Vision
 
-**Last Updated**: 2025-12-22 09:23:00 EST  
-**Status**: Phase 6 (88% Complete) - Save/Edit Workflows & Security Hardening  
-**Overall Progress**: ~92% Complete
+**Last Updated**: 2026-01-03  
+**Production**: [merkelvision.com](https://merkelvision.com) ✅ Live  
+**Status**: Active Development
 
-A modern, scalable Google Maps search application built with Next.js, React, TypeScript, and MySQL. This is a complete refactor of the original vanilla JavaScript application with improved architecture, enterprise-grade security, mobile responsiveness, and developer experience.
+A modern location discovery and sharing platform where users can search, save, and organize places with photos, personal ratings, and notes. Built with Next.js 16, PostgreSQL, and ImageKit CDN.
 
 ## 🚀 Technology Stack
 
+### Core
+- **Framework**: Next.js 16.0.10 (App Router, React 19, TypeScript 5)
+- **Database**: PostgreSQL (Neon Cloud)
+- **ORM**: Prisma 6.19.1
+- **CDN**: ImageKit (photo storage)
+- **Deployment**: Vercel
+- **Authentication**: NextAuth.js with JWT
+
 ### Frontend
-- **Framework**: Next.js 16 (App Router)
-- **UI Library**: React 19
-- **Language**: TypeScript 5
 - **Styling**: Tailwind CSS v4
 - **Components**: shadcn/ui
 - **Maps**: Google Maps JavaScript API with @react-google-maps/api
 - **State Management**: TanStack Query (React Query)
 - **Forms**: React Hook Form + Zod validation
-- **Security**: DOMPurify (XSS protection)
 
-### Backend
-- **Runtime**: Node.js
+### Backend & Infrastructure
 - **API**: Next.js API Routes
-- **Database**: MySQL 8.0+
-- **ORM**: Prisma 6.19.1
-- **Authentication**: JWT + bcrypt with session validation
-- **Email**: Nodemailer with Mailtrap (development)
-- **File Uploads**: ImageKit (ready for integration)
+- **Email**: Resend
+- **Monitoring**: Sentry (error tracking)
+- **Security**: DOMPurify (XSS protection), bcrypt (password hashing)
 
 ## 📋 Prerequisites
 
 - Node.js 18+ and npm
-- MySQL 8.0+ (local or cloud instance)
+- PostgreSQL database (we use Neon Cloud)
 - Google Maps API Key
-- SMTP server for email (Mailtrap for development)
-- ImageKit account (optional, for photo uploads)
+- ImageKit account (for photo uploads)
+- Resend account (for transactional emails)
 
 ## 🛠️ Getting Started
 
@@ -50,21 +51,23 @@ npm install
 
 ### 2. Environment Setup
 
-Copy the environment template and configure your variables:
+Create a `.env.local` file in the root directory (this is the ONLY environment file used for local development):
 
 ```bash
 # See ENV_TEMPLATE.md for complete configuration guide
-# Create your .env.local file with your actual values
+cp ENV_TEMPLATE.md .env.local
+# Edit .env.local with your actual values
 ```
 
 Required environment variables:
-- `DATABASE_URL` - MySQL connection string
+
+- `DATABASE_URL` - PostgreSQL connection string (Neon)
 - `JWT_SECRET` - Secret key for JWT tokens (min 32 characters)
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - Google Maps API key
 - `NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY` - ImageKit public key
 - `IMAGEKIT_PRIVATE_KEY` - ImageKit private key
 - `IMAGEKIT_URL_ENDPOINT` - ImageKit URL endpoint
-- SMTP settings for email (Mailtrap credentials)
+- `EMAIL_SERVER_*` - Resend API configuration
 
 See [ENV_TEMPLATE.md](./ENV_TEMPLATE.md) for detailed configuration instructions.
 
@@ -149,113 +152,53 @@ The application uses **9 interconnected tables** with **128 total fields**:
 
 > **Note**: Schema significantly enhanced beyond legacy Merkel-Vision database with enterprise features while maintaining backward compatibility.
 
-## 🎨 Current Features
+## � Key Features
 
-### ✅ Fully Implemented (Phases 1-5)
-
-**Phase 1: Foundation**
-- ✅ Next.js 16.0.10 with App Router
-- ✅ TypeScript 5 configuration
-- ✅ Tailwind CSS v4 with PostCSS
-- ✅ shadcn/ui component library
-- ✅ Prisma ORM with MySQL
-
-**Phase 2: Authentication System**
-- ✅ User registration with email verification
-- ✅ Secure login with JWT tokens
+### Authentication & User Management
+- ✅ Email/password registration and login
+- ✅ Email verification with token system
 - ✅ Password reset functionality
-- ✅ Email verification with resend capability
-- ✅ Session management with database validation
-- ✅ Single active session per user enforcement
-- ✅ Route protection (ProtectedRoute component)
-- ✅ Admin route guard (AdminRoute component)
+- ✅ JWT-based session management
+- ✅ Admin dashboard for user management
+- ✅ User account deletion
 
-**Phase 3: Google Maps Integration**
-- ✅ Google Maps JavaScript API integration
-- ✅ Interactive map with search
-- ✅ Places Autocomplete
-- ✅ Geocoding and reverse geocoding
-- ✅ User location detection (GPS)
-- ✅ Custom markers with InfoWindows
-- ✅ Click-to-save locations
+### Location Discovery & Management
+- ✅ Google Maps integration with interactive search
+- ✅ Places Autocomplete for quick location finding
+- ✅ User-specific saved locations (each user has their own saves)
+- ✅ Personal ratings and captions for each location
+- ✅ Favorite marking
+- ✅ Location categories
+- ✅ GPS location support with permission toggle
+- ✅ Home location setting
 
-**Phase 4: Location Management API**
-- ✅ RESTful API for locations
-- ✅ Save locations with metadata
-- ✅ Update location details
-- ✅ Delete locations
-- ✅ List user's saved locations
-- ✅ Input sanitization (XSS protection)
-- ✅ Validation with centralized config
+### Photo Management
+- ✅ Multiple photos per location
+- ✅ ImageKit CDN integration
+- ✅ Flat directory structure for scalability
+- ✅ Photo viewer with lightbox
+- ✅ Automatic photo metadata storage
 
-**Phase 5: Location UI Components**
-- ✅ Location list/grid views
-- ✅ Filtering and sorting
-- ✅ Search functionality
-- ✅ Share location dialog
-- ✅ Edit location dialog
-- ✅ Delete confirmation
-
-### 🚧 Phase 6: In Progress (88% Complete)
-
-**Save/Edit Workflows**
-- ✅ SaveLocationPanel with right sidebar
+### Map Interface
+- ✅ Interactive Google Maps display
+- ✅ Custom markers for saved locations
+- ✅ Saved locations panel with filtering/sorting
 - ✅ Quick save from map InfoWindow
-- ✅ Form validation with character counters
-- ✅ Tag management
-- ⏸️ Photo upload UI (backend ready)
-- ⏸️ EditLocationPanel enhancements
-- ⏸️ Marker clustering
-- ⏸️ Load saved markers on map
+- ✅ Mobile-responsive map controls
 
-**Security Enhancements** (Completed December 21, 2024)
-- ✅ **Critical**: Session validation against database on every request
-- ✅ **Critical**: Auth context caching disabled (staleTime: 0)
-- ✅ XSS protection with DOMPurify sanitization
-- ✅ Centralized validation config (easy adjustment)
-- ✅ Max length validation on all inputs
-- ✅ Tag count/length limits
-- ✅ Route protection for all authenticated pages
-- ✅ Detailed error logging for debugging
+### Security & Performance
+- ✅ XSS protection with DOMPurify
+- ✅ Input validation and sanitization
+- ✅ Session validation on every request
+- ✅ Sentry error tracking
+- ✅ TanStack Query for optimized data fetching
 
-**UX Improvements** (Completed December 21, 2024)
-- ✅ Context-aware navigation (changes based on auth status)
-- ✅ Logo redirects to map when authenticated
-- ✅ Footer hidden for authenticated users (max screen space)
-- ✅ Smooth authentication flow with proper redirects
-
-### 📋 Upcoming Phases (Planned)
-
-**Phase 7: Photo Upload**
-- ImageKit integration
-- Multiple photos per location
-- Photo management UI
-
-**Phase 8: Admin Dashboard**
-- User management
-- Location moderation
-- Analytics
-
-**Phase 9: Database Migration**
-- Legacy SQLite → MySQL migration scripts
-- Data validation and integrity checks
-
-**Phase 10: Testing & Optimization**
-- Unit and integration tests
-- Performance optimization
-- SEO improvements
-
-**Phase 11: Production Deployment**
-- CI/CD pipeline
-- Production environment setup
-- Monitoring and logging
-
-## � Security Features
+## 🔒 Security Features
 
 This application implements enterprise-grade security:
 
 - **Authentication**: JWT tokens with secure httpOnly cookies
-- **Session Management**: Database-validated sessions, single-session enforcement
+- **Session Management**: Database-validated sessions
 - **Password Security**: bcrypt hashing (10 rounds)
 - **Email Verification**: Mandatory before app access
 - **XSS Protection**: DOMPurify sanitization on all user inputs
@@ -272,41 +215,20 @@ npm run dev          # Start development server (http://localhost:3000)
 npm run build        # Build for production
 npm run start        # Start production server
 npm run lint         # Run ESLint
-npm run db:generate  $ Generate Prisma Client
-npm run db:push      # Push schema to database (development)
-npm run db:migrate   # Run database migrations (production)
-npm run db:studio    # Open Prisma Studio (database GUI)
+npm run db:generate  # Generate Prisma Client (uses .env.local)
+npm run db:push      # Push schema to database (uses .env.local)
+npm run db:migrate   # Run database migrations (uses .env.local)
+npm run db:studio    # Open Prisma Studio (uses .env.local)
 ```
 
-## 🌐 Deployment
-
-### Database Options
-- **PlanetScale** - Free tier available, serverless MySQL
-- **Railway** - $5/month, includes MySQL + hosting
-- **AWS RDS** - Scalable, production-ready
-- **Digital Ocean** - Managed MySQL databases
-
-### Hosting Options
-- **Vercel** - Recommended for Next.js (free tier available)
-- **Railway** - Full-stack hosting with database
-- **Render** - Current platform for legacy app
-- **AWS** - Enterprise deployment
-
-### Environment Variables for Production
-
-Ensure all production environment variables are securely configured:
-- Use strong JWT_SECRET (min 32 characters)
-- Enable HTTPS/SSL for DATABASE_URL
-- Use production SMTP credentials
-- Configure proper CORS settings
-- Set secure cookie settings
+**Note**: All Prisma scripts automatically use `.env.local` via `dotenv-cli`.
 
 ## 📝 Development Guidelines
 
 ### Code Style
 - TypeScript strict mode enabled
 - ESLint with Next.js recommended config
-- Prettier for code formatting (via IDE)
+- Prettier for code formatting
 - Tailwind CSS for styling (utility-first)
 
 ### Database Conventions
@@ -322,46 +244,45 @@ Ensure all production environment variables are securely configured:
 - Authentication via requireAuth middleware
 - Input sanitization before storage
 
-## 🤝 Contributing
+## 📚 Documentation
 
-This is a refactor project. Key improvements over the original:
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Current project status and priorities
+- **[DEPLOYMENT_QUICK_REF.md](./DEPLOYMENT_QUICK_REF.md)** - Deployment guide
+- **[ENV_TEMPLATE.md](./ENV_TEMPLATE.md)** - Environment variable reference
+- **[ADMIN_QUICK_START.md](./ADMIN_QUICK_START.md)** - Admin features guide
+- **[PHONE_VERIFICATION_GUIDE.md](./PHONE_VERIFICATION_GUIDE.md)** - Phone verification setup
+- **[SECURITY_IMPLEMENTATION.md](./SECURITY_IMPLEMENTATION.md)** - Security features
+- **[AVATAR_UPLOAD_FLOW.md](./AVATAR_UPLOAD_FLOW.md)** - Avatar system documentation
+- **[/docs/](./docs/)** - Historical documentation archive
 
-| Aspect | Old App | New App |
-|--------|---------|---------|
-| **Lines of CSS** | 27,000+ | Component-based (Tailwind) |
-| **HTML Files** | 105 | Single Page Application |
-| **Database** | SQLite | MySQL (production-ready) |
-| **Language** | Vanilla JavaScript | TypeScript (type-safe) |
-| **Framework** | None | Next.js 16 (App Router) |
-| **Security** | Basic | Enterprise-grade |
-| **Testing** | None | Planned comprehensive suite |
-| **Mobile** | Limited | Fully responsive |
+## 🚀 Deployment
 
-## 📊 Project Stats
+The application is deployed to Vercel at [merkelvision.com](https://merkelvision.com).
 
-- **Overall Progress**: ~92% Complete
-- **Current Phase**: Phase 6 of 11
-- **Tables**: 9 (128 total fields)
-- **API Routes**: 15+ endpoints
-- **Components**: 40+ React components
-- **Lines of Code**: ~15,000+ (TypeScript)
-- **Dependencies**: 50+ packages
+### Automatic Deployment
+- Push to `main` branch triggers automatic deployment
+- Environment variables configured in Vercel dashboard
+- Production database: Neon PostgreSQL
 
-## 📄 License
+### Manual Deployment
+```bash
+# Install Vercel CLI
+npm i -g vercel
 
-Private project
+# Deploy to production
+vercel --prod
+```
 
 ## 🔗 Useful Links
 
-- [Project Status (Detailed)](./REFACTOR_STATUS.md)
-- [Environment Setup Guide](./ENV_TEMPLATE.md)
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Prisma Documentation](https://www.prisma.io/docs)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 - [shadcn/ui Documentation](https://ui.shadcn.com)
 - [Google Maps API Documentation](https://developers.google.com/maps/documentation)
-- [React Query Documentation](https://tanstack.com/query/latest)
+- [TanStack Query Documentation](https://tanstack.com/query/latest)
+- [ImageKit Documentation](https://docs.imagekit.io)
 
 ---
 
-**For detailed phase-by-phase progress and implementation notes, see [REFACTOR_STATUS.md](./REFACTOR_STATUS.md)**
+Built with ❤️ using Next.js, PostgreSQL, and modern web technologies.
