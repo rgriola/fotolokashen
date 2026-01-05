@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { extractPhotoGPS, reverseGeocodeGPS, formatGPSCoordinates } from "@/lib/photo-utils";
 import type { PhotoMetadata } from "@/lib/photo-utils";
-import { isChrome, isSafari, supportsGeolocationFallback } from "@/lib/browser-utils";
+import { isChrome, isSafari, isChromeMobile, supportsGeolocationFallback } from "@/lib/browser-utils";
 import Image from "next/image";
 
 interface PhotoUploadWithGPSProps {
@@ -38,12 +38,15 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
     const [addressData, setAddressData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [showChromeHint, setShowChromeHint] = useState(false);
+    const [isChromeMobileBrowser, setIsChromeMobileBrowser] = useState(false);
     const [browserSupportsGeo, setBrowserSupportsGeo] = useState(true);
 
     // Detect browser on mount
     useEffect(() => {
+        const chromeMobile = isChromeMobile();
+        setIsChromeMobileBrowser(chromeMobile);
         setBrowserSupportsGeo(supportsGeolocationFallback());
-        setShowChromeHint(isChrome());
+        setShowChromeHint(isChrome() && !chromeMobile); // Desktop Chrome only
     }, []);
 
     /**
@@ -212,8 +215,49 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
 
     return (
         <div className="max-w-3xl mx-auto space-y-6">
-            {/* Upload Area */}
-            {!file && (
+            {/* Chrome Mobile Block Message */}
+            {isChromeMobileBrowser && (
+                <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:border-orange-950/50">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-orange-700 dark:text-orange-400">
+                            <AlertCircle className="w-5 h-5" />
+                            Chrome Mobile Not Supported
+                        </CardTitle>
+                        <CardDescription className="text-orange-600 dark:text-orange-500">
+                            Please use Safari or Firefox for mobile photo uploads
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                            Unfortunately, Chrome on mobile devices doesn't reliably support automatic GPS
+                            extraction from photos. This feature works best on:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground ml-4">
+                            <li><strong>Safari</strong> - Full camera photo GPS support ✅</li>
+                            <li><strong>Firefox</strong> - Full camera photo GPS support ✅</li>
+                        </ul>
+                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-1">
+                                💡 How to switch browsers:
+                            </p>
+                            <p className="text-xs text-blue-700 dark:text-blue-300">
+                                Open this page in Safari or Firefox to use the photo upload feature.
+                                You can copy this URL and paste it in Safari's address bar.
+                            </p>
+                        </div>
+                        {onCancel && (
+                            <div className="flex gap-3 mt-4">
+                                <Button variant="outline" onClick={onCancel} className="flex-1">
+                                    ← Back to Map
+                                </Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Upload Area - Only show if not Chrome mobile */}
+            {!file && !isChromeMobileBrowser && (
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -248,7 +292,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                             </label>
                         </div>
 
-                        {/* Chrome Browser Hint */}
+                        {/* Chrome Browser Hint (Desktop only) */}
                         {showChromeHint && !file && (
                             <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3">
                                 <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
