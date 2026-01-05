@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Upload, Camera, MapPin, Calendar, X, AlertCircle, CheckCircle } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { Upload, Camera, MapPin, Calendar, X, AlertCircle, CheckCircle, Info } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { extractPhotoGPS, reverseGeocodeGPS, formatGPSCoordinates } from "@/lib/photo-utils";
 import type { PhotoMetadata } from "@/lib/photo-utils";
+import { isChrome, isSafari, supportsGeolocationFallback } from "@/lib/browser-utils";
 import Image from "next/image";
 
 interface PhotoUploadWithGPSProps {
@@ -31,9 +32,64 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isRequestingLocation, setIsRequestingLocation] = useState(false);
     const [gpsData, setGpsData] = useState<PhotoMetadata | null>(null);
+    const [gpsSource, setGpsSource] = useState<'exif' | 'device' | null>(null);
     const [addressData, setAddressData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
+    const [showChromeHint, setShowChromeHint] = useState(false);
+    const [browserSupportsGeo, setBrowserSupportsGeo] = useState(true);
+
+    // Detect browser on mount
+    useEffect(() => {
+        setBrowserSupportsGeo(supportsGeolocationFallback());
+        setShowChromeHint(isChrome());
+    }, []);
+
+    /**
+     * Request device location via Geolocation API
+     * Only called on Safari - Chrome hangs on this
+     */
+    const requestDeviceLocation = useCallback(async (): Promise<{ lat: number; lng: number } | null> => {
+        // Safety check: Only run on Safari
+        if (!browserSupportsGeo) {
+            console.log('📍 Geolocation fallback not supported on this browser');
+            return null;
+        }
+
+        return new Promise((resolve) => {
+            if (!navigator.geolocation) {
+                console.warn('📍 Geolocation not supported');
+                resolve(null);
+                return;
+            }
+
+            console.log('📍 [Safari] Requesting device location...');
+            setIsRequestingLocation(true);
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setIsRequestingLocation(false);
+                    const location = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    console.log('✅ Device location obtained:', location);
+                    resolve(location);
+                },
+                (error) => {
+                    setIsRequestingLocation(false);
+                    console.error('❌ Geolocation error:', error.message);
+                    resolve(null);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0,
+                }
+            );
+        });
+    }, [browserSupportsGeo]);
 
     const handleFileSelect = useCallback(async (selectedFile: File) => {
         // Validate file type
@@ -50,6 +106,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
 
         setFile(selectedFile);
         setError(null);
+        setGpsSource(null);
 
         // Create preview
         const reader = new FileReader();
@@ -62,20 +119,56 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
         setIsProcessing(true);
         try {
             const metadata = await extractPhotoGPS(selectedFile);
-            setGpsData(metadata);
 
-            // If GPS found, reverse geocode
+            // If GPS found, use it
             if (metadata.hasGPS && metadata.lat && metadata.lng) {
+                console.log('✅ Using GPS from photo EXIF');
+                setGpsData(metadata);
+                setGpsSource('exif');
+                setIsProcessing(false);
+
                 const address = await reverseGeocodeGPS(metadata.lat, metadata.lng);
                 setAddressData(address);
+            } else {
+                // No GPS in EXIF - try device location (Safari only)
+                console.log('⚠️ No GPS in photo EXIF');
+                setIsProcessing(false);
+
+                if (browserSupportsGeo) {
+                    // Safari: Request device location
+                    console.log('📍 [Safari] Requesting device location fallback...');
+                    const deviceLocation = await requestDeviceLocation();
+
+                    if (deviceLocation) {
+                        console.log('✅ Using device location');
+                        setGpsData({
+                            ...metadata,
+                            lat: deviceLocation.lat,
+                            lng: deviceLocation.lng,
+                            hasGPS: true,
+                        });
+                        setGpsSource('device');
+
+                        const address = await reverseGeocodeGPS(deviceLocation.lat, deviceLocation.lng);
+                        setAddressData(address);
+                    } else {
+                        // Device location failed
+                        setGpsData(metadata); // hasGPS: false
+                    }
+                } else {
+                    // Chrome: Skip geolocation, just set no GPS
+                    console.log('ℹ️ [Chrome] Geolocation fallback skipped (not supported)');
+                    setGpsData(metadata); // hasGPS: false
+                }
             }
         } catch (err) {
             console.error('Error processing photo:', err);
             setError('Failed to process photo. Please try again.');
         } finally {
             setIsProcessing(false);
+            setIsRequestingLocation(false);
         }
-    }, []);
+    }, [browserSupportsGeo, requestDeviceLocation]);
 
     const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -100,8 +193,10 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
         setFile(null);
         setPreview(null);
         setGpsData(null);
+        setGpsSource(null);
         setAddressData(null);
         setError(null);
+        setIsRequestingLocation(false);
     };
 
     const handleCreateLocation = () => {
@@ -152,6 +247,22 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                                 </p>
                             </label>
                         </div>
+
+                        {/* Chrome Browser Hint */}
+                        {showChromeHint && !file && (
+                            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3">
+                                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1 text-sm">
+                                    <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                                        💡 Tip for Camera Photos
+                                    </p>
+                                    <p className="text-blue-700 dark:text-blue-300">
+                                        For automatic GPS extraction from camera photos, we recommend using <strong>Safari</strong>.
+                                        Chrome can still upload photos, but you'll need to select the location manually.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
 
                         {error && (
                             <div className="mt-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
