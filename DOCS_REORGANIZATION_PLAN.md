@@ -10,6 +10,7 @@
 ## 🎯 Recommendations
 
 ### ✅ KEEP IN ROOT (11 files)
+
 **These are actively used references:**
 
 1. `README.md` - **NEEDS UPDATE** (still references Phase 6, MySQL, etc.)
@@ -27,6 +28,7 @@
 ---
 
 ### 📦 ARCHIVE TO `/docs/archive/` (13 files)
+
 **Completed migrations and features - historical reference only:**
 
 ```bash

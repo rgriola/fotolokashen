@@ -235,6 +235,7 @@ export function EditLocationForm({
                         maxPhotos={20}
                         maxFileSize={1.5}
                         existingPhotos={photos}
+                        showPhotoGrid={false}
                     />
                 </div>
             )}

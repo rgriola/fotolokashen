@@ -184,11 +184,24 @@ export function SaveLocationForm({
         <form
             id="save-location-form"
             onSubmit={form.handleSubmit(handleSubmit, (errors) => {
-                // Auto-focus the first error field (Location Name or Type)
+                // Auto-focus and scroll to the first error field
                 if (errors.name) {
                     form.setFocus("name");
+                    document.getElementById("name")?.scrollIntoView({ 
+                        behavior: "smooth", 
+                        block: "center" 
+                    });
                 } else if (errors.type) {
-                    form.setFocus("type");
+                    // Type is a Select component, scroll to it
+                    const typeElement = document.getElementById("type");
+                    if (typeElement) {
+                        typeElement.scrollIntoView({ 
+                            behavior: "smooth", 
+                            block: "center" 
+                        });
+                        // Try to focus the Select trigger button
+                        typeElement.focus();
+                    }
                 }
             })}
             className="space-y-6"
@@ -250,7 +263,11 @@ export function SaveLocationForm({
                             >
                                 <SelectTrigger
                                     id="type"
-                                    className="focus:ring-green-500 focus:ring-2 w-full min-w-[140px]"
+                                    className={`focus:ring-green-500 focus:ring-2 w-full min-w-[140px] ${
+                                        form.formState.errors.type 
+                                            ? "border-destructive ring-destructive" 
+                                            : ""
+                                    }`}
                                 >
                                     <SelectValue placeholder="Required Info" />
                                 </SelectTrigger>

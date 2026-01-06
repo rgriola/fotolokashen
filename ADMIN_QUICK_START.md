@@ -3,6 +3,8 @@
 **Date**: 2026-01-02  
 **Status**: ✅ Ready to Test
 
+npx vercel
+
 ---
 
 ## 🚀 Quick Start

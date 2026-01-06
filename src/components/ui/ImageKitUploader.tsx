@@ -28,6 +28,7 @@ interface ImageKitUploaderProps {
     maxPhotos?: number;
     maxFileSize?: number; // in MB
     existingPhotos?: UploadedPhoto[];
+    showPhotoGrid?: boolean; // Whether to show the photo grid preview
 }
 
 export function ImageKitUploader({
@@ -36,6 +37,7 @@ export function ImageKitUploader({
     maxPhotos = 20,
     maxFileSize = 1.5,
     existingPhotos = [],
+    showPhotoGrid = true, // Default to true for backward compatibility
 }: ImageKitUploaderProps) {
     const { user } = useAuth();
     const [photos, setPhotos] = useState<UploadedPhoto[]>(existingPhotos);
@@ -364,8 +366,8 @@ transition - colors duration - 200
                 )}
             </div>
 
-            {/* Photo Previews */}
-            {photos.length > 0 && (
+            {/* Photo Previews - Only show if showPhotoGrid is true */}
+            {showPhotoGrid && photos.length > 0 && (
                 <div className="grid grid-cols-2 gap-3">
                     {photos.map((photo, index) => (
                         <div key={index} className="relative group">
