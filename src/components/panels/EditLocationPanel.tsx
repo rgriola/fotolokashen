@@ -47,8 +47,8 @@ export function EditLocationPanel({
 
     return (
         <div className="flex flex-col h-full">
-            {/* Form - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-3">
+            {/* Form - Scrollable content */}
+            <div className="flex-1 overflow-y-auto p-3 pb-20">
                 <EditLocationForm
                     locationId={locationId}
                     location={location}
@@ -59,8 +59,8 @@ export function EditLocationPanel({
                 />
             </div>
 
-            {/* Footer with Actions - Extra padding for mobile browser UI */}
-            <div className="p-3 pb-6 border-t bg-background">
+            {/* Footer with Actions - Fixed at bottom with safe area padding */}
+            <div className="sticky bottom-0 p-3 pb-6 border-t bg-background shadow-lg">
                 <div className="flex gap-2">
                     <Button
                         type="button"

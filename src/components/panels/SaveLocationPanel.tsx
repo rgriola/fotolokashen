@@ -60,8 +60,8 @@ export function SaveLocationPanel({
 
     return (
         <div className="flex flex-col h-full">
-            {/* Form - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4">
+            {/* Form - Scrollable content */}
+            <div className="flex-1 overflow-y-auto p-4 pb-32">
                 <SaveLocationForm
                     initialData={initialData}
                     onSubmit={handleSubmit}
@@ -70,8 +70,8 @@ export function SaveLocationPanel({
                 />
             </div>
 
-            {/* Footer with Actions - Extra padding for mobile browser UI */}
-            <div className="p-4 pb-6 border-t space-y-2 bg-background">
+            {/* Footer with Actions - Fixed at bottom with safe area padding */}
+            <div className="sticky bottom-0 p-4 pb-6 border-t space-y-2 bg-background shadow-lg">
                 <div className="flex gap-2">
                     <Button
                         type="button"
