@@ -65,7 +65,7 @@ model SecurityLog {
 - ✅ Includes timestamp
 - ✅ Shows IP address
 - ✅ Security warning
-- ✅ Support contact: admin@merkelvision.com
+- ✅ Support contact: admin@fotolokashen.com
 
 ### **4. API Endpoints**
 
@@ -281,7 +281,7 @@ const MAX_RESET_REQUESTS_PER_HOUR = 5; // Change as needed
 ### **Support Email**
 Update in `/src/lib/email.ts`:
 ```typescript
-admin@merkelvision.com // Your support email
+admin@fotolokashen.com // Your support email
 ```
 
 ---

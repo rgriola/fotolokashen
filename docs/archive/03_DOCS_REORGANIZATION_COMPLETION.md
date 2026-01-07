@@ -89,7 +89,7 @@ Major rewrite focusing on current state:
 
 **Changes Made**:
 - ✅ Removed outdated "Phase 6 (88% Complete)" status
-- ✅ Updated header to reflect live production app (merkelvision.com)
+- ✅ Updated header to reflect live production app (fotolokashen.com)
 - ✅ Changed database from MySQL → PostgreSQL (Neon)
 - ✅ Updated technology stack section (more organized)
 - ✅ Replaced phase-by-phase tracking with feature categories

@@ -85,7 +85,7 @@ Banner dismissed → Permission Dialog opens
 ┌────────────────────────────────────────┐
 │ 📍 Enable GPS Location?               │
 │                                        │
-│ This allows Merkel Vision to show...  │
+│ This allows fotolokashen to show...  │
 │                                        │
 │ 🛡️ Privacy: Location only used while  │
 │    app is running...                   │
@@ -97,7 +97,7 @@ User clicks "Enable GPS"
     ↓
 DB updated: gpsPermission = 'granted'
     ↓
-Browser prompts: "Allow merkelvision.com...?"
+Browser prompts: "Allow fotolokashen.com...?"
     ↓
 User allows → Map centers on location ✅
 ```

@@ -1,4 +1,4 @@
-# Calendar Integration Options for Merkel Vision
+# Calendar Integration Options for fotolokashen
 
 **Date**: December 24, 2024  
 **Question**: Google/Apple Calendar vs Custom Calendar System

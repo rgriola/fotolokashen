@@ -1,8 +1,8 @@
-# 🔄 Rebranding: Google Search Me → Merkel Vision
+# 🔄 Rebranding: Google Search Me → fotolokashen
 
 ## ✅ **Summary:**
 
-All references to "Google Search Me" have been replaced with "Merkel Vision" throughout the application.
+All references to "Google Search Me" have been replaced with "fotolokashen" throughout the application.
 
 ---
 
@@ -11,29 +11,29 @@ All references to "Google Search Me" have been replaced with "Merkel Vision" thr
 ### **1. Application Code (7 files)**
 
 #### **src/lib/env.ts**
-- ✅ Default `EMAIL_FROM_NAME` → `"Merkel Vision"`
+- ✅ Default `EMAIL_FROM_NAME` → `"fotolokashen"`
 
 #### **src/lib/email.ts** (2 changes)
-- ✅ Fallback `fromName` → `'Merkel Vision'`
-- ✅ Welcome email heading → `"Welcome to Merkel Vision!"`
+- ✅ Fallback `fromName` → `'fotolokashen'`
+- ✅ Welcome email heading → `"Welcome to fotolokashen!"`
 
 #### **src/components/layout/Header.tsx**
-- ✅ Logo text → `"Merkel Vision"`
+- ✅ Logo text → `"fotolokashen"`
 
 #### **src/components/layout/Footer.tsx** (2 changes)
-- ✅ Brand name (top) → `"Merkel Vision"`
-- ✅ Copyright notice → `"© {year} Merkel Vision. All rights reserved."`
+- ✅ Brand name (top) → `"fotolokashen"`
+- ✅ Copyright notice → `"© {year} fotolokashen. All rights reserved."`
 
 #### **src/app/layout.tsx** (2 changes)
-- ✅ Page title → `"Merkel Vision | Location Management"`
-- ✅ Meta description → `"Save, organize, and manage your favorite locations with Merkel Vision"`
+- ✅ Page title → `"fotolokashen | Location Management"`
+- ✅ Meta description → `"Save, organize, and manage your favorite locations with fotolokashen"`
 
 ---
 
 ### **2. Configuration Files (2 files)**
 
 #### **.env.local**
-- ✅ `EMAIL_FROM_NAME` → `"Merkel Vision"`
+- ✅ `EMAIL_FROM_NAME` → `"fotolokashen"`
 
 #### **package.json**
 - ✅ Package name → `"merkel-vision-refactor"`
@@ -49,30 +49,30 @@ All references to "Google Search Me" have been replaced with "Merkel Vision" thr
 - Copyright: "Google Search Me"
 
 ### **After:**
-- App Name: "Merkel Vision"
+- App Name: "fotolokashen"
 - Package: "merkel-vision-refactor"
-- Email Sender: "Merkel Vision"
-- Copyright: "Merkel Vision"
+- Email Sender: "fotolokashen"
+- Copyright: "fotolokashen"
 
 ---
 
 ## 📍 **Where Users Will See Changes:**
 
 1. **Browser Tab Title**
-   - Now shows: `"Merkel Vision | Location Management"`
+   - Now shows: `"fotolokashen | Location Management"`
 
 2. **Header/Navigation**
-   - Logo text: `"Merkel Vision"`
+   - Logo text: `"fotolokashen"`
 
 3. **Footer**
-   - Brand name and copyright: `"Merkel Vision"`
+   - Brand name and copyright: `"fotolokashen"`
 
 4. **Email Communications**
-   - Sender name: `"Merkel Vision"`
-   - Welcome message: `"Welcome to Merkel Vision!"`
+   - Sender name: `"fotolokashen"`
+   - Welcome message: `"Welcome to fotolokashen!"`
 
 5. **Meta Tags** (SEO)
-   - Description mentions "Merkel Vision"
+   - Description mentions "fotolokashen"
 
 ---
 
@@ -126,8 +126,8 @@ npm install
 
 ## ✅ **Impact:**
 
-- ✅ **User-Facing**: All visible text now says "Merkel Vision"
-- ✅ **Emails**: All sent with "Merkel Vision" branding
+- ✅ **User-Facing**: All visible text now says "fotolokashen"
+- ✅ **Emails**: All sent with "fotolokashen" branding
 - ✅ **SEO**: Meta tags updated for search engines
 - ✅ **Branding**: Consistent application identity
 
@@ -141,8 +141,8 @@ Verify the changes by checking:
 2. **Header** - Logo text (desktop view)
 3. **Footer** - Brand name and copyright
 4. **Register** - Trigger verification email, check sender name
-5. **Email Content** - "Welcome to Merkel Vision!" heading
+5. **Email Content** - "Welcome to fotolokashen!" heading
 
 ---
 
-**All user-facing references to "Google Search Me" have been successfully replaced with "Merkel Vision"!** 🎉
+**All user-facing references to "Google Search Me" have been successfully replaced with "fotolokashen"!** 🎉

@@ -2,7 +2,7 @@
 
 ## ✅ **What Was Done:**
 
-All authentication and error pages now have beautiful hero background images matching the original Merkel Vision design!
+All authentication and error pages now have beautiful hero background images matching the original fotolokashen design!
 
 ---
 
@@ -176,6 +176,6 @@ Helpful error states
 
 ## ✨ **Result:**
 
-A cohesive, premium-feeling application that matches the original Merkel Vision branding while using modern Next.js patterns and Tailwind CSS!
+A cohesive, premium-feeling application that matches the original fotolokashen branding while using modern Next.js patterns and Tailwind CSS!
 
 🎉 **All auth pages now have the same beautiful backgrounds as the original!**

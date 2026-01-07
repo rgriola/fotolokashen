@@ -26,7 +26,7 @@ Successfully reorganized the Fotolokashen project structure for better maintaina
    - Removed empty `migrations/` folder
 
 3. **Renamed Workspace File**
-   - `merkel-vision-refactor.code-workspace` → `fotolokashen.code-workspace`
+   - `fotolokashen-refactor.code-workspace` → `fotolokashen.code-workspace`
 
 ---
 
@@ -129,7 +129,7 @@ docs/
 - ❌ 14 numbered markdown files in root
 - ❌ Hard to find specific documentation
 - ❌ Cluttered project root
-- ❌ Old "Merkel Vision" naming
+- ❌ Old "fotolokashen" naming
 
 ### **After:**
 - ✅ 4 essential docs in root (clean!)

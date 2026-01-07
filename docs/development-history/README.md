@@ -1,6 +1,6 @@
 # Development History
 
-This directory contains historical documentation from the Merkel Vision refactor project. These files represent development sessions, feature implementations, and incremental improvements made during the refactoring process.
+This directory contains historical documentation from the fotolokashen refactor project. These files represent development sessions, feature implementations, and incremental improvements made during the refactoring process.
 
 ## Purpose
 

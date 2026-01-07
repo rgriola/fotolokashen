@@ -1,7 +1,7 @@
 # Fotolokashen - Social Collaboration & Sharing Implementation Plan
 - Jan 7, 2026 3:39pm
 
-> **Project:** Fotolokashen (formerly Merkel Vision)
+> **Project:** Fotolokashen (formerly fotolokashen)
 > **Feature:** User Invites, Friends, Teams, and Location Sharing  
 > **Priority:** High - Core Growth Feature  
 > **Estimated Timeline:** 3-4 weeks (phased approach)
@@ -639,7 +639,7 @@ export async function canInviteToTeam(userId: number, teamId: number): Promise<b
 
 ## 📝 **Notes**
 
-- **Brand Name:** Fotolokashen (update all references from "Merkel Vision")
+- **Brand Name:** Fotolokashen (update all references from "fotolokashen")
 - **Domain:** fotolokashen.com (update environment variables)
 - **Social Handles:** Secure @fotolokashen on major platforms
 - **Email Domain:** Use @fotolokashen.com for system emails

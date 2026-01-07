@@ -134,7 +134,7 @@ export function generateVerificationCode(): string {
 }
 
 export async function sendVerificationCode(phoneNumber: string, code: string) {
-  const message = `Your Merkel Vision verification code is: ${code}. Valid for 10 minutes.`;
+  const message = `Your fotolokashen verification code is: ${code}. Valid for 10 minutes.`;
   return sendSMS(phoneNumber, message);
 }
 ```

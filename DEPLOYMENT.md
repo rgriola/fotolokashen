@@ -1,7 +1,7 @@
 # 🚀 Fotolokashen - Deployment & Admin Guide
 
 **Last Updated:** January 7, 2026  
-**Project:** Fotolokashen (formerly Merkel Vision)
+**Project:** Fotolokashen
 
 ---
 
@@ -75,14 +75,14 @@ npx vercel
 ### **Phase 1: Email Service** (5 min) ✅ Done
 
 1. ✅ Sign up at [resend.com](https://resend.com). XXX
-2. ✅ Add domain `merkelvision.com` (or `fotolokashen.com`)
+2. ✅ Add domain `fotolokashen.com`
 3. ✅ Verify domain in Cloudflare DNS
 4. ✅ Generate API key
 5. ✅ Save for Vercel environment variables
 
 **Email Receiving (Optional):**
 1. Cloudflare Dashboard → Email → Enable "Email Routing"
-2. Create `admin@merkelvision.com` → Forward to personal Gmail
+2. Create `admin@fotolokashen.com` → Forward to personal Gmail
 
 ---
 
@@ -114,11 +114,11 @@ JWT_SECRET=<run: openssl rand -base64 48>
 # Email (from Resend)
 EMAIL_SERVICE=resend
 EMAIL_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
-EMAIL_FROM_ADDRESS=admin@merkelvision.com
+EMAIL_FROM_ADDRESS=admin@fotolokashen.com
 EMAIL_MODE=production
 
 # App URL
-NEXT_PUBLIC_APP_URL=https://merkelvision.com
+NEXT_PUBLIC_APP_URL=https://fotolokashen.com
 ```
 
 #### **Copy from Local `.env.local`:**
@@ -143,13 +143,10 @@ NODE_ENV=production
 ### **Phase 4: Custom Domain** (5 min) ✅ Done
 
 1. ✅ Vercel Dashboard → Project → Settings → Domains
-2. ✅ Add `merkelvision.com` and `www.merkelvision.com`
+2. ✅ Add `fotolokashen.com` and `www.fotolokashen.com`
 3. ✅ Add CNAME in Cloudflare DNS
 4. ✅ Wait for SSL (auto-provisioned)
 
-**For Fotolokashen rebrand:**
-- Add `fotolokashen.com` as new domain
-- Update `NEXT_PUBLIC_APP_URL` to `https://fotolokashen.com`
 
 ---
 
@@ -170,7 +167,7 @@ NODE_ENV=production
 
 ### **After Production Promotion:**
 
-- [ ] Custom domain loads (`merkelvision.com`)
+- [ ] Custom domain loads (`fotolokashen.com`)
 - [ ] SSL certificate valid (green padlock)
 - [ ] All features work on production
 - [ ] Check Sentry production environment
@@ -467,7 +464,7 @@ npx vercel
 - ✅ Email: Resend
 - ✅ CDN: ImageKit
 - ✅ Monitoring: Sentry
-- ✅ Domain: merkelvision.com
+- ✅ Domain: fotolokashen.com
 
 **Next Steps:**
 1. Push to GitHub → Auto-deploy to preview
@@ -476,11 +473,6 @@ npx vercel
 4. Monitor Sentry for errors
 5. Celebrate! 🎉
 
-**For Fotolokashen rebrand:**
-- Update domain to `fotolokashen.com`
-- Update `NEXT_PUBLIC_APP_URL`
-- Update email addresses to `@fotolokashen.com`
-- Update branding assets (logo, OG image)
 
 ---
 

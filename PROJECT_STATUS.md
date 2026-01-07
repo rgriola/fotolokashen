@@ -1,7 +1,7 @@
-# Merkel Vision - Project Status
+# fotolokashen - Project Status
 
 **Last Updated**: 2026-01-04  
-**Production URL**: https://merkelvision.com  
+**Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production
 
 ## Recent Deployments
@@ -14,7 +14,7 @@
 
 ## Current State
 
-Merkel Vision is a location discovery and sharing platform built with Next.js 16, PostgreSQL (Neon), and ImageKit CDN. Users can search for locations, save them with photos and personal notes, and manage their collection through a responsive map interface.
+fotolokashen is a location discovery and sharing platform built with Next.js 16, PostgreSQL (Neon), and ImageKit CDN. Users can search for locations, save them with photos and personal notes, and manage their collection through a responsive map interface.
 
 ### Technology Stack
 

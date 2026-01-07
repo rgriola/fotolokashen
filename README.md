@@ -1,8 +1,10 @@
-# Merkel Vision
+# fotolokashen
 
-**Last Updated**: 2026-01-03  
-**Production**: [merkelvision.com](https://merkelvision.com) ✅ Live  
+**Last Updated**: 2026-01-07  
+**Production**: [fotolokashen.com](https://fotolokashen.com) ✅ Live  
 **Status**: Active Development
+
+> **Rebranding Note**: Application rebranded from "fotolokashen" to "fotolokashen" on January 7, 2026 at 5:52 PM EST.
 
 A modern location discovery and sharing platform where users can search, save, and organize places with photos, personal ratings, and notes. Built with Next.js 16, PostgreSQL, and ImageKit CDN.
 
@@ -156,7 +158,7 @@ The application uses **9 interconnected tables** with **128 total fields**:
 - **location_contacts** (8 fields) - Property managers, owners
 - **team_members** (5 fields) - Crew collaboration
 
-> **Note**: Schema significantly enhanced beyond legacy Merkel-Vision database with enterprise features while maintaining backward compatibility.
+> **Note**: Schema significantly enhanced beyond legacy database with enterprise features while maintaining backward compatibility.
 
 ## � Key Features
 
@@ -282,7 +284,7 @@ npm run db:studio    # Open Prisma Studio (uses .env.local)
 
 ## 🚀 Deployment
 
-The application is deployed to Vercel at [merkelvision.com](https://merkelvision.com).
+The application is deployed to Vercel at [fotolokashen.com](https://fotolokashen.com).
 
 ### Automatic Deployment
 

@@ -1,7 +1,7 @@
 # 📁 Fotolokashen - Project Structure Review
 
 **Date:** January 7, 2026  
-**Project:** Fotolokashen (formerly Merkel Vision)  
+**Project:** Fotolokashen (formerly fotolokashen)  
 **Status:** Production-Ready with Active Development
 
 ---
@@ -240,15 +240,15 @@ rm -rf migrations/
 ### **Issue 4: Workspace File (Very Low Priority)**
 
 **File:**
-- `merkel-vision-refactor.code-workspace`
+- `fotolokashen-refactor.code-workspace`
 
 **Issue:**
-- Project is now "Fotolokashen", not "Merkel Vision"
+- Project is now "Fotolokashen", not "fotolokashen"
 
 **Recommendation:**
 ```bash
 # Rename workspace file
-mv merkel-vision-refactor.code-workspace fotolokashen.code-workspace
+mv fotolokashen-refactor.code-workspace fotolokashen.code-workspace
 
 # Update internal references to new name
 ```
@@ -304,7 +304,7 @@ ls -la migrations/
 # If empty, delete: rm -rf migrations/
 
 # 3. Rename workspace file
-mv merkel-vision-refactor.code-workspace fotolokashen.code-workspace
+mv fotolokashen-refactor.code-workspace fotolokashen.code-workspace
 ```
 
 ---

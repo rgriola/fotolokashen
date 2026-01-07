@@ -1,7 +1,7 @@
 # 🚀 Production Readiness Checklist
 
 **Date:** January 1, 2026  
-**Domain:** merkelvision.com  
+**Domain:** fotolokashen.com  
 **Current Host:** Render  
 **Target Host:** Vercel  
 
@@ -20,14 +20,14 @@
 - [x] `IMAGEKIT_URL_ENDPOINT` - CDN endpoint
 - [x] `EMAIL_SERVICE` - "resend"
 - [x] `EMAIL_API_KEY` - Resend API key present
-- [x] `EMAIL_FROM_ADDRESS` - rod@merkelvision.com
-- [x] `EMAIL_FROM_NAME` - Merkel Vision
+- [x] `EMAIL_FROM_ADDRESS` - rod@fotolokashen.com
+- [x] `EMAIL_FROM_NAME` - fotolokashen
 - [x] `NEXT_PUBLIC_SENTRY_DSN` - Error tracking configured
 
 #### ⚠️ NEEDS UPDATE for Production
 - [ x] `EMAIL_MODE` - **CHANGE FROM "development" TO "production"**
-- [x ] `NEXT_PUBLIC_APP_URL` - **CHANGE FROM "http://localhost:3000" TO "https://merkelvision.com"**
-- [x ] `EMAIL_FROM_ADDRESS` - Consider changing to "admin@merkelvision.com" (more professional)
+- [x ] `NEXT_PUBLIC_APP_URL` - **CHANGE FROM "http://localhost:3000" TO "https://fotolokashen.com"**
+- [x ] `EMAIL_FROM_ADDRESS` - Consider changing to "admin@fotolokashen.com" (more professional)
 - [x ] `NODE_ENV` - **SET TO "production"** (currently commented out)
 
 #### 📋 For Vercel Environment Variables
@@ -36,7 +36,7 @@ Copy these to Vercel Dashboard → Your Project → Settings → Environment Var
 ```bash
 # Critical - Must Update for Production
 EMAIL_MODE=production
-NEXT_PUBLIC_APP_URL=https://merkelvision.com
+NEXT_PUBLIC_APP_URL=https://fotolokashen.com
 NODE_ENV=production
 
 # Database (Vercel Postgres auto-adds these when you connect)
@@ -51,8 +51,8 @@ JWT_SECRET=<run: openssl rand -base64 48>
 # Email (Resend)
 EMAIL_SERVICE=resend
 EMAIL_API_KEY=re_RdrdiRUi_CkQx4pPcrMVxvC71pvqng6u1
-EMAIL_FROM_NAME=Merkel Vision
-EMAIL_FROM_ADDRESS=admin@merkelvision.com
+EMAIL_FROM_NAME=fotolokashen
+EMAIL_FROM_ADDRESS=admin@fotolokashen.com
 
 # Google Maps
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyCHQECnK2DXcNXIQR0ZfvIEPrAJWIH8JsM
@@ -129,28 +129,28 @@ npm run build
 #### Current Status
 - **Service:** Resend
 - **API Key:** Present (re_RdrdiRUi_CkQx4pPcrMVxvC71pvqng6u1)
-- **From Address:** rod@merkelvision.com
-- **Domain:** merkelvision.com
+- **From Address:** rod@fotolokashen.com
+- **Domain:** fotolokashen.com
 
 #### ✅ Resend Dashboard Checklist
 1. [ ] Login to https://resend.com/overview
-2. [ ] Verify domain "merkelvision.com" shows **green checkmark**
+2. [ ] Verify domain "fotolokashen.com" shows **green checkmark**
 3. [ ] Verify DNS records in Cloudflare:
-   - `resend._domainkey.merkelvision.com` (CNAME)
-   - `merkelvision.com` TXT record with Resend verification
+   - `resend._domainkey.fotolokashen.com` (CNAME)
+   - `fotolokashen.com` TXT record with Resend verification
 4. [ ] Test send email from Resend dashboard
 5. [ ] Check email delivery logs
 
 #### ⚠️ Action Required
 - [ ] **Change `EMAIL_MODE` to "production"** in Vercel environment variables
-- [ ] Consider using "admin@merkelvision.com" instead of "rod@" for professionalism
+- [ ] Consider using "admin@fotolokashen.com" instead of "rod@" for professionalism
 
 ---
 
 ### 5. Domain & DNS Configuration
 
 #### Current DNS Setup (Cloudflare)
-**Domain:** merkelvision.com  
+**Domain:** fotolokashen.com  
 **Current Pointing:** Render (old deployment)  
 **Target:** Vercel (new deployment)
 
@@ -158,28 +158,28 @@ npm run build
 
 ##### Step 1: Prepare Vercel
 1. [ ] Deploy to Vercel first (get deployment URL)
-2. [ ] Test at Vercel URL (e.g., `merkel-vision.vercel.app`)
+2. [ ] Test at Vercel URL (e.g., `fotolokashen.vercel.app`)
 3. [ ] Verify all features work at Vercel URL
 
 ##### Step 2: Add Domain in Vercel
 1. [ ] Go to Vercel Dashboard → Your Project → Settings → Domains
 2. [ ] Click "Add Domain"
-3. [ ] Enter "merkelvision.com"
-4. [ ] Also add "www.merkelvision.com"
+3. [ ] Enter "fotolokashen.com"
+4. [ ] Also add "www.fotolokashen.com"
 5. [ ] Vercel will show DNS instructions
 
 ##### Step 3: Update Cloudflare DNS
 **⚠️ Do this AFTER Vercel is ready and tested!**
 
 1. [ ] Login to Cloudflare Dashboard
-2. [ ] Select "merkelvision.com" domain
+2. [ ] Select "fotolokashen.com" domain
 3. [ ] Go to DNS → Records
 
 **Current Records (Render):**
 ```
 Type  Name  Content                         Proxy
 A     @     <render-ip-address>            Proxied
-CNAME www   merkelvision.com               Proxied
+CNAME www   fotolokashen.com               Proxied
 ```
 
 **New Records (Vercel):**
@@ -203,13 +203,13 @@ CNAME www   cname.vercel-dns.com           Proxied
 
 ##### Step 4: Verify SSL
 1. [ ] Wait 5-10 minutes for DNS propagation
-2. [ ] Visit https://merkelvision.com
+2. [ ] Visit https://fotolokashen.com
 3. [ ] Check for valid SSL certificate (lock icon in browser)
 4. [ ] Vercel auto-provisions SSL via Let's Encrypt
 
 ##### Step 5: Test Production
 1. [ ] Test user registration
-2. [ ] Check if verification email arrives (from admin@merkelvision.com)
+2. [ ] Check if verification email arrives (from admin@fotolokashen.com)
 3. [ ] Test login
 4. [ ] Test Google Maps
 5. [ ] Test location saving
@@ -263,7 +263,7 @@ npm run start
 ## 📋 DNS Migration Detailed Steps
 
 ### Before Migration
-- [ ] Current site at merkelvision.com is working on Render
+- [ ] Current site at fotolokashen.com is working on Render
 - [ ] New site deployed to Vercel (different URL)
 - [ ] Both are tested and working
 
@@ -286,13 +286,13 @@ npm run start
 
 ### Current (Render)
 ```
-merkelvision.com → Render IP
+fotolokashen.com → Render IP
 ```
 
 ### New (Vercel)
 ```
-merkelvision.com → cname.vercel-dns.com
-www.merkelvision.com → cname.vercel-dns.com
+fotolokashen.com → cname.vercel-dns.com
+www.fotolokashen.com → cname.vercel-dns.com
 ```
 
 ### Cloudflare Dashboard Steps
@@ -310,7 +310,7 @@ www.merkelvision.com → cname.vercel-dns.com
 
 ### Environment
 - [ ] `EMAIL_MODE=production` set in Vercel
-- [ ] `NEXT_PUBLIC_APP_URL=https://merkelvision.com` in Vercel
+- [ ] `NEXT_PUBLIC_APP_URL=https://fotolokashen.com` in Vercel
 - [ ] All environment variables added to Vercel
 - [ ] Production JWT_SECRET generated (different from local!)
 
@@ -351,7 +351,7 @@ www.merkelvision.com → cname.vercel-dns.com
 
 ### T = 0 (Migration Start)
 - [ ] Update Cloudflare DNS records
-- [ ] Monitor DNS propagation: `dig merkelvision.com`
+- [ ] Monitor DNS propagation: `dig fotolokashen.com`
 - [ ] Watch Vercel Analytics for incoming traffic
 - [ ] Monitor Sentry for errors
 
@@ -398,7 +398,7 @@ If something goes wrong:
 
 ### ⚠️ Needs Action
 1. **Change `EMAIL_MODE` to "production"** in .env.local (for Vercel)
-2. **Change `NEXT_PUBLIC_APP_URL` to "https://merkelvision.com"**
+2. **Change `NEXT_PUBLIC_APP_URL` to "https://fotolokashen.com"**
 3. **Deploy to Vercel** and test
 4. **Update Cloudflare DNS** to point to Vercel
 5. **Test production site**

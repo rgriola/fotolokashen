@@ -76,7 +76,7 @@ Check DB: user.gpsPermission
     ↓
 Request browser.geolocation.getCurrentPosition()
     ↓
-Browser shows: "Allow merkelvision.com to access your location?"
+Browser shows: "Allow fotolokashen.com to access your location?"
     ↓
 ┌─────────────────┬──────────────────┐
 │ User Allows     │ User Denies      │
@@ -117,7 +117,7 @@ Check: gpsPermission === 'not_asked'?
     ↓ (yes)
 Show welcome modal:
 ┌────────────────────────────────────────┐
-│ Welcome to Merkel Vision!              │
+│ Welcome to fotolokashen!              │
 │                                        │
 │ 📍 Enable GPS location?                │
 │                                        │
@@ -400,7 +400,7 @@ export function GpsPermissionDialog({ onConfirm, onCancel }) {
                         Enable GPS Location?
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                        This allows Merkel Vision to show your current 
+                        This allows fotolokashen to show your current 
                         location on the map.
                         
                         <div className="mt-4 p-3 bg-blue-50 rounded-md">

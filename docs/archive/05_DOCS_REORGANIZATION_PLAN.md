@@ -175,7 +175,7 @@ CLEANUP_COMPLETE.md
 - Update to Phase 11/12 or remove phase tracking
 - Update tech stack (PostgreSQL, Neon, ImageKit, etc.)
 - Add current features (user-specific locations, photo uploads, etc.)
-- Add current deployment info (merkelvision.com on Vercel)
+- Add current deployment info (fotolokashen.com on Vercel)
 - Simplify - focus on "Getting Started" not project history
 
 ---
@@ -247,13 +247,13 @@ mv AVATAR_ENVIRONMENT_ANALYSIS.md docs/notes/
 - [ ] Remove phase tracking or update to current phase
 - [ ] Update tech stack (PostgreSQL, Neon, ImageKit)
 - [ ] Add current features list
-- [ ] Update deployment info (Vercel, merkelvision.com)
+- [ ] Update deployment info (Vercel, fotolokashen.com)
 - [ ] Add environment setup (`.env.local` only)
 - [ ] Simplify quick start guide
 - [ ] Add link to `/docs/` for historical info
 
 **Create PROJECT_STATUS.md:**
-- [ ] Current production status (merkelvision.com live)
+- [ ] Current production status (fotolokashen.com live)
 - [ ] Active features
 - [ ] Known issues from old REFACTOR_STATUS.md
 - [ ] Next priorities

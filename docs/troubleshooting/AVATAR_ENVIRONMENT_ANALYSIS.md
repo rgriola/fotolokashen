@@ -12,7 +12,7 @@ However, there's an **environment mismatch** between your database and ImageKit 
 
 ## Current State
 
-### Production Database (merkelvision.com)
+### Production Database (fotolokashen.com)
 ```
 User ID: 1
 Email: rodczaro@gmail.com
@@ -50,7 +50,7 @@ userAvatars: (userId: number) =>
 
 ### What Happened
 When the avatars were uploaded:
-1. The avatars were uploaded from **production** (merkelvision.com)
+1. The avatars were uploaded from **production** (fotolokashen.com)
 2. But `NODE_ENV` was either:
    - Not set to `production` in Vercel environment variables, OR
    - The upload happened during development/testing

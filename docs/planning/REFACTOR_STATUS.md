@@ -1,8 +1,8 @@
-# Merkel Vision - Refactor Status
+# fotolokashen - Refactor Status
 
 **Last Updated**: 2026-01-02 05:45:00 EST  
 **Current Phase**: Phase 10 - Production DNS Migration & Environment Setup (🚀 COMPLETE)  
-**Overall Progress**: ~98% Complete - Deployed to Production at merkelvision.com
+**Overall Progress**: ~98% Complete - Deployed to Production at fotolokashen.com
 
 ---
 
@@ -27,7 +27,7 @@ Also I am seeing multiple page requests per user.
 
 **Project**: Refactoring legacy vanilla JavaScript Google Maps application → Modern Next.js/React/TypeScript stack  
 **Repository**: [github.com/rgriola/merkel-vision](https://github.com/rgriola/merkel-vision.git)  
-**Production**: [merkelvision.com](https://merkelvision.com) ✅ **LIVE!** (DNS migrated from Render to Vercel)  
+**Production**: [fotolokashen.com](https://fotolokashen.com) ✅ **LIVE!** (DNS migrated from Render to Vercel)  
 **Status**: **Production Deployed & Working** - DNS Migration Complete
 
 **Stack**: Next.js 16.0.10 • React 19.2.1 • TypeScript 5 • Tailwind CSS v4 • PostgreSQL (Neon) • Prisma 6.19.1 • ImageKit 6.0.0 • TanStack Query 5 • Radix UI • Resend • Sentry • React Hook Form • Zod
@@ -71,12 +71,12 @@ Also I am seeing multiple page requests per user.
 ### Production DNS Migration (Phase 10) ⭐ NEW - Jan 2, 2026
 - ✅ **DNS Configuration**: Migrated from Render to Vercel via Cloudflare (100%)
 - ✅ **SSL Certificate**: Let's Encrypt auto-provisioned by Vercel (100%)
-- ✅ **Domain Verification**: merkelvision.com pointing to Vercel (100%)
+- ✅ **Domain Verification**: fotolokashen.com pointing to Vercel (100%)
 - ✅ **Production JWT**: Generated new 384-bit secret for production security (100%)
 - ✅ **Environment Variables**: Documented all required production settings (100%)
 
 **DNS Setup Details**:
-- Root domain: `CNAME merkelvision.com → f1bb0125b2ec5ad2.vercel-dns-017.com` (DNS only)
+- Root domain: `CNAME fotolokashen.com → f1bb0125b2ec5ad2.vercel-dns-017.com` (DNS only)
 - WWW subdomain: `CNAME www → f1bb0125b2ec5ad2.vercel-dns-017.com` (DNS only)
 - Email DNS: Resend DKIM and DMARC records configured
 - Cloudflare CNAME flattening: Enabled (allows CNAME at root)
@@ -128,10 +128,10 @@ Also I am seeing multiple page requests per user.
 
 ### Phase 10: Production DNS Migration (Jan 2, 2026) ✅
 
-**Goal**: Migrate merkelvision.com DNS from Render to Vercel for production deployment
+**Goal**: Migrate fotolokashen.com DNS from Render to Vercel for production deployment
 
 #### DNS Migration Completed
-- ✅ **Custom Domain**: merkelvision.com now points to Vercel
+- ✅ **Custom Domain**: fotolokashen.com now points to Vercel
 - ✅ **Vercel DNS**: Generated unique CNAME target (`f1bb0125b2ec5ad2.vercel-dns-017.com`)
 - ✅ **Cloudflare Configuration**: CNAME flattening enabled for root domain
 - ✅ **SSL Certificate**: Let's Encrypt auto-provisioned by Vercel
@@ -145,16 +145,16 @@ Also I am seeing multiple page requests per user.
   - Security: 48 bytes = 384 bits entropy (exceeds 256-bit minimum by 50%)
 - ✅ **Environment Variables**: Documented all required production settings
   - EMAIL_MODE=production (critical for email delivery)
-  - NEXT_PUBLIC_APP_URL=https://merkelvision.com
+  - NEXT_PUBLIC_APP_URL=https://fotolokashen.com
   - NODE_ENV=production
   - JWT_SECRET (new production secret)
-  - EMAIL_FROM_ADDRESS (admin@merkelvision.com)
+  - EMAIL_FROM_ADDRESS (admin@fotolokashen.com)
 
 #### DNS Configuration Details
 **Cloudflare DNS Records**:
 ```
 Type    Name                Target                              Proxy
-CNAME   merkelvision.com    f1bb0125b2ec5ad2.vercel-dns-017.com DNS only
+CNAME   fotolokashen.com    f1bb0125b2ec5ad2.vercel-dns-017.com DNS only
 CNAME   www                 f1bb0125b2ec5ad2.vercel-dns-017.com DNS only
 TXT     resend._domainkey   <resend-dkim-key>                   DNS only
 TXT     _dmarc              v=DMARC1; p=none;                   DNS only
@@ -172,7 +172,7 @@ TXT     _dmarc              v=DMARC1; p=none;                   DNS only
 - `.env.production.example` - Production environment template
 
 **Impact**: 
-- Production site accessible at https://merkelvision.com with valid SSL
+- Production site accessible at https://fotolokashen.com with valid SSL
 - Automatic SSL certificate renewal by Vercel
 - DNS changes propagate quickly (1-5 minutes vs 24-48 hours)
 - Ready for environment variable updates and production testing
@@ -195,7 +195,7 @@ TXT     _dmarc              v=DMARC1; p=none;                   DNS only
 #### Landing Page Mobile Improvements
 - ✅ Reduced button width (~50%) with `max-w-[180px]` constraint
 - ✅ Hero text positioning optimized for mobile eyeline (`mt-[75px]`)
-- ✅ "Merkel Vision" branding always visible on mobile
+- ✅ "fotolokashen" branding always visible on mobile
 - ✅ Floating hamburger menu with z-100 prominence
 - ✅ Uniform responsive padding: `px-4 md:px-6 lg:px-8` (16px → 24px → 32px)
 
@@ -478,7 +478,7 @@ webpack: (config, { isServer }) => {
 - ✅ User-first data organization
 - ✅ Comprehensive error handling
 - ✅ **Mobile responsive** - Optimized for iPhone/Android (Jan 1, 2026)
-- ✅ **Live at Custom Domain**: https://merkelvision.com (DNS migrated Jan 2, 2026)
+- ✅ **Live at Custom Domain**: https://fotolokashen.com (DNS migrated Jan 2, 2026)
 - ✅ **Database**: PostgreSQL (Neon cloud)
 - ✅ **All pages loading**: /locations, /create-with-photo, /profile
 - ✅ **Authentication working**: Login, signup, session management
@@ -494,7 +494,7 @@ webpack: (config, { isServer }) => {
 - [x] Critical bug fixes (exifr/jsdom serverless issue)
 - [x] Build verification (no errors)
 - [x] Runtime testing (all pages accessible)
-- [x] **Custom domain setup**: merkelvision.com (Jan 2, 2026)
+- [x] **Custom domain setup**: fotolokashen.com (Jan 2, 2026)
 - [x] **DNS migration**: Render → Vercel via Cloudflare
 - [x] **SSL certificate**: Auto-provisioned and verified
 - [x] **Production JWT secret**: Generated 384-bit secure token
@@ -546,9 +546,9 @@ webpack: (config, { isServer }) => {
 
 ## 🎉 Major Milestone Achievement: PRODUCTION DEPLOYED AT MERKELVISION.COM! 🚀
 
-**The refactored Merkel Vision application is now LIVE at its custom domain**:
+**The refactored fotolokashen application is now LIVE at its custom domain**:
 
-✅ **Deployed**: https://merkelvision.com ⭐ **LIVE!**  
+✅ **Deployed**: https://fotolokashen.com ⭐ **LIVE!**  
 ✅ **Features**: Photo upload with GPS, EXIF metadata extraction  
 ✅ **Performance**: 80% faster renders, optimized components  
 ✅ **Type Safety**: 95% TypeScript coverage vs 0% (vanilla JS)  
@@ -562,7 +562,7 @@ webpack: (config, { isServer }) => {
 ✅ **SSL Certificate**: Let's Encrypt auto-provisioned and verified  
 ✅ **Production Security**: 384-bit JWT secret generated  
 
-**Status**: 🎯 Production deployed at merkelvision.com! Environment variable updates pending.
+**Status**: 🎯 Production deployed at fotolokashen.com! Environment variable updates pending.
 
 ---
 
@@ -571,7 +571,7 @@ webpack: (config, { isServer }) => {
 **Next Session**: Update Vercel environment variables and test production deployment  
 **Contributors**: Development Team  
 **Repository**: [github.com/rgriola/merkel-vision](https://github.com/rgriola/merkel-vision.git)  
-**Production**: [merkelvision.com](https://merkelvision.com) ✅
+**Production**: [fotolokashen.com](https://fotolokashen.com) ✅
 
 ---
 
@@ -582,10 +582,10 @@ webpack: (config, { isServer }) => {
 
 **Required Updates**:
 1. [ ] Add EMAIL_MODE=production
-2. [ ] Add NEXT_PUBLIC_APP_URL=https://merkelvision.com
+2. [ ] Add NEXT_PUBLIC_APP_URL=https://fotolokashen.com
 3. [ ] Add NODE_ENV=production
 4. [ ] Add JWT_SECRET=ZJ/Rkypbc3FQXFf98r4lYw5lZ3LbA8Z9wEaLPNBbDiJ2kOKgRk29WLJLEEWFisbS
-5. [ ] Update EMAIL_FROM_ADDRESS=admin@merkelvision.com
+5. [ ] Update EMAIL_FROM_ADDRESS=admin@fotolokashen.com
 6. [ ] Verify all other environment variables exist (database, API keys, etc.)
 7. [ ] Redeploy on Vercel to pick up new variables
 
@@ -595,7 +595,7 @@ webpack: (config, { isServer }) => {
 **Goal**: Comprehensive testing of production deployment
 
 **Test Checklist**:
-1. [ ] Homepage loads at https://merkelvision.com with valid SSL
+1. [ ] Homepage loads at https://fotolokashen.com with valid SSL
 2. [ ] User registration works
 3. [ ] Verification email arrives (EMAIL_MODE=production active)
 4. [ ] Email verification link works
