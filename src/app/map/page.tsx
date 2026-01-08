@@ -471,19 +471,159 @@ function MapPageInner() {
         }
     };
 
-    const handleMarkerClick = useCallback((marker: MarkerData) => {
-        setSelectedMarker(marker);
 
-        // Zoom to street level and pan to marker
-        if (map) {
-            //  map.panTo(marker.position);
-            //  map.setZoom(17);
+    const handleHomeLocationClick = async () => {
+        if (!user?.homeLocationLat || !user?.homeLocationLng) return;
 
-            map.setOptions({
-                center: marker.position,
-                zoom: 17,
+        // Remove any temporary markers when clicking home location
+        setMarkers((prev) => prev.filter((m) => !m.isTemporary));
+
+        const homePosition = {
+            lat: user.homeLocationLat,
+            lng: user.homeLocationLng,
+        };
+
+        try {
+            // Use reverse geocoding to get place information
+            const geocoder = new google.maps.Geocoder();
+            const response = await geocoder.geocode({
+                location: homePosition,
             });
 
+            if (response.results && response.results.length > 0) {
+                // Extract Plus Code
+                const plusCodeResult = response.results.find(result =>
+                    result.types.includes('plus_code')
+                );
+                const plusCode = plusCodeResult?.plus_code?.global_code;
+
+                // Find the best postal address
+                const addressPriority = [
+                    'street_address',
+                    'route',
+                    'premise',
+                    'neighborhood',
+                    'locality'
+                ];
+
+                let addressResult = response.results[0];
+                for (const type of addressPriority) {
+                    const found = response.results.find(result =>
+                        result.types.includes(type) && !result.types.includes('plus_code')
+                    );
+                    if (found) {
+                        addressResult = found;
+                        break;
+                    }
+                }
+
+                // Use custom home name if set, otherwise extract from address
+                let name = user.homeLocationName || 'Home';
+                if (!user.homeLocationName) {
+                    const streetNumber = addressResult.address_components?.find(c =>
+                        c.types.includes('street_number')
+                    )?.long_name;
+                    const route = addressResult.address_components?.find(c =>
+                        c.types.includes('route')
+                    )?.long_name;
+
+                    if (streetNumber && route) {
+                        name = `${streetNumber} ${route}`;
+                    } else {
+                        name = addressResult.formatted_address.split(',')[0] || 'Home';
+                    }
+                }
+
+                // Parse address components
+                const addressComponents = parseAddressComponents(addressResult.address_components);
+
+                const locationData: LocationData = {
+                    placeId: addressResult.place_id,
+                    name: name,
+                    address: addressResult.formatted_address,
+                    latitude: homePosition.lat,
+                    longitude: homePosition.lng,
+                    plusCode: plusCode,
+                    ...addressComponents,
+                };
+
+                // Create a marker for the home location to show in InfoWindow
+                const homeMarker: MarkerData = {
+                    id: 'home-location-info',
+                    position: homePosition,
+                    data: locationData,
+                    isTemporary: false, // Not temporary - it's the home location
+                };
+
+                setSelectedMarker(homeMarker);
+
+                // Pan to home location
+                if (map) {
+                    map.setOptions({
+                        center: homePosition,
+                        zoom: 17,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error getting home location details:', error);
+        }
+    };
+
+    const handleMarkerClick = useCallback((marker: MarkerData) => {
+        // For saved markers: skip InfoWindow, open EditLocationPanel directly
+        if (!marker.isTemporary && marker.userSave) {
+            // Remove any temporary markers when clicking a saved marker
+            setMarkers((prev) => prev.filter((m) => !m.isTemporary));
+
+            // Close any open InfoWindow
+            setSelectedMarker(null);
+
+            setLocationToEdit(marker);
+            setSidebarView('edit');
+            setIsSidebarOpen(true);
+
+            // Load favorite state from saved location
+            setIsFavorite(marker.userSave?.isFavorite || false);
+
+            // Load indoor/outdoor state from saved location
+            setIndoorOutdoor((marker.userSave?.location?.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
+
+            // Pan map to adjust for panel (desktop only)
+            if (map && typeof window !== 'undefined') {
+                const isDesktop = window.innerWidth >= 1024;
+                if (isDesktop) {
+                    const PANEL_WIDTH = 450;
+                    setTimeout(() => {
+                        // Center on marker first
+                        map.setOptions({
+                            center: marker.position,
+                            zoom: 17,
+                        });
+                        // Then pan to accommodate panel
+                        setTimeout(() => {
+                            map.panBy(PANEL_WIDTH / 2, 0);
+                        }, 100);
+                    }, 50);
+                } else {
+                    // Mobile: just center on marker
+                    map.setOptions({
+                        center: marker.position,
+                        zoom: 17,
+                    });
+                }
+            }
+        } else {
+            // For temporary markers: show InfoWindow as before
+            setSelectedMarker(marker);
+
+            // Zoom to street level and pan to marker
+            if (map) {
+                map.setOptions({
+                    center: marker.position,
+                    zoom: 17,
+                });
+            }
         }
     }, [map]);
 
@@ -513,27 +653,6 @@ function MapPageInner() {
                             placeholder="Search Google Maps ... "
                         />
                     </div>
-                    <button
-                        onClick={handleGPSClick}
-                        className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors flex items-center gap-1.5 flex-shrink-0"
-                        title="Use my location"
-                    >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                            />
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                        </svg>
-                        <span className="hidden sm:inline text-sm">GPS</span>
-                    </button>
                     <a
                         href="/create-with-photo"
                         className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors flex items-center gap-1.5 flex-shrink-0"
@@ -567,6 +686,7 @@ function MapPageInner() {
                                 lng: user.homeLocationLng,
                             }}
                             name={user.homeLocationName || undefined}
+                            onClick={handleHomeLocationClick}
                         />
                     )}
 
@@ -706,24 +826,10 @@ function MapPageInner() {
                     )}
                 </GoogleMap>
 
-                {/* Map Controls - Responsive (Desktop: top-right buttons, Mobile: bottom floating menu) */}
+                {/* Map Controls - Responsive (Desktop: top-center buttons, Mobile: bottom floating menu) */}
                 <MapControls
                     userLocation={userLocation}
-                    onGpsToggle={async () => {
-                        if (userLocation) {
-                            setUserLocation(null);
-                            toast.info('Location hidden');
-                        } else {
-                            const position = await requestLocation();
-                            if (position) {
-                                setUserLocation({
-                                    lat: position.coords.latitude,
-                                    lng: position.coords.longitude,
-                                });
-                                toast.success('Location shown');
-                            }
-                        }
-                    }}
+                    onGpsToggle={handleGPSClick}
                     onFriendsClick={() => alert('Friends Locations feature coming soon!')}
                     onViewAllClick={() => {
                         if (!map) return;
@@ -757,7 +863,7 @@ function MapPageInner() {
 
                 {/* Locations Panel - Slide in from right */}
                 {showLocationsPanel && (
-                    <div className="absolute top-0 right-0 h-full w-80 bg-white shadow-2xl z-20 flex flex-col animate-in slide-in-from-right">
+                    <div className="absolute top-0 right-0 h-full w-96 bg-white shadow-2xl z-20 flex flex-col animate-in slide-in-from-right">
                         {/* Panel Header */}
                         <div className="flex items-center justify-between p-4 border-b bg-gray-50">
                             <h3 className="font-semibold text-lg flex items-center gap-2">
@@ -788,34 +894,71 @@ function MapPageInner() {
                                         <button
                                             key={marker.id}
                                             onClick={() => {
-                                                setCenter(marker.position);
-                                                setSelectedMarker(marker);
-                                                if (map) {
-                                                    map.setZoom(16);
-                                                }
+                                                // Close the panel first
                                                 setShowLocationsPanel(false);
+                                                // Then trigger the same action as clicking the marker
+                                                handleMarkerClick(marker);
                                             }}
                                             className="w-full text-left p-3 rounded-lg border hover:bg-gray-50 hover:border-indigo-300 transition-colors"
                                         >
-                                            <div className="flex items-start gap-2">
-                                                <div
-                                                    className="w-3 h-3 rounded-full mt-1 flex-shrink-0"
-                                                    style={{ backgroundColor: marker.color || '#8B5CF6' }}
-                                                />
+                                            <div className="flex items-start gap-3">
+                                                {/* Photo thumbnail or placeholder */}
+                                                {(() => {
+                                                    const primaryPhoto = marker.userSave?.location?.photos?.find(p => p.isPrimary);
+                                                    const photoUrl = primaryPhoto
+                                                        ? `https://ik.imagekit.io/rgriola/${primaryPhoto.imagekitFilePath}?tr=w-80,h-80,c-at_max,fo-auto`
+                                                        : null;
+
+                                                    return (
+                                                        <div className="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
+                                                            {photoUrl ? (
+                                                                <img
+                                                                    src={photoUrl}
+                                                                    alt={marker.data?.name || 'Location'}
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <svg
+                                                                    className="w-8 h-8 text-gray-400"
+                                                                    fill="none"
+                                                                    stroke="currentColor"
+                                                                    viewBox="0 0 24 24"
+                                                                >
+                                                                    <path
+                                                                        strokeLinecap="round"
+                                                                        strokeLinejoin="round"
+                                                                        strokeWidth="2"
+                                                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                                    />
+                                                                </svg>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
+
+                                                {/* Location info */}
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-sm truncate">
-                                                        {marker.data?.name || 'Unnamed Location'}
-                                                    </p>
-                                                    {marker.data?.address && (
-                                                        <p className="text-xs text-gray-500 truncate">
-                                                            {marker.data.address}
-                                                        </p>
-                                                    )}
-                                                    {marker.data?.type && (
-                                                        <p className="text-xs text-indigo-600 mt-1">
-                                                            {marker.data.type}
-                                                        </p>
-                                                    )}
+                                                    <div className="flex items-start gap-2">
+                                                        <div
+                                                            className="w-3 h-3 rounded-full mt-1 flex-shrink-0"
+                                                            style={{ backgroundColor: marker.color || '#8B5CF6' }}
+                                                        />
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-medium text-sm truncate">
+                                                                {marker.data?.name || 'Unnamed Location'}
+                                                            </p>
+                                                            {marker.data?.address && (
+                                                                <p className="text-xs text-gray-500 truncate">
+                                                                    {marker.data.address}
+                                                                </p>
+                                                            )}
+                                                            {marker.data?.type && (
+                                                                <p className="text-xs text-indigo-600 mt-1">
+                                                                    {marker.data.type}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </button>

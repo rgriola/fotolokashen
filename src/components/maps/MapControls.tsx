@@ -36,39 +36,36 @@ export function MapControls({
 
     return (
         <>
-            {/* Desktop View - Horizontal buttons in top-right */}
-            <div className="hidden md:flex absolute top-4 right-[65px] gap-2 z-10">
+            {/* Desktop View - Horizontal buttons centered at top */}
+            <div className="hidden md:flex absolute top-4 left-1/2 -translate-x-1/2 gap-2 z-10">
                 {/* GPS Toggle Button */}
                 <Button
                     onClick={onGpsToggle}
-                    className={`shadow-lg border border-gray-200 transition-colors ${
-                        userLocation
-                            ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
-                            : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
-                    }`}
-                    size="sm"
+                    className={`shadow-lg border border-gray-200 transition-colors ${userLocation
+                        ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
+                        : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
+                        }`}
+                    size="icon"
                     title={userLocation ? 'Hide GPS Location' : 'Show GPS Location'}
                 >
-                    <Navigation className={`w-4 h-4 mr-2 ${userLocation ? 'fill-current' : ''}`} />
-                    GPS {userLocation ? 'On' : 'Off'}
+                    <Navigation className={`w-4 h-4 ${userLocation ? 'fill-current' : ''}`} />
                 </Button>
 
                 {/* Friends Button */}
                 <Button
                     onClick={onFriendsClick}
                     className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200"
-                    size="sm"
+                    size="icon"
                     title="View friends' locations"
                 >
-                    <Users className="w-4 h-4 mr-2" />
-                    Friends
+                    <Users className="w-4 h-4" />
                 </Button>
 
                 {/* View All Locations Button */}
                 <Button
                     onClick={onViewAllClick}
                     className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200"
-                    size="sm"
+                    size="icon"
                     title="View all saved locations on map"
                 >
                     <svg
@@ -81,24 +78,26 @@ export function MapControls({
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="mr-2"
                     >
                         <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
                         <path d="M15 5.764v15" />
                         <path d="M9 3.236v15" />
                     </svg>
-                    View All
                 </Button>
 
                 {/* My Locations List Button */}
                 <Button
                     onClick={onMyLocationsClick}
-                    className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200"
-                    size="sm"
-                    title="Show list of saved locations"
+                    className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 relative"
+                    size="icon"
+                    title={`Show list of saved locations (${savedLocationsCount})`}
                 >
-                    <MapPinIcon className="w-4 h-4 mr-2" />
-                    My Locations ({savedLocationsCount})
+                    <MapPinIcon className="w-4 h-4" />
+                    {savedLocationsCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                            {savedLocationsCount > 9 ? '9+' : savedLocationsCount}
+                        </span>
+                    )}
                 </Button>
             </div>
 
@@ -126,11 +125,10 @@ export function MapControls({
                             {/* GPS Toggle */}
                             <button
                                 onClick={() => handleActionClick(onGpsToggle)}
-                                className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all ${
-                                    userLocation
-                                        ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
-                                        : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
-                                }`}
+                                className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all ${userLocation
+                                    ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
+                                    : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
+                                    }`}
                             >
                                 <Navigation
                                     className={`w-5 h-5 flex-shrink-0 ${userLocation ? 'fill-current' : ''}`}
