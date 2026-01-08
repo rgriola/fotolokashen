@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { X, Heart, Sun, Building, Camera } from "lucide-react";
+import { X, Heart, Sun, Building, Camera, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export type SidebarView =
@@ -25,6 +25,9 @@ interface RightSidebarProps {
     showIndoorOutdoor?: boolean;
     showPhotoUpload?: boolean;
     onPhotoUploadToggle?: () => void;
+    onSave?: () => void;
+    isSaving?: boolean;
+    showSaveButton?: boolean;
 }
 
 export function RightSidebar({
@@ -41,6 +44,9 @@ export function RightSidebar({
     showIndoorOutdoor = false,
     showPhotoUpload = false,
     onPhotoUploadToggle,
+    onSave,
+    isSaving = false,
+    showSaveButton = false,
 }: RightSidebarProps) {
     return (
         <>
@@ -62,6 +68,19 @@ export function RightSidebar({
                     {title && <h2 className="text-lg font-semibold">{title}</h2>}
                     {!title && <div />}
                     <div className="flex items-center gap-1">
+                        {/* Save Button */}
+                        {showSaveButton && onSave && (
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={onSave}
+                                disabled={isSaving}
+                                className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white hover:text-white disabled:opacity-50"
+                                title={isSaving ? "Saving..." : "Save location"}
+                            >
+                                <Save className="w-4 h-4 text-white" />
+                            </Button>
+                        )}
                         {/* Camera Icon for Photo Upload */}
                         {showPhotoUpload && onPhotoUploadToggle && (
                             <Button

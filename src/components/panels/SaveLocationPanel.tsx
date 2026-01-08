@@ -60,52 +60,14 @@ export function SaveLocationPanel({
 
     return (
         <div className="flex flex-col h-full">
-            {/* Form - Scrollable content */}
-            <div className="flex-1 overflow-y-auto p-4 pb-32">
+            {/* Form - Full height scrollable content */}
+            <div className="flex-1 overflow-y-auto p-4">
                 <SaveLocationForm
                     initialData={initialData}
                     onSubmit={handleSubmit}
                     isPending={saveLocation.isPending}
                     showPhotoUpload={showPhotoUpload}
                 />
-            </div>
-
-            {/* Footer with Actions - Fixed at bottom with safe area padding */}
-            <div className="sticky bottom-0 p-4 pb-6 border-t space-y-2 bg-background shadow-lg">
-                <div className="flex gap-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={onCancel}
-                        disabled={saveLocation.isPending}
-                        className="flex-1"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        form="save-location-form"
-                        disabled={saveLocation.isPending}
-                        className="flex-1"
-                    >
-                        {saveLocation.isPending ? "Saving..." : "Save"}
-                    </Button>
-                </div>
-
-                {/* Quick Save Button */}
-                <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleQuickSave}
-                    disabled={saveLocation.isPending || !initialData?.name}
-                    className="w-full"
-                >
-                    <Zap className="w-4 h-4 mr-2" />
-                    Quick Save (Complete Later)
-                </Button>
-                <p className="text-xs text-muted-foreground text-center">
-                    Quick save stores basic info. You'll get a reminder email to complete details.
-                </p>
             </div>
         </div>
     );

@@ -999,6 +999,16 @@ function MapPageInner() {
                 onIndoorOutdoorToggle={(value) => setIndoorOutdoor(value)}
                 showPhotoUpload={true}
                 onPhotoUploadToggle={() => setShowPhotoUpload(!showPhotoUpload)}
+                showSaveButton={true}
+                onSave={() => {
+                    // Trigger form submit for either save or edit
+                    const formId = sidebarView === 'save' ? 'save-location-form' : 'edit-location-form';
+                    const form = document.getElementById(formId) as HTMLFormElement;
+                    if (form) {
+                        form.requestSubmit();
+                    }
+                }}
+                isSaving={false}
             >
                 {/* Save Location Panel */}
                 {sidebarView === 'save' && locationToSave && (
@@ -1032,10 +1042,6 @@ function MapPageInner() {
 
                             // Close InfoWindow
                             setSelectedMarker(null);
-                            setLocationToSave(null);
-                        }}
-                        onCancel={() => {
-                            setIsSidebarOpen(false);
                             setLocationToSave(null);
                         }}
                         showPhotoUpload={showPhotoUpload}
@@ -1089,10 +1095,6 @@ function MapPageInner() {
                             // Close sidebar and InfoWindow
                             setIsSidebarOpen(false);
                             setSelectedMarker(null);
-                            setLocationToEdit(null);
-                        }}
-                        onCancel={() => {
-                            setIsSidebarOpen(false);
                             setLocationToEdit(null);
                         }}
                     />
