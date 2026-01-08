@@ -811,6 +811,7 @@ function MapPageInner() {
                     onGpsToggle={handleGPSClick}
                     onSearchClick={() => setShowSearchDialog(true)}
                     searchOpen={showSearchDialog}
+                    hideMobileButton={isSidebarOpen}
                     onFriendsClick={() => alert('Friends Locations feature coming soon!')}
                     onViewAllClick={() => {
                         if (!map) return;

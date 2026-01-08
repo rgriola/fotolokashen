@@ -18,6 +18,7 @@ interface MapControlsProps {
     onMyLocationsClick: () => void;
     onSearchClick: () => void;
     searchOpen: boolean;
+    hideMobileButton?: boolean;
     savedLocationsCount: number;
 }
 
@@ -29,6 +30,7 @@ export function MapControls({
     onMyLocationsClick,
     onSearchClick,
     searchOpen,
+    hideMobileButton = false,
     savedLocationsCount,
 }: MapControlsProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -127,14 +129,17 @@ export function MapControls({
 
             {/* Mobile View - Sheet menu only (no floating buttons for cleaner UI) */}
             <div className="md:hidden">
-                {/* Floating Map Controls Button - Position above hamburger menu */}
-                <button
-                    onClick={() => setIsOpen(true)}
-                    className="fixed bottom-24 right-6 z-[90] h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white flex items-center justify-center transition-all active:scale-95"
-                    aria-label="Map controls menu"
-                >
-                    <Map className="h-6 w-6" />
-                </button>
+                {/* Floating Map Controls Button - Position above hamburger menu, hide when sidebar open */}
+                {!hideMobileButton && (
+                    <button
+                        onClick={() => setIsOpen(true)}
+                        className="fixed right-6 z-[90] h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white flex items-center justify-center transition-all active:scale-95"
+                        style={{ bottom: '7.75rem' }}
+                        aria-label="Map controls menu"
+                    >
+                        <Map className="h-6 w-6" />
+                    </button>
+                )}
 
                 {/* Sheet with all controls */}
                 <Sheet open={isOpen} onOpenChange={setIsOpen}>
