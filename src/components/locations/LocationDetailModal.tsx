@@ -80,7 +80,9 @@ export function LocationDetailModal({
         if (onViewOnMap) {
             onViewOnMap(location);
         } else {
-            router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17&edit=${location.id}`);
+            // Use UserSave ID for the edit parameter (API expects UserSave ID)
+            const userSaveId = location.userSave?.id || location.id;
+            router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17&edit=${userSaveId}`);
         }
         onClose();
     };
