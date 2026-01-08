@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, LogOut, Shield } from "lucide-react";
+import { User, LogOut, Shield, FolderKanban } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -79,6 +79,10 @@ export function AuthButton() {
                 <DropdownMenuItem onClick={() => router.push("/profile")}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/projects")}>
+                    <FolderKanban className="mr-2 h-4 w-4" />
+                    <span>My Projects</span>
                 </DropdownMenuItem>
                 {user.isAdmin && (
                     <DropdownMenuItem onClick={() => router.push("/admin/users")}>
