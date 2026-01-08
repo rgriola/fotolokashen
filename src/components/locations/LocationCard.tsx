@@ -54,13 +54,18 @@ export const LocationCard = memo(function LocationCard({
     // Docs: https://developers.google.com/maps/documentation/maps-static
     const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${location.lat},${location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
 
-    // Navigate to map view at this location
+    // Navigate to map view at this location or open modal
     const handleCardClick = (e: React.MouseEvent) => {
         const target = e.target as HTMLElement;
         if (target.closest('button') || target.closest('a')) {
             return;
         }
-        router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17`);
+        // Use onClick prop if provided (for modal), otherwise navigate to map
+        if (onClick) {
+            onClick(location);
+        } else {
+            router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17`);
+        }
     };
 
     return (

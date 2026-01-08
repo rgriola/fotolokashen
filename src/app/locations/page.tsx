@@ -9,10 +9,11 @@ import { LocationListCompact } from "@/components/locations/LocationListCompact"
 import { LocationFilters } from "@/components/locations/LocationFilters";
 import { ShareLocationDialog } from "@/components/locations/ShareLocationDialog";
 import { EditLocationDialog } from "@/components/locations/EditLocationDialog";
+import { LocationDetailModal } from "@/components/locations/LocationDetailModal";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { List, LayoutGrid } from "lucide-react";
-import type { Location } from "@/types/location";
+import type { Location, UserSave } from "@/types/location";
 
 function LocationsPageInner() {
     const router = useRouter();
@@ -22,6 +23,8 @@ function LocationsPageInner() {
     const [sortBy, setSortBy] = useState("recent");
     const [shareLocation, setShareLocation] = useState<Location | null>(null);
     const [editLocation, setEditLocation] = useState<Location | null>(null);
+    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+    const [showDetailModal, setShowDetailModal] = useState(false);
 
     // Fetch locations (search is handled client-side)
     const { data, isLoading, error } = useLocations({
@@ -32,10 +35,12 @@ function LocationsPageInner() {
     const deleteLocation = useDeleteLocation();
 
     // Transform UserSave[] to Location[] (API returns UserSave with nested location)
-    const allLocations = data?.locations?.map((userSave: any) => ({
-        ...userSave.location,
-        userSave: userSave, // Attach the UserSave data
-    })) || [];
+    const allLocations = data?.locations
+        ?.filter((userSave: UserSave) => userSave.location)
+        ?.map((userSave: UserSave) => ({
+            ...(userSave.location as Location),
+            userSave: userSave, // Attach the UserSave data
+        })) || [];
 
     // Filter and sort locations client-side
     let filteredLocations = allLocations;
@@ -143,8 +148,8 @@ function LocationsPageInner() {
                             onDelete={handleDelete}
                             onShare={setShareLocation}
                             onClick={(location) => {
-                                // Navigate to map with location and open edit panel
-                                router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17&edit=${location.id}`);
+                                setSelectedLocation(location);
+                                setShowDetailModal(true);
                             }}
                         />
                     </TabsContent>
@@ -158,8 +163,8 @@ function LocationsPageInner() {
                             onDelete={handleDelete}
                             onShare={setShareLocation}
                             onClick={(location) => {
-                                // Navigate to map with location and open edit panel
-                                router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17&edit=${location.id}`);
+                                setSelectedLocation(location);
+                                setShowDetailModal(true);
                             }}
                         />
                     </TabsContent>
@@ -178,6 +183,31 @@ function LocationsPageInner() {
                 location={shareLocation}
                 open={!!shareLocation}
                 onOpenChange={(open) => !open && setShareLocation(null)}
+            />
+
+            {/* Location Detail Modal */}
+            <LocationDetailModal
+                location={selectedLocation}
+                isOpen={showDetailModal}
+                onClose={() => {
+                    setShowDetailModal(false);
+                    setSelectedLocation(null);
+                }}
+                onEdit={(location) => {
+                    setEditLocation(location);
+                    setShowDetailModal(false);
+                }}
+                onDelete={(id) => {
+                    handleDelete(id);
+                    setShowDetailModal(false);
+                }}
+                onShare={(location) => {
+                    setShareLocation(location);
+                    setShowDetailModal(false);
+                }}
+                onViewOnMap={(location) => {
+                    router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17&edit=${location.id}`);
+                }}
             />
         </Tabs>
     );
