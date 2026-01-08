@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
     MapPin, Star, Edit, Trash2, Share2, Calendar, Camera,
     Clock, DollarSign, Phone, User, AlertCircle, Key,
-    Navigation, Building2, MapPinned, Shield, Heart
+    Navigation, MapPinned, Shield, Heart
 } from "lucide-react";
 import type { Location } from "@/types/location";
 import { useState, memo } from "react";
@@ -173,8 +173,53 @@ export const LocationCard = memo(function LocationCard({
                     <span>{location.lat.toFixed(3)}, {location.lng.toFixed(3)}</span>
                 </div>
 
+                {/* Action Buttons - Moved to top */}
+                <div className="flex gap-2 pt-2">
+                    {canEdit && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit?.(location);
+                            }}
+                            className="flex-1"
+                        >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit
+                        </Button>
+                    )}
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onShare?.(location);
+                        }}
+                        className={canEdit ? "flex-1" : "flex-1"}
+                    >
+                        <Share2 className="w-4 h-4 mr-1" />
+                        Share
+                    </Button>
+
+                    {canEdit && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete?.(userSave?.id || location.id);
+                            }}
+                            className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
+                    )}
+                </div>
+
                 {/* User Rating - Always show */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 hidden">
                     {Array.from({ length: 5 }).map((_, i) => (
                         <Star
                             key={i}
@@ -187,7 +232,7 @@ export const LocationCard = memo(function LocationCard({
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-3 pt-0">
+            <CardContent className="space-y-3 pt-0 hidden">{/* Hidden content below coordinates */}
                 {/* Production Notes */}
                 {location.productionNotes && (
                     <div className="text-xs bg-blue-50 border border-blue-200 p-2 rounded-md">
@@ -364,7 +409,7 @@ export const LocationCard = memo(function LocationCard({
                 </div>
             </CardContent>
 
-            <CardFooter className="flex justify-between gap-2 pt-4 border-t">
+            <CardFooter className="hidden">{/* Action buttons moved to CardHeader */}
                 {canEdit && (
                     <Button
                         variant="outline"
