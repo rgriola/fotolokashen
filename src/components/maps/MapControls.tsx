@@ -57,8 +57,8 @@ export function MapControls({
                 <Button
                     onClick={onGpsToggle}
                     className={`shadow-lg border border-gray-200 transition-colors h-12 w-12 ${userLocation
-                            ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
-                            : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
+                        ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
+                        : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
                         }`}
                     size="icon"
                     title={userLocation ? 'Hide GPS Location' : 'Show GPS Location'}
@@ -125,7 +125,7 @@ export function MapControls({
                 </a>
             </div>
 
-            {/* Mobile View - Floating menu button with sheet */}
+            {/* Mobile View - Sheet menu only (no floating buttons for cleaner UI) */}
             <div className="md:hidden">
                 {/* Floating Map Controls Button - Position above hamburger menu */}
                 <button
@@ -146,6 +146,20 @@ export function MapControls({
                             <SheetTitle className="text-left">Map Controls</SheetTitle>
                         </SheetHeader>
                         <div className="mt-6 space-y-3">
+                            {/* Search */}
+                            <button
+                                onClick={() => handleActionClick(onSearchClick)}
+                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
+                            >
+                                <Search className="w-5 h-5 flex-shrink-0" />
+                                <div className="flex-1 text-left">
+                                    <div className="font-medium">Search</div>
+                                    <div className="text-xs text-gray-600">
+                                        Find locations on the map
+                                    </div>
+                                </div>
+                            </button>
+
                             {/* GPS Toggle */}
                             <button
                                 onClick={() => handleActionClick(onGpsToggle)}
@@ -213,6 +227,21 @@ export function MapControls({
                                     </div>
                                 </div>
                             </button>
+
+                            {/* Photo Upload */}
+                            <a
+                                href="/create-with-photo"
+                                onClick={() => setIsOpen(false)}
+                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-green-600 hover:bg-green-700 text-white border-green-700 transition-all"
+                            >
+                                <Camera className="w-5 h-5 flex-shrink-0" />
+                                <div className="flex-1 text-left">
+                                    <div className="font-medium">Create from Photo</div>
+                                    <div className="text-xs opacity-90">
+                                        Upload photo with GPS data
+                                    </div>
+                                </div>
+                            </a>
 
                             {/* Friends */}
                             <button
