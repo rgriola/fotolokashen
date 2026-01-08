@@ -14,6 +14,19 @@ export interface Photo {
     isPrimary: boolean;
     caption: string | null;
     uploadedAt: Date;
+    
+    // EXIF / GPS data
+    gpsLatitude?: number | null;
+    gpsLongitude?: number | null;
+    gpsAltitude?: number | null;
+    hasGpsData?: boolean;
+    cameraMake?: string | null;
+    cameraModel?: string | null;
+    dateTaken?: Date | null;
+    iso?: number | null;
+    focalLength?: number | null;
+    aperture?: number | null;
+    shutterSpeed?: string | null;
 }
 
 export interface Location {

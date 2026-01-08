@@ -6,32 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
-
-interface Photo {
-    id: number;
-    imagekitFileId: string;
-    imagekitFilePath: string;
-    originalFilename: string;
-    fileSize: number;
-    mimeType: string;
-    width?: number;
-    height?: number;
-    isPrimary?: boolean;
-    caption?: string;
-    // EXIF data
-    gpsLatitude?: number;
-    gpsLongitude?: number;
-    gpsAltitude?: number;
-    hasGpsData?: boolean;
-    cameraMake?: string;
-    cameraModel?: string;
-    dateTaken?: string;
-    iso?: number;
-    focalLength?: number;
-    aperture?: number;
-    shutterSpeed?: string;
-    uploadedAt: string;
-}
+import type { Photo } from "@/types/location";
 
 interface PhotoGalleryProps {
     photos: Photo[];
@@ -64,9 +39,9 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
         setCurrentIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
     };
 
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateInput: string | Date) => {
         try {
-            const date = new Date(dateString);
+            const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
             return date.toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -75,7 +50,7 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                 minute: '2-digit',
             });
         } catch {
-            return dateString;
+            return String(dateInput);
         }
     };
 
@@ -173,15 +148,17 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                                     <p className="truncate">
                                         <span className="font-semibold">📄 File:</span> {currentPhoto.originalFilename}
                                     </p>
-                                    <p>
-                                        <span className="font-semibold">💾 Size:</span> {formatFileSize(currentPhoto.fileSize)}
-                                        {currentPhoto.width && currentPhoto.height && (
-                                            <>
-                                                {" · "}
-                                                <span className="font-semibold">📐</span> {currentPhoto.width} × {currentPhoto.height}
-                                            </>
-                                        )}
-                                    </p>
+                                    {currentPhoto.fileSize && (
+                                        <p>
+                                            <span className="font-semibold">💾 Size:</span> {formatFileSize(currentPhoto.fileSize)}
+                                            {currentPhoto.width && currentPhoto.height && (
+                                                <>
+                                                    {" · "}
+                                                    <span className="font-semibold">📐</span> {currentPhoto.width} × {currentPhoto.height}
+                                                </>
+                                            )}
+                                        </p>
+                                    )}
 
                                     {/* Camera Info */}
                                     {(currentPhoto.cameraMake || currentPhoto.cameraModel) && (
