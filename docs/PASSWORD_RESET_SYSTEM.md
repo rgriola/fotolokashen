@@ -29,6 +29,7 @@ model SecurityLog {
 ```
 
 **User Model Updates:**
+
 - `failedLoginAttempts` - Track failed logins
 - `lockedUntil` - Account lockout timestamp
 - `resetToken` - Password reset token (already existed)
@@ -37,6 +38,7 @@ model SecurityLog {
 ### **2. Security Infrastructure**
 
 **`/src/lib/security.ts`** - Comprehensive security utilities:
+
 - ✅ IP address extraction from requests
 - ✅ User agent parsing (browser, device type)
 - ✅ Security event logging
@@ -44,6 +46,7 @@ model SecurityLog {
 - ✅ Activity log formatting
 
 **Event Types:**
+
 - `login` - Successful login
 - `failed_login` - Failed login attempt
 - `password_reset_request` - Reset email requested

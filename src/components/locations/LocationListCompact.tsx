@@ -240,7 +240,7 @@ function LocationListItem({
                         <DropdownMenuItem
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onDelete(location.id);
+                                onDelete(location.userSave?.id || location.id);
                             }}
                             className="text-destructive"
                         >

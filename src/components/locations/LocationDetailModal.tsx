@@ -168,7 +168,7 @@ export function LocationDetailModal({
                                     size="sm"
                                     onClick={() => {
                                         if (confirm('Are you sure you want to delete this location?')) {
-                                            onDelete(location.id);
+                                            onDelete(location.userSave?.id || location.id);
                                             onClose();
                                         }
                                     }}
