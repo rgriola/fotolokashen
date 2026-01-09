@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLocations } from "@/hooks/useLocations";
 import { LocationListCompact } from "@/components/locations/LocationListCompact";
 import { LocationFilters } from "@/components/locations/LocationFilters";
+import { FilterPanel } from "@/components/locations/FilterPanel";
 import type { Location } from "@/types/location";
 import { Loader2 } from "lucide-react";
 
@@ -76,12 +77,18 @@ export function SavedLocationsPanel({
         <div className="flex flex-col h-full">
             {/* Filters */}
             <div className="p-3 border-b bg-muted/30">
-                <LocationFilters
-                    onSearchChange={setSearch}
-                    onTypeChange={setTypeFilter}
-                    onFavoritesToggle={setFavoritesOnly}
-                    onSortChange={setSortBy}
-                />
+                <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                        <LocationFilters
+                            onSearchChange={setSearch}
+                        />
+                    </div>
+                    <FilterPanel
+                        onTypeChange={setTypeFilter}
+                        onFavoritesToggle={setFavoritesOnly}
+                        onSortChange={setSortBy}
+                    />
+                </div>
             </div>
 
             {/* Location Count */}

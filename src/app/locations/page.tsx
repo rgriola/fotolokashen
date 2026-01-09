@@ -7,11 +7,12 @@ import { useDeleteLocation } from "@/hooks/useDeleteLocation";
 import { LocationList } from "@/components/locations/LocationList";
 import { LocationListCompact } from "@/components/locations/LocationListCompact";
 import { LocationFilters } from "@/components/locations/LocationFilters";
+import { FilterPanel } from "@/components/locations/FilterPanel";
 import { ShareLocationDialog } from "@/components/locations/ShareLocationDialog";
 import { EditLocationDialog } from "@/components/locations/EditLocationDialog";
 import { LocationDetailModal } from "@/components/locations/LocationDetailModal";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { List, LayoutGrid } from "lucide-react";
 import type { Location, UserSave } from "@/types/location";
 
@@ -25,6 +26,7 @@ function LocationsPageInner() {
     const [editLocation, setEditLocation] = useState<Location | null>(null);
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
     // Fetch locations (search is handled client-side)
     const { data, isLoading, error } = useLocations({
@@ -97,33 +99,40 @@ function LocationsPageInner() {
     };
 
     return (
-        <Tabs defaultValue="grid" className="fixed inset-0 top-16 flex flex-col">
-            {/* Fixed Controls Section - Single Line Layout */}
+        <div className="fixed inset-0 top-16 flex flex-col">
+            {/* Fixed Controls Section - Compact Mobile Layout */}
             <div className="flex-shrink-0 bg-background border-b">
                 <div className="container mx-auto px-4 py-3 max-w-7xl">
-                    {/* Single Row: Search + Favorites + Filters + View Toggle */}
-                    <div className="flex items-center gap-3">
+                    {/* Single Row: Search + Filter Button + Grid/List Toggle */}
+                    <div className="flex items-center gap-2">
                         {/* Search - Takes most space */}
                         <div className="flex-1">
                             <LocationFilters
                                 onSearchChange={setSearch}
-                                onTypeChange={setTypeFilter}
-                                onFavoritesToggle={setFavoritesOnly}
-                                onSortChange={setSortBy}
                             />
                         </div>
 
-                        {/* View Toggle - Grid/List */}
-                        <TabsList className="grid grid-cols-2 w-auto">
-                            <TabsTrigger value="grid" className="flex items-center gap-2">
+                        {/* Filters Panel Button */}
+                        <FilterPanel
+                            onTypeChange={setTypeFilter}
+                            onFavoritesToggle={setFavoritesOnly}
+                            onSortChange={setSortBy}
+                        />
+
+                        {/* View Toggle Button - Single button that switches icon */}
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+                            className="shrink-0"
+                            title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
+                        >
+                            {viewMode === "grid" ? (
                                 <LayoutGrid className="w-4 h-4" />
-                                <span className="hidden sm:inline">Grid</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="list" className="flex items-center gap-2">
+                            ) : (
                                 <List className="w-4 h-4" />
-                                <span className="hidden sm:inline">List</span>
-                            </TabsTrigger>
-                        </TabsList>
+                            )}
+                        </Button>
                     </div>
 
                     {/* Error State */}
@@ -139,8 +148,8 @@ function LocationsPageInner() {
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto">
                 <div className="container mx-auto px-4 py-6 max-w-7xl">
-                    {/* Grid View */}
-                    <TabsContent value="grid" className="mt-0">
+                    {/* Conditional rendering based on viewMode */}
+                    {viewMode === "grid" ? (
                         <LocationList
                             locations={filteredLocations}
                             isLoading={isLoading}
@@ -152,10 +161,7 @@ function LocationsPageInner() {
                                 setShowDetailModal(true);
                             }}
                         />
-                    </TabsContent>
-
-                    {/* List View */}
-                    <TabsContent value="list" className="mt-0">
+                    ) : (
                         <LocationListCompact
                             locations={filteredLocations}
                             isLoading={isLoading}
@@ -167,7 +173,7 @@ function LocationsPageInner() {
                                 setShowDetailModal(true);
                             }}
                         />
-                    </TabsContent>
+                    )}
                 </div>
             </div>
 
@@ -211,7 +217,7 @@ function LocationsPageInner() {
                     router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17&edit=${userSaveId}`);
                 }}
             />
-        </Tabs>
+        </div>
     );
 }
 
