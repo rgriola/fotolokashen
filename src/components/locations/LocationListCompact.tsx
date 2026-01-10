@@ -242,7 +242,7 @@ function LocationListItem({
                                 e.stopPropagation();
                                 onDelete(location.userSave?.id || location.id);
                             }}
-                            className="text-destructive"
+                            className="text-destructive focus:bg-destructive focus:text-white"
                         >
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete

@@ -211,7 +211,7 @@ export const LocationCard = memo(function LocationCard({
                                 e.stopPropagation();
                                 onDelete?.(userSave?.id || location.id);
                             }}
-                            className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                            className="text-destructive hover:bg-destructive hover:text-white"
                         >
                             <Trash2 className="w-4 h-4" />
                         </Button>
@@ -446,7 +446,7 @@ export const LocationCard = memo(function LocationCard({
                             e.stopPropagation();
                             onDelete?.(userSave?.id || location.id);
                         }}
-                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        className="text-destructive hover:bg-destructive hover:text-white"
                     >
                         <Trash2 className="w-4 h-4" />
                     </Button>

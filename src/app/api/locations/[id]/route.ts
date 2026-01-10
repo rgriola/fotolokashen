@@ -268,9 +268,14 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        console.log('\n========================================');
+        console.log('🗑️  DELETE LOCATION - START');
+        console.log('========================================');
+        
         const authResult = await requireAuth(request);
 
         if (!authResult.authorized || !authResult.user) {
+            console.log('❌ Authentication failed');
             return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
         }
 
@@ -278,31 +283,169 @@ export async function DELETE(
         const { id: idParam } = await params;
         const id = parseInt(idParam);
 
-        // Get the UserSave
+        console.log(`📋 Request Details:`);
+        console.log(`   User ID: ${user.id}`);
+        console.log(`   User Email: ${user.email}`);
+        console.log(`   UserSave ID: ${id}`);
+
+        // Get the UserSave with full details
         const userSave = await prisma.userSave.findUnique({
             where: { id },
+            include: {
+                location: {
+                    include: {
+                        photos: true,
+                        savedBy: true,
+                    }
+                }
+            }
         });
 
         if (!userSave) {
+            console.log(`❌ UserSave not found with ID: ${id}`);
             return apiError('Saved location not found', 404, 'NOT_FOUND');
         }
 
+        console.log(`\n✅ Found UserSave:`);
+        console.log(`   UserSave ID: ${userSave.id}`);
+        console.log(`   Location ID: ${userSave.locationId}`);
+        console.log(`   Location Name: ${userSave.location.name}`);
+        console.log(`   Location CreatedBy: ${userSave.location.createdBy}`);
+        console.log(`   Photos Count: ${userSave.location.photos.length}`);
+        console.log(`   Total Saves (by all users): ${userSave.location.savedBy.length}`);
+
         // Check ownership
         if (!canDeleteUserSave(user, userSave)) {
+            console.log(`❌ Permission denied - UserSave belongs to user ${userSave.userId}`);
             return apiError('Permission denied', 403, 'FORBIDDEN');
         }
 
-        // Delete the UserSave (keeps Location for other users)
-        await prisma.userSave.delete({
-            where: { id },
-        });
+        console.log(`\n✅ Permission check passed`);
 
-        return apiResponse({ message: 'Location removed from saves' });
-    } catch (error: any) {
-        if (error.message === 'UNAUTHORIZED') {
+        // List photos before deletion
+        if (userSave.location.photos.length > 0) {
+            console.log(`\n📷 Photos associated with this location:`);
+            userSave.location.photos.forEach((photo, index) => {
+                console.log(`   ${index + 1}. Photo ID: ${photo.id}`);
+                console.log(`      ImageKit File ID: ${photo.imagekitFileId}`);
+                console.log(`      ImageKit Path: ${photo.imagekitFilePath}`);
+                console.log(`      Uploaded by User ID: ${photo.userId}`);
+                console.log(`      Primary: ${photo.isPrimary}`);
+            });
+        }
+
+        // Check if this is the last user saving this location
+        const otherSaves = userSave.location.savedBy.filter(save => save.id !== userSave.id);
+        const isLastSave = otherSaves.length === 0;
+        const isCreator = userSave.location.createdBy === user.id;
+
+        console.log(`\n📊 Deletion Impact Analysis:`);
+        console.log(`   Is user the creator? ${isCreator ? 'YES' : 'NO'}`);
+        console.log(`   Is this the last save? ${isLastSave ? 'YES' : 'NO'}`);
+        console.log(`   Other users with this location: ${otherSaves.length}`);
+        
+        if (isLastSave) {
+            console.log(`\n⚠️  This is the LAST save of this location!`);
+            if (isCreator) {
+                console.log(`   ✅ User is the creator - FULL CASCADE DELETE will execute`);
+                console.log(`   Will delete: UserSave + Location + ${userSave.location.photos.length} Photos (DB + ImageKit)`);
+            } else {
+                console.log(`   ⚠️  User is NOT the creator - only UserSave will be deleted`);
+                console.log(`   Location ${userSave.locationId} will become orphaned`);
+            }
+        } else {
+            console.log(`\n✅ Location will remain accessible to ${otherSaves.length} other user(s):`);
+            otherSaves.forEach((save, index) => {
+                console.log(`   ${index + 1}. UserSave ID: ${save.id}, User ID: ${save.userId}`);
+            });
+        }
+
+        // CASCADE DELETE: If user is creator and it's the last save, delete everything
+        if (isCreator && isLastSave) {
+            console.log(`\n🗑️  CASCADE DELETE INITIATED (user owns this location)...`);
+            
+            // Step 1: Delete photos from ImageKit
+            if (userSave.location.photos.length > 0) {
+                console.log(`\n📷 Deleting ${userSave.location.photos.length} photos from ImageKit...`);
+                
+                // Initialize ImageKit
+                const ImageKit = (await import('imagekit')).default;
+                const imagekit = new ImageKit({
+                    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || '',
+                    privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
+                    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
+                });
+
+                for (const photo of userSave.location.photos) {
+                    try {
+                        await imagekit.deleteFile(photo.imagekitFileId);
+                        console.log(`   ✅ Deleted photo ${photo.id} (${photo.imagekitFileId}) from ImageKit`);
+                    } catch (error: unknown) {
+                        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                        console.error(`   ❌ Failed to delete photo ${photo.id} from ImageKit: ${errorMessage}`);
+                    }
+                }
+            }
+
+            // Step 2: Delete location (cascade will handle photos in DB and UserSaves)
+            console.log(`\n🗑️  Deleting Location ${userSave.locationId} from database...`);
+            await prisma.location.delete({
+                where: { id: userSave.locationId }
+            });
+            console.log(`   ✅ Location deleted (cascade deleted ${userSave.location.photos.length} photo records and UserSave ${id})`);
+
+            console.log(`\n📝 Final Database State:`);
+            console.log(`   ✅ UserSave ${id} - DELETED (cascade)`);
+            console.log(`   ✅ Location ${userSave.locationId} - DELETED`);
+            console.log(`   ✅ Photos (${userSave.location.photos.length}) - DELETED from database`);
+            console.log(`   ✅ Photos (${userSave.location.photos.length}) - DELETED from ImageKit`);
+
+        } else {
+            // Just delete the UserSave (keeps Location for other users or non-creators)
+            console.log(`\n🗑️  Deleting UserSave ID: ${id} only...`);
+            await prisma.userSave.delete({
+                where: { id },
+            });
+            console.log(`✅ UserSave deleted successfully`);
+
+            console.log(`\n📝 Database State After Deletion:`);
+            console.log(`   ✅ UserSave ${id} - DELETED`);
+            console.log(`   ⚠️  Location ${userSave.locationId} - PRESERVED (${isCreator ? 'user is creator but not last save' : 'user is not creator'})`);
+            console.log(`   ⚠️  Photos (${userSave.location.photos.length}) - PRESERVED`);
+
+            if (!isCreator && isLastSave) {
+                console.log(`\n🚨 ORPHANED LOCATION DETECTED:`);
+                console.log(`   Location ID ${userSave.locationId} has no remaining saves`);
+                console.log(`   Created by User ID: ${userSave.location.createdBy} (not current user)`);
+                console.log(`   ${userSave.location.photos.length} photo(s) are orphaned`);
+                console.log(`   Consider notifying creator or implementing cleanup policy`);
+            }
+        }
+
+        console.log('\n========================================');
+        console.log('✅ DELETE LOCATION - COMPLETE');
+        console.log('========================================\n');
+
+        return apiResponse({ 
+            message: isCreator && isLastSave 
+                ? 'Location and all associated photos deleted successfully' 
+                : 'Location removed from your saves',
+            deleted: {
+                userSave: true,
+                location: isCreator && isLastSave,
+                photos: isCreator && isLastSave ? userSave.location.photos.length : 0,
+                imagekitFiles: isCreator && isLastSave ? userSave.location.photos.length : 0
+            }
+        });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        if (errorMessage === 'UNAUTHORIZED') {
+            console.log('❌ Unauthorized error');
             return apiError('Authentication required', 401, 'UNAUTHORIZED');
         }
-        console.error('Error deleting location:', error);
+        console.error('\n❌ ERROR in DELETE handler:');
+        console.error(error);
+        console.log('\n========================================\n');
         return apiError('Failed to delete location', 500, 'DELETE_ERROR');
     }
 }

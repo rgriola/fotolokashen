@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
-import { FOLDER_PATHS, PHOTO_LIMITS, FILE_SIZE_LIMITS } from "@/lib/constants/upload";
-import { ERROR_MESSAGES } from "@/lib/constants/messages";
+import { FOLDER_PATHS } from "@/lib/constants/upload";
+import { usePhotoCacheManager } from "@/hooks/usePhotoCacheManager";
+import type { CachedPhoto, UploadedPhotoData } from "@/types/photo-cache";
 
 interface UploadedPhoto {
     id?: number; // Database ID (if already saved)
@@ -22,29 +23,68 @@ interface UploadedPhoto {
     caption?: string;
 }
 
+type UploadMode = 'immediate' | 'deferred';
+
 interface ImageKitUploaderProps {
-    placeId?: string;
     onPhotosChange?: (photos: UploadedPhoto[]) => void;
     maxPhotos?: number;
     maxFileSize?: number; // in MB
     existingPhotos?: UploadedPhoto[];
     showPhotoGrid?: boolean; // Whether to show the photo grid preview
+    uploadMode?: UploadMode; // 'immediate' (default) or 'deferred' (cache first)
+    onCachedPhotosChange?: (cachedPhotos: CachedPhoto[]) => void; // For deferred mode
+    onUploadReady?: (uploadFn: () => Promise<UploadedPhotoData[]>) => void; // Expose upload function
 }
+import { FILE_SIZE_LIMITS, PHOTO_LIMITS } from '@/lib/constants/upload';
 
 export function ImageKitUploader({
-    placeId,
     onPhotosChange,
-    maxPhotos = 20,
-    maxFileSize = 1.5,
+    maxPhotos = PHOTO_LIMITS.MAX_PHOTOS_PER_LOCATION,
+    maxFileSize = FILE_SIZE_LIMITS.PHOTO,
     existingPhotos = [],
     showPhotoGrid = true, // Default to true for backward compatibility
+    uploadMode = 'immediate', // Default to immediate for backward compatibility
+    onCachedPhotosChange,
+    onUploadReady,
 }: ImageKitUploaderProps) {
     const { user } = useAuth();
+    
+    // Initialize photo cache manager for deferred mode
+    const photoCacheManager = usePhotoCacheManager({
+        maxPhotos,
+        maxFileSize,
+    });
+    
+    // Destructure for stable references in dependencies
+    const { cachedPhotos: cachedPhotosArray } = photoCacheManager;
+    
+    console.log('[ImageKitUploader] RENDER - Cached photos count:', cachedPhotosArray.length);
+
+    // Choose mode: immediate upload (default) or deferred (cache first)
+    const isDeferred = uploadMode === 'deferred';
+    
+    // State for immediate mode
     const [photos, setPhotos] = useState<UploadedPhoto[]>(existingPhotos);
     const [uploading, setUploading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const prevExistingPhotosRef = useRef<string>(JSON.stringify(existingPhotos));
+    
+    // Expose cached photos for deferred mode
+    useEffect(() => {
+        if (isDeferred) {
+            console.log('[ImageKitUploader] Exposing cached photos:', cachedPhotosArray.length, cachedPhotosArray);
+            onCachedPhotosChange?.(cachedPhotosArray);
+        }
+    }, [isDeferred, cachedPhotosArray, onCachedPhotosChange]);
+    
+    // Expose upload function for deferred mode
+    useEffect(() => {
+        if (isDeferred && onUploadReady) {
+            console.log('[ImageKitUploader] Exposing upload function');
+            onUploadReady(photoCacheManager.uploadAllToImageKit);
+        }
+    }, [isDeferred, onUploadReady, photoCacheManager.uploadAllToImageKit]);
 
     // Update photos when existingPhotos prop changes (comparing to previous value, not current state)
     useEffect(() => {
@@ -200,7 +240,7 @@ export function ImageKitUploader({
             };
 
             return photo;
-        } catch (error: any) {
+        } catch (error) {
             console.error('Upload error:', error);
             throw error;
         }
@@ -211,9 +251,12 @@ export function ImageKitUploader({
         if (!files || files.length === 0) return;
 
         const fileArray = Array.from(files);
+        
+        // Get current count based on mode
+        const currentCount = isDeferred ? photoCacheManager.cachedPhotos.length : photos.length;
 
         // Check max photos limit
-        if (photos.length + fileArray.length > maxPhotos) {
+        if (currentCount + fileArray.length > maxPhotos) {
             toast.error(`Maximum ${maxPhotos} photos allowed`);
             return;
         }
@@ -229,6 +272,29 @@ export function ImageKitUploader({
 
         if (validFiles.length === 0) return;
 
+        // DEFERRED MODE: Add to cache (no upload yet)
+        if (isDeferred) {
+            console.log('[ImageKitUploader] DEFERRED MODE - Adding photos to cache:', validFiles.length);
+            console.log('[ImageKitUploader] photoCacheManager:', photoCacheManager);
+            console.log('[ImageKitUploader] photoCacheManager.addPhoto:', photoCacheManager.addPhoto);
+            
+            for (const file of validFiles) {
+                try {
+                    console.log('[ImageKitUploader] Calling addPhoto for:', file.name);
+                    await photoCacheManager.addPhoto(file);
+                    console.log('[ImageKitUploader] addPhoto returned for:', file.name);
+                } catch (error) {
+                    console.error('[ImageKitUploader] addPhoto threw error:', error);
+                    const message = error instanceof Error ? error.message : 'Failed to add photo';
+                    toast.error(message);
+                }
+            }
+            // Note: State update is async, actual count will be logged by useEffect
+            // Success toast removed - user can see photos displayed in the form
+            return;
+        }
+
+        // IMMEDIATE MODE: Upload to ImageKit now
         setUploading(true);
 
         try {
@@ -240,8 +306,9 @@ export function ImageKitUploader({
             onPhotosChange?.(newPhotos);
 
             toast.success(`${uploadedPhotos.length} photo(s) uploaded successfully`);
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to upload photos');
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to upload photos';
+            toast.error(message);
         } finally {
             setUploading(false);
         }
@@ -264,9 +331,9 @@ export function ImageKitUploader({
         setDragActive(false);
 
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-            handleFiles(e.dataTransfer.files);
+            void handleFiles(e.dataTransfer.files);
         }
-    }, [photos]);
+    }, [handleFiles]);
 
     // Handle remove photo
     const handleRemove = async (index: number) => {
@@ -295,9 +362,10 @@ export function ImageKitUploader({
                 }
 
                 toast.success('Photo deleted successfully');
-            } catch (error: any) {
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Failed to delete photo';
                 console.error('Error deleting photo:', error);
-                toast.error(error.message || 'Failed to delete photo');
+                toast.error(message);
                 return; // Don't remove from UI if server deletion failed
             }
         }
@@ -342,7 +410,7 @@ transition - colors duration - 200
                     multiple
                     onChange={(e) => handleFiles(e.target.files)}
                     className="hidden"
-                    disabled={uploading || photos.length >= maxPhotos}
+                    disabled={uploading || (isDeferred ? photoCacheManager.cachedPhotos.length >= maxPhotos : photos.length >= maxPhotos)}
                 />
 
                 {uploading ? (
@@ -359,51 +427,101 @@ transition - colors duration - 200
                                 JPG, PNG, WebP • Max {maxFileSize}MB • Up to {maxPhotos} photos
                             </p>
                             <p className="text-xs text-muted-foreground">
-                                {photos.length} of {maxPhotos} photos uploaded
+                                {isDeferred ? photoCacheManager.cachedPhotos.length : photos.length} of {maxPhotos} photos {isDeferred ? 'ready' : 'uploaded'}
                             </p>
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Photo Previews - Only show if showPhotoGrid is true */}
-            {showPhotoGrid && photos.length > 0 && (
-                <div className="grid grid-cols-2 gap-3">
-                    {photos.map((photo, index) => (
-                        <div key={index} className="relative group">
-                            <div className="aspect-square rounded-lg overflow-hidden border bg-muted group">
-                                <img
-                                    src={photo.url}
-                                    alt={photo.originalFilename}
-                                    className="w-full h-full object-cover"
-                                />
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6"
-                                    onClick={() => handleRemove(index)}
-                                >
-                                    <X className="w-4 h-4" />
-                                </Button>
-                            </div>
-                            {/* Caption input */}
-                            <input
-                                type="text"
-                                placeholder="Add caption (optional)"
-                                value={photo.caption || ''}
-                                onChange={(e) => handleCaptionChange(index, e.target.value)}
-                                maxLength={100}
-                                className="w-full mt-2 text-xs px-2 py-1 border rounded focus:outline-none focus:ring-1 focus:ring-primary"
-                            />
-                            <p className="text-xs text-muted-foreground mt-1 truncate">
-                                {photo.originalFilename} • {(photo.fileSize / 1024).toFixed(0)} KB
-                            </p>
+            {/* Photo Previews - Show based on mode */}
+            {showPhotoGrid && (
+                <>
+                    {/* DEFERRED MODE: Show cached photos */}
+                    {isDeferred && photoCacheManager.cachedPhotos.length > 0 && (
+                        <div className="grid grid-cols-2 gap-3">
+                            {photoCacheManager.cachedPhotos.map((cachedPhoto) => (
+                                <div key={cachedPhoto.id} className="relative group">
+                                    <div className="aspect-square rounded-lg overflow-hidden border bg-muted group">
+                                        {/* Use Object URL preview */}
+                                        <img
+                                            src={cachedPhoto.preview}
+                                            alt={cachedPhoto.originalFilename}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6"
+                                            onClick={() => photoCacheManager.removePhoto(cachedPhoto.id)}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                        {/* Show uploading state if applicable */}
+                                        {cachedPhoto.uploading && (
+                                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                                <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* Caption input */}
+                                    <input
+                                        type="text"
+                                        placeholder="Add caption (optional)"
+                                        value={cachedPhoto.caption || ''}
+                                        onChange={(e) => photoCacheManager.updateCaption(cachedPhoto.id, e.target.value)}
+                                        maxLength={100}
+                                        className="w-full mt-2 text-xs px-2 py-1 border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1 truncate">
+                                        {cachedPhoto.originalFilename} • {(cachedPhoto.fileSize / 1024).toFixed(0)} KB
+                                        {cachedPhoto.width && cachedPhoto.height && ` • ${cachedPhoto.width}x${cachedPhoto.height}`}
+                                    </p>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            )
-            }
-        </div >
+                    )}
+
+                    {/* IMMEDIATE MODE: Show uploaded photos */}
+                    {!isDeferred && photos.length > 0 && (
+                        <div className="grid grid-cols-2 gap-3">
+                            {photos.map((photo, index) => (
+                                <div key={index} className="relative group">
+                                    <div className="aspect-square rounded-lg overflow-hidden border bg-muted group">
+                                        <img
+                                            src={photo.url}
+                                            alt={photo.originalFilename}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6"
+                                            onClick={() => handleRemove(index)}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                    {/* Caption input */}
+                                    <input
+                                        type="text"
+                                        placeholder="Add caption (optional)"
+                                        value={photo.caption || ''}
+                                        onChange={(e) => handleCaptionChange(index, e.target.value)}
+                                        maxLength={100}
+                                        className="w-full mt-2 text-xs px-2 py-1 border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                                    />
+                                    <p className="text-xs text-muted-foreground mt-1 truncate">
+                                        {photo.originalFilename} • {(photo.fileSize / 1024).toFixed(0)} KB
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
     );
 }

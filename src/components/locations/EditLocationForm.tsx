@@ -233,7 +233,7 @@ export function EditLocationForm({
                         placeId={location.placeId}
                         onPhotosChange={setPhotos}
                         maxPhotos={20}
-                        maxFileSize={1.5}
+                        // maxFileSize uses default from FILE_SIZE_LIMITS.PHOTO (10 MB)
                         existingPhotos={photos}
                         showPhotoGrid={false}
                     />

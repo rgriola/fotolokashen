@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useUpdateLocation } from "@/hooks/useUpdateLocation";
 import { UserSave, Location } from "@/types/location";
@@ -11,6 +12,7 @@ interface EditLocationPanelProps {
     userSave: UserSave;
     onSuccess?: () => void;
     onCancel?: () => void;
+    onSavingChange?: (isSaving: boolean) => void;
     isFavorite?: boolean;
     indoorOutdoor?: "indoor" | "outdoor";
     showPhotoUpload?: boolean;
@@ -22,11 +24,17 @@ export function EditLocationPanel({
     userSave,
     onSuccess,
     onCancel,
+    onSavingChange,
     isFavorite,
     indoorOutdoor,
     showPhotoUpload = false,
 }: EditLocationPanelProps) {
     const updateLocation = useUpdateLocation();
+
+    // Notify parent of saving state changes
+    useEffect(() => {
+        onSavingChange?.(updateLocation.isPending);
+    }, [updateLocation.isPending, onSavingChange]);
 
     const handleSubmit = (data: any) => {
         console.log('[EditLocationPanel] Updating location:', data);

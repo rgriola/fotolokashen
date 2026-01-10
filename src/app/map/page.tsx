@@ -742,6 +742,29 @@ function MapPageInner() {
         [sidebarView]
     );
 
+    // Memoize initialData for SaveLocationPanel to prevent unnecessary form resets
+    const saveLocationInitialData = useMemo(() => {
+        if (!locationToSave) return null;
+        return {
+            placeId: locationToSave.data?.placeId || locationToSave.id,
+            name: locationToSave.data?.name || 'Selected Location',
+            address: locationToSave.data?.address,
+            lat: locationToSave.position.lat,
+            lng: locationToSave.position.lng,
+            street: locationToSave.data?.street,
+            number: locationToSave.data?.number,
+            city: locationToSave.data?.city,
+            state: locationToSave.data?.state,
+            zipcode: locationToSave.data?.zipcode,
+            isFavorite: isFavorite,
+            indoorOutdoor: indoorOutdoor,
+        };
+    }, [
+        locationToSave,
+        isFavorite,
+        indoorOutdoor,
+    ]);
+
     return (
         <div className="fixed inset-0 top-16 flex flex-col">
             {/* Map Container */}
@@ -1103,22 +1126,9 @@ function MapPageInner() {
                 isSaving={isSavingLocation}  // Use dynamic state instead of hardcoded false
             >
                 {/* Save Location Panel */}
-                {sidebarView === 'save' && locationToSave && (
+                {sidebarView === 'save' && locationToSave && saveLocationInitialData && (
                     <SaveLocationPanel
-                        initialData={{
-                            placeId: locationToSave.data?.placeId || locationToSave.id,
-                            name: locationToSave.data?.name || 'Selected Location',
-                            address: locationToSave.data?.address,
-                            lat: locationToSave.position.lat,
-                            lng: locationToSave.position.lng,
-                            street: locationToSave.data?.street,
-                            number: locationToSave.data?.number,
-                            city: locationToSave.data?.city,
-                            state: locationToSave.data?.state,
-                            zipcode: locationToSave.data?.zipcode,
-                            isFavorite: isFavorite,
-                            indoorOutdoor: indoorOutdoor,
-                        }}
+                        initialData={saveLocationInitialData}
                         onSuccess={() => {
                             // Close sidebar
                             setIsSidebarOpen(false);
@@ -1190,6 +1200,7 @@ function MapPageInner() {
                             setSelectedMarker(null);
                             setLocationToEdit(null);
                         }}
+                        onSavingChange={setIsSavingLocation}  // Wire up save state for EditLocationPanel
                     />
                 )}
             </RightSidebar>

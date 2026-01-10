@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -11,10 +11,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Tag, X } from "lucide-react";
+import { toast } from "sonner";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
 import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/location-constants";
 import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR, INDOOR_OUTDOOR_OPTIONS } from "@/lib/form-constants";
 import { useAuth } from "@/lib/auth-context";
+import type { CachedPhoto, UploadedPhotoData } from "@/types/photo-cache";
 
 // Security: Regex to prevent XSS and SQL injection in text fields
 const safeTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()]+$/;
@@ -66,6 +68,7 @@ interface SaveLocationFormProps {
     onSubmit: (data: any) => void;
     isPending?: boolean;
     showPhotoUpload?: boolean; // Toggle photo upload section visibility
+    onUploadingStateChange?: (isUploading: boolean) => void; // Notify parent when uploading photos
 }
 
 export function SaveLocationForm({
@@ -73,6 +76,7 @@ export function SaveLocationForm({
     onSubmit,
     isPending = false,
     showPhotoUpload = false,
+    onUploadingStateChange,
 }: SaveLocationFormProps) {
     const { user } = useAuth();
     const isAdmin = user?.isAdmin === true;
@@ -80,7 +84,16 @@ export function SaveLocationForm({
     
     const [tags, setTags] = useState<string[]>([]);
     const [tagInput, setTagInput] = useState("");
-    const [photos, setPhotos] = useState<any[]>([]);
+    const [cachedPhotos, setCachedPhotos] = useState<CachedPhoto[]>([]);
+    const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+    
+    // Ref to store upload function from ImageKitUploader
+    const uploadPhotosRef = useRef<(() => Promise<UploadedPhotoData[]>) | null>(null);
+    
+    // Debug: Log when cached photos change
+    useEffect(() => {
+        console.log('[SaveLocationForm] Cached photos changed:', cachedPhotos.length, cachedPhotos);
+    }, [cachedPhotos]);
 
     const form = useForm<SaveLocationFormData>({
         resolver: zodResolver(saveLocationSchema),
@@ -137,21 +150,66 @@ export function SaveLocationForm({
 
         return () => clearTimeout(timer);
     }, [form]);
+    
+    // Cleanup cached photos on unmount (if user closes form without saving)
+    useEffect(() => {
+        return () => {
+            // Cleanup will be handled by ImageKitUploader itself
+            console.log('[SaveLocationForm] Unmounting, ImageKitUploader will handle cleanup');
+        };
+    }, []);
 
-    const handleSubmit = (data: SaveLocationFormData) => {
+    const handleSubmit = async (data: SaveLocationFormData) => {
         // Ensure color is assigned based on type
         const finalColor = data.color || TYPE_COLOR_MAP[data.type || ""] || "";
         const finalIndoorOutdoor = data.indoorOutdoor || DEFAULT_INDOOR_OUTDOOR;
+
+        let uploadedPhotos: UploadedPhotoData[] | undefined;
+
+        // If photos are enabled and user has cached photos, upload them first
+        if (showPhotoUpload && cachedPhotos.length > 0 && uploadPhotosRef.current) {
+            console.log('[SaveLocationForm] Starting photo upload for', cachedPhotos.length, 'photos');
+            try {
+                setIsUploadingPhotos(true);
+                onUploadingStateChange?.(true);
+                toast.info(`Uploading ${cachedPhotos.length} photo(s)...`);
+                
+                // Upload all cached photos to ImageKit using the function from ImageKitUploader
+                uploadedPhotos = await uploadPhotosRef.current();
+                
+                console.log('[SaveLocationForm] Photos uploaded successfully:', uploadedPhotos);
+                toast.success(`${uploadedPhotos.length} photo(s) uploaded successfully!`);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Failed to upload photos';
+                toast.error(message);
+                setIsUploadingPhotos(false);
+                onUploadingStateChange?.(false);
+                return; // Don't proceed with location save if photo upload fails
+            } finally {
+                setIsUploadingPhotos(false);
+                onUploadingStateChange?.(false);
+            }
+        }
 
         const submitData = {
             ...data,
             color: finalColor,
             indoorOutdoor: finalIndoorOutdoor,
             tags: tags.length > 0 ? tags : undefined,
-            photos: showPhotoUpload && photos.length > 0 ? photos : undefined,
+            photos: uploadedPhotos && uploadedPhotos.length > 0 ? uploadedPhotos : undefined,
         };
+        
+        console.log('[SaveLocationForm] Submitting with photos:', uploadedPhotos?.length || 0);
 
-        onSubmit(submitData);
+        try {
+            await onSubmit(submitData);
+            
+            // Clear photo cache on successful save (ImageKitUploader will handle this)
+            setCachedPhotos([]);
+        } catch (error) {
+            // Error handling is done by parent, but we keep photos cached
+            console.error('Save location error:', error);
+        }
     };
 
     const handleAddTag = () => {
@@ -206,15 +264,25 @@ export function SaveLocationForm({
             })}
             className="space-y-6"
         >
-            {/* Photo Upload - Collapsible at top */}
+            {/* Photo Upload - Deferred mode (uploads on save) */}
             {showPhotoUpload && (
                 <div className="space-y-4 pb-4 border-b">
-                    <h3 className="text-sm font-semibold">Photos (Encouraged)</h3>
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold">Photos (Encouraged)</h3>
+                        {cachedPhotos.length > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                                {cachedPhotos.length} photo(s) ready • Will upload when you save
+                            </p>
+                        )}
+                    </div>
                     <ImageKitUploader
-                        placeId={form.watch("placeId")}
-                        onPhotosChange={setPhotos}
+                        uploadMode="deferred"
+                        onCachedPhotosChange={setCachedPhotos}
+                        onUploadReady={(uploadFn) => {
+                            uploadPhotosRef.current = uploadFn;
+                        }}
                         maxPhotos={20}
-                        maxFileSize={1.5}
+                        // maxFileSize uses default from FILE_SIZE_LIMITS.PHOTO (10 MB)
                     />
                 </div>
             )}

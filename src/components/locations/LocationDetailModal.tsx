@@ -172,7 +172,7 @@ export function LocationDetailModal({
                                             onClose();
                                         }
                                     }}
-                                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                                    className="group text-destructive hover:bg-destructive hover:text-white"
                                 >
                                     <Trash2 className="w-4 h-4 mr-2" />
                                     Delete

@@ -103,7 +103,7 @@ export default function RootLayout({
               <main className="flex-1 overflow-hidden">{children}</main>
               <ConditionalFooter />
             </LayoutWrapper>
-            <Toaster />
+            <Toaster position="top-right" />
           </GoogleMapsProvider>
         </Providers>
       </body>

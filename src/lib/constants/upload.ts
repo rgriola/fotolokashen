@@ -59,7 +59,7 @@ export function getUserRootFolder(userId: number): string {
  * File size limits (in MB)
  */
 export const FILE_SIZE_LIMITS = {
-    PHOTO: 1.5,
+    PHOTO: 10, // Increased from 1.5 MB to 10 MB for modern photos
     AVATAR: 5,
 } as const;
 
