@@ -12,13 +12,13 @@
 **Status**: ⏳ Needs Update
 
 **Actions Required**:
-- [ ] Update project name (optional - can keep current)
-- [ ] Add new domain: `fotolokashen.com` and `www.fotolokashen.com`
-- [ ] Update environment variables:
-  - [ ] `NEXT_PUBLIC_APP_URL=https://fotolokashen.com`
-  - [ ] `EMAIL_FROM_ADDRESS=admin@fotolokashen.com`
-  - [ ] `EMAIL_FROM_NAME=fotolokashen`
-- [ ] Remove old domain `merkelvision.com` (after DNS migration complete)
+- [x] Update project name (optional - can keep current)
+- [x] Add new domain: `fotolokashen.com` and `www.fotolokashen.com`
+- [x] Update environment variables:
+  - [x ] `NEXT_PUBLIC_APP_URL=https://fotolokashen.com`
+  - [ x] `EMAIL_FROM_ADDRESS=admin@fotolokashen.com`
+  - [x ] `EMAIL_FROM_NAME=fotolokashen`
+- [ x] Remove old domain `merkelvision.com` (after DNS migration complete)
 
 ---
 
@@ -29,11 +29,11 @@
 **Status**: ⏳ Needs Update
 
 **Actions Required**:
-- [ ] Add new domain: `fotolokashen.com`
-- [ ] Verify domain with DNS records (see Cloudflare section)
-- [ ] Update default sender to `admin@fotolokashen.com`
-- [ ] Test email sending from new domain
-- [ ] Remove old domain `merkelvision.com` (after migration complete)
+- [x ] Add new domain: `fotolokashen.com`
+- [x ] Verify domain with DNS records (see Cloudflare section)
+- [x ] Update default sender to `admin@fotolokashen.com`
+- [x] Test email sending from new domain
+- [x ] Remove old domain `merkelvision.com` (after migration complete)
 
 **DNS Records Needed** (add in Cloudflare):
 ```
@@ -96,7 +96,7 @@ Value: [Get from Resend dashboard]
 ## 📸 Image CDN
 
 ### ImageKit
-**Dashboard**: https://imagekit.io/dashboard  
+**Dashboard**: https://imagekit.io/dashboard 
 **Status**: ✅ No Action Needed
 
 **Notes**:

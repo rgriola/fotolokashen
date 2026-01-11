@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative overflow-hidden min-h-screen flex flex-col">
+      <section className="relative overflow-hidden h-screen flex flex-col">
         {/* Background Image Layer */}
         <div
           className="absolute inset-0 bg-cover bg-center opacity-90"
@@ -31,23 +31,14 @@ export default function Home() {
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
 
-        {/* Content - 25px from header */}
-        <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 mt-[75px] flex-1 flex items-start md:items-center">
+        {/* Content - 100px from top */}
+        <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 pt-[100px]">
           <div className="mx-auto max-w-3xl text-center w-full">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white border border-white/20">
-              <MapPin className="h-4 w-4" />
-              Enhanced Google Maps Experience
-            </div>
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl text-white">
-              Save and Organize Your Favorite{" "}
-              <span className="bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
-                Locations
-              </span>
+              Coordinate with Purpose{" "}
             </h1>
             <p className="mb-8 text-lg sm:text-xl text-gray-200">
-              Search Google Maps, save locations with custom notes and photos,
-              and organize your discoveries all in one place.
-            </p>
+            Use Fotolokashen with Google Maps to orginize your Photos, Locations, Projects, and Teams.</p>
             {/* Buttons - Reduced width by ~50% */}
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center items-center">
               {user ? (
@@ -77,7 +68,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="px-4 md:px-6 lg:px-8 py-16 md:py-24">
+      <section className="px-4 md:px-6 lg:px-8 py-6 -mt-[calc(100vh-25px)]">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
             <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">

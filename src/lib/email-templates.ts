@@ -12,7 +12,7 @@ const BRAND_NAME = 'Fotolokashen';
  * Provides consistent styling and responsive layout
  */
 function emailWrapper(content: string): string {
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,8 +93,8 @@ function emailWrapper(content: string): string {
  * Button component for emails
  */
 function emailButton(url: string, text: string, style: 'primary' | 'secondary' = 'primary'): string {
-    const bgColor = style === 'primary' ? BRAND_COLOR : '#6c757d';
-    return `
+  const bgColor = style === 'primary' ? BRAND_COLOR : '#6c757d';
+  return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 24px 0;">
       <tr>
         <td style="border-radius: 6px; background-color: ${bgColor};">
@@ -111,16 +111,16 @@ function emailButton(url: string, text: string, style: 'primary' | 'secondary' =
  * Alert box component
  */
 function alertBox(type: 'info' | 'warning' | 'success' | 'danger', content: string): string {
-    const colors = {
-        info: { bg: '#cfe2ff', border: '#0d6efd', icon: 'ℹ️' },
-        warning: { bg: '#fff3cd', border: '#ffc107', icon: '⚠️' },
-        success: { bg: '#d1e7dd', border: '#198754', icon: '✅' },
-        danger: { bg: '#f8d7da', border: '#dc3545', icon: '🚨' },
-    };
+  const colors = {
+    info: { bg: '#cfe2ff', border: '#0d6efd', icon: 'ℹ️' },
+    warning: { bg: '#fff3cd', border: '#ffc107', icon: '⚠️' },
+    success: { bg: '#d1e7dd', border: '#198754', icon: '✅' },
+    danger: { bg: '#f8d7da', border: '#dc3545', icon: '🚨' },
+  };
 
-    const color = colors[type];
+  const color = colors[type];
 
-    return `
+  return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
       <tr>
         <td style="background-color: ${color.bg}; border-left: 4px solid ${color.border}; padding: 16px; border-radius: 4px;">
@@ -137,7 +137,7 @@ function alertBox(type: 'info' | 'warning' | 'success' | 'danger', content: stri
  * Verification Email Template
  */
 export function verificationEmailTemplate(username: string, verificationUrl: string): string {
-    const content = `
+  const content = `
     <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
       Welcome to ${BRAND_NAME}! 🎉
     </h2>
@@ -166,14 +166,50 @@ export function verificationEmailTemplate(username: string, verificationUrl: str
     </p>
   `;
 
-    return emailWrapper(content);
+  return emailWrapper(content);
+}
+
+/**
+ * Verification Email Template
+ */
+export function welcomeToEmailTemplate(username: string, verificationUrl: string): string {
+  const content = `
+    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
+      Welcome to ${BRAND_NAME}! 🎉
+    </h2>
+    
+    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
+      Hi <strong>${username}</strong>,
+    </p>
+    
+    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
+      Thank you for registering! We're excited to have you on board. To get started, please verify your email address by clicking the button below:
+    </p>
+    
+    ${emailButton(verificationUrl, '✓ Verify Email Address', 'primary')}
+    
+    <p style="margin: 24px 0 8px; color: #6c757d; font-size: 14px; line-height: 1.6;">
+      Or copy and paste this link into your browser:
+    </p>
+    <p style="margin: 0 0 16px; padding: 12px; background-color: #f8f9fa; border-radius: 4px; color: #495057; font-size: 13px; word-break: break-all; font-family: 'Courier New', monospace;">
+      ${verificationUrl}
+    </p>
+    
+    ${alertBox('info', 'This verification link will expire in 24 hours for security purposes.')}
+    
+    <p style="margin: 24px 0 0; color: #6c757d; font-size: 14px; line-height: 1.6;">
+      If you didn't create an account with ${BRAND_NAME}, you can safely ignore this email.
+    </p>
+  `;
+
+  return emailWrapper(content);
 }
 
 /**
  * Password Reset Email Template
  */
 export function passwordResetEmailTemplate(username: string, resetUrl: string): string {
-    const content = `
+  const content = `
     <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
       🔐 Password Reset Request
     </h2>
@@ -217,18 +253,18 @@ export function passwordResetEmailTemplate(username: string, resetUrl: string): 
     </p>
   `;
 
-    return emailWrapper(content);
+  return emailWrapper(content);
 }
 
 /**
  * Password Changed Notification Template
  */
 export function passwordChangedEmailTemplate(
-    username: string,
-    timestamp: string,
-    ipAddress: string | null
+  username: string,
+  timestamp: string,
+  ipAddress: string | null
 ): string {
-    const content = `
+  const content = `
     <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
       ✅ Password Successfully Changed
     </h2>
@@ -268,14 +304,14 @@ export function passwordChangedEmailTemplate(
     </p>
   `;
 
-    return emailWrapper(content);
+  return emailWrapper(content);
 }
 
 /**
  * Account Deletion Notification Template
  */
 export function accountDeletionEmailTemplate(username: string, email: string): string {
-    const content = `
+  const content = `
     <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
       Account Deletion Confirmation
     </h2>
@@ -321,5 +357,5 @@ export function accountDeletionEmailTemplate(username: string, email: string): s
     </p>
   `;
 
-    return emailWrapper(content);
+  return emailWrapper(content);
 }
