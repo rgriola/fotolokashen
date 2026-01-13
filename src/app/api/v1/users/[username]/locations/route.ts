@@ -49,7 +49,10 @@ export async function GET(
         location: {
           include: {
             photos: {
-              orderBy: { order: 'asc' },
+              orderBy: [
+                { isPrimary: 'desc' }, // Primary photo first
+                { uploadedAt: 'asc' },  // Then by upload date
+              ],
             },
           },
         },
@@ -66,20 +69,21 @@ export async function GET(
       savedAt: save.savedAt.toISOString(),
       location: {
         id: save.location.id,
+        placeId: save.location.placeId,
         name: save.location.name,
         address: save.location.address || null,
         city: save.location.city || null,
         state: save.location.state || null,
-        country: save.location.country || null,
-        latitude: save.location.latitude,
-        longitude: save.location.longitude,
-        type: save.location.type,
-        subtype: save.location.subtype || null,
+        latitude: save.location.lat,
+        longitude: save.location.lng,
+        type: save.location.indoorOutdoor || null,
+        rating: save.location.rating || null,
         photos: save.location.photos.map((photo) => ({
           id: photo.id,
-          url: photo.url,
-          thumbnailUrl: photo.thumbnailUrl || photo.url,
-          order: photo.order,
+          url: photo.imagekitFilePath,
+          thumbnailUrl: photo.imagekitFilePath, // ImageKit can add transformations via query params
+          isPrimary: photo.isPrimary,
+          caption: photo.caption,
         })),
       },
     }));
