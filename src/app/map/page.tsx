@@ -25,6 +25,7 @@ import { GpsPermissionDialog } from '@/components/maps/GpsPermissionDialog';
 import { GpsWelcomeBanner } from '@/components/maps/GpsWelcomeBanner';
 import { useGpsLocation } from '@/hooks/useGpsLocation';
 import { MapControls } from '@/components/maps/MapControls';
+import { FriendsDialog } from '@/components/map/FriendsDialog';
 import { MapPin as MapPinIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -45,6 +46,7 @@ function MapPageInner() {
     const [selectedMarker, setSelectedMarker] = useState<MarkerData | null>(null);
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [showFriendsDialog, setShowFriendsDialog] = useState(false);
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -933,7 +935,7 @@ function MapPageInner() {
                     onSearchClick={() => setShowSearchDialog(true)}
                     searchOpen={showSearchDialog}
                     hideMobileButton={isSidebarOpen}
-                    onFriendsClick={() => alert('Friends Locations feature coming soon!')}
+                    onFriendsClick={() => setShowFriendsDialog(true)}
                     onViewAllClick={() => {
                         if (!map) return;
 
@@ -1246,6 +1248,12 @@ function MapPageInner() {
                     </div>
                 </div>
             )}
+
+            {/* Friends Dialog */}
+            <FriendsDialog 
+                open={showFriendsDialog} 
+                onOpenChange={setShowFriendsDialog}
+            />
         </div>
     );
 }

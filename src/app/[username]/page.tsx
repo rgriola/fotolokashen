@@ -6,6 +6,8 @@ import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
@@ -158,6 +160,18 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
       {/* Profile Content */}
       <div className="container mx-auto px-4 -mt-16 md:-mt-20">
         <div className="max-w-4xl mx-auto">
+          {/* Back to Settings Button (only for own profile) */}
+          {isOwnProfile && (
+            <div className="mb-4">
+              <Link href="/profile">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Settings className="w-4 h-4" />
+                  Back to Settings
+                </Button>
+              </Link>
+            </div>
+          )}
+
           {/* Avatar & Basic Info */}
           <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 mb-6">
             {/* Avatar */}

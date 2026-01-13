@@ -3,11 +3,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { IKContext, IKUpload } from 'imagekitio-react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Camera } from 'lucide-react';
+import { Camera, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { IMAGEKIT_URL_ENDPOINT, getImageKitFolder } from '@/lib/imagekit';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ImageEditor } from './ImageEditor';
 import BannerEditor from './BannerEditor';
 
@@ -339,6 +341,14 @@ export function ProfileHeader() {
                                 @{user?.username}
                             </p>
                             <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
+                            
+                            {/* View Public Profile Button */}
+                            <Link href={`/@${user?.username}`} className="inline-block mt-3">
+                                <Button variant="outline" size="sm" className="gap-2">
+                                    <ExternalLink className="w-4 h-4" />
+                                    View Public Profile
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </div>
