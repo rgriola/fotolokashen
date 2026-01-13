@@ -203,7 +203,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
                 {locations.map((save) => (
                   <Link
                     key={save.id}
-                    href={`/locations/${save.location.id}`}
+                    href={`/@${user.username}/locations/${save.location.id}`}
                     className="group block bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-shadow"
                   >
                     {/* Location Image */}
