@@ -44,6 +44,8 @@ yarn-error.log*
 # media
 *.psd
 
+# no sql files
+*.sql
 
 # vercel
 .vercel

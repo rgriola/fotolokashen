@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
-import { uploadToImageKit, getImageKitFolder } from '@/lib/imagekit';
+import { uploadToImageKit, getImageKitFolder, deleteFromImageKit } from '@/lib/imagekit';
 import prisma from '@/lib/prisma';
 import { FOLDER_PATHS } from '@/lib/constants/upload';
 
@@ -75,10 +75,34 @@ export async function POST(request: NextRequest) {
             fileId
         });
 
+        // Get current banner to delete old one
+        const currentUser = await prisma.user.findUnique({
+            where: { id: authResult.user.id },
+            select: { 
+                bannerImage: true,
+                bannerFileId: true 
+            },
+        });
+
+        // Delete old banner from ImageKit BEFORE saving new one
+        if (currentUser?.bannerFileId) {
+            console.log('[Banner API] Deleting old banner:', currentUser.bannerFileId);
+            const deleteResult = await deleteFromImageKit(currentUser.bannerFileId);
+            if (!deleteResult.success) {
+                console.warn('[Banner API] Failed to delete old banner:', deleteResult.error);
+                // Continue anyway - don't block the upload
+            } else {
+                console.log('[Banner API] Old banner deleted successfully');
+            }
+        }
+
         // Update user banner in database
         await prisma.user.update({
             where: { id: authResult.user.id },
-            data: { bannerImage: bannerUrl },
+            data: { 
+                bannerImage: bannerUrl,
+                bannerFileId: fileId 
+            },
         });
 
         console.log('[Banner API] Banner saved successfully');

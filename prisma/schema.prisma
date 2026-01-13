@@ -24,7 +24,9 @@ model User {
   updatedAt               DateTime                 @updatedAt
   appleId                 String?                  @unique
   avatar                  String?
+  avatarFileId            String?
   bannerImage             String?
+  bannerFileId            String?
   city                    String?
   country                 String?
   googleId                String?                  @unique

@@ -72,20 +72,32 @@ export async function POST(request: NextRequest) {
         // Get current avatar to delete old one
         const currentUser = await prisma.user.findUnique({
             where: { id: authResult.user.id },
-            select: { avatar: true },
+            select: { 
+                avatar: true,
+                avatarFileId: true 
+            },
         });
+
+        // Delete old avatar from ImageKit BEFORE saving new one
+        if (currentUser?.avatarFileId) {
+            console.log('[Avatar API] Deleting old avatar:', currentUser.avatarFileId);
+            const deleteResult = await deleteFromImageKit(currentUser.avatarFileId);
+            if (!deleteResult.success) {
+                console.warn('[Avatar API] Failed to delete old avatar:', deleteResult.error);
+                // Continue anyway - don't block the upload
+            } else {
+                console.log('[Avatar API] Old avatar deleted successfully');
+            }
+        }
 
         // Update user avatar in database
         await prisma.user.update({
             where: { id: authResult.user.id },
-            data: { avatar: avatarUrl },
+            data: { 
+                avatar: avatarUrl,
+                avatarFileId: fileId 
+            },
         });
-
-        // Delete old avatar from ImageKit (if exists)
-        if (currentUser?.avatar && fileId) {
-            // Extract fileId from old avatar URL if needed
-            // For now, we'll just keep old avatars (can clean up later)
-        }
 
         return apiResponse({
             success: true,
