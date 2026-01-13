@@ -10,11 +10,9 @@ import { ChangeEmailForm } from '@/components/profile/ChangeEmailForm';
 import { SecurityActivityLog } from '@/components/profile/SecurityActivityLog';
 import { DeleteAccountSection } from '@/components/profile/DeleteAccountSection';
 import { PreferencesForm } from '@/components/profile/PreferencesForm';
-import { useAuth } from '@/lib/auth-context';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
-export default function ProfilePage() {
-    const { user } = useAuth();
-
+function ProfilePageInner() {
     return (
         <div className="container max-w-6xl mx-auto py-8 px-4">
             <div className="mb-6">
@@ -58,5 +56,13 @@ export default function ProfilePage() {
                 </TabsContent>
             </Tabs>
         </div>
+    );
+}
+
+export default function ProfilePage() {
+    return (
+        <ProtectedRoute>
+            <ProfilePageInner />
+        </ProtectedRoute>
     );
 }
