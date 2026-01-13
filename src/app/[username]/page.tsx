@@ -122,6 +122,32 @@ async function canViewProfile(
   return { canView: true };
 }
 
+// Check if current user can view saved locations
+async function canViewLocations(
+  profileUserId: number,
+  currentUserId: number | null,
+  showSavedLocations: string,
+  isFollowing: boolean
+): Promise<boolean> {
+  // Owner can always view own locations
+  if (currentUserId === profileUserId) {
+    return true;
+  }
+
+  // Public locations visible to everyone
+  if (showSavedLocations === 'public') {
+    return true;
+  }
+
+  // Followers-only: check if following
+  if (showSavedLocations === 'followers' && isFollowing) {
+    return true;
+  }
+
+  // Private or not authorized
+  return false;
+}
+
 async function getUserPublicLocations(userId: number, limit: number = 6) {
   return await prisma.userSave.findMany({
     where: {
@@ -216,7 +242,29 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
     );
   }
 
-  const locations = await getUserPublicLocations(user.id);
+  // Check if user is following (for locations privacy)
+  const isFollowing = currentUserId
+    ? !!(await prisma.userFollow.findUnique({
+        where: {
+          followerId_followingId: {
+            followerId: currentUserId,
+            followingId: user.id,
+          },
+        },
+      }))
+    : false;
+
+  // Check if current user can view saved locations
+  const canViewSavedLocations = await canViewLocations(
+    user.id,
+    currentUserId,
+    user.showSavedLocations,
+    isFollowing
+  );
+
+  // Only fetch locations if user has permission
+  const locations = canViewSavedLocations ? await getUserPublicLocations(user.id) : [];
+  
   const displayName = user.firstName && user.lastName 
     ? `${user.firstName} ${user.lastName}` 
     : user.username;
@@ -315,68 +363,87 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           </div>
 
           {/* Locations Grid */}
-          {locations.length > 0 ? (
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">Public Locations</h2>
-                {user._count.savedLocations > 6 && (
-                  <Link
-                    href={`/@${user.username}/locations`}
-                    className="text-primary hover:underline"
-                  >
-                    View all ({user._count.savedLocations})
-                  </Link>
-                )}
-              </div>
+          {canViewSavedLocations ? (
+            locations.length > 0 ? (
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold">Public Locations</h2>
+                  {user._count.savedLocations > 6 && (
+                    <Link
+                      href={`/@${user.username}/locations`}
+                      className="text-primary hover:underline"
+                    >
+                      View all ({user._count.savedLocations})
+                    </Link>
+                  )}
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {locations.map((save) => (
-                  <Link
-                    key={save.id}
-                    href={`/@${user.username}/locations/${save.location.id}`}
-                    className="group block bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-shadow"
-                  >
-                    {/* Location Image */}
-                    {save.location.photos[0] ? (
-                      <div className="relative w-full h-48 bg-muted">
-                        <Image
-                          src={`https://ik.imagekit.io/rgriola${save.location.photos[0].imagekitFilePath}?tr=w-400,h-300,c-at_max`}
-                          alt={save.location.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                        <span className="text-4xl">📍</span>
-                      </div>
-                    )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {locations.map((save) => (
+                    <Link
+                      key={save.id}
+                      href={`/@${user.username}/locations/${save.location.id}`}
+                      className="group block bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-shadow"
+                    >
+                      {/* Location Image */}
+                      {save.location.photos[0] ? (
+                        <div className="relative w-full h-48 bg-muted">
+                          <Image
+                            src={`https://ik.imagekit.io/rgriola${save.location.photos[0].imagekitFilePath}?tr=w-400,h-300,c-at_max`}
+                            alt={save.location.name}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                          <span className="text-4xl">📍</span>
+                        </div>
+                      )}
 
-                    {/* Location Info */}
-                    <div className="p-4">
-                      <h3 className="font-semibold text-lg mb-1 line-clamp-1">
-                        {save.location.name}
-                      </h3>
-                      {save.caption && (
-                        <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                          {save.caption}
-                        </p>
-                      )}
-                      {save.location.address && (
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {save.location.address}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                ))}
+                      {/* Location Info */}
+                      <div className="p-4">
+                        <h3 className="font-semibold text-lg mb-1 line-clamp-1">
+                          {save.location.name}
+                        </h3>
+                        {save.caption && (
+                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                            {save.caption}
+                          </p>
+                        )}
+                        {save.location.address && (
+                          <p className="text-xs text-muted-foreground line-clamp-1">
+                            {save.location.address}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-12 bg-card rounded-lg border">
+                <p className="text-muted-foreground">
+                  {displayName} hasn't shared any locations yet.
+                </p>
+              </div>
+            )
           ) : (
             <div className="text-center py-12 bg-card rounded-lg border">
-              <p className="text-muted-foreground">
-                {displayName} hasn't shared any locations yet.
-              </p>
+              <div className="flex flex-col items-center gap-3">
+                <div className="rounded-full bg-muted p-3">
+                  <span className="text-2xl">🔒</span>
+                </div>
+                <div>
+                  <p className="font-semibold mb-1">Saved Locations are Private</p>
+                  <p className="text-sm text-muted-foreground">
+                    {user.showSavedLocations === 'followers' 
+                      ? `Follow @${user.username} to see their saved locations`
+                      : `@${user.username}'s saved locations are private`
+                    }
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
