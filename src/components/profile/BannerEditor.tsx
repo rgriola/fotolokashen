@@ -209,7 +209,7 @@ export default function BannerEditor({ isOpen, onClose, imageUrl, onSave }: Bann
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="sm:max-w-[50vw]">
                 <DialogHeader>
                     <DialogTitle>Edit Cover Photo</DialogTitle>
                 </DialogHeader>
@@ -219,12 +219,12 @@ export default function BannerEditor({ isOpen, onClose, imageUrl, onSave }: Bann
                     <div
                         ref={containerRef}
                         className="relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mx-auto"
-                        style={{ width: '800px', height: '267px', maxWidth: '100%' }}
+                        style={{ width: '100%', aspectRatio: '3 / 1', maxWidth: '1200px' }}
                     >
                         <canvas
                             ref={canvasRef}
-                            width={800}
-                            height={267}
+                            width={1200}
+                            height={400}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
                             onMouseUp={handleMouseUp}
