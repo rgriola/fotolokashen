@@ -60,7 +60,11 @@ model User {
   savedLocations          UserSave[]
   emailChangeRequests     EmailChangeRequest[]
   usernameChangeRequests  UsernameChangeRequest[]
+  following               UserFollow[]             @relation("Following")
+  followers               UserFollow[]             @relation("Followers")
 
+  @@index([city])
+  @@index([country])
   @@map("users")
 }
 
@@ -337,4 +341,19 @@ model ReservedUsername {
   createdAt DateTime @default(now())
 
   @@map("reserved_usernames")
+}
+
+model UserFollow {
+  id          Int      @id @default(autoincrement())
+  followerId  Int      // User who is following
+  followingId Int      // User being followed
+  createdAt   DateTime @default(now())
+  
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("user_follows")
 }
