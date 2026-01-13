@@ -1,8 +1,8 @@
 # fotolokashen
 
-**Last Updated**: 2026-01-07  
+**Last Updated**: 2026-01-13 (Phase 2A Complete)  
 **Production**: [fotolokashen.com](https://fotolokashen.com) ✅ Live  
-**Status**: Active Development
+**Status**: Active Development - Phase 2A Social & Privacy Features Complete
 
 > **Rebranding Note**: Application rebranded from "fotolokashen" to "fotolokashen" on January 7, 2026 at 5:52 PM EST.
 
@@ -181,6 +181,33 @@ The application uses **9 interconnected tables** with **128 total fields**:
 - ✅ Location categories
 - ✅ GPS location support with permission toggle
 - ✅ Home location setting
+- ✅ **Public location sharing** - Share locations on your profile
+
+### Social Features (Phase 2A - NEW!)
+
+- ✅ **Follow/unfollow system** - Connect with other users
+- ✅ **Follower/following counts** - Track your network
+- ✅ **Follow status indicators** - See who you follow and who follows you
+- ✅ **Privacy-aware follow requests** - Control who can follow you
+- ✅ **User search** - Discover users by name or username
+- ✅ **Search autocomplete** - Fast user discovery with live suggestions
+- ✅ **Search privacy controls** - Choose whether to appear in search results
+- ✅ **Public user profiles** - View other users' profiles and saved locations
+
+### Privacy & Security Controls (Phase 2A - NEW!)
+
+- ✅ **Profile visibility settings**:
+  - Public: Visible to everyone
+  - Followers: Visible only to followers
+  - Private: Visible only to you
+- ✅ **Saved locations privacy**:
+  - Public: All users can see your saved locations
+  - Followers: Only followers can see your saved locations
+  - Private: Only you can see your saved locations
+- ✅ **Search privacy** - Hide your profile from search results
+- ✅ **Location display toggle** - Show/hide your city and country
+- ✅ **Follow request controls** - Enable/disable follow requests
+- ✅ **Server-side privacy enforcement** - All checks validated on backend
 
 ### Photo Management
 
@@ -205,6 +232,8 @@ The application uses **9 interconnected tables** with **128 total fields**:
 - ✅ Session validation on every request
 - ✅ Sentry error tracking
 - ✅ TanStack Query for optimized data fetching
+- ✅ **Privacy enforcement at route level** - Server-side authorization checks
+- ✅ **Permission-based content filtering** - Dynamic based on user relationships
 
 ## 🔒 Security Features
 
