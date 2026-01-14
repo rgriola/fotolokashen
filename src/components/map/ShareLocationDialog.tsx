@@ -26,6 +26,7 @@ import {
 import { toast } from 'sonner';
 import type { Location } from '@/types/location';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 
 interface ShareLocationDialogProps {
   open: boolean;
@@ -41,6 +42,7 @@ export function ShareLocationDialog({
   onOpenChange, 
   location 
 }: ShareLocationDialogProps) {
+  const { user } = useAuth();
   const [visibility, setVisibility] = useState<VisibilityType>('public');
   const [shareMethod, setShareMethod] = useState<ShareMethodType>('link');
   const [copied, setCopied] = useState(false);
@@ -50,11 +52,9 @@ export function ShareLocationDialog({
 
   // Generate shareable link
   const getShareLink = () => {
-    if (typeof window === 'undefined') return '';
+    if (typeof window === 'undefined' || !user?.username) return '';
     const baseUrl = window.location.origin;
-    // For now, create a link to the location detail page
-    // In a full implementation, this would be a dedicated share link
-    return `${baseUrl}/locations/${location.id}`;
+    return `${baseUrl}/@${user.username}/locations/${location.id}`;
   };
 
   const handleCopyLink = async () => {
