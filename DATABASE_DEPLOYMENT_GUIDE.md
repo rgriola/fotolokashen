@@ -9,6 +9,9 @@
 
 ### Should `schema.prisma` be in Git?
 
+-- npx dotenv -e .env.local -- npx prisma db push --accept-data-loss
+
+
 **YES** ✅ Always commit these files:
 - `prisma/schema.prisma` - Source of truth for database structure
 - `prisma/migrations/` - All migration files

@@ -5,9 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { ShareLocationDialog } from '@/components/locations/ShareLocationDialog';
 import { EditLocationDialog } from '@/components/locations/EditLocationDialog';
-import { Settings, Share2, Edit, Eye, MapPin, Loader2 } from 'lucide-react';
+import { SaveLocationDialog } from '@/components/locations/SaveLocationDialog';
+import { LocationDetailModal } from '@/components/locations/LocationDetailModal';
+import { Settings, Share2, Edit, Eye, MapPin, Loader2, Save, Info, FileEdit, PanelLeft, Heart, Sun, Building, Camera, X } from 'lucide-react';
 import type { Location } from '@/types/location';
 import { toast } from 'sonner';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
+import { SaveLocationPanel } from '@/components/panels/SaveLocationPanel';
+import { EditLocationPanel } from '@/components/panels/EditLocationPanel';
+import { LocationList } from '@/components/locations/LocationList';
+import { AdminRoute } from '@/components/auth/AdminRoute';
 
 // Mock location data for testing
 const mockLocation: Location = {
@@ -61,9 +68,19 @@ const mockLocation: Location = {
 export default function PreviewPage() {
     const [shareDialogOpen, setShareDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
+    const [savePanelOpen, setSavePanelOpen] = useState(false);
+    const [editPanelOpen, setEditPanelOpen] = useState(false);
+    const [showGridView, setShowGridView] = useState(false);
     const [locations, setLocations] = useState<Location[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    
+    // Panel header controls (matching production /map page)
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [indoorOutdoor, setIndoorOutdoor] = useState<"indoor" | "outdoor">("outdoor");
+    const [showPhotoUpload, setShowPhotoUpload] = useState(false);
 
     // Fetch user's locations
     useEffect(() => {
@@ -111,19 +128,10 @@ export default function PreviewPage() {
         fetchLocations();
     }, []);
 
-    const handleOpenShare = (location: Location) => {
-        setSelectedLocation(location);
-        setShareDialogOpen(true);
-    };
-
-    const handleOpenEdit = (location: Location) => {
-        setSelectedLocation(location);
-        setEditDialogOpen(true);
-    };
-
     return (
-        <div className="min-h-screen bg-background p-8">
-            <div className="container max-w-4xl mx-auto space-y-8">
+        <AdminRoute>
+            <div className="min-h-screen bg-background p-8">
+                <div className="container max-w-4xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="space-y-2">
                     <h1 className="text-4xl font-bold tracking-tight">Component Preview</h1>
@@ -162,7 +170,7 @@ export default function PreviewPage() {
                                     {locations.map((location) => (
                                         <div
                                             key={location.id}
-                                            className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+                                            className="flex items-start justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
                                         >
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="font-semibold truncate">{location.name}</h4>
@@ -170,25 +178,66 @@ export default function PreviewPage() {
                                                     {location.address || (location.lat && location.lng ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}` : 'No address')}
                                                 </p>
                                             </div>
-                                            <div className="flex gap-2 ml-4">
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => handleOpenShare(location)}
-                                                    className="gap-1"
-                                                >
-                                                    <Share2 className="w-3 h-3" />
-                                                    Share
-                                                </Button>
-                                                <Button
-                                                    size="sm"
-                                                    variant="outline"
-                                                    onClick={() => handleOpenEdit(location)}
-                                                    className="gap-1"
-                                                >
-                                                    <Edit className="w-3 h-3" />
-                                                    Edit
-                                                </Button>
+                                            <div className="flex flex-col gap-1.5 ml-4 flex-shrink-0">
+                                                <div className="flex gap-1.5">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            setSelectedLocation(location);
+                                                            setShareDialogOpen(true);
+                                                        }}
+                                                        className="gap-1 h-7 text-xs"
+                                                        title="ShareLocationDialog"
+                                                    >
+                                                        <Share2 className="w-3 h-3" />
+                                                        Share
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            setSelectedLocation(location);
+                                                            setDetailModalOpen(true);
+                                                        }}
+                                                        className="gap-1 h-7 text-xs"
+                                                        title="LocationDetailModal"
+                                                    >
+                                                        <Info className="w-3 h-3" />
+                                                        Detail
+                                                    </Button>
+                                                </div>
+                                                <div className="flex gap-1.5">
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            setSelectedLocation(location);
+                                                            setEditDialogOpen(true);
+                                                        }}
+                                                        className="gap-1 h-7 text-xs"
+                                                        title="EditLocationDialog"
+                                                    >
+                                                        <Edit className="w-3 h-3" />
+                                                        Edit Dialog
+                                                    </Button>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        onClick={() => {
+                                                            setSelectedLocation(location);
+                                                            setIsFavorite(location.userSave?.isFavorite || false);
+                                                            setIndoorOutdoor((location.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
+                                                            setShowPhotoUpload(false);
+                                                            setEditPanelOpen(true);
+                                                        }}
+                                                        className="gap-1 h-7 text-xs"
+                                                        title="EditLocationPanel"
+                                                    >
+                                                        <PanelLeft className="w-3 h-3" />
+                                                        Edit Panel
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -202,23 +251,134 @@ export default function PreviewPage() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Eye className="w-5 h-5" />
-                                Test with Mock Data
+                                Location Views
                             </CardTitle>
                             <CardDescription>
-                                Use mock location data if you don't have saved locations
+                                Test different location view layouts and pages
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex flex-wrap gap-3">
+                                <Button
+                                    onClick={() => setShowGridView(true)}
+                                    variant="outline"
+                                    className="gap-2"
+                                    title="/locations - Grid View"
+                                >
+                                    <Eye className="w-4 h-4" />
+                                    Grid View (/locations)
+                                </Button>
+
+                                <Button
+                                    onClick={() => {
+                                        if (locations.length > 0) {
+                                            // Use the first location to construct the URL
+                                            const firstLocation = locations[0];
+                                            const username = 'admin'; // You can replace this with actual username from session
+                                            window.open(`/@${username}/locations/${firstLocation.id}`, '_blank');
+                                        } else {
+                                            toast.error('No locations available. Save a location first.');
+                                        }
+                                    }}
+                                    variant="outline"
+                                    className="gap-2"
+                                    title="/@username/locations/[id] - Public Location Page"
+                                    disabled={locations.length === 0}
+                                >
+                                    <MapPin className="w-4 h-4" />
+                                    Public Location Page
+                                    {locations.length > 0 && (
+                                        <span className="text-xs text-muted-foreground">
+                                            (opens /@admin/locations/{locations[0].id})
+                                        </span>
+                                    )}
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Save Location Components */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Eye className="w-5 h-5" />
+                                Save Location Components
+                            </CardTitle>
+                            <CardDescription>
+                                Test SaveLocationDialog and SaveLocationPanel
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex flex-wrap gap-3">
                                 <Button
                                     onClick={() => {
+                                        setIsFavorite(false);
+                                        setIndoorOutdoor("outdoor");
+                                        setShowPhotoUpload(false);
+                                        setSaveDialogOpen(true);
+                                    }}
+                                    className="gap-2"
+                                    title="SaveLocationDialog"
+                                >
+                                    <Save className="w-4 h-4" />
+                                    Save Dialog
+                                </Button>
+
+                                <Button
+                                    onClick={() => {
+                                        setIsFavorite(false);
+                                        setIndoorOutdoor("outdoor");
+                                        setShowPhotoUpload(false);
+                                        setSavePanelOpen(true);
+                                    }}
+                                    variant="outline"
+                                    className="gap-2"
+                                    title="SaveLocationPanel"
+                                >
+                                    <PanelLeft className="w-4 h-4" />
+                                    Save Panel
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Mock Data Testing */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <FileEdit className="w-5 h-5" />
+                                Test with Mock Data
+                            </CardTitle>
+                            <CardDescription>
+                                Use mock location data for testing all modals
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button
+                                    onClick={() => {
                                         setSelectedLocation(mockLocation);
                                         setShareDialogOpen(true);
                                     }}
+                                    variant="outline"
                                     className="gap-2"
+                                    title="ShareLocationDialog"
                                 >
                                     <Share2 className="w-4 h-4" />
-                                    Open Share Dialog (Mock)
+                                    Share Dialog
+                                </Button>
+
+                                <Button
+                                    onClick={() => {
+                                        setSelectedLocation(mockLocation);
+                                        setDetailModalOpen(true);
+                                    }}
+                                    variant="outline"
+                                    className="gap-2"
+                                    title="LocationDetailModal"
+                                >
+                                    <Info className="w-4 h-4" />
+                                    Detail Modal
                                 </Button>
 
                                 <Button
@@ -228,9 +388,26 @@ export default function PreviewPage() {
                                     }}
                                     variant="outline"
                                     className="gap-2"
+                                    title="EditLocationDialog"
                                 >
                                     <Edit className="w-4 h-4" />
-                                    Open Edit Dialog (Mock)
+                                    Edit Dialog
+                                </Button>
+
+                                <Button
+                                    onClick={() => {
+                                        setSelectedLocation(mockLocation);
+                                        setIsFavorite(mockLocation.userSave?.isFavorite || false);
+                                        setIndoorOutdoor((mockLocation.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
+                                        setShowPhotoUpload(false);
+                                        setEditPanelOpen(true);
+                                    }}
+                                    variant="outline"
+                                    className="gap-2"
+                                    title="EditLocationPanel"
+                                >
+                                    <PanelLeft className="w-4 h-4" />
+                                    Edit Panel
                                 </Button>
                             </div>
 
@@ -295,19 +472,317 @@ export default function PreviewPage() {
                     </CardContent>
                 </Card>
             </div>
+            </div>
 
             {/* Modal Components */}
-            <ShareLocationDialog
-                location={selectedLocation || mockLocation}
-                open={shareDialogOpen}
-                onOpenChange={setShareDialogOpen}
+            {selectedLocation && (
+                <>
+                    <ShareLocationDialog
+                        location={selectedLocation}
+                        open={shareDialogOpen}
+                        onOpenChange={setShareDialogOpen}
+                    />
+
+                    <EditLocationDialog
+                        location={selectedLocation}
+                        open={editDialogOpen}
+                        onOpenChange={setEditDialogOpen}
+                    />
+
+                    <LocationDetailModal
+                        location={selectedLocation}
+                        isOpen={detailModalOpen}
+                        onClose={() => setDetailModalOpen(false)}
+                    />
+
+                    <Sheet open={editPanelOpen} onOpenChange={setEditPanelOpen}>
+                        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+                            {/* Custom Header with Controls (matching production) */}
+                            <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-background z-10">
+                                <SheetTitle>Edit Location Panel</SheetTitle>
+                                <div className="flex items-center gap-1">
+                                    {/* Save Button (DISABLED - Preview Mode) */}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                            toast.info('Save disabled in preview mode');
+                                        }}
+                                        disabled={false}
+                                        className="shrink-0 bg-indigo-600 hover:bg-indigo-700 hover:text-white opacity-50 cursor-not-allowed"
+                                        title="Save disabled in preview mode"
+                                    >
+                                        <Save className="w-4 h-4 text-white" />
+                                    </Button>
+                                    
+                                    {/* Photo Upload Toggle */}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setShowPhotoUpload(!showPhotoUpload)}
+                                        className={`shrink-0 ${showPhotoUpload ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500'} text-white hover:text-white`}
+                                        title="Toggle photo upload"
+                                    >
+                                        <Camera className="w-4 h-4 text-white" />
+                                    </Button>
+                                    
+                                    {/* Indoor/Outdoor Toggle */}
+                                    <div className="flex items-center gap-0.5">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setIndoorOutdoor("outdoor")}
+                                            className="shrink-0"
+                                            title="Outdoor"
+                                        >
+                                            <Sun
+                                                className={`w-5 h-5 transition-colors ${
+                                                    indoorOutdoor === "outdoor"
+                                                        ? "text-amber-500 fill-amber-500"
+                                                        : "text-muted-foreground"
+                                                }`}
+                                            />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => setIndoorOutdoor("indoor")}
+                                            className="shrink-0"
+                                            title="Indoor"
+                                        >
+                                            <Building
+                                                className={`w-5 h-5 transition-colors ${
+                                                    indoorOutdoor === "indoor"
+                                                        ? "text-blue-600 stroke-[2.5]"
+                                                        : "text-muted-foreground"
+                                                }`}
+                                                fill={indoorOutdoor === "indoor" ? "#fbbf24" : "none"}
+                                                fillOpacity={indoorOutdoor === "indoor" ? 0.2 : 0}
+                                            />
+                                        </Button>
+                                    </div>
+                                    
+                                    {/* Favorite Toggle */}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setIsFavorite(!isFavorite)}
+                                        className="shrink-0"
+                                        title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                                    >
+                                        <Heart
+                                            className={`w-5 h-5 transition-colors ${
+                                                isFavorite
+                                                    ? "fill-red-500 text-red-500"
+                                                    : "text-muted-foreground"
+                                            }`}
+                                        />
+                                    </Button>
+                                    
+                                    {/* Close Button */}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setEditPanelOpen(false)}
+                                        className="shrink-0"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                            
+                            {/* Panel Content */}
+                            <div className="p-3">
+                                {selectedLocation?.userSave && (
+                                    <EditLocationPanel
+                                        locationId={selectedLocation.id}
+                                        location={selectedLocation}
+                                        userSave={selectedLocation.userSave}
+                                        isFavorite={isFavorite}
+                                        indoorOutdoor={indoorOutdoor}
+                                        showPhotoUpload={showPhotoUpload}
+                                        onSuccess={() => {
+                                            // Disabled in preview mode - no actual save occurs
+                                            setEditPanelOpen(false);
+                                            toast.info("Save disabled in preview mode");
+                                        }}
+                                        onCancel={() => setEditPanelOpen(false)}
+                                    />
+                                )}
+                            </div>
+                        </SheetContent>
+                    </Sheet>
+                </>
+            )}
+
+            {/* Save Location Components */}
+            <SaveLocationDialog
+                open={saveDialogOpen}
+                onOpenChange={setSaveDialogOpen}
+                initialData={mockLocation}
             />
 
-            <EditLocationDialog
-                location={selectedLocation || mockLocation}
-                open={editDialogOpen}
-                onOpenChange={setEditDialogOpen}
-            />
-        </div>
+            {/* Grid View Modal - /locations page */}
+            <Sheet open={showGridView} onOpenChange={setShowGridView}>
+                <SheetContent className="w-full sm:max-w-6xl overflow-y-auto p-0" side="bottom">
+                    <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-background z-10">
+                        <SheetTitle>Grid View - /locations Page</SheetTitle>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setShowGridView(false)}
+                            className="shrink-0"
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                    </div>
+                    <div className="p-6">
+                        {locations.length > 0 ? (
+                            <LocationList
+                                locations={locations}
+                                onClick={(location: Location) => {
+                                    setSelectedLocation(location);
+                                    setDetailModalOpen(true);
+                                }}
+                                onShare={(location: Location) => {
+                                    setSelectedLocation(location);
+                                    setShareDialogOpen(true);
+                                }}
+                                onEdit={(location: Location) => {
+                                    setSelectedLocation(location);
+                                    setEditDialogOpen(true);
+                                }}
+                                onDelete={(_id: number) => {
+                                    toast.info('Delete disabled in preview mode');
+                                }}
+                            />
+                        ) : (
+                            <div className="text-center py-12 text-muted-foreground">
+                                <MapPin className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                <p className="text-lg">No locations to display</p>
+                                <p className="text-sm mt-2">Save some locations to see them in grid view</p>
+                            </div>
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
+
+            {/* Save Panel */}
+            <Sheet open={savePanelOpen} onOpenChange={setSavePanelOpen}>
+                <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+                    {/* Custom Header with Controls (matching production) */}
+                    <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-background z-10">
+                        <SheetTitle>Save Location Panel</SheetTitle>
+                        <div className="flex items-center gap-1">
+                            {/* Save Button (DISABLED - Preview Mode) */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                    toast.info('Save disabled in preview mode');
+                                }}
+                                disabled={false}
+                                className="shrink-0 bg-indigo-600 hover:bg-indigo-700 hover:text-white opacity-50 cursor-not-allowed"
+                                title="Save disabled in preview mode"
+                            >
+                                <Save className="w-4 h-4 text-white" />
+                            </Button>
+                            
+                            {/* Photo Upload Toggle */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setShowPhotoUpload(!showPhotoUpload)}
+                                className={`shrink-0 ${showPhotoUpload ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500'} text-white hover:text-white`}
+                                title="Toggle photo upload"
+                            >
+                                <Camera className="w-4 h-4 text-white" />
+                            </Button>
+                            
+                            {/* Indoor/Outdoor Toggle */}
+                            <div className="flex items-center gap-0.5">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIndoorOutdoor("outdoor")}
+                                    className="shrink-0"
+                                    title="Outdoor"
+                                >
+                                    <Sun
+                                        className={`w-5 h-5 transition-colors ${
+                                            indoorOutdoor === "outdoor"
+                                                ? "text-amber-500 fill-amber-500"
+                                                : "text-muted-foreground"
+                                        }`}
+                                    />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIndoorOutdoor("indoor")}
+                                    className="shrink-0"
+                                    title="Indoor"
+                                >
+                                    <Building
+                                        className={`w-5 h-5 transition-colors ${
+                                            indoorOutdoor === "indoor"
+                                                ? "text-blue-600 stroke-[2.5]"
+                                                : "text-muted-foreground"
+                                        }`}
+                                        fill={indoorOutdoor === "indoor" ? "#fbbf24" : "none"}
+                                        fillOpacity={indoorOutdoor === "indoor" ? 0.2 : 0}
+                                    />
+                                </Button>
+                            </div>
+                            
+                            {/* Favorite Toggle */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setIsFavorite(!isFavorite)}
+                                className="shrink-0"
+                                title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                            >
+                                <Heart
+                                    className={`w-5 h-5 transition-colors ${
+                                        isFavorite
+                                            ? "fill-red-500 text-red-500"
+                                            : "text-muted-foreground"
+                                    }`}
+                                />
+                            </Button>
+                            
+                            {/* Close Button */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setSavePanelOpen(false)}
+                                className="shrink-0"
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    {/* Panel Content */}
+                    <div className="p-3">
+                        <SaveLocationPanel
+                            initialData={{
+                                ...mockLocation,
+                                isFavorite: isFavorite,
+                                indoorOutdoor: indoorOutdoor,
+                            }}
+                            onSuccess={() => {
+                                // Disabled in preview mode - no actual save occurs
+                                setSavePanelOpen(false);
+                                toast.info("Save disabled in preview mode");
+                            }}
+                            onCancel={() => setSavePanelOpen(false)}
+                            showPhotoUpload={showPhotoUpload}
+                        />
+                    </div>
+                </SheetContent>
+            </Sheet>
+        </AdminRoute>
     );
 }
