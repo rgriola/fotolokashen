@@ -73,7 +73,28 @@ export default function PreviewPage() {
                 if (response.ok) {
                     const data = await response.json();
                     console.log('Fetched locations:', data);
-                    setLocations(data.locations || []);
+                    
+                    // The API returns userSaves with nested location objects
+                    // We need to transform them to extract the location data
+                    const transformedLocations = (data.locations || []).map((userSave: any) => ({
+                        ...userSave.location,
+                        userSave: {
+                            id: userSave.id,
+                            userId: userSave.userId,
+                            locationId: userSave.locationId,
+                            isFavorite: userSave.isFavorite,
+                            personalRating: userSave.personalRating,
+                            visitedAt: userSave.visitedAt,
+                            savedAt: userSave.savedAt,
+                            caption: userSave.caption,
+                            tags: userSave.tags,
+                            color: userSave.color,
+                            visibility: userSave.visibility,
+                        }
+                    }));
+                    
+                    console.log('Transformed locations:', transformedLocations);
+                    setLocations(transformedLocations);
                 } else {
                     const errorData = await response.json().catch(() => ({}));
                     console.error('Failed to fetch locations:', response.status, errorData);
