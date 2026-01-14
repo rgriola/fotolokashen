@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { comparePassword, generateToken } from '@/lib/auth';
+import { comparePassword, generateToken, generateVerificationToken } from '@/lib/auth';
 import { apiResponse, apiError, setAuthCookie } from '@/lib/api-middleware';
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
+import { sendVerificationEmail } from '@/lib/email';
 
 // Rate limiting constants
 const MAX_FAILED_ATTEMPTS = 5;
@@ -67,6 +68,9 @@ export async function POST(request: NextRequest) {
         firstName: true,
         lastName: true,
         emailVerified: true,
+        verificationToken: true,
+        verificationTokenExpiry: true,
+        lastVerificationEmailSent: true,
         isActive: true,
         isAdmin: true,
         passwordHash: true,
@@ -118,15 +122,72 @@ export async function POST(request: NextRequest) {
     // Check if email is verified BEFORE checking password
     // This prevents enumeration while providing helpful UX
     if (!user.emailVerified) {
-      return NextResponse.json(
-        {
-          error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
-          code: 'EMAIL_NOT_VERIFIED',
-          requiresVerification: true,
-          email: user.email,
-        },
-        { status: 403 }
-      );
+      // Check if verification token exists and is expired
+      const tokenExpired = !user.verificationTokenExpiry || 
+                           user.verificationTokenExpiry < new Date();
+      
+      // Check rate limiting for verification emails (max 1 per 5 minutes)
+      const lastSent = user.lastVerificationEmailSent;
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      const canResend = !lastSent || lastSent < fiveMinutesAgo;
+      
+      if (tokenExpired && canResend) {
+        // Generate new token (30 min expiry)
+        const newToken = generateVerificationToken();
+        const newExpiry = new Date(Date.now() + 30 * 60 * 1000);
+        
+        // Update user in database
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            verificationToken: newToken,
+            verificationTokenExpiry: newExpiry,
+            lastVerificationEmailSent: new Date(),
+          },
+        });
+        
+        // Send new verification email
+        await sendVerificationEmail(user.email, newToken, user.username);
+        
+        return NextResponse.json(
+          {
+            error: 'Email not verified. A new verification link has been sent to your email.',
+            code: 'EMAIL_NOT_VERIFIED_RESENT',
+            requiresVerification: true,
+            email: user.email,
+            tokenResent: true,
+          },
+          { status: 403 }
+        );
+      } else if (tokenExpired && !canResend) {
+        // Token expired but rate limited
+        const retryAfter = lastSent 
+          ? Math.ceil((lastSent.getTime() - fiveMinutesAgo.getTime()) / 1000)
+          : 0;
+        
+        return NextResponse.json(
+          {
+            error: `Verification email was sent recently. Please check your inbox or try again in ${Math.ceil(retryAfter / 60)} minute(s).`,
+            code: 'EMAIL_RATE_LIMITED',
+            requiresVerification: true,
+            email: user.email,
+            retryAfter,
+          },
+          { status: 429 }
+        );
+      } else {
+        // Token still valid
+        return NextResponse.json(
+          {
+            error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+            code: 'EMAIL_NOT_VERIFIED',
+            requiresVerification: true,
+            email: user.email,
+            tokenResent: false,
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Verify password
@@ -238,7 +299,7 @@ export async function POST(request: NextRequest) {
 
     // Create session record
     const expiryDays = rememberMe ? 30 : 7;
-    const session = await prisma.session.create({
+    await prisma.session.create({
       data: {
         userId: user.id,
         token,

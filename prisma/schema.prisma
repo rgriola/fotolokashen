@@ -41,6 +41,7 @@ model User {
   homeLocationLng         Float?
   homeLocationUpdated     DateTime?
   verificationTokenExpiry DateTime?
+  lastVerificationEmailSent DateTime?
   bio                     String?
   deletedAt               DateTime?
   emailNotifications      Boolean                  @default(true)

@@ -33,6 +33,10 @@ const nextConfig: NextConfig = {
         hostname: 'ik.imagekit.io',
         pathname: '/rgriola/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'maps.googleapis.com',
+      },
     ],
   },
 

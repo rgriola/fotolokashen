@@ -53,12 +53,30 @@ export function LoginForm() {
       if (!response.ok) {
         // Check if email verification is required
         if (result.requiresVerification && result.email) {
-          toast.error(result.error || 'Email verification required');
-          // Redirect to verify-email page with option to resend
-          setTimeout(() => {
-            router.push(`/verify-email?email=${encodeURIComponent(result.email)}&resend=true`);
-          }, 1000);
-          return;
+          // Check if a new verification email was sent
+          if (result.code === 'EMAIL_NOT_VERIFIED_RESENT' || result.tokenResent) {
+            toast.success('New verification email sent! Check your inbox.');
+            // Redirect to verify-email page with resent=true
+            setTimeout(() => {
+              router.push(`/verify-email?email=${encodeURIComponent(result.email)}&resent=true`);
+            }, 1000);
+            return;
+          } else if (result.code === 'EMAIL_RATE_LIMITED') {
+            toast.error(result.error || 'Verification email was sent recently. Please check your inbox.');
+            // Still redirect to verify-email page
+            setTimeout(() => {
+              router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
+            }, 1000);
+            return;
+          } else {
+            // Original verification link still valid
+            toast.error(result.error || 'Email verification required');
+            // Redirect to verify-email page
+            setTimeout(() => {
+              router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
+            }, 1000);
+            return;
+          }
         }
         
         toast.error(result.error || 'Login failed');

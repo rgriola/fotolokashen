@@ -21,10 +21,17 @@ export default function VerifyEmailPage() {
     useEffect(() => {
         const token = searchParams.get('token');
         const emailParam = searchParams.get('email');
-        const resend = searchParams.get('resend');
+        const resent = searchParams.get('resent');
 
         if (emailParam) {
             setEmail(decodeURIComponent(emailParam));
+        }
+
+        // If resent=true, show success message for new email sent
+        if (resent === 'true') {
+            setStatus('no_token');
+            setMessage('New verification email sent');
+            return;
         }
 
         // If no token provided, show appropriate message
@@ -160,19 +167,41 @@ export default function VerifyEmailPage() {
                 {/* No Token - Check Email */}
                 {status === 'no_token' && (
                     <div className="text-center">
-                        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100">
-                            <Mail className="h-10 w-10 text-amber-600" />
+                        <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full ${message === 'New verification email sent' ? 'bg-green-100' : 'bg-amber-100'}`}>
+                            {message === 'New verification email sent' ? (
+                                <CheckCircle className="h-10 w-10 text-green-600" />
+                            ) : (
+                                <Mail className="h-10 w-10 text-amber-600" />
+                            )}
                         </div>
-                        <h2 className="mt-4 text-2xl font-bold text-gray-900">Check Your Email</h2>
-                        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                            <p className="text-sm text-amber-800">
-                                <strong>Email not verified yet.</strong>
-                            </p>
-                            <p className="mt-2 text-sm text-amber-700">
-                                Please check your email inbox for the confirmation link we sent you during registration.
-                            </p>
+                        <h2 className="mt-4 text-2xl font-bold text-gray-900">
+                            {message === 'New verification email sent' ? 'Check Your Email' : 'Check Your Email'}
+                        </h2>
+                        <div className={`mt-4 p-4 rounded-lg border ${message === 'New verification email sent' ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+                            {message === 'New verification email sent' ? (
+                                <>
+                                    <p className="text-sm text-green-800 font-semibold">
+                                        ✅ New verification email sent!
+                                    </p>
+                                    <p className="mt-2 text-sm text-green-700">
+                                        We just sent a fresh verification link to <strong>{email}</strong>
+                                    </p>
+                                    <p className="mt-2 text-sm text-green-600">
+                                        The previous link has expired. Please use the new link.
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="text-sm text-amber-800">
+                                        <strong>Email not verified yet.</strong>
+                                    </p>
+                                    <p className="mt-2 text-sm text-amber-700">
+                                        Please check your email inbox for the confirmation link we sent you during registration.
+                                    </p>
+                                </>
+                            )}
                         </div>
-                        {email && (
+                        {email && message !== 'New verification email sent' && (
                             <p className="mt-3 text-sm text-gray-600">
                                 Confirmation email sent to: <strong>{email}</strong>
                             </p>
