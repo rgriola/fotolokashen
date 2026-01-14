@@ -17,7 +17,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LocationData } from '@/lib/maps-utils';
 import { parseAddressComponents } from '@/lib/address-utils';
 import { useLocations } from '@/hooks/useLocations';
-import { UserSave } from '@/types/location';
+import { UserSave, Location } from '@/types/location';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -26,6 +26,7 @@ import { GpsWelcomeBanner } from '@/components/maps/GpsWelcomeBanner';
 import { useGpsLocation } from '@/hooks/useGpsLocation';
 import { MapControls } from '@/components/maps/MapControls';
 import { FriendsDialog } from '@/components/map/FriendsDialog';
+import { ShareLocationDialog } from '@/components/map/ShareLocationDialog';
 import { MapPin as MapPinIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -47,6 +48,7 @@ function MapPageInner() {
     const [map, setMap] = useState<google.maps.Map | null>(null);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [showFriendsDialog, setShowFriendsDialog] = useState(false);
+    const [shareLocation, setShareLocation] = useState<Location | null>(null);
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -1077,8 +1079,7 @@ function MapPageInner() {
                                 toast.success('Location deleted');
                             }}
                             onShare={(location) => {
-                                // Handle share
-                                toast.info('Share feature coming soon!');
+                                setShareLocation(location);
                             }}
                         />
                     </div>
@@ -1253,6 +1254,13 @@ function MapPageInner() {
             <FriendsDialog 
                 open={showFriendsDialog} 
                 onOpenChange={setShowFriendsDialog}
+            />
+
+            {/* Share Location Dialog */}
+            <ShareLocationDialog
+                open={!!shareLocation}
+                onOpenChange={(open) => !open && setShareLocation(null)}
+                location={shareLocation}
             />
         </div>
     );
