@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Tag, X } from "lucide-react";
+import { MapPin, Tag, X, Map } from "lucide-react";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
 import { PhotoCarouselManager } from "@/components/ui/PhotoCarouselManager";
 import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/location-constants";
@@ -18,6 +18,7 @@ import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR } from "@/lib/form-constant
 import { Location, UserSave } from "@/types/location";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
 import { useAuth } from "@/lib/auth-context";
+import Image from "next/image";
 
 const editLocationSchema = z.object({
     id: z.number(),
@@ -251,7 +252,7 @@ export function EditLocationForm({
                 </div>
                 
                 {/* Photo Carousel (if photos exist) */}
-                {photos.length > 0 && (
+                {photos.length > 0 ? (
                     <PhotoCarouselManager
                         photos={photos}
                         onPhotosChange={setPhotos}
@@ -259,6 +260,9 @@ export function EditLocationForm({
                         photosToDelete={photosToDelete}
                         maxPhotos={20}
                     />
+                ) : (
+                    /* Static Map Preview when no photos */
+                    <StaticMapPreview location={location} />
                 )}
             </div>
 
@@ -485,5 +489,41 @@ export function EditLocationForm({
                 </div>
             </div>
         </form>
+    );
+}
+
+// Static Map Preview Component
+function StaticMapPreview({ location }: { location: Location }) {
+    const [mapError, setMapError] = useState(false);
+    const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+    
+    const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=15&size=600x300&markers=color:red%7C${location.lat},${location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
+
+    return (
+        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-muted">
+            {!mapError && GOOGLE_MAPS_API_KEY ? (
+                <Image
+                    src={mapImageUrl}
+                    alt={`Map of ${location.name}`}
+                    fill
+                    className="object-cover"
+                    onError={() => setMapError(true)}
+                    unoptimized
+                />
+            ) : (
+                /* Placeholder when map fails to load */
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-950/20 dark:to-blue-900/10 border-2 border-dashed border-blue-300 dark:border-blue-700">
+                    <Map className="w-12 h-12 text-blue-400 dark:text-blue-600" />
+                    <div className="text-center px-4">
+                        <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                            {location.name}
+                        </p>
+                        <p className="text-xs text-blue-500 dark:text-blue-500 mt-1">
+                            {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
+                        </p>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
