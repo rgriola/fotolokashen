@@ -69,7 +69,7 @@ export default function PreviewPage() {
     useEffect(() => {
         const fetchLocations = async () => {
             try {
-                const response = await fetch('/api/v1/locations/saved');
+                const response = await fetch('/api/locations');
                 if (response.ok) {
                     const data = await response.json();
                     setLocations(data.locations || []);
