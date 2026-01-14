@@ -192,7 +192,7 @@ export function ProfileHeader() {
                 {/* Banner Section */}
                 <label 
                     htmlFor="banner-file-select"
-                    className="relative w-full h-[240px] md:h-[300px] group block cursor-pointer"
+                    className="relative w-full h-32 md:h-40 group block cursor-pointer"
                 >
                     {/* Banner Image */}
                     {bannerPreview && !bannerError ? (
@@ -259,15 +259,15 @@ export function ProfileHeader() {
                 </IKContext>
 
                 {/* Avatar and User Info Section */}
-                <div className="relative px-6 md:px-8 pb-6">
+                <div className="relative px-4 md:px-6 pb-4">
                     {/* Avatar positioned overlapping the banner */}
-                    <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-16 sm:-mt-20">
+                    <div className="flex flex-col sm:flex-row sm:items-end gap-3 -mt-12 md:-mt-14">
                         {/* Avatar */}
                         <label 
                             htmlFor="avatar-file-select"
                             className="relative group cursor-pointer"
                         >
-                            <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-background bg-background overflow-hidden shadow-xl">
+                            <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-background bg-background overflow-hidden shadow-xl">
                                 {avatarPreview && !avatarError ? (
                                     <Image
                                         src={`${avatarPreview}?tr=w-400,h-400,c-at_max,fo-auto,q-90`}
@@ -331,21 +331,24 @@ export function ProfileHeader() {
                         </IKContext>
 
                         {/* User Info */}
-                        <div className="flex-1 sm:mb-4">
-                            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-                                {user?.firstName && user?.lastName
-                                    ? `${user.firstName} ${user.lastName}`
-                                    : user?.username}
-                            </h2>
-                            <p className="text-base md:text-lg text-muted-foreground mt-1">
-                                @{user?.username}
-                            </p>
-                            <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
+                        <div className="flex-1 sm:mb-2">
+                            <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-3">
+                                <h2 className="text-xl md:text-2xl font-bold">
+                                    {user?.firstName && user?.lastName
+                                        ? `${user.firstName} ${user.lastName}`
+                                        : user?.username}
+                                </h2>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <span>@{user?.username}</span>
+                                    <span className="hidden sm:inline">•</span>
+                                    <span className="truncate max-w-[200px]">{user?.email}</span>
+                                </div>
+                            </div>
                             
                             {/* View Public Profile Button */}
-                            <Link href={`/@${user?.username}`} className="inline-block mt-3">
-                                <Button variant="outline" size="sm" className="gap-2">
-                                    <ExternalLink className="w-4 h-4" />
+                            <Link href={`/@${user?.username}`} className="inline-block mt-2">
+                                <Button variant="outline" size="sm" className="gap-2 h-8 text-xs">
+                                    <ExternalLink className="w-3 h-3" />
                                     View Public Profile
                                 </Button>
                             </Link>

@@ -6,38 +6,41 @@ import prisma from '@/lib/prisma';
 // Validation schema with comprehensive rules
 const updateProfileSchema = z.object({
     firstName: z.string()
-        .min(1, 'First name is required')
         .max(50, 'First name must be less than 50 characters')
-        .regex(/^[a-zA-Z\s'-]+$/, 'First name can only contain letters, spaces, hyphens, and apostrophes')
-        .trim()
-        .optional(),
+        .regex(/^[a-zA-Z\s'-]*$/, 'First name can only contain letters, spaces, hyphens, and apostrophes')
+        .optional()
+        .or(z.literal('')),
     lastName: z.string()
-        .min(1, 'Last name is required')
         .max(50, 'Last name must be less than 50 characters')
-        .regex(/^[a-zA-Z\s'-]+$/, 'Last name can only contain letters, spaces, hyphens, and apostrophes')
-        .trim()
-        .optional(),
+        .regex(/^[a-zA-Z\s'-]*$/, 'Last name can only contain letters, spaces, hyphens, and apostrophes')
+        .optional()
+        .or(z.literal('')),
     bio: z.string()
         .max(500, 'Bio must be less than 500 characters')
-        .trim()
-        .optional(),
-    phoneNumber: z.string()
-        .regex(/^[\d\s\-\+\(\)\.]+$/, 'Phone number can only contain numbers, spaces, and common phone symbols (+, -, (, ), .)')
-        .min(10, 'Phone number must be at least 10 characters')
-        .max(20, 'Phone number must be less than 20 characters')
-        .transform(val => val.replace(/\s+/g, '')) // Remove whitespace
         .optional()
-        .or(z.literal('')), // Allow empty string
+        .or(z.literal('')),
+    phoneNumber: z.string()
+        .regex(/^[\d\s\-\+\(\)\.]*$/, 'Phone number can only contain numbers, spaces, and symbols: + - ( ) .')
+        .refine(
+            (val) => !val || val.replace(/[\s\-\+\(\)\.]/g, '').length >= 10,
+            'Phone number must be at least 10 digits'
+        )
+        .refine(
+            (val) => !val || val.length <= 20,
+            'Phone number must be less than 20 characters'
+        )
+        .optional()
+        .or(z.literal('')),
     city: z.string()
         .max(100, 'City must be less than 100 characters')
-        .regex(/^[a-zA-Z\s\-'\.]+$/, 'City can only contain letters, spaces, hyphens, apostrophes, and periods')
-        .trim()
-        .optional(),
+        .regex(/^[a-zA-Z\s\-'\.]*$/, 'City can only contain letters, spaces, hyphens, apostrophes, and periods')
+        .optional()
+        .or(z.literal('')),
     country: z.string()
         .max(100, 'Country must be less than 100 characters')
-        .regex(/^[a-zA-Z\s\-'\.]+$/, 'Country can only contain letters, spaces, hyphens, apostrophes, and periods')
-        .trim()
-        .optional(),
+        .regex(/^[a-zA-Z\s\-'\.]*$/, 'Country can only contain letters, spaces, hyphens, apostrophes, and periods')
+        .optional()
+        .or(z.literal('')),
     timezone: z.string()
         .max(50, 'Timezone must be less than 50 characters')
         .optional(),

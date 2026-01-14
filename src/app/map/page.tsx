@@ -1062,22 +1062,6 @@ function MapPageInner() {
                                     }
                                 }
                             }}
-                            onEdit={(location) => {
-                                // Close locations panel
-                                setShowLocationsPanel(false);
-                                // Find the marker
-                                const marker = markers.find(m => m.id === location.placeId);
-                                if (marker) {
-                                    setLocationToEdit(marker);
-                                    setSidebarView('edit');
-                                    setIsSidebarOpen(true);
-                                }
-                            }}
-                            onDelete={(id) => {
-                                // Handle delete - remove marker
-                                setMarkers(prev => prev.filter(m => m.id !== id.toString()));
-                                toast.success('Location deleted');
-                            }}
                             onShare={(location) => {
                                 setShareLocation(location);
                             }}

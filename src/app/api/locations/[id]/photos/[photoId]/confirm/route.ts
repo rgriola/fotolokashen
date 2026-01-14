@@ -9,7 +9,7 @@ import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
  */
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string; photoId: string } }
+    { params }: { params: Promise<{ id: string; photoId: string }> }
 ) {
     try {
         // Require authentication
@@ -18,8 +18,9 @@ export async function POST(
             return apiError('Authentication required', 401);
         }
 
-        const locationId = parseInt(params.id);
-        const photoId = parseInt(params.photoId);
+        const { id, photoId: photoIdParam } = await params;
+        const locationId = parseInt(id);
+        const photoId = parseInt(photoIdParam);
 
         if (isNaN(locationId) || isNaN(photoId)) {
             return apiError('Invalid location or photo ID', 400);

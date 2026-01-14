@@ -10,15 +10,11 @@ import { Loader2 } from "lucide-react";
 
 interface SavedLocationsPanelProps {
     onLocationClick: (location: Location) => void;
-    onEdit: (location: Location) => void;
-    onDelete: (id: number) => void;
     onShare: (location: Location) => void;
 }
 
 export function SavedLocationsPanel({
     onLocationClick,
-    onEdit,
-    onDelete,
     onShare,
 }: SavedLocationsPanelProps) {
     const [search, setSearch] = useState("");
@@ -117,8 +113,6 @@ export function SavedLocationsPanel({
                     <LocationListCompact
                         locations={filteredLocations}
                         isLoading={false}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
                         onShare={onShare}
                         onClick={handleLocationClick}
                     />

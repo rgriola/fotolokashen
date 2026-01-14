@@ -62,6 +62,7 @@ export function EditLocationDialog({
                         personalRating: null,
                         visitedAt: null,
                         color: null,
+                        visibility: 'private' as const,
                     }}
                     onSubmit={handleSubmit}
                     isPending={updateLocation.isPending}

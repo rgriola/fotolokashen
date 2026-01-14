@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { User, Mail, Phone, MapPin } from 'lucide-react';
+import { User, Mail, Phone, MapPin, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
 // Validation schema (matches backend validation)
@@ -58,12 +58,15 @@ type AccountSettingsFormData = z.infer<typeof accountSettingsSchema>;
 export function AccountSettingsForm() {
     const { user, refetchUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
+    const [hasChanges, setHasChanges] = useState(false);
+    const [changes, setChanges] = useState<string[]>([]);
 
     const {
         register,
         handleSubmit,
         reset,
-        formState: { errors },
+        watch,
+        formState: { errors, isDirty },
     } = useForm<AccountSettingsFormData>({
         resolver: zodResolver(accountSettingsSchema),
         defaultValues: {
@@ -76,19 +79,88 @@ export function AccountSettingsForm() {
         },
     });
 
+    // Watch individual fields to avoid object reference issues
+    const firstName = watch('firstName');
+    const lastName = watch('lastName');
+    const bio = watch('bio');
+    const phoneNumber = watch('phoneNumber');
+    const city = watch('city');
+    const country = watch('country');
+
+    // Track changes
+    useEffect(() => {
+        if (!user || !isDirty) {
+            setHasChanges(false);
+            setChanges([]);
+            return;
+        }
+
+        const changedFields: string[] = [];
+        const userBio = (user as { bio?: string }).bio || '';
+        const userPhone = (user as { phoneNumber?: string }).phoneNumber || '';
+        const userCity = (user as { city?: string }).city || '';
+        const userCountry = (user as { country?: string }).country || '';
+
+        if (firstName !== (user.firstName || '')) {
+            changedFields.push(`First Name: ${firstName || '(empty)'}`);
+        }
+        if (lastName !== (user.lastName || '')) {
+            changedFields.push(`Last Name: ${lastName || '(empty)'}`);
+        }
+        if (bio !== userBio) {
+            changedFields.push(`Bio: ${bio ? 'Updated' : 'Cleared'}`);
+        }
+        if (phoneNumber !== userPhone) {
+            changedFields.push(`Phone: ${phoneNumber || '(empty)'}`);
+        }
+        if (city !== userCity) {
+            changedFields.push(`City: ${city || '(empty)'}`);
+        }
+        if (country !== userCountry) {
+            changedFields.push(`Country: ${country || '(empty)'}`);
+        }
+
+        setChanges(changedFields);
+        setHasChanges(changedFields.length > 0);
+    }, [firstName, lastName, bio, phoneNumber, city, country, user, isDirty]);
+
     // Update form when user data is loaded
     useEffect(() => {
         if (user) {
+            const userBio = (user as { bio?: string }).bio || '';
+            const userPhone = (user as { phoneNumber?: string }).phoneNumber || '';
+            const userCity = (user as { city?: string }).city || '';
+            const userCountry = (user as { country?: string }).country || '';
+            
             reset({
                 firstName: user.firstName || '',
                 lastName: user.lastName || '',
-                bio: (user as any).bio || '',
-                phoneNumber: (user as any).phoneNumber || '',
-                city: (user as any).city || '',
-                country: (user as any).country || '',
+                bio: userBio,
+                phoneNumber: userPhone,
+                city: userCity,
+                country: userCountry,
             });
         }
     }, [user, reset]);
+
+    const handleDiscard = () => {
+        if (user) {
+            const userBio = (user as { bio?: string }).bio || '';
+            const userPhone = (user as { phoneNumber?: string }).phoneNumber || '';
+            const userCity = (user as { city?: string }).city || '';
+            const userCountry = (user as { country?: string }).country || '';
+            
+            reset({
+                firstName: user.firstName || '',
+                lastName: user.lastName || '',
+                bio: userBio,
+                phoneNumber: userPhone,
+                city: userCity,
+                country: userCountry,
+            });
+            toast.info('Changes discarded');
+        }
+    };
 
     const onSubmit = async (data: AccountSettingsFormData) => {
         setIsLoading(true);
@@ -120,18 +192,16 @@ export function AccountSettingsForm() {
     };
 
     return (
-        <Card>
-            <CardHeader className="text-center">
-                <CardTitle className="flex items-center justify-center gap-2">
-                    <User className="w-5 h-5" />
-                    Account Information
-                </CardTitle>
-                <CardDescription>
-                    Update your personal information and profile details
-                </CardDescription>
-            </CardHeader>
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <User className="w-5 h-5" />
+                        Account Information
+                    </CardTitle>
+                </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     {/* Email and Username (Read-only) - Side by Side */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Email (Read-only) */}
@@ -285,12 +355,56 @@ export function AccountSettingsForm() {
                             )}
                         </div>
                     </div>
-
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? 'Saving...' : 'Save Changes'}
-                    </Button>
                 </form>
             </CardContent>
         </Card>
+
+        {/* Unsaved Changes Banner */}
+        {hasChanges && (
+            <div className="fixed bottom-0 left-0 right-0 bg-amber-50 dark:bg-amber-950/20 border-t-2 border-amber-500 p-3 sm:p-4 shadow-lg z-50 animate-in slide-in-from-bottom">
+                <div className="container max-w-6xl mx-auto">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+                                <p className="font-semibold text-sm sm:text-base text-amber-900 dark:text-amber-100">
+                                    Unsaved changes
+                                </p>
+                            </div>
+                            <ul className="text-xs sm:text-sm text-amber-800 dark:text-amber-200 space-y-1 ml-6 sm:ml-0">
+                                {changes.slice(0, 3).map((change, i) => (
+                                    <li key={i} className="truncate">• {change}</li>
+                                ))}
+                                {changes.length > 3 && (
+                                    <li className="text-amber-700 dark:text-amber-300">
+                                        +{changes.length - 3} more...
+                                    </li>
+                                )}
+                            </ul>
+                        </div>
+                        <div className="flex gap-2 sm:gap-2 sm:flex-shrink-0">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleDiscard}
+                                disabled={isLoading}
+                                className="flex-1 sm:flex-initial border-amber-300 dark:border-amber-700 text-xs sm:text-sm h-9"
+                            >
+                                Discard
+                            </Button>
+                            <Button
+                                size="sm"
+                                onClick={handleSubmit(onSubmit)}
+                                disabled={isLoading}
+                                className="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm h-9"
+                            >
+                                {isLoading ? 'Saving...' : 'Save Changes'}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
+    </>
     );
 }

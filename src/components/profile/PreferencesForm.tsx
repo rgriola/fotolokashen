@@ -126,9 +126,11 @@ export function PreferencesForm() {
     return (
         <>
             {/* Home Location Settings - At Top */}
-            <HomeLocationSettings />
+            <div className="max-w-2xl mx-auto">
+                <HomeLocationSettings />
+            </div>
 
-            <Card>
+            <Card className="max-w-2xl mx-auto">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Settings className="w-5 h-5" />
@@ -157,10 +159,6 @@ export function PreferencesForm() {
                             checked={emailNotifications}
                             onCheckedChange={setEmailNotifications}
                             disabled={isLoading}
-                            className={emailNotifications
-                                ? 'data-[state=checked]:bg-green-500'
-                                : 'data-[state=unchecked]:bg-red-500'
-                            }
                         />
                     </div>
 
@@ -247,10 +245,6 @@ export function PreferencesForm() {
                                 checked={gpsPermission === 'granted'}
                                 onCheckedChange={(checked) => setGpsPermission(checked ? 'granted' : 'denied')}
                                 disabled={isLoading}
-                                className={gpsPermission === 'granted'
-                                    ? 'data-[state=checked]:bg-green-500'
-                                    : 'data-[state=unchecked]:bg-red-500'
-                                }
                             />
                         </div>
                         <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">

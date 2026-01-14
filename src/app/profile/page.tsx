@@ -44,8 +44,10 @@ function ProfilePageInner() {
                 </TabsList>
 
                 <TabsContent value="account" className="space-y-4">
-                    <ProfileHeader />
-                    <AccountSettingsForm />
+                    <div className="max-w-2xl mx-auto space-y-4">
+                        <ProfileHeader />
+                        <AccountSettingsForm />
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="privacy" className="space-y-4">
@@ -53,11 +55,13 @@ function ProfilePageInner() {
                 </TabsContent>
 
                 <TabsContent value="security" className="space-y-4">
-                    <ChangeUsernameForm />
-                    <ChangeEmailForm />
-                    <ChangePasswordForm />
-                    <SecurityActivityLog />
-                    <DeleteAccountSection />
+                    <div className="max-w-2xl mx-auto space-y-4">
+                        <ChangeUsernameForm />
+                        <ChangeEmailForm />
+                        <ChangePasswordForm />
+                        <SecurityActivityLog />
+                        <DeleteAccountSection />
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="preferences" className="space-y-4">

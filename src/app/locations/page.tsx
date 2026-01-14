@@ -165,8 +165,6 @@ function LocationsPageInner() {
                         <LocationListCompact
                             locations={filteredLocations}
                             isLoading={isLoading}
-                            onEdit={setEditLocation}
-                            onDelete={handleDelete}
                             onShare={setShareLocation}
                             onClick={(location) => {
                                 setSelectedLocation(location);

@@ -19,8 +19,7 @@ import {
   Link2, 
   Globe, 
   Lock,
-  UserPlus,
-  Mail
+  UserPlus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Location } from '@/types/location';
@@ -34,7 +33,7 @@ interface ShareLocationDialogProps {
 }
 
 type VisibilityType = 'public' | 'private' | 'followers';
-type ShareMethodType = 'link' | 'users' | 'email';
+type ShareMethodType = 'link' | 'users';
 
 export function ShareLocationDialog({ 
   location, 
@@ -42,10 +41,11 @@ export function ShareLocationDialog({
   onOpenChange 
 }: ShareLocationDialogProps) {
   const { user } = useAuth();
-  const [visibility, setVisibility] = useState<VisibilityType>('public');
+  // Initialize visibility from the location's current visibility (from userSave)
+  const currentVisibility = (location?.userSave?.visibility as VisibilityType) || 'public';
+  const [visibility, setVisibility] = useState<VisibilityType>(currentVisibility);
   const [shareMethod, setShareMethod] = useState<ShareMethodType>('link');
   const [copied, setCopied] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
 
   if (!location) return null;
 
@@ -70,7 +70,10 @@ export function ShareLocationDialog({
 
   const handleUpdateVisibility = async () => {
     try {
-      const response = await fetch(`/api/v1/locations/${location.id}/visibility`, {
+      // Use UserSave ID (not Location ID) - the API updates the UserSave visibility
+      const userSaveId = location.userSave?.id || location.id;
+      
+      const response = await fetch(`/api/v1/locations/${userSaveId}/visibility`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ visibility }),
@@ -78,24 +81,18 @@ export function ShareLocationDialog({
 
       if (response.ok) {
         toast.success(`Location visibility updated to ${visibility}`);
+        // Reload the page to reflect changes
+        window.location.reload();
         onOpenChange(false);
       } else {
-        throw new Error('Failed to update visibility');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update visibility');
       }
     } catch (error) {
-      toast.error('Failed to update visibility');
-      console.error(error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update visibility';
+      toast.error(errorMessage);
+      console.error('Visibility update error:', error);
     }
-  };
-
-  const handleEmailShare = () => {
-    const link = getShareLink();
-    const subject = encodeURIComponent(`Check out this location: ${location.name}`);
-    const body = encodeURIComponent(
-      `I wanted to share this location with you:\n\n${location.name}\n${location.address || ''}\n\n${link}`
-    );
-    window.open(`mailto:${emailInput}?subject=${subject}&body=${body}`, '_blank');
-    toast.success('Opening email client...');
   };
 
   const visibilityOptions = [
@@ -130,18 +127,14 @@ export function ShareLocationDialog({
         </DialogHeader>
 
         <Tabs defaultValue="link" value={shareMethod} onValueChange={(v) => setShareMethod(v as ShareMethodType)} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="link" className="flex items-center gap-2">
               <Link2 className="w-4 h-4" />
               Link
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center gap-2">
+            <TabsTrigger value="users" disabled className="flex items-center gap-2 opacity-50 cursor-not-allowed">
               <UserPlus className="w-4 h-4" />
-              Users
-            </TabsTrigger>
-            <TabsTrigger value="email" className="flex items-center gap-2">
-              <Mail className="w-4 h-4" />
-              Email
+              Friends
             </TabsTrigger>
           </TabsList>
 
@@ -215,39 +208,14 @@ export function ShareLocationDialog({
           <TabsContent value="users" className="space-y-4 mt-4">
             <div className="text-center py-8">
               <UserPlus className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="font-semibold text-lg mb-2">Share with Specific Users</h3>
+              <h3 className="font-semibold text-lg mb-2">Share with Friends</h3>
               <p className="text-sm text-muted-foreground mb-4">
                 This feature will be available in Phase 2C
               </p>
               <p className="text-xs text-muted-foreground">
-                Coming soon: Share with individual users, groups, or teams
+                Coming soon: Share with individual friends, groups, or teams
               </p>
             </div>
-          </TabsContent>
-
-          <TabsContent value="email" className="space-y-4 mt-4">
-            <div className="space-y-3">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="friend@example.com"
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground">
-                This will open your email client with a pre-filled message
-              </p>
-            </div>
-
-            <Button 
-              onClick={handleEmailShare} 
-              className="w-full"
-              disabled={!emailInput}
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Open Email Client
-            </Button>
           </TabsContent>
         </Tabs>
       </DialogContent>

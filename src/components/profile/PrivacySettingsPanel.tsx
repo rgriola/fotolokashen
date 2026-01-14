@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Eye, Users, Lock, Globe } from 'lucide-react';
+import { Loader2, Eye, Users, Lock, Globe, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Select,
@@ -32,8 +32,17 @@ export default function PrivacySettingsPanel() {
     showSavedLocations: 'public',
     allowFollowRequests: true,
   });
+  const [originalSettings, setOriginalSettings] = useState<PrivacySettings>({
+    profileVisibility: 'public',
+    showInSearch: true,
+    showLocation: true,
+    showSavedLocations: 'public',
+    allowFollowRequests: true,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [changes, setChanges] = useState<string[]>([]);
 
   useEffect(() => {
     fetchSettings();
@@ -44,13 +53,15 @@ export default function PrivacySettingsPanel() {
       const response = await fetch('/api/v1/users/me');
       if (response.ok) {
         const data = await response.json();
-        setSettings({
+        const fetchedSettings = {
           profileVisibility: data.user.profileVisibility || 'public',
           showInSearch: data.user.showInSearch ?? true,
           showLocation: data.user.showLocation ?? true,
           showSavedLocations: data.user.showSavedLocations || 'public',
           allowFollowRequests: data.user.allowFollowRequests ?? true,
-        });
+        };
+        setSettings(fetchedSettings);
+        setOriginalSettings(fetchedSettings);
       }
     } catch (error) {
       console.error('Failed to fetch privacy settings:', error);
@@ -59,6 +70,41 @@ export default function PrivacySettingsPanel() {
       setIsLoading(false);
     }
   };
+
+  // Track changes
+  useEffect(() => {
+    const changedFields: string[] = [];
+
+    if (settings.profileVisibility !== originalSettings.profileVisibility) {
+      changedFields.push(`Profile Visibility: ${settings.profileVisibility}`);
+    }
+    if (settings.showInSearch !== originalSettings.showInSearch) {
+      changedFields.push(`Show in Search: ${settings.showInSearch ? 'Yes' : 'No'}`);
+    }
+    if (settings.showLocation !== originalSettings.showLocation) {
+      changedFields.push(`Show Location: ${settings.showLocation ? 'Yes' : 'No'}`);
+    }
+    if (settings.showSavedLocations !== originalSettings.showSavedLocations) {
+      changedFields.push(`Saved Locations: ${settings.showSavedLocations}`);
+    }
+    if (settings.allowFollowRequests !== originalSettings.allowFollowRequests) {
+      changedFields.push(`Allow Follow Requests: ${settings.allowFollowRequests ? 'Yes' : 'No'}`);
+    }
+
+    setChanges(changedFields);
+    setHasChanges(changedFields.length > 0);
+  }, [
+    settings.profileVisibility,
+    settings.showInSearch,
+    settings.showLocation,
+    settings.showSavedLocations,
+    settings.allowFollowRequests,
+    originalSettings.profileVisibility,
+    originalSettings.showInSearch,
+    originalSettings.showLocation,
+    originalSettings.showSavedLocations,
+    originalSettings.allowFollowRequests,
+  ]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -71,6 +117,7 @@ export default function PrivacySettingsPanel() {
 
       if (response.ok) {
         toast.success('Privacy settings updated');
+        setOriginalSettings(settings);
       } else {
         const error = await response.json();
         throw new Error(error.error || 'Failed to update settings');
@@ -81,6 +128,11 @@ export default function PrivacySettingsPanel() {
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleDiscard = () => {
+    setSettings(originalSettings);
+    toast.info('Changes discarded');
   };
 
   const getVisibilityIcon = (visibility: string) => {
@@ -120,7 +172,7 @@ export default function PrivacySettingsPanel() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-2xl mx-auto">
       {/* Profile Visibility */}
       <Card>
         <CardHeader>
@@ -330,19 +382,59 @@ export default function PrivacySettingsPanel() {
         </CardContent>
       </Card>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={isSaving} size="lg">
-          {isSaving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            'Save Privacy Settings'
-          )}
-        </Button>
-      </div>
+      {/* Unsaved Changes Banner */}
+      {hasChanges && (
+        <div className="fixed bottom-0 left-0 right-0 bg-amber-50 dark:bg-amber-950/20 border-t-2 border-amber-500 p-3 sm:p-4 shadow-lg z-50 animate-in slide-in-from-bottom">
+          <div className="container max-w-6xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+                  <p className="font-semibold text-sm sm:text-base text-amber-900 dark:text-amber-100">
+                    Unsaved privacy changes
+                  </p>
+                </div>
+                <ul className="text-xs sm:text-sm text-amber-800 dark:text-amber-200 space-y-1 ml-6 sm:ml-0">
+                  {changes.slice(0, 3).map((change, i) => (
+                    <li key={i} className="truncate">• {change}</li>
+                  ))}
+                  {changes.length > 3 && (
+                    <li className="text-amber-700 dark:text-amber-300">
+                      +{changes.length - 3} more...
+                    </li>
+                  )}
+                </ul>
+              </div>
+              <div className="flex gap-2 sm:gap-2 sm:flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDiscard}
+                  disabled={isSaving}
+                  className="flex-1 sm:flex-initial border-amber-300 dark:border-amber-700 text-xs sm:text-sm h-9"
+                >
+                  Discard
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm h-9"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

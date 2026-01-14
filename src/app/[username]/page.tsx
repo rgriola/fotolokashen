@@ -275,7 +275,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
     <div className="min-h-screen bg-background">
       {/* Banner Image */}
       {user.bannerImage ? (
-        <div className="relative w-full h-48 md:h-64 bg-muted">
+        <div className="relative w-full h-32 md:h-40 bg-muted">
           <Image
             src={user.bannerImage}
             alt={`${displayName}'s banner`}
@@ -285,18 +285,18 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           />
         </div>
       ) : (
-        <div className="w-full h-48 md:h-64 bg-gradient-to-r from-primary/20 to-primary/10" />
+        <div className="w-full h-32 md:h-40 bg-gradient-to-r from-primary/20 to-primary/10" />
       )}
 
       {/* Profile Content */}
-      <div className="container mx-auto px-4 -mt-16 md:-mt-20">
+      <div className="container mx-auto px-4 -mt-12 md:-mt-14">
         <div className="max-w-4xl mx-auto">
           {/* Back to Settings Button (only for own profile) */}
           {isOwnProfile && (
-            <div className="mb-4">
+            <div className="mb-2">
               <Link href="/profile">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Settings className="w-4 h-4" />
+                <Button variant="outline" size="sm" className="gap-2 h-8 text-xs">
+                  <Settings className="w-3 h-3" />
                   Back to Settings
                 </Button>
               </Link>
@@ -304,19 +304,19 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           )}
 
           {/* Avatar & Basic Info */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 mb-4">
             {/* Avatar */}
             <div className="relative">
               {user.avatar ? (
                 <Image
                   src={user.avatar}
                   alt={displayName}
-                  width={128}
-                  height={128}
-                  className="rounded-full border-4 border-background shadow-lg"
+                  width={96}
+                  height={96}
+                  className="rounded-full border-4 border-background shadow-lg md:w-28 md:h-28"
                 />
               ) : (
-                <div className="w-32 h-32 rounded-full border-4 border-background shadow-lg bg-muted flex items-center justify-center text-4xl font-bold text-muted-foreground">
+                <div className="w-24 h-24 md:w-28 md:h-28 rounded-full border-4 border-background shadow-lg bg-muted flex items-center justify-center text-3xl md:text-4xl font-bold text-muted-foreground">
                   {user.username.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -324,15 +324,15 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
 
             {/* Name & Username */}
             <div className="flex-1">
-              <h1 className="text-3xl font-bold">{displayName}</h1>
-              <p className="text-muted-foreground">@{user.username}</p>
+              <h1 className="text-xl md:text-2xl font-bold">{displayName}</h1>
+              <p className="text-sm text-muted-foreground">@{user.username}</p>
             </div>
           </div>
 
           {/* Bio */}
           {user.bio && (
-            <div className="mb-6 p-4 bg-card rounded-lg border">
-              <p className="text-foreground whitespace-pre-wrap">{user.bio}</p>
+            <div className="mb-4 p-3 bg-card rounded-lg border">
+              <p className="text-sm text-foreground whitespace-pre-wrap">{user.bio}</p>
             </div>
           )}
 
@@ -348,7 +348,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
             }}
           />
 
-          <div className="mb-8 space-y-2">
+          <div className="mb-6 space-y-1">
             {/* Location (with privacy check) */}
             {user.showLocation && user.city && user.country && (
               <p className="text-sm text-muted-foreground">

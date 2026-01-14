@@ -102,6 +102,9 @@ export interface UserSave {
 
     // UI customization
     color: string | null  // Hex color like "#FF5733"
+    
+    // Privacy
+    visibility: 'public' | 'private' | 'followers'
 
     location?: Location
 }

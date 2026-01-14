@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
         // Parse and validate scopes
         const requestedScopes = scope ? scope.split(' ') : [];
-        const invalidScopes = requestedScopes.filter(s => !client.scopes.includes(s));
+        const invalidScopes = requestedScopes.filter((s: string) => !client.scopes.includes(s));
 
         if (invalidScopes.length > 0) {
             return apiError(`Invalid scopes: ${invalidScopes.join(', ')}`, 400, 'INVALID_SCOPE');

@@ -1,19 +1,13 @@
 "use client";
 
-import { MapPin, Star, Edit, Trash2, Share2, MoreVertical, Camera, Heart } from "lucide-react";
+import { Star, Share2, Camera, Heart, Copy, Check } from "lucide-react";
 import type { Location } from "@/types/location";
 import { useAuth } from "@/lib/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { getColorForType } from "@/lib/location-constants";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
 import { useState } from "react";
+import { toast } from "sonner";
 
 // Get Google Maps API key for static images
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -21,8 +15,6 @@ const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 interface LocationListCompactProps {
     locations: Location[];
     isLoading?: boolean;
-    onEdit?: (location: Location) => void;
-    onDelete?: (id: number) => void;
     onShare?: (location: Location) => void;
     onClick?: (location: Location) => void;
 }
@@ -30,12 +22,9 @@ interface LocationListCompactProps {
 export function LocationListCompact({
     locations,
     isLoading,
-    onEdit,
-    onDelete,
     onShare,
     onClick,
 }: LocationListCompactProps) {
-    const { user } = useAuth();
 
     if (isLoading) {
         return (
@@ -88,10 +77,6 @@ export function LocationListCompact({
     return (
         <div className="space-y-2">
             {locations.map((location) => {
-                // Check if user can edit (creator or admin)
-                const canEdit = user?.isAdmin || location.createdBy === user?.id;
-
-                const typeColor = getColorForType(location.type || "OTHER");
                 const personalRating = location.userSave?.personalRating || 0;
 
                 // Get photo URL
@@ -108,15 +93,11 @@ export function LocationListCompact({
                     <LocationListItem
                         key={location.id}
                         location={location}
-                        canEdit={canEdit}
-                        typeColor={typeColor}
                         personalRating={personalRating}
                         photoUrl={photoUrl}
                         mapImageUrl={mapImageUrl}
                         onClick={onClick}
-                        onEdit={onEdit}
                         onShare={onShare}
-                        onDelete={onDelete}
                     />
                 );
             })}
@@ -127,35 +108,80 @@ export function LocationListCompact({
 // Separate component to handle image state
 function LocationListItem({
     location,
-    canEdit,
-    typeColor,
     personalRating,
     photoUrl,
     mapImageUrl,
     onClick,
-    onEdit,
     onShare,
-    onDelete,
 }: {
     location: Location;
-    canEdit: boolean;
-    typeColor: string;
     personalRating: number;
     photoUrl: string | null;
     mapImageUrl: string;
     onClick?: (location: Location) => void;
-    onEdit?: (location: Location) => void;
     onShare?: (location: Location) => void;
-    onDelete?: (id: number) => void;
 }) {
     const [photoError, setPhotoError] = useState(false);
     const [mapError, setMapError] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const { user } = useAuth();
+
+    const handleCopyLink = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!user?.username) return;
+        
+        const link = `${window.location.origin}/@${user.username}/locations/${location.id}`;
+        try {
+            await navigator.clipboard.writeText(link);
+            setCopied(true);
+            toast.success('Link copied to clipboard!');
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            toast.error('Failed to copy link');
+        }
+    };
+
+    const handleShare = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onShare?.(location);
+    };
 
     return (
         <div
-            className="group flex items-center gap-4 p-3 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+            className="group flex items-center gap-3 p-3 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
             onClick={() => onClick?.(location)}
         >
+            {/* Left Side Actions */}
+            <div className="flex flex-col gap-2 flex-shrink-0">
+                {/* Share Button */}
+                {onShare && (
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={handleShare}
+                        title="Share location"
+                    >
+                        <Share2 className="w-4 h-4" />
+                    </Button>
+                )}
+                
+                {/* Copy Link Button */}
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={handleCopyLink}
+                    title="Copy link to clipboard"
+                >
+                    {copied ? (
+                        <Check className="w-4 h-4 text-green-600" />
+                    ) : (
+                        <Copy className="w-4 h-4" />
+                    )}
+                </Button>
+            </div>
+
             {/* Photo Thumbnail */}
             <div className="flex-shrink-0 w-16 h-16 rounded overflow-hidden bg-muted">
                 {photoUrl && !photoError ? (
@@ -201,55 +227,6 @@ function LocationListItem({
                     {location.address || `${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}`}
                 </p>
             </div>
-
-            {/* Actions */}
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                        <MoreVertical className="w-4 h-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    {canEdit && onEdit && (
-                        <DropdownMenuItem
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit(location);
-                            }}
-                        >
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
-                        </DropdownMenuItem>
-                    )}
-                    {onShare && (
-                        <DropdownMenuItem
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onShare(location);
-                            }}
-                        >
-                            <Share2 className="w-4 h-4 mr-2" />
-                            Share
-                        </DropdownMenuItem>
-                    )}
-                    {canEdit && onDelete && (
-                        <DropdownMenuItem
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(location.userSave?.id || location.id);
-                            }}
-                            className="text-destructive focus:bg-destructive focus:text-white"
-                        >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete
-                        </DropdownMenuItem>
-                    )}
-                </DropdownMenuContent>
-            </DropdownMenu>
         </div>
     );
 }

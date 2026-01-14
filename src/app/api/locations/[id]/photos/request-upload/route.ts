@@ -11,7 +11,7 @@ import { generateSignedUploadUrl } from '@/lib/imagekit';
  */
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         // Require authentication
@@ -20,7 +20,8 @@ export async function POST(
             return apiError('Authentication required', 401);
         }
 
-        const locationId = parseInt(params.id);
+        const { id } = await params;
+        const locationId = parseInt(id);
         if (isNaN(locationId)) {
             return apiError('Invalid location ID', 400);
         }

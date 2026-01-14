@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -109,30 +110,59 @@ export function HomeLocationSettings() {
             <CardContent className="space-y-4">
                 {/* Current Home Location Display */}
                 {user?.homeLocationLat && user?.homeLocationLng ? (
-                    <div className="bg-muted rounded-lg p-4">
-                        <p className="text-sm font-medium mb-2">Currently set to:</p>
-                        <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                            <div className="flex-1">
-                                <p className="text-sm font-medium">
-                                    {user.homeLocationName || 'Custom Location'}
+                    <div className="bg-muted rounded-lg p-4 space-y-4">
+                        {/* Static Map Preview */}
+                        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-muted">
+                            <Image
+                                src={`https://maps.googleapis.com/maps/api/staticmap?center=${user.homeLocationLat},${user.homeLocationLng}&zoom=13&size=600x400&markers=color:red%7C${user.homeLocationLat},${user.homeLocationLng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
+                                alt="Home location map"
+                                fill
+                                className="object-cover"
+                                unoptimized
+                            />
+                        </div>
+                        
+                        <div>
+                            <p className="text-sm font-medium mb-2">Currently set to:</p>
+                            <div className="flex items-start gap-2">
+                                <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium">
+                                        {user.homeLocationName || 'Custom Location'}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        {user.homeLocationLat.toFixed(4)}° N, {user.homeLocationLng.toFixed(4)}° W
+                                    </p>
+                                </div>
+                            </div>
+                            {user.homeLocationUpdated && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    Last updated: {new Date(user.homeLocationUpdated).toLocaleDateString()}
                                 </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    {user.homeLocationLat.toFixed(4)}° N, {user.homeLocationLng.toFixed(4)}° W
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {/* Map Placeholder */}
+                        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-950/20 dark:to-blue-900/10 border-2 border-dashed border-blue-300 dark:border-blue-700">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                                <Map className="w-12 h-12 text-blue-400 dark:text-blue-600" />
+                                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                    No home location set
+                                </p>
+                                <p className="text-xs text-blue-500 dark:text-blue-500 text-center px-4">
+                                    Choose a location below to see it here
                                 </p>
                             </div>
                         </div>
-                        {user.homeLocationUpdated && (
-                            <p className="text-xs text-muted-foreground mt-2">
-                                Last updated: {new Date(user.homeLocationUpdated).toLocaleDateString()}
+                        
+                        {/* Info Message */}
+                        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                            <p className="text-sm text-blue-900 dark:text-blue-100">
+                                <span className="font-semibold">Default:</span> Your map will center on New York City until you set a home location.
                             </p>
-                        )}
-                    </div>
-                ) : (
-                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                        <p className="text-sm text-blue-900 dark:text-blue-100">
-                            <span className="font-semibold">No home location set.</span> Your map will default to New York City.
-                        </p>
+                        </div>
                     </div>
                 )}
 
