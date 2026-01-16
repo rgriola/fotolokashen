@@ -52,65 +52,66 @@ export async function POST(request: NextRequest) {
  * Handle authorization_code grant type
  */
 async function handleAuthorizationCodeGrant(body: any, client: any, request: NextRequest) {
-    const { code, code_verifier, redirect_uri } = body;
+    try {
+        const { code, code_verifier, redirect_uri } = body;
 
-    // Validate required parameters
-    if (!code || !code_verifier || !redirect_uri) {
-        return apiError('Missing required parameters for authorization_code grant', 400, 'INVALID_REQUEST');
-    }
+        // Validate required parameters
+        if (!code || !code_verifier || !redirect_uri) {
+            return apiError('Missing required parameters for authorization_code grant', 400, 'INVALID_REQUEST');
+        }
 
-    // Find authorization code
-    const authCode = await prisma.oAuthAuthorizationCode.findUnique({
-        where: { code },
-        include: { user: true },
-    });
+        // Find authorization code
+        const authCode = await prisma.oAuthAuthorizationCode.findUnique({
+            where: { code },
+            include: { user: true },
+        });
 
-    if (!authCode) {
-        return apiError('Invalid authorization code', 400, 'INVALID_GRANT');
-    }
+        if (!authCode) {
+            return apiError('Invalid authorization code', 400, 'INVALID_GRANT');
+        }
 
-    // Validate code hasn't been used
-    if (authCode.used) {
-        return apiError('Authorization code already used', 400, 'INVALID_GRANT');
-    }
+        // Validate code hasn't been used
+        if (authCode.used) {
+            return apiError('Authorization code already used', 400, 'INVALID_GRANT');
+        }
 
-    // Validate code hasn't expired
-    if (new Date() > authCode.expiresAt) {
-        return apiError('Authorization code expired', 400, 'INVALID_GRANT');
-    }
+        // Validate code hasn't expired
+        if (new Date() > authCode.expiresAt) {
+            return apiError('Authorization code expired', 400, 'INVALID_GRANT');
+        }
 
-    // Validate client_id matches
-    if (authCode.clientId !== client.clientId) {
-        return apiError('Client mismatch', 400, 'INVALID_GRANT');
-    }
+        // Validate client_id matches
+        if (authCode.clientId !== client.clientId) {
+            return apiError('Client mismatch', 400, 'INVALID_GRANT');
+        }
 
-    // Validate redirect_uri matches
-    if (authCode.redirectUri !== redirect_uri) {
-        return apiError('Redirect URI mismatch', 400, 'INVALID_GRANT');
-    }
+        // Validate redirect_uri matches
+        if (authCode.redirectUri !== redirect_uri) {
+            return apiError('Redirect URI mismatch', 400, 'INVALID_GRANT');
+        }
 
-    // Validate PKCE code_verifier
-    const codeChallenge = crypto
-        .createHash('sha256')
-        .update(code_verifier)
-        .digest('base64url');
+        // Validate PKCE code_verifier
+        const codeChallenge = crypto
+            .createHash('sha256')
+            .update(code_verifier)
+            .digest('base64url');
 
-    if (codeChallenge !== authCode.codeChallenge) {
-        return apiError('Invalid code_verifier', 400, 'INVALID_GRANT');
-    }
+        if (codeChallenge !== authCode.codeChallenge) {
+            return apiError('Invalid code_verifier', 400, 'INVALID_GRANT');
+        }
 
-    // Mark code as used
-    await prisma.oAuthAuthorizationCode.update({
-        where: { code },
-        data: {
-            used: true,
-            usedAt: new Date(),
-        },
-    });
+        // Mark code as used
+        await prisma.oAuthAuthorizationCode.update({
+            where: { code },
+            data: {
+                used: true,
+                usedAt: new Date(),
+            },
+        });
 
-    // Generate access token (JWT)
-    const user = serializeUser(authCode.user);
-    const accessToken = generateToken(user, false);
+        // Generate access token (JWT)
+        const user = serializeUser(authCode.user);
+        const accessToken = generateToken(user, false);
 
     // Create session in database for token validation
     const sessionExpiresAt = new Date();
@@ -124,6 +125,18 @@ async function handleAuthorizationCodeGrant(body: any, client: any, request: Nex
     const userAgent = body.user_agent || 
                       request.headers.get('user-agent') || 
                       'fotolokashen-ios';
+
+    // Delete existing iOS sessions to prevent duplicates
+    // Also delete any mobile-browser sessions created during OAuth login flow
+    // The web login was only needed for authentication, the iOS session is the real one
+    await prisma.session.deleteMany({
+        where: {
+            userId: authCode.userId,
+            deviceType: {
+                in: ['ios', 'mobile-browser-ios', 'mobile-browser-android'],
+            },
+        },
+    });
 
     await prisma.session.create({
         data: {
@@ -171,13 +184,25 @@ async function handleAuthorizationCodeGrant(body: any, client: any, request: Nex
             avatar: user.avatar,
         },
     });
+    
+    } catch (error) {
+        console.error('[OAuth Token] Authorization code grant error:', error);
+        console.error('[OAuth Token] Error details:', {
+            code: body.code,
+            client_id: client?.clientId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+        });
+        return apiError('Token exchange failed', 500, 'SERVER_ERROR');
+    }
 }
 
 /**
  * Handle refresh_token grant type
  */
 async function handleRefreshTokenGrant(body: any, client: any, request: NextRequest) {
-    const { refresh_token } = body;
+    try {
+        const { refresh_token } = body;
 
     // Validate required parameters
     if (!refresh_token) {
@@ -232,6 +257,17 @@ async function handleRefreshTokenGrant(body: any, client: any, request: NextRequ
                       request.headers.get('user-agent') || 
                       'fotolokashen-ios';
 
+    // Delete existing mobile sessions to prevent duplicates from refresh
+    // Also clean up any mobile-browser sessions that may have been created
+    await prisma.session.deleteMany({
+        where: {
+            userId: refreshTokenRecord.userId,
+            deviceType: {
+                in: ['ios', 'mobile-browser-ios', 'mobile-browser-android'],
+            },
+        },
+    });
+
     await prisma.session.create({
         data: {
             token: accessToken,
@@ -254,4 +290,15 @@ async function handleRefreshTokenGrant(body: any, client: any, request: NextRequ
         expires_in: 86400, // 24 hours
         scope: refreshTokenRecord.scopes.join(' '),
     });
+    
+    } catch (error) {
+        console.error('[OAuth Token] Refresh token grant error:', error);
+        console.error('[OAuth Token] Error details:', {
+            refresh_token: body.refresh_token?.substring(0, 20) + '...',
+            client_id: client?.clientId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+        });
+        return apiError('Token refresh failed', 500, 'SERVER_ERROR');
+    }
 }

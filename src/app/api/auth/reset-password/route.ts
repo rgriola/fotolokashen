@@ -247,6 +247,9 @@ export async function POST(request: NextRequest) {
     // Extract device name from user agent (simplified)
     const deviceName = sessionUserAgent.split('(')[1]?.split(')')[0] || null;
     
+    // Note: All sessions were already deleted above for security (line 163)
+    // This ensures the new session is the only active one
+    
     await prisma.session.create({
       data: {
         userId: user.id,

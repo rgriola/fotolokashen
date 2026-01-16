@@ -319,6 +319,15 @@ export async function POST(request: NextRequest) {
     // Extract device name from user agent (simplified)
     const deviceName = userAgent.split('(')[1]?.split(')')[0] || null;
 
+    // Delete existing sessions for this device type to prevent duplicates
+    // This allows multi-device (web + iOS) but prevents multiple sessions from same device
+    await prisma.session.deleteMany({
+      where: {
+        userId: user.id,
+        deviceType: deviceType,
+      },
+    });
+
     // Create session record with full metadata
     const expiryDays = rememberMe ? 30 : 7;
     await prisma.session.create({

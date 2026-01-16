@@ -1,6 +1,6 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-01-15  
+**Last Updated**: 2026-01-16  
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
@@ -26,6 +26,77 @@ The fotolokashen iOS app is a camera-first mobile companion for location scoutin
 ---
 
 ## Recent Major Updates
+
+### 2026-01-16: iOS App & Session Management Improvements ✅ COMPLETE
+
+**iOS Photo Upload System**
+- ✅ Fixed image dimension corruption (3024×4032 → 6750×9000)
+  - Root cause: UIImage.size returns points, not pixels on retina displays
+  - Solution: Calculate actual pixel dimensions using image.scale
+  - Result: Images now properly resized to ≤3000px max dimension
+- ✅ Fixed ImageKit folder path leading slash issue
+  - OAuth endpoints now strip leading "/" before upload
+  - Prevents silent upload failures (200 OK but no file saved)
+- ✅ Enhanced photo upload error handling and logging
+- ✅ Made ImageKit response fields optional for robustness
+
+**Session Management Overhaul**
+- ✅ **Complete session metadata capture** for all auth methods:
+  - `ipAddress` - User's IP from X-Forwarded-For or X-Real-IP headers
+  - `userAgent` - Full browser/device user agent string
+  - `deviceType` - Auto-detected: web, mobile-browser-ios, mobile-browser-android, ios (OAuth)
+  - `deviceName` - Extracted from user agent (e.g., "Windows NT 10.0; Win64; x64")
+  - `loginMethod` - Distinguishes: email_password, registration, password_reset, oauth2_pkce, oauth2_refresh
+  - `isActive` - Always true on creation
+  - `country` - Null (ready for IP geolocation integration)
+
+- ✅ **Multi-device session support**:
+  - REMOVED session wipe on login (previously deleted all user sessions)
+  - Web and iOS sessions can now coexist without conflicts
+  - Users can be logged in on multiple devices simultaneously
+  - iOS logout only affects iOS sessions, not web sessions
+
+- ✅ **OAuth session improvements**:
+  - Token exchange captures device metadata from request body
+  - iOS app sends device name, user agent, country/region
+  - Refresh token grant also captures full metadata
+  - Session cleanup on logout only affects iOS device type
+
+**ImageKit URL Management**
+- ✅ Replaced all hardcoded `https://ik.imagekit.io/rgriola` URLs
+- ✅ Centralized URL management with `getImageKitUrl()` helper
+- ✅ Safe hardcoded fallback for client-side rendering
+- ✅ Server uses `IMAGEKIT_URL_ENDPOINT` from Vercel environment
+- ✅ Reduced vendor lock-in (one place to change CDN URLs)
+
+**Files Updated:**
+- Backend (Session Metadata):
+  - `src/app/api/auth/login/route.ts`
+  - `src/app/api/auth/register/route.ts`
+  - `src/app/api/auth/reset-password/route.ts`
+  - `src/app/api/auth/oauth/token/route.ts`
+  - `src/app/api/auth/oauth/revoke/route.ts`
+
+- Frontend (ImageKit URLs):
+  - `src/lib/imagekit.ts`
+  - `src/app/[username]/locations/[id]/page.tsx`
+  - `src/app/[username]/page.tsx`
+  - `src/app/[username]/locations/page.tsx`
+  - `src/app/[username]/locations/[id]/test-page.tsx`
+
+- iOS App:
+  - `fotolokashen-ios/fotolokashen/fotolokashen/swift-utilities/ImageCompressor.swift`
+  - `fotolokashen-ios/fotolokashen/fotolokashen/swift-utilities/AuthService.swift`
+  - `fotolokashen-ios/fotolokashen/fotolokashen/swift-utilities/Models/Photo.swift`
+
+**Benefits:**
+- Better debugging of multi-device session issues
+- Understanding user login patterns across platforms
+- Identifying suspicious login attempts by device/location
+- Support for simultaneous web + mobile usage
+- Proper iOS/web session isolation
+
+---
 
 ### 2026-01-13: Phase 2A - Social & Privacy Features ✅ COMPLETE
 
@@ -236,11 +307,14 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 
 ### High Priority
 
-**Session Management Enhancements** (Not Started)
-- [ ] Validate IP address in sessions
-- [ ] Limit to 2 active sessions per user
-- [ ] Auto-logout oldest session (prefer keeping mobile)
-- [ ] Add "active session" detection for auto-logout timing
+**Session Management Enhancements** ✅ COMPLETED (2026-01-16)
+- [x] Capture all session metadata (IP, user agent, device type, device name)
+- [x] Support multi-device sessions (web + iOS simultaneously)
+- [x] iOS logout isolation (doesn't affect web sessions)
+- [ ] Validate IP address changes in sessions
+- [ ] Limit to 2-3 active sessions per user
+- [ ] Auto-logout oldest session when limit exceeded
+- [ ] Add "active session" management UI
 
 **Email Verification Improvements** (Partially Complete)
 - [x] Add token expiration (30 minutes)

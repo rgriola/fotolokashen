@@ -51,12 +51,16 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // CRITICAL: Delete all sessions for this user (logout from all devices)
-        // This ensures a clean state when logging back in
+        // CRITICAL: Delete iOS and mobile-browser sessions for this user
+        // Mobile-browser sessions are created during OAuth login flow (web-based auth)
+        // iOS sessions are created when the app exchanges the authorization code
+        // Leave web sessions active (user may be logged in on desktop)
         await prisma.session.deleteMany({
             where: { 
                 userId: refreshToken.userId,
-                deviceType: 'ios' // Only delete iOS sessions, leave web sessions active
+                deviceType: {
+                    in: ['ios', 'mobile-browser-ios', 'mobile-browser-android']
+                }
             },
         });
 
