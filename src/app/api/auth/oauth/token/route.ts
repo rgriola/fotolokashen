@@ -112,6 +112,19 @@ async function handleAuthorizationCodeGrant(body: any, client: any) {
     const user = serializeUser(authCode.user);
     const accessToken = generateToken(user, false);
 
+    // Create session in database for token validation
+    const sessionExpiresAt = new Date();
+    sessionExpiresAt.setDate(sessionExpiresAt.getDate() + 1); // 24 hours (matches JWT expiry)
+
+    await prisma.session.create({
+        data: {
+            token: accessToken,
+            userId: authCode.userId,
+            expiresAt: sessionExpiresAt,
+            deviceType: 'ios',
+        },
+    });
+
     // Generate refresh token
     const refreshToken = crypto.randomBytes(32).toString('base64url');
     const refreshExpiresAt = new Date();
@@ -190,6 +203,19 @@ async function handleRefreshTokenGrant(body: any, client: any, request: NextRequ
     // Generate new access token
     const user = serializeUser(refreshTokenRecord.user);
     const accessToken = generateToken(user, false);
+
+    // Create session in database for token validation
+    const sessionExpiresAt = new Date();
+    sessionExpiresAt.setDate(sessionExpiresAt.getDate() + 1); // 24 hours (matches JWT expiry)
+
+    await prisma.session.create({
+        data: {
+            token: accessToken,
+            userId: refreshTokenRecord.userId,
+            expiresAt: sessionExpiresAt,
+            deviceType: refreshTokenRecord.deviceType || 'ios',
+        },
+    });
 
     // Return new access token
     return apiResponse({
