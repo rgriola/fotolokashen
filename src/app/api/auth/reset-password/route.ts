@@ -226,11 +226,39 @@ export async function POST(request: NextRequest) {
 
     // Create new session
     const expiryDays = 7; // Default session length
+    
+    // Extract session metadata
+    const sessionIpAddress = request.headers.get('x-forwarded-for') || 
+                             request.headers.get('x-real-ip') || 
+                             'unknown';
+    const sessionUserAgent = request.headers.get('user-agent') || 'unknown';
+    
+    // Detect device type from user agent
+    const ua = sessionUserAgent.toLowerCase();
+    let deviceType = 'web';
+    if (ua.includes('iphone') || ua.includes('ipad')) {
+      deviceType = 'mobile-browser-ios';
+    } else if (ua.includes('android')) {
+      deviceType = 'mobile-browser-android';
+    } else if (ua.includes('mobile')) {
+      deviceType = 'mobile-browser';
+    }
+    
+    // Extract device name from user agent (simplified)
+    const deviceName = sessionUserAgent.split('(')[1]?.split(')')[0] || null;
+    
     await prisma.session.create({
       data: {
         userId: user.id,
         token: jwtToken,
         expiresAt: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000),
+        ipAddress: sessionIpAddress,
+        userAgent: sessionUserAgent,
+        deviceType: deviceType,
+        deviceName: deviceName,
+        country: null,
+        loginMethod: 'password_reset',
+        isActive: true,
       },
     });
 

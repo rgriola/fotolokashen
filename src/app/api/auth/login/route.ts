@@ -293,17 +293,46 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    await prisma.session.deleteMany({
-      where: { userId: user.id },
-    });
+    // REMOVED: Don't delete all sessions - allow multiple devices
+    // Users should be able to be logged in on web + mobile simultaneously
+    // await prisma.session.deleteMany({
+    //   where: { userId: user.id },
+    // });
 
-    // Create session record
+    // Extract session metadata
+    const ipAddress = request.headers.get('x-forwarded-for') || 
+                      request.headers.get('x-real-ip') || 
+                      'unknown';
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+    
+    // Detect device type from user agent
+    const ua = userAgent.toLowerCase();
+    let deviceType = 'web';
+    if (ua.includes('iphone') || ua.includes('ipad')) {
+      deviceType = 'mobile-browser-ios';
+    } else if (ua.includes('android')) {
+      deviceType = 'mobile-browser-android';
+    } else if (ua.includes('mobile')) {
+      deviceType = 'mobile-browser';
+    }
+    
+    // Extract device name from user agent (simplified)
+    const deviceName = userAgent.split('(')[1]?.split(')')[0] || null;
+
+    // Create session record with full metadata
     const expiryDays = rememberMe ? 30 : 7;
     await prisma.session.create({
       data: {
         userId: user.id,
         token,
         expiresAt: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000),
+        ipAddress: ipAddress,
+        userAgent: userAgent,
+        deviceType: deviceType,
+        deviceName: deviceName,
+        country: null, // Could be extracted from IP geolocation service
+        loginMethod: 'email_password',
+        isActive: true,
       },
     });
 
