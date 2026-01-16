@@ -4,18 +4,16 @@
  */
 
 // ImageKit URL Endpoint - reads from environment variable
-// Client-side: NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT (accessible in browser)
 // Server-side: IMAGEKIT_URL_ENDPOINT (server-only operations)
+// Client-side: Falls back to hardcoded value (since CDN URL is not sensitive)
 export const IMAGEKIT_URL_ENDPOINT = 
-    process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || // Client-side (browser)
-    process.env.IMAGEKIT_URL_ENDPOINT;                // Server-side fallback
+    process.env.IMAGEKIT_URL_ENDPOINT ||              // Server-side (from Vercel)
+    'https://ik.imagekit.io/rgriola';                 // Client-side fallback (safe to hardcode)
 
 // Validate at module load
 if (!IMAGEKIT_URL_ENDPOINT) {
-    console.error('❌ CRITICAL: ImageKit URL endpoint environment variable is not set!');
-    console.error('Required: NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT (client) or IMAGEKIT_URL_ENDPOINT (server)');
-    console.error('Set in Vercel: Dashboard → Settings → Environment Variables');
-    console.error('Example: https://ik.imagekit.io/your-id');
+    console.error('❌ CRITICAL: ImageKit URL endpoint not configured!');
+    console.error('This should never happen - hardcoded fallback should work');
 }
 
 // Environment-based folder prefix
@@ -178,9 +176,6 @@ export async function generateSignedUploadUrl({
 
         // Generate authentication parameters from ImageKit SDK
         const authParams = imagekit.getAuthenticationParameters();
-
-        // Calculate expiry (5 minutes from now)
-        const expire = Math.floor(Date.now() / 1000) + 300;
 
         return {
             uploadUrl: 'https://upload.imagekit.io/api/v1/files/upload',
