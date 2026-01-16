@@ -4,11 +4,19 @@
  */
 
 // ImageKit URL Endpoint - reads from environment variable
-// Fallback to rgriola endpoint for backward compatibility
-export const IMAGEKIT_URL_ENDPOINT = process.env.IMAGEKIT_URL_ENDPOINT;
-// ||
-// process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT ||
-//  'https://ik.imagekit.io/rgriola';
+// Client-side: NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT (accessible in browser)
+// Server-side: IMAGEKIT_URL_ENDPOINT (server-only operations)
+export const IMAGEKIT_URL_ENDPOINT = 
+    process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || // Client-side (browser)
+    process.env.IMAGEKIT_URL_ENDPOINT;                // Server-side fallback
+
+// Validate at module load
+if (!IMAGEKIT_URL_ENDPOINT) {
+    console.error('❌ CRITICAL: ImageKit URL endpoint environment variable is not set!');
+    console.error('Required: NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT (client) or IMAGEKIT_URL_ENDPOINT (server)');
+    console.error('Set in Vercel: Dashboard → Settings → Environment Variables');
+    console.error('Example: https://ik.imagekit.io/your-id');
+}
 
 // Environment-based folder prefix
 const ENV_FOLDER = process.env.NODE_ENV === 'production' ? '/production' : '/development';
@@ -27,12 +35,25 @@ export function getImageKitFolder(path: string): string {
  * Constructs full ImageKit URL from file path
  * This is CLIENT-SAFE - no SDK initialization required
  * @param filePath - ImageKit file path (e.g., /development/locations/abc/photo.jpg)
- * @returns Full ImageKit URL
+ * @param transformations - Optional ImageKit transformations (e.g., 'w-400,h-300,c-at_max')
+ * @returns Full ImageKit URL with optional transformations
  */
-export function getImageKitUrl(filePath: string): string {
+export function getImageKitUrl(filePath: string, transformations?: string): string {
+    if (!IMAGEKIT_URL_ENDPOINT) {
+        console.warn('ImageKit URL endpoint not configured, photo URLs will be broken');
+        return '';
+    }
+    
     // Remove leading slash if present (ImageKit paths start with /)
     const cleanPath = filePath.startsWith('/') ? filePath : `/${filePath}`;
-    return `${IMAGEKIT_URL_ENDPOINT}${cleanPath}`;
+    const baseUrl = `${IMAGEKIT_URL_ENDPOINT}${cleanPath}`;
+    
+    // Add transformations if provided
+    if (transformations) {
+        return `${baseUrl}?tr=${transformations}`;
+    }
+    
+    return baseUrl;
 }
 
 /**

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
+import { getImageKitUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -143,7 +144,7 @@ export default async function UserLocationsPage({ params }: UserLocationsPagePro
                     {save.location.photos[0] ? (
                       <div className="relative w-full h-48 bg-muted">
                         <Image
-                          src={`https://ik.imagekit.io/rgriola${save.location.photos[0].imagekitFilePath}?tr=w-400,h-300,c-at_max`}
+                          src={getImageKitUrl(save.location.photos[0].imagekitFilePath, 'w-400,h-300,c-at_max')}
                           alt={save.location.name}
                           fill
                           className="object-cover group-hover:scale-105 transition-transform"

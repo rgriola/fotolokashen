@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
+import { getImageKitUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Calendar, Star, ArrowLeft } from 'lucide-react';
@@ -76,7 +77,7 @@ export async function generateMetadata({ params }: PublicLocationPageProps): Pro
     : user.username;
 
   const ogImage = save.location.photos[0]?.imagekitFilePath
-    ? `https://ik.imagekit.io/rgriola${save.location.photos[0].imagekitFilePath}?tr=w-1200,h-630,c-at_max`
+    ? getImageKitUrl(save.location.photos[0].imagekitFilePath, 'w-1200,h-630,c-at_max')
     : undefined;
 
   return {
@@ -165,7 +166,7 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
         {primaryPhoto && (
           <div className="mb-6 rounded-lg overflow-hidden">
             <Image
-              src={`https://ik.imagekit.io/rgriola${primaryPhoto.imagekitFilePath}?tr=w-1200,h-800,c-at_max`}
+              src={getImageKitUrl(primaryPhoto.imagekitFilePath, 'w-1200,h-800,c-at_max')}
               alt={save.location.name}
               width={1200}
               height={800}
@@ -239,7 +240,7 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
                 .map((photo) => (
                   <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden">
                     <Image
-                      src={`https://ik.imagekit.io/rgriola${photo.imagekitFilePath}?tr=w-400,h-400,c-at_max`}
+                      src={getImageKitUrl(photo.imagekitFilePath, 'w-400,h-400,c-at_max')}
                       alt={photo.caption || save.location.name}
                       fill
                       className="object-cover"

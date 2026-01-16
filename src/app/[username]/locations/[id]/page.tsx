@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
 import Image from 'next/image';
+import { getImageKitUrl } from '@/lib/imagekit';
 import Link from 'next/link';
 import { MapPin, Calendar, Star, ExternalLink, Clock, DollarSign, Phone, AlertCircle, Sunrise, ParkingSquare, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -86,7 +87,7 @@ export async function generateMetadata({ params }: PublicLocationPageProps): Pro
     : user.username;
 
   const ogImage = save.location.photos[0]?.imagekitFilePath
-    ? `https://ik.imagekit.io/rgriola${save.location.photos[0].imagekitFilePath}?tr=w-1200,h-630,c-at_max`
+    ? getImageKitUrl(save.location.photos[0].imagekitFilePath, 'w-1200,h-630,c-at_max')
     : undefined;
 
   return {
@@ -134,7 +135,7 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
             <div className="relative aspect-video w-full">
               {primaryPhoto ? (
                 <Image
-                  src={`https://ik.imagekit.io/rgriola${primaryPhoto.imagekitFilePath}?tr=w-1200,h-675,c-at_max`}
+                  src={getImageKitUrl(primaryPhoto.imagekitFilePath, 'w-1200,h-675,c-at_max')}
                   alt={save.location.name}
                   fill
                   className="object-cover"
@@ -410,7 +411,7 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
                       .map((photo) => (
                         <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden border">
                           <Image
-                            src={`https://ik.imagekit.io/rgriola${photo.imagekitFilePath}?tr=w-400,h-400,c-at_max`}
+                            src={getImageKitUrl(photo.imagekitFilePath, 'w-400,h-400,c-at_max')}
                             alt={photo.caption || save.location.name}
                             fill
                             className="object-cover hover:scale-105 transition-transform duration-200"
