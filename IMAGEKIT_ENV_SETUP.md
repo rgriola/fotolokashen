@@ -107,3 +107,7 @@ After deploying, verify it's working:
 **Status**: ✅ Code committed and pushed  
 **Next**: Add env var to Vercel (optional but recommended)  
 **Impact**: None if skipped (fallback works)
+
+---
+
+![Uploaded Image](https://ik.imagekit.io/rgriola/production/users/4/photos/photo_1768588473263_CoTZL1Lsmb.jpg)

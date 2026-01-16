@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
         // Handle different grant types
         if (grant_type === 'authorization_code') {
-            return handleAuthorizationCodeGrant(body, client);
+            return handleAuthorizationCodeGrant(body, client, request);
         } else if (grant_type === 'refresh_token') {
             return handleRefreshTokenGrant(body, client, request);
         } else {
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 /**
  * Handle authorization_code grant type
  */
-async function handleAuthorizationCodeGrant(body: any, client: any) {
+async function handleAuthorizationCodeGrant(body: any, client: any, request: NextRequest) {
     const { code, code_verifier, redirect_uri } = body;
 
     // Validate required parameters
@@ -116,12 +116,27 @@ async function handleAuthorizationCodeGrant(body: any, client: any) {
     const sessionExpiresAt = new Date();
     sessionExpiresAt.setDate(sessionExpiresAt.getDate() + 1); // 24 hours (matches JWT expiry)
 
+    // Extract metadata from request
+    const ipAddress = body.ip_address || 
+                      request.headers.get('x-forwarded-for') || 
+                      request.headers.get('x-real-ip') || 
+                      'unknown';
+    const userAgent = body.user_agent || 
+                      request.headers.get('user-agent') || 
+                      'fotolokashen-ios';
+
     await prisma.session.create({
         data: {
             token: accessToken,
             userId: authCode.userId,
             expiresAt: sessionExpiresAt,
             deviceType: 'ios',
+            ipAddress: ipAddress,
+            userAgent: userAgent,
+            deviceName: body.device_name || null,
+            country: body.country || null,
+            loginMethod: 'oauth2_pkce',
+            isActive: true,
         },
     });
 
@@ -208,12 +223,27 @@ async function handleRefreshTokenGrant(body: any, client: any, request: NextRequ
     const sessionExpiresAt = new Date();
     sessionExpiresAt.setDate(sessionExpiresAt.getDate() + 1); // 24 hours (matches JWT expiry)
 
+    // Extract metadata from request
+    const ipAddress = body.ip_address || 
+                      request.headers.get('x-forwarded-for') || 
+                      request.headers.get('x-real-ip') || 
+                      'unknown';
+    const userAgent = body.user_agent || 
+                      request.headers.get('user-agent') || 
+                      'fotolokashen-ios';
+
     await prisma.session.create({
         data: {
             token: accessToken,
             userId: refreshTokenRecord.userId,
             expiresAt: sessionExpiresAt,
             deviceType: refreshTokenRecord.deviceType || 'ios',
+            ipAddress: ipAddress,
+            userAgent: userAgent,
+            deviceName: body.device_name || null,
+            country: body.country || null,
+            loginMethod: 'oauth2_refresh',
+            isActive: true,
         },
     });
 
