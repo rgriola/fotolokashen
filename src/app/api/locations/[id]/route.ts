@@ -36,6 +36,14 @@ export async function GET(
                                 lastName: true,
                             },
                         },
+                        photos: {
+                            orderBy: { uploadedAt: 'desc' },
+                            select: {
+                                id: true,
+                                imagekitFilePath: true,
+                                isPrimary: true,
+                            },
+                        },
                     },
                 },
             },
