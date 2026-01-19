@@ -29,12 +29,20 @@ export default function PrivacyPolicyPage() {
             <p className="text-muted-foreground leading-relaxed">
               Welcome to fotolokashen. We respect your privacy and are committed to protecting 
               your personal data. This privacy policy explains how we collect, use, and safeguard 
-              your information when you use our web application and iOS app.
+              your information when you use our web application and iOS app. 
+            </p>
+            <h2 className="text-2xl font-semibold mb-4">2. Our Assignment</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Fotolokashen is a professional production management app. The intent is to track production location 
+              features for future use, sharing with crew or colleague, adding locations to your film projects during all 
+              phase of productions, and to make it easy for our community to do so. You can connect with friends and 
+              an allow access to each other's location tracking. 
+              A production manager, photographer, producer or any part of a production can see this info unless you limit access. 
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">2. Information We Collect</h2>
+            <h2 className="text-2xl font-semibold mb-4">3. Information We Collect</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
               We collect the following types of information:
             </p>
@@ -45,7 +53,7 @@ export default function PrivacyPolicyPage() {
               </li>
               <li>
                 <strong>Location Data:</strong> Places you save, including addresses, coordinates, 
-                and any notes you add
+                and notes you add
               </li>
               <li>
                 <strong>Photos:</strong> Images you upload to associate with your saved locations
@@ -62,7 +70,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">3. How We Use Your Information</h2>
+            <h2 className="text-2xl font-semibold mb-4">4. How We Use Your Information</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
               We use your information to:
             </p>
@@ -77,18 +85,24 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">4. Data Storage & Security</h2>
+            <h2 className="text-2xl font-semibold mb-4">5. Data Storage & Security</h2>
             <p className="text-muted-foreground leading-relaxed">
               Your data is stored securely using industry-standard encryption. We use secure 
               cloud infrastructure to store your account information, locations, and photos. 
               All data transmission is encrypted using HTTPS/TLS protocols. We implement 
               appropriate technical and organizational measures to protect your personal data 
-              against unauthorized access, alteration, disclosure, or destruction.
+              against unauthorized access, alteration, disclosure, or destruction. 
+            </p>
+            <h2 className="text-2xl font-semibold mb-4">6. Your Password</h2>
+            <p className="text-muted-foreground leading-relaxed">
+             Once your password is validated for security we cannot read it. It is encypted. 
+             Do not share your password or account with another person, this is a security risk.
+             Your password should be unique to this app. 
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">5. Third-Party Services</h2>
+            <h2 className="text-2xl font-semibold mb-4">7. Third-Party Services</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
               We use the following third-party services:
             </p>
@@ -97,7 +111,7 @@ export default function PrivacyPolicyPage() {
                 <strong>Google Maps API:</strong> To display maps and search for locations
               </li>
               <li>
-                <strong>Cloud Storage:</strong> To securely store your uploaded photos
+                <strong>Image Kit:</strong> To securely store your uploaded photos
               </li>
               <li>
                 <strong>Authentication Providers:</strong> For secure login (if using social login)
@@ -109,9 +123,9 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">6. Data Sharing</h2>
+            <h2 className="text-2xl font-semibold mb-4">8. Data Sharing</h2>
             <p className="text-muted-foreground leading-relaxed">
-              We do not sell, trade, or rent your personal information to third parties. 
+              We do not sell, trade, or rent your personal information to third parties.
               We may share your information only in the following circumstances:
             </p>
             <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4 mt-4">
@@ -123,7 +137,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">7. Your Rights</h2>
+            <h2 className="text-2xl font-semibold mb-4">9. Your Rights</h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
               You have the right to:
             </p>
@@ -144,26 +158,24 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">8. Data Retention</h2>
+            <h2 className="text-2xl font-semibold mb-4">10. Data Retention</h2>
             <p className="text-muted-foreground leading-relaxed">
               We retain your personal data for as long as your account is active or as needed 
-              to provide you services. If you delete your account, we will delete your personal 
-              data within 30 days, except where we are required to retain it for legal purposes.
+              to provide you services. If you delete your account, we delete your personal 
+              data within 30 days, inlcuding photos, except where we are required to retain data for legal purposes.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">9. Children&apos;s Privacy</h2>
+            <h2 className="text-2xl font-semibold mb-4">11. Children&apos;s Privacy</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Our service is not intended for children under 13 years of age. We do not 
-              knowingly collect personal information from children under 13. If you are a 
-              parent or guardian and believe your child has provided us with personal 
-              information, please contact us.
+              Our service is not intended for children. Only adults 18+ years of age are allowed to use Fotolokashen.
+              Parents if you believe your has signed up for an account please contact us via our support page. 
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">10. Changes to This Policy</h2>
+            <h2 className="text-2xl font-semibold mb-4">12. Changes to This Policy</h2>
             <p className="text-muted-foreground leading-relaxed">
               We may update this privacy policy from time to time. We will notify you of any 
               changes by posting the new policy on this page and updating the &quot;Last updated&quot; 
@@ -172,7 +184,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
+            <h2 className="text-2xl font-semibold mb-4">13. Contact Us</h2>
             <p className="text-muted-foreground leading-relaxed">
               If you have any questions about this Privacy Policy, please contact us through 
               our{" "}
