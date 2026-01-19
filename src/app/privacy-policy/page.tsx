@@ -31,13 +31,16 @@ export default function PrivacyPolicyPage() {
               your personal data. This privacy policy explains how we collect, use, and safeguard 
               your information when you use our web application and iOS app. 
             </p>
+            </section>
+            <section>
             <h2 className="text-2xl font-semibold mb-4">2. Our Assignment</h2>
             <p className="text-muted-foreground leading-relaxed">
               Fotolokashen is a professional production management app. The intent is to track production location 
-              features for future use, sharing with crew or colleague, adding locations to your film projects during all 
-              phase of productions, and to make it easy for our community to do so. You can connect with friends and 
-              an allow access to each other's location tracking. 
+              features for future use, sharing with colleagues, add to your film projects during all 
+              phase of productions. The most important part : to make it easy for our community to do so. 
+              You can connect with friends and allow access to each other's location tracking.
               A production manager, photographer, producer or any part of a production can see this info unless you limit access. 
+              You can also make your location public and anyone can see it.  
             </p>
           </section>
 
@@ -93,6 +96,9 @@ export default function PrivacyPolicyPage() {
               appropriate technical and organizational measures to protect your personal data 
               against unauthorized access, alteration, disclosure, or destruction. 
             </p>
+             </section>
+
+          <section>
             <h2 className="text-2xl font-semibold mb-4">6. Your Password</h2>
             <p className="text-muted-foreground leading-relaxed">
              Once your password is validated for security we cannot read it. It is encypted. 
