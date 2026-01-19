@@ -95,7 +95,7 @@ export function RegisterForm() {
     setIsLoading(true);
 
     try {
-      const { confirmPassword, dateOfBirth, ...registerData } = data;
+      const { confirmPassword, ...registerData } = data;
 
       const response = await fetch('/api/auth/register', {
         method: 'POST',

@@ -7,7 +7,6 @@ import { apiResponse, apiError, setAuthCookie } from '@/lib/api-middleware';
 import {
   validateUsername,
   isUsernameAvailable,
-  normalizeUsername,
 } from '@/lib/username-utils';
 
 // Validation schema for registration
@@ -28,6 +27,7 @@ const registerSchema = z.object({
     .regex(/[0-9]/, 'Password must contain at least one number'),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
+  dateOfBirth: z.string().min(1, 'Date of birth is required'),
 });
 
 /**
@@ -48,7 +48,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, username, password, firstName, lastName } = validation.data;
+    const { email, username, password, firstName, lastName, dateOfBirth } = validation.data;
+
+    // Validate age (must be 18+)
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+    const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+    
+    if (actualAge < 18) {
+      return apiError(
+        'You must be at least 18 years old to create an account',
+        400,
+        'AGE_RESTRICTION'
+      );
+    }
 
     // Validate username format
     const usernameValidation = validateUsername(username);
@@ -94,6 +110,7 @@ export async function POST(request: NextRequest) {
         passwordHash,
         firstName: firstName || null,
         lastName: lastName || null,
+        dateOfBirth: new Date(dateOfBirth),
         verificationToken,
         verificationTokenExpiry,
         emailVerified: false,

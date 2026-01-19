@@ -14,6 +14,7 @@ model User {
   passwordHash            String
   firstName               String?
   lastName                String?
+  dateOfBirth             DateTime?
   emailVerified           Boolean                  @default(false)
   verificationToken       String?
   resetToken              String?
