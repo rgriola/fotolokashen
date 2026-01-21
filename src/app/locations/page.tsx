@@ -9,11 +9,13 @@ import { LocationListCompact } from "@/components/locations/LocationListCompact"
 import { LocationFilters } from "@/components/locations/LocationFilters";
 import { FilterPanel } from "@/components/locations/FilterPanel";
 import { ShareLocationDialog } from "@/components/locations/ShareLocationDialog";
-import { EditLocationDialog } from "@/components/locations/EditLocationDialog";
-import { LocationDetailModal } from "@/components/locations/LocationDetailModal";
+import { EditLocationPanel } from "@/components/panels/EditLocationPanel";
+import { LocationDetailPanel } from "@/components/panels/LocationDetailPanel";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
-import { List, LayoutGrid } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import { List, LayoutGrid, X, Save, Camera, Sun, Building, Heart } from "lucide-react";
 import type { Location, UserSave } from "@/types/location";
 
 function LocationsPageInner() {
@@ -26,7 +28,13 @@ function LocationsPageInner() {
     const [editLocation, setEditLocation] = useState<Location | null>(null);
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [showEditPanel, setShowEditPanel] = useState(false);
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+    // Panel state for Edit
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [indoorOutdoor, setIndoorOutdoor] = useState<"indoor" | "outdoor">("outdoor");
+    const [showPhotoUpload, setShowPhotoUpload] = useState(false);
 
     // Fetch locations (search is handled client-side)
     const { data, isLoading, error } = useLocations({
@@ -119,7 +127,7 @@ function LocationsPageInner() {
                             onSortChange={setSortBy}
                         />
 
-                        {/* View Toggle Button - Single button that switches icon */}
+                        {/* View Toggle Button - Shows icon for the OTHER view */}
                         <Button
                             variant="outline"
                             size="icon"
@@ -128,9 +136,9 @@ function LocationsPageInner() {
                             title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
                         >
                             {viewMode === "grid" ? (
-                                <LayoutGrid className="w-4 h-4" />
-                            ) : (
                                 <List className="w-4 h-4" />
+                            ) : (
+                                <LayoutGrid className="w-4 h-4" />
                             )}
                         </Button>
                     </div>
@@ -153,7 +161,13 @@ function LocationsPageInner() {
                         <LocationList
                             locations={filteredLocations}
                             isLoading={isLoading}
-                            onEdit={setEditLocation}
+                            onEdit={(location) => {
+                                setEditLocation(location);
+                                setIsFavorite(location.userSave?.isFavorite || false);
+                                setIndoorOutdoor((location.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
+                                setShowPhotoUpload(false);
+                                setShowEditPanel(true);
+                            }}
                             onDelete={handleDelete}
                             onShare={setShareLocation}
                             onClick={(location) => {
@@ -175,12 +189,124 @@ function LocationsPageInner() {
                 </div>
             </div>
 
-            {/* Edit Dialog */}
-            <EditLocationDialog
-                location={editLocation}
-                open={!!editLocation}
-                onOpenChange={(open) => !open && setEditLocation(null)}
-            />
+            {/* Edit Panel */}
+            <Sheet open={showEditPanel} onOpenChange={setShowEditPanel}>
+                <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+                    {/* Custom Header with Controls */}
+                    <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-background z-10">
+                        <SheetTitle>Edit Location</SheetTitle>
+                        <div className="flex items-center gap-1">
+                            {/* Save Button */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                form="edit-location-form"
+                                type="submit"
+                                className="shrink-0 bg-indigo-600 hover:bg-indigo-700 hover:text-white"
+                                title="Save changes"
+                            >
+                                <Save className="w-4 h-4 text-white" />
+                            </Button>
+                            
+                            {/* Photo Upload Toggle */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setShowPhotoUpload(!showPhotoUpload)}
+                                className={`shrink-0 ${showPhotoUpload ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500'} text-white hover:text-white`}
+                                title="Toggle photo upload"
+                            >
+                                <Camera className="w-4 h-4 text-white" />
+                            </Button>
+                            
+                            {/* Indoor/Outdoor Toggle */}
+                            <div className="flex items-center gap-0.5">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIndoorOutdoor("outdoor")}
+                                    className="shrink-0"
+                                    title="Outdoor"
+                                >
+                                    <Sun
+                                        className={`w-5 h-5 transition-colors ${
+                                            indoorOutdoor === "outdoor"
+                                                ? "text-amber-500 fill-amber-500"
+                                                : "text-muted-foreground"
+                                        }`}
+                                    />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setIndoorOutdoor("indoor")}
+                                    className="shrink-0"
+                                    title="Indoor"
+                                >
+                                    <Building
+                                        className={`w-5 h-5 transition-colors ${
+                                            indoorOutdoor === "indoor"
+                                                ? "text-blue-600 stroke-[2.5]"
+                                                : "text-muted-foreground"
+                                        }`}
+                                        fill={indoorOutdoor === "indoor" ? "#fbbf24" : "none"}
+                                        fillOpacity={indoorOutdoor === "indoor" ? 0.2 : 0}
+                                    />
+                                </Button>
+                            </div>
+                            
+                            {/* Favorite Toggle */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setIsFavorite(!isFavorite)}
+                                className="shrink-0"
+                                title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                            >
+                                <Heart
+                                    className={`w-5 h-5 transition-colors ${
+                                        isFavorite
+                                            ? "fill-red-500 text-red-500"
+                                            : "text-muted-foreground"
+                                    }`}
+                                />
+                            </Button>
+                            
+                            {/* Close Button */}
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setShowEditPanel(false)}
+                                className="shrink-0"
+                            >
+                                <X className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    </div>
+                    
+                    {/* Panel Content */}
+                    <div className="p-3">
+                        {editLocation?.userSave && (
+                            <EditLocationPanel
+                                locationId={editLocation.id}
+                                location={editLocation}
+                                userSave={editLocation.userSave}
+                                isFavorite={isFavorite}
+                                indoorOutdoor={indoorOutdoor}
+                                showPhotoUpload={showPhotoUpload}
+                                onSuccess={() => {
+                                    setShowEditPanel(false);
+                                    setEditLocation(null);
+                                }}
+                                onCancel={() => {
+                                    setShowEditPanel(false);
+                                    setEditLocation(null);
+                                }}
+                            />
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
 
             {/* Share Dialog */}
             <ShareLocationDialog
@@ -189,32 +315,43 @@ function LocationsPageInner() {
                 onOpenChange={(open) => !open && setShareLocation(null)}
             />
 
-            {/* Location Detail Modal */}
-            <LocationDetailModal
-                location={selectedLocation}
-                isOpen={showDetailModal}
-                onClose={() => {
-                    setShowDetailModal(false);
-                    setSelectedLocation(null);
-                }}
-                onEdit={(location) => {
-                    setEditLocation(location);
-                    setShowDetailModal(false);
-                }}
-                onDelete={(id) => {
-                    handleDelete(id);
-                    setShowDetailModal(false);
-                }}
-                onShare={(location) => {
-                    setShareLocation(location);
-                    setShowDetailModal(false);
-                }}
-                onViewOnMap={(location) => {
-                    // Use UserSave ID for the edit parameter (API expects UserSave ID)
-                    const userSaveId = location.userSave?.id || location.id;
-                    router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17&edit=${userSaveId}`);
-                }}
-            />
+            {/* Location Detail Panel */}
+            <Sheet open={showDetailModal} onOpenChange={setShowDetailModal}>
+                <SheetContent className="w-full sm:max-w-3xl overflow-y-auto p-0">
+                    <SheetHeader>
+                        <VisuallyHidden>
+                            <SheetTitle>{selectedLocation?.name || "Location Details"}</SheetTitle>
+                        </VisuallyHidden>
+                    </SheetHeader>
+                    <div className="h-full">
+                        {selectedLocation && (
+                            <LocationDetailPanel
+                                location={selectedLocation}
+                                onEdit={(location) => {
+                                    setEditLocation(location);
+                                    setIsFavorite(location.userSave?.isFavorite || false);
+                                    setIndoorOutdoor((location.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
+                                    setShowPhotoUpload(false);
+                                    setShowDetailModal(false);
+                                    setShowEditPanel(true);
+                                }}
+                                onDelete={(id) => {
+                                    handleDelete(id);
+                                    setShowDetailModal(false);
+                                    setSelectedLocation(null);
+                                }}
+                                onShare={(location) => {
+                                    setShareLocation(location);
+                                }}
+                                onViewOnMap={(location) => {
+                                    const userSaveId = location.userSave?.id || location.id;
+                                    router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17&edit=${userSaveId}`);
+                                }}
+                            />
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
         </div>
     );
 }

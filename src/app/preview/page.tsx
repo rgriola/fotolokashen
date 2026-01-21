@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { ShareLocationDialog } from '@/components/locations/ShareLocationDialog';
 import { EditLocationDialog } from '@/components/locations/EditLocationDialog';
-import { SaveLocationDialog } from '@/components/locations/SaveLocationDialog';
 import { LocationDetailModal } from '@/components/locations/LocationDetailModal';
 import { Settings, Share2, Edit, Eye, MapPin, Loader2, Save, Info, FileEdit, PanelLeft, Heart, Sun, Building, Camera, X } from 'lucide-react';
 import type { Location } from '@/types/location';
@@ -275,7 +274,7 @@ export default function PreviewPage() {
                                             // Use the first location to construct the URL
                                             const firstLocation = locations[0];
                                             const username = 'admin'; // You can replace this with actual username from session
-                                            window.open(`/@${username}/locations/${firstLocation.id}`, '_blank');
+                                            window.open(`/${username}/locations/${firstLocation.id}`, '_blank');
                                         } else {
                                             toast.error('No locations available. Save a location first.');
                                         }
@@ -615,12 +614,8 @@ export default function PreviewPage() {
                 </>
             )}
 
-            {/* Save Location Components */}
-            <SaveLocationDialog
-                open={saveDialogOpen}
-                onOpenChange={setSaveDialogOpen}
-                initialData={mockLocation}
-            />
+            {/* Save Location Components - REMOVED: SaveLocationDialog deleted */}
+            {/* Only SaveLocationPanel exists now (shown below in Sheet) */}
 
             {/* Grid View Modal - /locations page */}
             <Sheet open={showGridView} onOpenChange={setShowGridView}>

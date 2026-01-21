@@ -161,20 +161,8 @@ export const LocationCard = memo(function LocationCard({
             </div>
 
             <CardHeader className="space-y-3 pb-3">
-                {/* Main Address */}
-                <p className="text-sm text-black line-clamp-2 flex items-start gap-2">
-                    <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-black" />
-                    <span>{location.address || 'No address available'}</span>
-                </p>
-
-                {/* Coordinates */}
-                <div className="text-xs text-black flex items-center gap-2">
-                    <Navigation className="w-3 h-3 text-black" />
-                    <span>{location.lat.toFixed(3)}, {location.lng.toFixed(3)}</span>
-                </div>
-
-                {/* Action Buttons - Moved to top */}
-                <div className="flex gap-2 pt-2">
+                {/* Action Buttons - At the very top */}
+                <div className="flex gap-2">
                     {canEdit && (
                         <Button
                             variant="outline"
@@ -197,38 +185,23 @@ export const LocationCard = memo(function LocationCard({
                             e.stopPropagation();
                             onShare?.(location);
                         }}
-                        className={canEdit ? "flex-1" : "flex-1"}
+                        className="flex-1"
                     >
                         <Share2 className="w-4 h-4 mr-1" />
                         Share
                     </Button>
-
-                    {canEdit && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete?.(userSave?.id || location.id);
-                            }}
-                            className="text-destructive hover:bg-destructive hover:text-white"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    )}
                 </div>
 
-                {/* User Rating - Always show */}
-                <div className="flex items-center gap-1 hidden">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                            key={i}
-                            className={`w-4 h-4 ${i < (userSave?.personalRating || 0)
-                                ? 'text-yellow-500 fill-yellow-500'
-                                : 'text-gray-300'
-                                }`}
-                        />
-                    ))}
+                {/* Main Address */}
+                <p className="text-sm text-black line-clamp-2 flex items-start gap-2">
+                    <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-black" />
+                    <span>{location.address || 'No address available'}</span>
+                </p>
+
+                {/* Coordinates */}
+                <div className="text-xs text-black flex items-center gap-2">
+                    <Navigation className="w-3 h-3 text-black" />
+                    <span>{location.lat.toFixed(3)}, {location.lng.toFixed(3)}</span>
                 </div>
             </CardHeader>
 

@@ -11,7 +11,7 @@ import { UserLocationMarker } from '@/components/maps/UserLocationMarker';
 import { HomeLocationMarker } from '@/components/maps/HomeLocationMarker';
 import { RightSidebar } from '@/components/layout/RightSidebar';
 import { SaveLocationPanel } from '@/components/panels/SaveLocationPanel';
-import { EditLocationPanel } from '@/components/panels/EditLocationPanel';
+import { LocationDetailPanel } from '@/components/panels/LocationDetailPanel';
 import { SavedLocationsPanel } from '@/components/panels/SavedLocationsPanel';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LocationData } from '@/lib/maps-utils';
@@ -30,6 +30,7 @@ import { ShareLocationDialog } from '@/components/map/ShareLocationDialog';
 import { MapPin as MapPinIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { debounceLeading } from '@/lib/utils/debounce';
 
 interface MarkerData {
@@ -52,9 +53,10 @@ function MapPageInner() {
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [sidebarView, setSidebarView] = useState<'save' | 'edit'>('save');
+    const [sidebarView, setSidebarView] = useState<'save'>('save');
     const [locationToSave, setLocationToSave] = useState<MarkerData | null>(null);
     const [locationToEdit, setLocationToEdit] = useState<MarkerData | null>(null);
+    const [showDetailsSheet, setShowDetailsSheet] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
     const [indoorOutdoor, setIndoorOutdoor] = useState<"indoor" | "outdoor">("outdoor");
     const [showPhotoUpload, setShowPhotoUpload] = useState(false);
@@ -197,19 +199,17 @@ function MapPageInner() {
                         };
 
                         // Open edit panel
-                        setLocationToEdit(markerData as any);
-                        setSidebarView('edit');
-                        setIsSidebarOpen(true);
+                        setLocationToEdit(markerData as unknown as MarkerData);
+                        setShowDetailsSheet(true);
+                        setIsSidebarOpen(false); //  Close save panel if open
 
-                        // Load states
-                        setIsFavorite(location.userSave?.isFavorite || false);
-                        setIndoorOutdoor((location.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
+                        // No need to load states for details view
 
                         // Pan map with offset for desktop
                         if (typeof window !== 'undefined') {
                             const isDesktop = window.innerWidth >= 1024;
                             if (isDesktop) {
-                                const PANEL_WIDTH = 450;
+                                const PANEL_WIDTH = window.innerWidth / 2; // 50% of viewport
                                 setTimeout(() => {
                                     map.setOptions({
                                         center: position,
@@ -661,7 +661,7 @@ function MapPageInner() {
     };
 
     const handleMarkerClick = useCallback((marker: MarkerData) => {
-        // For saved markers: skip InfoWindow, open EditLocationPanel directly
+        // For saved markers: show Details Panel
         if (!marker.isTemporary && marker.userSave) {
             // Remove any temporary markers when clicking a saved marker
             setMarkers((prev) => prev.filter((m) => !m.isTemporary));
@@ -669,38 +669,24 @@ function MapPageInner() {
             // Close any open InfoWindow
             setSelectedMarker(null);
 
+            // Open Details Panel instead of Edit Panel
             setLocationToEdit(marker);
-            setSidebarView('edit');
-            setIsSidebarOpen(true);
+            setShowDetailsSheet(true);
 
-            // Load favorite state from saved location
-            setIsFavorite(marker.userSave?.isFavorite || false);
-
-            // Load indoor/outdoor state from saved location
-            setIndoorOutdoor((marker.userSave?.location?.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
-
-            // Pan map to adjust for panel (desktop only)
+            // Center map on the selected location with smooth animation
             if (map && typeof window !== 'undefined') {
                 const isDesktop = window.innerWidth >= 1024;
+                
+                // Use panTo for smooth animation and set zoom to 18 for better detail
+                map.panTo(marker.position);
+                map.setZoom(18);
+                
                 if (isDesktop) {
-                    const PANEL_WIDTH = 450;
+                    // After centering, pan to accommodate panel (right side)
+                    const PANEL_WIDTH = window.innerWidth / 2; // 50% of viewport
                     setTimeout(() => {
-                        // Center on marker first
-                        map.setOptions({
-                            center: marker.position,
-                            zoom: 17,
-                        });
-                        // Then pan to accommodate panel
-                        setTimeout(() => {
-                            map.panBy(PANEL_WIDTH / 2, 0);
-                        }, 100);
-                    }, 50);
-                } else {
-                    // Mobile: just center on marker
-                    map.setOptions({
-                        center: marker.position,
-                        zoom: 17,
-                    });
+                        map.panBy(PANEL_WIDTH / 2, 0);
+                    }, 300);
                 }
             }
         } else {
@@ -709,10 +695,8 @@ function MapPageInner() {
 
             // Zoom to street level and pan to marker
             if (map) {
-                map.setOptions({
-                    center: marker.position,
-                    zoom: 17,
-                });
+                map.panTo(marker.position);
+                map.setZoom(17);
             }
         }
     }, [map]);
@@ -855,21 +839,22 @@ function MapPageInner() {
                                         <button
                                             onClick={() => {
                                                 setLocationToEdit(selectedMarker);
-                                                setSidebarView('edit');
-                                                setIsSidebarOpen(true);
-                                                // Load favorite state from saved location
-                                                setIsFavorite(selectedMarker.userSave?.isFavorite || false);
-                                                // Load indoor/outdoor state from saved location
-                                                setIndoorOutdoor((selectedMarker.userSave?.location?.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
+                                                setShowDetailsSheet(true);
 
-                                                // Pan map to adjust for panel (same as Save button)
+                                                // Center map on the selected location with smooth animation
                                                 if (map && typeof window !== 'undefined') {
                                                     const isDesktop = window.innerWidth >= 1024;
+                                                    
+                                                    // Use panTo for smooth animation and set zoom to 18 for better detail
+                                                    map.panTo(selectedMarker.position);
+                                                    map.setZoom(18);
+                                                    
                                                     if (isDesktop) {
-                                                        const PANEL_WIDTH = 450;
+                                                        // After centering, pan to accommodate panel (right side)
+                                                        const PANEL_WIDTH = window.innerWidth / 2; // 50% of viewport
                                                         setTimeout(() => {
                                                             map.panBy(PANEL_WIDTH / 2, 0);
-                                                        }, 100);
+                                                        }, 300);
                                                     }
                                                 }
                                             }}
@@ -891,7 +876,7 @@ function MapPageInner() {
                                                     // Only pan on desktop (lg breakpoint = 1024px)
                                                     const isDesktop = window.innerWidth >= 1024;
                                                     if (isDesktop) {
-                                                        const PANEL_WIDTH = 450; // lg:w-[450px]
+                                                        const PANEL_WIDTH = window.innerWidth / 2; // 50% of viewport
                                                         // Pan left (same direction as panel sliding in)
                                                         setTimeout(() => {
                                                             map.panBy(PANEL_WIDTH / 2, 0);
@@ -970,7 +955,7 @@ function MapPageInner() {
 
                 {/* Locations Panel - Slide in from right, same width as save/edit panels */}
                 {showLocationsPanel && (
-                    <div className="absolute top-0 right-0 h-full w-full sm:w-[400px] lg:w-[450px] bg-white shadow-2xl z-20 flex flex-col animate-in slide-in-from-right">
+                    <div className="absolute top-0 right-0 h-full w-full sm:w-1/2 bg-white shadow-2xl z-20 flex flex-col animate-in slide-in-from-right">
                         {/* Panel Header */}
                         <div className="flex items-center justify-between p-3 border-b bg-gray-50">
                             <h3 className="font-semibold text-lg flex items-center gap-2">
@@ -1026,39 +1011,24 @@ function MapPageInner() {
                                 };
 
                                 // Don't set selectedMarker (which shows InfoWindow)
-                                // Just open the edit panel
-                                setLocationToEdit(markerData as any);
-                                setSidebarView('edit');
-                                setIsSidebarOpen(true);
+                                // Just open the details panel
+                                setLocationToEdit(markerData as unknown as MarkerData);
+                                setShowDetailsSheet(true);
 
-                                // Load favorite state
-                                setIsFavorite(location.userSave?.isFavorite || false);
-
-                                // Load indoor/outdoor state
-                                setIndoorOutdoor((location.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
-
-                                // Pan map to adjust for panel (same as handleMarkerClick)
+                                // Center map on the selected location with smooth animation
                                 if (map && typeof window !== 'undefined') {
                                     const isDesktop = window.innerWidth >= 1024;
+                                    
+                                    // Use panTo for smooth animation and set zoom to 18 for better detail
+                                    map.panTo({ lat: location.lat, lng: location.lng });
+                                    map.setZoom(18);
+                                    
                                     if (isDesktop) {
-                                        const PANEL_WIDTH = 450;
+                                        // After centering, pan to accommodate panel (right side)
+                                        const PANEL_WIDTH = window.innerWidth / 2; // 50% of viewport
                                         setTimeout(() => {
-                                            // Center on location first
-                                            map.setOptions({
-                                                center: { lat: location.lat, lng: location.lng },
-                                                zoom: 17,
-                                            });
-                                            // Then pan to accommodate panel
-                                            setTimeout(() => {
-                                                map.panBy(PANEL_WIDTH / 2, 0);
-                                            }, 100);
-                                        }, 50);
-                                    } else {
-                                        // Mobile: just center on location
-                                        map.setOptions({
-                                            center: { lat: location.lat, lng: location.lng },
-                                            zoom: 17,
-                                        });
+                                            map.panBy(PANEL_WIDTH / 2, 0);
+                                        }, 300);
                                     }
                                 }
                             }}
@@ -1085,7 +1055,7 @@ function MapPageInner() {
                     if (map && typeof window !== 'undefined') {
                         const isDesktop = window.innerWidth >= 1024;
                         if (isDesktop) {
-                            const PANEL_WIDTH = 450;
+                            const PANEL_WIDTH = window.innerWidth / 2; // 50% of viewport
                             // Pan right (panel sliding out to the right)
                             map.panBy(-PANEL_WIDTH / 2, 0);
                         }
@@ -1098,8 +1068,8 @@ function MapPageInner() {
                     setIndoorOutdoor("outdoor");
                     setShowPhotoUpload(false);
                 }}
-                view={sidebarView === 'save' ? 'save-location' : 'edit-location'}
-                title={sidebarView === 'save' ? 'Save Location' : 'Edit Location'}
+                view='save-location'
+                title='Save Location'
                 showFavorite={true}
                 isFavorite={isFavorite}
                 onFavoriteToggle={() => setIsFavorite(!isFavorite)}
@@ -1137,60 +1107,97 @@ function MapPageInner() {
                         showPhotoUpload={showPhotoUpload}
                     />
                 )}
-
-                {/* Edit Location Panel */}
-                {sidebarView === 'edit' && locationToEdit?.userSave && locationToEdit?.data && (
-                    <EditLocationPanel
-                        locationId={locationToEdit.userSave.locationId}
-                        location={{
-                            id: locationToEdit.userSave.locationId,
-                            placeId: locationToEdit.data.placeId || locationToEdit.id,
-                            name: locationToEdit.data.name || 'Selected Location',
-                            address: locationToEdit.data.address ?? null,
-                            lat: locationToEdit.position.lat,
-                            lng: locationToEdit.position.lng,
-                            type: locationToEdit.data.type || locationToEdit.userSave.location?.type || '',
-                            rating: locationToEdit.data.rating ?? null,
-                            street: locationToEdit.data.street ?? null,
-                            number: locationToEdit.data.number ?? null,
-                            city: locationToEdit.data.city ?? null,
-                            state: locationToEdit.data.state ?? null,
-                            zipcode: locationToEdit.data.zipcode ?? null,
-                            productionNotes: locationToEdit.userSave.location?.productionNotes ?? null,
-                            entryPoint: locationToEdit.userSave.location?.entryPoint ?? null,
-                            parking: locationToEdit.userSave.location?.parking ?? null,
-                            access: locationToEdit.userSave.location?.access ?? null,
-                            indoorOutdoor: locationToEdit.userSave.location?.indoorOutdoor ?? null,
-                            isPermanent: locationToEdit.userSave.location?.isPermanent ?? false,
-                            photoUrls: locationToEdit.userSave.location?.photoUrls ?? null,
-                            permitRequired: locationToEdit.userSave.location?.permitRequired ?? false,
-                            permitCost: locationToEdit.userSave.location?.permitCost ?? null,
-                            contactPerson: locationToEdit.userSave.location?.contactPerson ?? null,
-                            contactPhone: locationToEdit.userSave.location?.contactPhone ?? null,
-                            operatingHours: locationToEdit.userSave.location?.operatingHours ?? null,
-                            restrictions: locationToEdit.userSave.location?.restrictions ?? null,
-                            bestTimeOfDay: locationToEdit.userSave.location?.bestTimeOfDay ?? null,
-                            lastModifiedBy: locationToEdit.userSave.location?.lastModifiedBy ?? null,
-                            lastModifiedAt: locationToEdit.userSave.location?.lastModifiedAt ?? null,
-                            createdAt: locationToEdit.userSave.location?.createdAt || new Date(),
-                            updatedAt: locationToEdit.userSave.location?.updatedAt || new Date(),
-                            createdBy: locationToEdit.userSave.location?.createdBy || 0,
-                            photos: locationToEdit.userSave.location?.photos ?? [],
-                        }}
-                        userSave={locationToEdit.userSave}
-                        isFavorite={isFavorite}
-                        indoorOutdoor={indoorOutdoor}
-                        showPhotoUpload={showPhotoUpload}
-                        onSuccess={() => {
-                            // Close sidebar and InfoWindow
-                            setIsSidebarOpen(false);
-                            setSelectedMarker(null);
-                            setLocationToEdit(null);
-                        }}
-                        onSavingChange={setIsSavingLocation}  // Wire up save state for EditLocationPanel
-                    />
-                )}
             </RightSidebar>
+
+            {/* Location Details Sheet */}
+            <Sheet open={showDetailsSheet} onOpenChange={setShowDetailsSheet}>
+                <SheetContent className="w-full sm:w-1/2 overflow-y-auto p-0" hideOverlay={true}>
+                    <SheetHeader>
+                        <VisuallyHidden>
+                            <SheetTitle>
+                                {locationToEdit?.data?.name || locationToEdit?.userSave?.location?.name || "Location Details"}
+                            </SheetTitle>
+                        </VisuallyHidden>
+                    </SheetHeader>
+                    <div className="h-full">
+                        {locationToEdit?.userSave?.location && locationToEdit?.position && (
+                            <LocationDetailPanel
+                                location={{
+                                    id: locationToEdit.userSave.locationId,
+                                    placeId: locationToEdit.data?.placeId || locationToEdit.id,
+                                    name: locationToEdit.data?.name || 'Selected Location',
+                                    address: locationToEdit.data?.address ?? null,
+                                    lat: locationToEdit.position?.lat ?? 0,
+                                    lng: locationToEdit.position?.lng ?? 0,
+                                    type: locationToEdit.data?.type || locationToEdit.userSave.location?.type || '',
+                                    rating: locationToEdit.data?.rating ?? null,
+                                    street: locationToEdit.data?.street ?? null,
+                                    number: locationToEdit.data?.number ?? null,
+                                    city: locationToEdit.data?.city ?? null,
+                                    state: locationToEdit.data?.state ?? null,
+                                    zipcode: locationToEdit.data?.zipcode ?? null,
+                                    productionNotes: locationToEdit.userSave.location?.productionNotes ?? null,
+                                    entryPoint: locationToEdit.userSave.location?.entryPoint ?? null,
+                                    parking: locationToEdit.userSave.location?.parking ?? null,
+                                    access: locationToEdit.userSave.location?.access ?? null,
+                                    indoorOutdoor: locationToEdit.userSave.location?.indoorOutdoor ?? null,
+                                    isPermanent: locationToEdit.userSave.location?.isPermanent ?? false,
+                                    photoUrls: locationToEdit.userSave.location?.photoUrls ?? null,
+                                    permitRequired: locationToEdit.userSave.location?.permitRequired ?? false,
+                                    permitCost: locationToEdit.userSave.location?.permitCost ?? null,
+                                    contactPerson: locationToEdit.userSave.location?.contactPerson ?? null,
+                                    contactPhone: locationToEdit.userSave.location?.contactPhone ?? null,
+                                    operatingHours: locationToEdit.userSave.location?.operatingHours ?? null,
+                                    restrictions: locationToEdit.userSave.location?.restrictions ?? null,
+                                    bestTimeOfDay: locationToEdit.userSave.location?.bestTimeOfDay ?? null,
+                                    lastModifiedBy: locationToEdit.userSave.location?.lastModifiedBy ?? null,
+                                    lastModifiedAt: locationToEdit.userSave.location?.lastModifiedAt ?? null,
+                                    createdAt: locationToEdit.userSave.location?.createdAt || new Date(),
+                                    updatedAt: locationToEdit.userSave.location?.updatedAt || new Date(),
+                                    createdBy: locationToEdit.userSave.location?.createdBy || 0,
+                                    photos: locationToEdit.userSave.location?.photos ?? [],
+                                    userSave: locationToEdit.userSave,
+                                }}
+                                onEdit={() => {
+                                    // Navigate to /locations for editing
+                                    router.push(`/locations`);
+                                    setShowDetailsSheet(false);
+                                }}
+                                onDelete={async (id) => {
+                                    // Delete location via API
+                                    try {
+                                        const response = await fetch(`/api/locations/${id}`, { 
+                                            method: 'DELETE' 
+                                        });
+                                        if (response.ok) {
+                                            setShowDetailsSheet(false);
+                                            setLocationToEdit(null);
+                                            // Remove marker from map
+                                            setMarkers(prev => prev.filter(m => m.userSave?.id !== id));
+                                            toast.success('Location deleted');
+                                        } else {
+                                            toast.error('Failed to delete location');
+                                        }
+                                    } catch (error) {
+                                        console.error('Delete error:', error);
+                                        toast.error('Failed to delete location');
+                                    }
+                                }}
+                                onShare={(location) => {
+                                    setShareLocation({
+                                        ...location,
+                                        userSave: locationToEdit.userSave,
+                                    } as Location);
+                                }}
+                                onViewOnMap={() => {
+                                    // Already on map, just close sheet
+                                    setShowDetailsSheet(false);
+                                }}
+                            />
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
 
             {/* GPS Permission Dialog */}
             <GpsPermissionDialog
