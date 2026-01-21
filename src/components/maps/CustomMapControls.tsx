@@ -31,7 +31,17 @@ export function CustomMapControls({ map, rightPanelOpen }: CustomMapControlsProp
 
     const handleMapTypeChange = (mapTypeId: string) => {
         if (map) {
+            const currentZoom = map.getZoom() || 12;
             map.setMapTypeId(mapTypeId);
+            
+            // Satellite view has a lower max zoom (typically ~19-20) compared to roadmap (~21-22)
+            // If switching to satellite and current zoom is too high, reduce it
+            if (mapTypeId === 'satellite' || mapTypeId === 'hybrid') {
+                const satelliteMaxZoom = 19; // Safe max for satellite imagery
+                if (currentZoom > satelliteMaxZoom) {
+                    map.setZoom(satelliteMaxZoom);
+                }
+            }
         }
     };
 
