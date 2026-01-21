@@ -99,6 +99,9 @@ export function EditLocationForm({
     const watchedEntryPoint = useWatch({ control: form.control, name: "entryPoint" });
     const watchedAccess = useWatch({ control: form.control, name: "access" });
 
+    // Subscribe to formState to ensure reactivity
+    const { isDirty, dirtyFields } = form.formState;
+
     // Reset form and state when location changes
     useEffect(() => {
         // Recalculate photos from current location data
@@ -138,7 +141,13 @@ export function EditLocationForm({
 
     // Track changes for unsaved changes banner
     useEffect(() => {
-        const { isDirty, dirtyFields } = form.formState;
+        console.log('[Change Tracking]', {
+            isDirty,
+            dirtyFieldsKeys: Object.keys(dirtyFields),
+            watchedName,
+            watchedType,
+            hasChanges
+        });
         
         if (!isDirty) {
             setHasChanges(false);
@@ -191,8 +200,8 @@ export function EditLocationForm({
         setChanges(changedFields);
         setHasChanges(changedFields.length > 0);
     }, [
-        form.formState.isDirty,
-        form.formState.dirtyFields,
+        isDirty,
+        dirtyFields,
         watchedName,
         watchedType,
         watchedCaption,
