@@ -763,6 +763,7 @@ function MapPageInner() {
                     onMapLoad={handleMapLoad}
                     onClick={handleMapClick}
                     className="w-full h-full"
+                    rightPanelOpen={isSidebarOpen || showDetailsSheet || showLocationsPanel}
                 >
                     {/* User location blue dot */}
 
