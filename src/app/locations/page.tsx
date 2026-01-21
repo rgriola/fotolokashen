@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLocations } from "@/hooks/useLocations";
 import { useDeleteLocation } from "@/hooks/useDeleteLocation";
 import { LocationList } from "@/components/locations/LocationList";
@@ -20,6 +20,8 @@ import type { Location, UserSave } from "@/types/location";
 
 function LocationsPageInner() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const hasProcessedEdit = useRef(false);
     const [search, setSearch] = useState("");
     const [typeFilter, setTypeFilter] = useState("all");
     const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -51,6 +53,41 @@ function LocationsPageInner() {
             ...(userSave.location as Location),
             userSave: userSave, // Attach the UserSave data
         })) || [];
+
+    // Auto-open Edit Panel when navigating from map with ?edit=userSaveId
+    useEffect(() => {
+        const editId = searchParams.get('edit');
+        if (editId && !hasProcessedEdit.current && data?.locations) {
+            const locationToEdit = data.locations
+                .filter((userSave: UserSave) => userSave.location)
+                .map((userSave: UserSave) => ({
+                    ...(userSave.location as Location),
+                    userSave: userSave,
+                }))
+                .find((loc) => loc.userSave?.id === parseInt(editId, 10));
+            
+            if (locationToEdit) {
+                hasProcessedEdit.current = true;
+                
+                // Schedule state updates to avoid cascading renders
+                setTimeout(() => {
+                    setEditLocation(locationToEdit);
+                    setIsFavorite(locationToEdit.userSave?.isFavorite || false);
+                    setIndoorOutdoor((locationToEdit.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
+                    setShowPhotoUpload(false);
+                    setShowEditPanel(true);
+                }, 0);
+                
+                // Clear the query parameter to prevent re-opening on refresh
+                router.replace('/locations', { scroll: false });
+            }
+        }
+        
+        // Reset ref when edit parameter is removed
+        if (!searchParams.get('edit')) {
+            hasProcessedEdit.current = false;
+        }
+    }, [searchParams, data, router]);
 
     // Filter and sort locations client-side
     let filteredLocations = allLocations;

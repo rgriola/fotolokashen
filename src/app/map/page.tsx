@@ -1159,8 +1159,13 @@ function MapPageInner() {
                                     userSave: locationToEdit.userSave,
                                 }}
                                 onEdit={() => {
-                                    // Navigate to /locations for editing
-                                    router.push(`/locations`);
+                                    // Navigate to /locations with edit parameter
+                                    const userSaveId = locationToEdit.userSave?.id;
+                                    if (userSaveId) {
+                                        router.push(`/locations?edit=${userSaveId}`);
+                                    } else {
+                                        router.push('/locations');
+                                    }
                                     setShowDetailsSheet(false);
                                 }}
                                 onDelete={async (id) => {
