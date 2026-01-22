@@ -45,6 +45,7 @@ export function generateToken(
         email: user.email,
         username: user.username,
         isAdmin: user.isAdmin,
+        role: user.role,
         avatar: user.avatar,
         bannerImage: user.bannerImage,
     };
