@@ -18,6 +18,7 @@ interface User {
     emailVerified: boolean;
     isActive: boolean;
     isAdmin: boolean;
+    role: string;
     createdAt: string;
     updatedAt: string;
     lastLoginAt: string | null;
@@ -228,7 +229,7 @@ export function UserManagementTable() {
                                     <th className="text-left p-2 font-semibold whitespace-nowrap">Phone</th>
                                     <th className="text-left p-2 font-semibold whitespace-nowrap">Location</th>
                                     <th className="text-left p-2 font-semibold whitespace-nowrap">Verified</th>
-                                    <th className="text-left p-2 font-semibold whitespace-nowrap">Admin</th>
+                                    <th className="text-left p-2 font-semibold whitespace-nowrap">Role</th>
                                     <th className="text-left p-2 font-semibold whitespace-nowrap">Active</th>
                                     <th className="text-left p-2 font-semibold whitespace-nowrap">Language</th>
                                     <th className="text-left p-2 font-semibold whitespace-nowrap">Timezone</th>
@@ -296,12 +297,14 @@ export function UserManagementTable() {
                                                 <td className="p-2">
                                                     <span
                                                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                                            user.isAdmin
+                                                            user.role === 'super_admin'
                                                                 ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
+                                                                : user.role === 'staffer'
+                                                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                                                                 : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
                                                         }`}
                                                     >
-                                                        {user.isAdmin ? 'Yes' : 'No'}
+                                                        {user.role === 'super_admin' ? 'Super Admin' : user.role === 'staffer' ? 'Staff' : 'User'}
                                                     </span>
                                                 </td>
                                                 <td className="p-2">

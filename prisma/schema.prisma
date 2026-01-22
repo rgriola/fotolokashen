@@ -21,6 +21,7 @@ model User {
   resetTokenExpiry        DateTime?
   isActive                Boolean                  @default(true)
   isAdmin                 Boolean                  @default(false)
+  role                    String                   @default("user") // user, staffer, super_admin
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   appleId                 String?                  @unique
@@ -61,6 +62,7 @@ model User {
   modifiedLocations       Location[]               @relation("LocationModifier")
   uploadedPhotos          Photo[]                  @relation("PhotoUploader")
   projects                Project[]
+  projectMemberships      ProjectMember[]
   securityLogs            SecurityLog[]
   sessions                Session[]
   invitedTeamMembers      TeamMember[]             @relation("TeamInviter")
@@ -240,6 +242,7 @@ model Project {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   locations   ProjectLocation[]
+  members     ProjectMember[]
   owner       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -259,6 +262,21 @@ model ProjectLocation {
   @@unique([projectId, locationId])
   @@index([locationId])
   @@map("project_locations")
+}
+
+model ProjectMember {
+  id        Int      @id @default(autoincrement())
+  projectId Int
+  userId    Int
+  role      String   @default("viewer") // viewer, editor, admin, owner
+  addedAt   DateTime @default(now())
+  addedBy   Int?
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@map("project_members")
 }
 
 model LocationContact {

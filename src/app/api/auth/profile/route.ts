@@ -113,6 +113,7 @@ export async function PATCH(request: NextRequest) {
                 emailVerified: true,
                 isActive: true,
                 isAdmin: true,
+                role: true,
                 gpsPermission: true,
                 gpsPermissionUpdated: true,
                 homeLocationName: true,

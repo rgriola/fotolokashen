@@ -73,9 +73,11 @@ export function LocationList({
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {locations.map((location) => {
-                // Check if user can edit (creator or admin)
+                // Check if user can edit (creator, admin, or staffer)
                 const canEdit =
                     user?.isAdmin ||
+                    user?.role === 'staffer' ||
+                    user?.role === 'super_admin' ||
                     location.createdBy === user?.id;
 
                 return (

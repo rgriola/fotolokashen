@@ -129,6 +129,7 @@ export async function POST(request: NextRequest) {
         emailVerified: true,
         isActive: true,
         isAdmin: true,
+        role: true,
         avatar: true,
         bannerImage: true,
         city: true,

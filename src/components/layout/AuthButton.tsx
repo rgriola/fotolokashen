@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User, LogOut, Shield, FolderKanban, Map, MapPin, Plus } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { canAccessAdminPanel } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getOptimizedAvatarUrl } from "@/lib/imagekit";
@@ -103,7 +104,7 @@ export function AuthButton() {
                     <span>Profile</span>
                 </DropdownMenuItem>
 
-                {user.isAdmin && (
+                {canAccessAdminPanel(user) && (
                     <DropdownMenuItem onClick={() => router.push("/admin/users")}>
                         <Shield className="mr-2 h-4 w-4" />
                         <span>Admin</span>

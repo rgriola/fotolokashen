@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
+import { canAccessAdminPanel } from '@/lib/permissions';
 import { toast } from 'sonner';
 
 interface AdminRouteProps {
@@ -11,7 +12,8 @@ interface AdminRouteProps {
 
 /**
  * Wrapper component to protect admin-only routes
- * Redirects to home if user is not authenticated or not an admin
+ * Redirects to home if user is not authenticated or not an admin/staffer
+ * Uses new role-based permission system
  */
 export function AdminRoute({ children }: AdminRouteProps) {
   const { user, isLoading } = useAuth();
@@ -24,8 +26,8 @@ export function AdminRoute({ children }: AdminRouteProps) {
         console.log('[AdminRoute] No authenticated user, redirecting to login');
         toast.error('Please login to access this page');
         router.push('/login');
-      } else if (!user.isAdmin) {
-        console.log('[AdminRoute] User is not admin, redirecting to home');
+      } else if (!canAccessAdminPanel(user)) {
+        console.log('[AdminRoute] User does not have admin access, redirecting to home');
         toast.error('Admin access required');
         router.push('/');
       }
@@ -45,10 +47,10 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }
 
   // Don't render children if not authenticated or not admin
-  if (!user || !user.isAdmin) {
+  if (!user || !canAccessAdminPanel(user)) {
     return null;
   }
 
-  // User is authenticated and admin, render the protected content
+  // User is authenticated and has admin access, render the protected content
   return <>{children}</>;
 }

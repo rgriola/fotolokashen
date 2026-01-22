@@ -79,7 +79,8 @@ export function SaveLocationForm({
     onUploadingStateChange,
 }: SaveLocationFormProps) {
     const { user } = useAuth();
-    const isAdmin = user?.isAdmin === true;
+    // Check if user has admin or staffer role for extended location types
+    const isAdmin = user?.isAdmin === true || user?.role === 'staffer' || user?.role === 'super_admin';
     const availableTypes = getAvailableTypes(isAdmin);
     
     const [tags, setTags] = useState<string[]>([]);

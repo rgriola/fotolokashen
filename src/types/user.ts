@@ -12,6 +12,7 @@ export interface User {
     resetTokenExpiry: Date | null
     isActive: boolean
     isAdmin: boolean
+    role: string  // 'user', 'staffer', 'super_admin'
 
     // GPS Permission
     gpsPermission: string | null  // 'not_asked', 'granted', 'denied'
@@ -63,6 +64,7 @@ export interface PublicUser {
     emailVerified: boolean
     isActive: boolean
     isAdmin: boolean
+    role: string  // 'user', 'staffer', 'super_admin'
 
     // Profile fields (public)
     avatar: string | null

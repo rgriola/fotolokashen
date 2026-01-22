@@ -71,6 +71,7 @@ export async function GET(req: NextRequest) {
                 emailVerified: true,
                 isActive: true,
                 isAdmin: true,
+                role: true,
                 createdAt: true,
                 updatedAt: true,
                 lastLoginAt: true,
