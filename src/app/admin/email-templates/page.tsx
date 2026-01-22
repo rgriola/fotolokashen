@@ -1,0 +1,290 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Users, MailIcon, Plus, Search, Filter, Edit, Copy, History, Trash2 } from 'lucide-react';
+import { AdminRoute } from '@/components/auth/AdminRoute';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+
+interface EmailTemplate {
+  id: number;
+  key: string;
+  name: string;
+  subject: string;
+  category: string;
+  isActive: boolean;
+  isDefault: boolean;
+  version: number;
+  updatedAt: string;
+}
+
+export default function EmailTemplatesPage() {
+  const router = useRouter();
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+
+  const fetchTemplates = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (categoryFilter !== 'all') {
+        params.append('category', categoryFilter);
+      }
+      
+      const response = await fetch(`/api/admin/email-templates?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch templates');
+      
+      const data = await response.json();
+      setTemplates(data.templates || []);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      toast.error('Failed to load email templates');
+    } finally {
+      setLoading(false);
+    }
+  }, [categoryFilter]);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]);
+
+  const handleDelete = async (id: number, isDefault: boolean) => {
+    if (isDefault) {
+      toast.error('Default templates cannot be deleted');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this template?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/email-templates/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete template');
+
+      toast.success('Template deleted successfully');
+      fetchTemplates();
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      toast.error('Failed to delete template');
+    }
+  };
+
+  const filteredTemplates = templates.filter((template) =>
+    template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    template.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    template.subject.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <AdminRoute>
+      <div className="container max-w-7xl mx-auto py-8 px-4">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Admin Panel</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage users and system settings
+          </p>
+        </div>
+
+        {/* Admin Navigation Tabs */}
+        <div className="mb-6">
+          <div className="flex gap-2 border-b">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/admin/users')}
+              className="rounded-b-none"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Users
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/admin/email-preview')}
+              className="rounded-b-none"
+            >
+              <MailIcon className="w-4 h-4 mr-2" />
+              Email Preview
+            </Button>
+            <Button
+              variant="ghost"
+              className="rounded-b-none border-b-2 border-primary"
+            >
+              <MailIcon className="w-4 h-4 mr-2" />
+              Email Templates
+            </Button>
+          </div>
+        </div>
+
+        {/* Page Title & Actions */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Email Templates</h2>
+            <p className="text-muted-foreground mt-1">
+              Manage email templates with version control
+            </p>
+          </div>
+          <Button
+            onClick={() => router.push('/admin/email-templates/new')}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Create Template
+          </Button>
+        </div>
+
+        {/* Filters */}
+        <div className="mb-6 flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search templates..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[180px]">
+              <Filter className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="system">System</SelectItem>
+              <SelectItem value="notification">Notification</SelectItem>
+              <SelectItem value="campaign">Campaign</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Templates Table */}
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Key</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Version</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Updated</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    Loading templates...
+                  </TableCell>
+                </TableRow>
+              ) : filteredTemplates.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    No templates found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredTemplates.map((template) => (
+                  <TableRow key={template.id}>
+                    <TableCell className="font-medium">
+                      {template.name}
+                      {template.isDefault && (
+                        <Badge variant="secondary" className="ml-2">
+                          Default
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <code className="text-xs bg-muted px-2 py-1 rounded">
+                        {template.key}
+                      </code>
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate">
+                      {template.subject}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{template.category}</Badge>
+                    </TableCell>
+                    <TableCell>v{template.version}</TableCell>
+                    <TableCell>
+                      {template.isActive ? (
+                        <Badge variant="default">Active</Badge>
+                      ) : (
+                        <Badge variant="secondary">Inactive</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(template.updatedAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push(`/admin/email-templates/${template.id}/edit`)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push(`/admin/email-templates/${template.id}/versions`)}
+                        >
+                          <History className="w-4 h-4" />
+                        </Button>
+                        {!template.isDefault && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => router.push(`/admin/email-templates/${template.id}/duplicate`)}
+                            >
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(template.id, template.isDefault)}
+                            >
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </AdminRoute>
+  );
+}
