@@ -4,9 +4,9 @@ import { canAccessAdminPanel } from '@/lib/permissions';
 import { getTemplateById } from '@/lib/email-template-service';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -26,7 +26,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
   }
 
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
 
     if (isNaN(id)) {
       return apiError('Invalid template ID', 400);

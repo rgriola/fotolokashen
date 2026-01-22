@@ -6,9 +6,9 @@ import type { TemplateWithVersions } from '@/lib/email-template-service';
 import { Resend } from 'resend';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Initialize Resend client
@@ -47,7 +47,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   }
 
   try {
-    const id = parseInt(params.id);
+    const { id: idParam } = await params;
+    const id = parseInt(idParam);
 
     if (isNaN(id)) {
       return apiError('Invalid template ID', 400);
