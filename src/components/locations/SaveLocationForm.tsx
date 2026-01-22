@@ -268,7 +268,7 @@ export function SaveLocationForm({
             {showPhotoUpload && (
                 <div className="space-y-4 pb-4 border-b">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold">Photos (Encouraged)</h3>
+                        <h3 className="text-sm font-semibold">Add Photos Here</h3>
                         {cachedPhotos.length > 0 && (
                             <p className="text-xs text-muted-foreground">
                                 {cachedPhotos.length} photo(s) ready • Will upload when you save
@@ -513,6 +513,25 @@ export function SaveLocationForm({
                     </div>
                 </div>
             </div>
+
+            {/* Save Button - Only show when required fields are filled */}
+            {(() => {
+                const name = form.watch('name');
+                const type = form.watch('type');
+                const showSaveButton = Boolean(name && name.trim() && type);
+                
+                return showSaveButton ? (
+                    <div className="pt-4 border-t">
+                        <Button
+                            type="submit"
+                            className="w-full bg-green-600 hover:bg-green-700 text-white"
+                            disabled={isPending}
+                        >
+                            {isPending ? 'Saving Location...' : 'Save Location'}
+                        </Button>
+                    </div>
+                ) : null;
+            })()}
 
         </form>
     );

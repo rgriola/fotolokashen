@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +47,16 @@ export function ShareLocationDialog({
   const [visibility, setVisibility] = useState<VisibilityType>(currentVisibility);
   const [shareMethod, setShareMethod] = useState<ShareMethodType>('link');
   const [copied, setCopied] = useState(false);
+
+  // Track if visibility has changed from the saved value
+  const hasChanged = visibility !== (location?.userSave?.visibility || 'public');
+
+  // Update visibility when location changes (after reload)
+  useEffect(() => {
+    if (location?.userSave?.visibility) {
+      setVisibility(location.userSave.visibility as VisibilityType);
+    }
+  }, [location?.userSave?.visibility]);
 
   if (!location) return null;
 
@@ -101,19 +111,19 @@ export function ShareLocationDialog({
       value: 'public',
       icon: Globe,
       label: 'Public',
-      description: 'Anyone can see this location'
+      description: 'Everyone Can See This'
     },
     {
       value: 'followers',
       icon: Users,
-      label: 'Followers Only',
-      description: 'Only people who follow you can see this'
+      label: 'Followers',
+      description: 'Only People You Follow'
     },
     {
       value: 'private',
       icon: Lock,
       label: 'Private',
-      description: 'Only you can see this location'
+      description: 'Only You Can See This'
     }
   ] as const;
 
@@ -123,7 +133,7 @@ export function ShareLocationDialog({
         <DialogHeader>
           <DialogTitle>Share Location</DialogTitle>
           <DialogDescription>
-            Share &quot;{location.name}&quot; with others
+        &quot;{location.name}&quot;
           </DialogDescription>
         </DialogHeader>
 
@@ -142,7 +152,8 @@ export function ShareLocationDialog({
           <TabsContent value="link" className="space-y-4 mt-4">
             <div className="space-y-3">
               <Label>Visibility</Label>
-              <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Who can see this location</p>
+              <div className="flex gap-2">
                 {visibilityOptions.map((option) => {
                   const Icon = option.icon;
                   const isSelected = visibility === option.value;
@@ -151,20 +162,20 @@ export function ShareLocationDialog({
                       key={option.value}
                       onClick={() => setVisibility(option.value)}
                       className={cn(
-                        "w-full flex items-start gap-3 p-3 rounded-lg border-2 transition-colors text-left",
+                        "flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 transition-colors text-center",
                         isSelected 
-                          ? "border-primary bg-primary/5" 
-                          : "border-border hover:border-primary/50"
+                          ? "border-green-500 bg-green-50 dark:bg-green-950/20 flex-[2]" 
+                          : "border-border hover:border-primary/50 flex-1"
                       )}
                     >
                       <Icon className={cn(
-                        "w-5 h-5 mt-0.5 flex-shrink-0",
-                        isSelected ? "text-primary" : "text-muted-foreground"
+                        "w-5 h-5 flex-shrink-0",
+                        isSelected ? "text-green-600 dark:text-green-500" : "text-muted-foreground"
                       )} />
-                      <div className="flex-1">
+                      <div>
                         <div className={cn(
                           "font-medium",
-                          isSelected && "text-primary"
+                          isSelected && "text-green-700 dark:text-green-400"
                         )}>
                           {option.label}
                         </div>
@@ -200,7 +211,7 @@ export function ShareLocationDialog({
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Anyone with this link who meets the visibility requirements can view this location
+                Your Visibility Settings Sets Link Access
               </p>
             </div>
           </TabsContent>
@@ -221,14 +232,15 @@ export function ShareLocationDialog({
 
         <DialogFooter>
           {shareMethod === 'link' && (
-            <>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleUpdateVisibility}>
-                Update Visibility
-              </Button>
-            </>
+            <Button 
+              onClick={handleUpdateVisibility}
+              disabled={!hasChanged}
+              className={cn(
+                hasChanged && "bg-green-600 hover:bg-green-700 text-white"
+              )}
+            >
+              Update Visibility
+            </Button>
           )}
         </DialogFooter>
       </DialogContent>

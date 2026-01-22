@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Upload, X, Loader2 } from "lucide-react";
+import { X, Loader2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
@@ -420,7 +420,7 @@ transition - colors duration - 200
                     </div>
                 ) : (
                     <div className="flex flex-col items-center gap-2">
-                        <Upload className="w-8 h-8 text-muted-foreground" />
+                        <Camera className="w-10 h-10 text-green-600" />
                         <div>
                             <p className="text-sm font-medium">Click to upload or drag and drop</p>
                             <p className="text-xs text-muted-foreground mt-1">

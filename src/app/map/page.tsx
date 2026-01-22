@@ -27,12 +27,11 @@ import { GpsWelcomeBanner } from '@/components/maps/GpsWelcomeBanner';
 import { useGpsLocation } from '@/hooks/useGpsLocation';
 import { MapControls } from '@/components/maps/MapControls';
 import { FriendsDialog } from '@/components/map/FriendsDialog';
-import { ShareLocationDialog } from '@/components/map/ShareLocationDialog';
+import { ShareLocationDialog } from '@/components/dialogs/ShareLocationDialog';
 import { MapPin as MapPinIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
-import { debounceLeading } from '@/lib/utils/debounce';
 
 interface MarkerData {
     id: string;
@@ -60,9 +59,7 @@ function MapPageInner() {
     const [showDetailsSheet, setShowDetailsSheet] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
     const [indoorOutdoor, setIndoorOutdoor] = useState<"indoor" | "outdoor">("outdoor");
-    const [showPhotoUpload, setShowPhotoUpload] = useState(false);
     const [showSearchDialog, setShowSearchDialog] = useState(false);
-    const [isSavingLocation, setIsSavingLocation] = useState(false); // Track save operation
 
 
     // GPS permission state
@@ -717,20 +714,6 @@ function MapPageInner() {
         setSelectedMarker(null);
     }, [selectedMarker, isSidebarOpen]);
 
-    // Debounced save handler to prevent rapid repeated clicks
-    // Uses debounceLeading to execute immediately on first click, ignore subsequent clicks within 1 second
-    const handleSaveClick = useMemo(
-        () => debounceLeading(() => {
-            // Trigger form submit for either save or edit
-            const formId = sidebarView === 'save' ? 'save-location-form' : 'edit-location-form';
-            const form = document.getElementById(formId) as HTMLFormElement;
-            if (form) {
-                form.requestSubmit();
-            }
-        }, 1000), // 1 second debounce - prevents duplicate submissions
-        [sidebarView]
-    );
-
     // Memoize initialData for SaveLocationPanel to prevent unnecessary form resets
     const saveLocationInitialData = useMemo(() => {
         if (!locationToSave) return null;
@@ -1072,7 +1055,6 @@ function MapPageInner() {
                     setLocationToEdit(null);
                     setIsFavorite(false);
                     setIndoorOutdoor("outdoor");
-                    setShowPhotoUpload(false);
                 }}
                 view='save-location'
                 title='Save Location'
@@ -1082,11 +1064,7 @@ function MapPageInner() {
                 showIndoorOutdoor={true}
                 indoorOutdoor={indoorOutdoor}
                 onIndoorOutdoorToggle={(value) => setIndoorOutdoor(value)}
-                showPhotoUpload={true}
-                onPhotoUploadToggle={() => setShowPhotoUpload(!showPhotoUpload)}
-                showSaveButton={true}
-                onSave={handleSaveClick}  // Use debounced save handler
-                isSaving={isSavingLocation}  // Use dynamic state instead of hardcoded false
+                showSaveButton={false}  // Save button is now at bottom of form
             >
                 {/* Save Location Panel */}
                 {sidebarView === 'save' && locationToSave && saveLocationInitialData && (
@@ -1109,8 +1087,7 @@ function MapPageInner() {
                             setSelectedMarker(null);
                             setLocationToSave(null);
                         }}
-                        onSavingChange={setIsSavingLocation}  // Wire up save state
-                        showPhotoUpload={showPhotoUpload}
+                        showPhotoUpload={true}  // Always show photo upload
                     />
                 )}
             </RightSidebar>

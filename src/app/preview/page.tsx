@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShareLocationDialog } from '@/components/locations/ShareLocationDialog';
+import { ShareLocationDialog } from '@/components/dialogs/ShareLocationDialog';
 import { LocationDetailPanel } from '@/components/panels/LocationDetailPanel';
 import { Share2, Edit, Eye, MapPin, Loader2, Save, Info, PanelLeft, Heart, Sun, Building, Camera, X } from 'lucide-react';
 import type { Location } from '@/types/location';

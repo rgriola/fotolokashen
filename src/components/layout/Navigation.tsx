@@ -9,7 +9,7 @@ const navItems = [
     { href: "/", label: "Home", authRequired: false }, // Only show when NOT logged in
     { href: "/map", label: "Map", authRequired: true }, // Only show when logged in
     { href: "/locations", label: "My Locations", authRequired: true }, // Only show when logged in
-    { href: "/search", label: "Search", authRequired: true }, // Only show when logged in
+    { href: "/search", label: "People", authRequired: true }, // Only show when logged in
 ];
 
 export function Navigation() {

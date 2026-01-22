@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, LogOut, Shield, FolderKanban, Map, MapPin } from "lucide-react";
+import { User, LogOut, Shield, FolderKanban, Map, MapPin, Plus } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -85,6 +85,10 @@ export function AuthButton() {
                 <DropdownMenuItem onClick={() => router.push("/locations")}>
                     <MapPin className="mr-2 h-4 w-4" />
                     <span>My Locations</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push("/create-with-photo")}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    <span>Create from Photo</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push("/projects")}>
                     <FolderKanban className="mr-2 h-4 w-4" />

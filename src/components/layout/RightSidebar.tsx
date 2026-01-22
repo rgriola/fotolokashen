@@ -29,6 +29,7 @@ interface RightSidebarProps {
     onSave?: () => void;
     isSaving?: boolean;
     showSaveButton?: boolean;
+    isFormDirty?: boolean; // Track if form has unsaved changes
 }
 
 export function RightSidebar({
@@ -48,6 +49,7 @@ export function RightSidebar({
     onSave,
     isSaving = false,
     showSaveButton = false,
+    isFormDirty = false,
 }: RightSidebarProps) {
     return (
         <>
@@ -75,14 +77,16 @@ export function RightSidebar({
                                 variant="ghost"
                                 size="icon"
                                 onClick={onSave}
-                                disabled={isSaving}
+                                disabled={isSaving || !isFormDirty}
                                 className={cn(
                                     "shrink-0 hover:text-white disabled:cursor-not-allowed transition-all",
                                     isSaving 
                                         ? "bg-indigo-400 disabled:opacity-70" 
-                                        : "bg-indigo-600 hover:bg-indigo-700"
+                                        : isFormDirty
+                                        ? "bg-green-600 hover:bg-green-700"
+                                        : "bg-gray-400 disabled:opacity-50"
                                 )}
-                                title={isSaving ? "Saving..." : "Save location"}
+                                title={isSaving ? "Saving..." : isFormDirty ? "Save location" : "No changes to save"}
                             >
                                 {isSaving ? (
                                     <Loader2 className="w-4 h-4 text-white animate-spin" />

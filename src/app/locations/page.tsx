@@ -8,7 +8,7 @@ import { LocationList } from "@/components/locations/LocationList";
 import { LocationListCompact } from "@/components/locations/LocationListCompact";
 import { LocationFilters } from "@/components/locations/LocationFilters";
 import { FilterPanel } from "@/components/locations/FilterPanel";
-import { ShareLocationDialog } from "@/components/locations/ShareLocationDialog";
+import { ShareLocationDialog } from "@/components/dialogs/ShareLocationDialog";
 import { EditLocationPanel } from "@/components/panels/EditLocationPanel";
 import { LocationDetailPanel } from "@/components/panels/LocationDetailPanel";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";

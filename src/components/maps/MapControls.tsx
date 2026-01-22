@@ -1,7 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { MapPinIcon, Navigation, Users, Map, Search, Camera } from 'lucide-react';
+import { 
+    MapPinIcon, 
+    Navigation, 
+    Users, 
+    Map, 
+    Search, 
+    Plus,
+    Globe
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -79,21 +87,7 @@ export function MapControls({
                     className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
                     title="View all saved locations on map"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
-                        <path d="M15 5.764v15" />
-                        <path d="M9 3.236v15" />
-                    </svg>
+                    <Globe className="w-5 h-5" />
                 </Button>
 
                 {/* My Locations List Button */}
@@ -116,7 +110,7 @@ export function MapControls({
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-12 w-12 bg-green-600 hover:bg-green-700 text-white shadow-lg border border-green-700"
                     title="Create location from photo"
                 >
-                    <Camera className="w-5 h-5" />
+                    <Plus className="w-5 h-5" />
                 </a>
             </div>
 
@@ -202,22 +196,7 @@ export function MapControls({
                                 onClick={() => handleActionClick(onViewAllClick)}
                                 className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
                             >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    width="20"
-                                    height="20"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    className="flex-shrink-0"
-                                >
-                                    <path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" />
-                                    <path d="M15 5.764v15" />
-                                    <path d="M9 3.236v15" />
-                                </svg>
+                                <Globe className="w-5 h-5 flex-shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">View All</div>
                                     <div className="text-xs text-gray-600">
@@ -232,7 +211,7 @@ export function MapControls({
                                 onClick={() => setIsOpen(false)}
                                 className="w-full flex items-center gap-3 p-4 rounded-lg border bg-green-600 hover:bg-green-700 text-white border-green-700 transition-all"
                             >
-                                <Camera className="w-5 h-5 flex-shrink-0" />
+                                <Plus className="w-5 h-5 flex-shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">Create from Photo</div>
                                     <div className="text-xs opacity-90">
