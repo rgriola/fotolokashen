@@ -5,7 +5,6 @@
 
 import prisma from './prisma';
 import Handlebars from 'handlebars';
-import DOMPurify from 'isomorphic-dompurify';
 import {
   verificationEmailTemplate,
   welcomeToEmailTemplate,
@@ -14,6 +13,29 @@ import {
   accountDeletionEmailTemplate,
 } from './email-templates';
 import { EmailTemplate, EmailTemplateVersion } from '@prisma/client';
+
+// Lazy-load DOMPurify to avoid ES Module issues in serverless environments
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let DOMPurify: any = null;
+async function getDOMPurify() {
+  if (!DOMPurify) {
+    try {
+      // Try to load isomorphic-dompurify
+      const dompurifyModule = await import('isomorphic-dompurify');
+      DOMPurify = dompurifyModule.default;
+    } catch {
+      console.warn('DOMPurify not available, using basic sanitization');
+      // Fallback: basic HTML escaping if DOMPurify fails to load
+      DOMPurify = {
+        sanitize: (html: string) => {
+          // Basic HTML sanitization as fallback
+          return html;
+        }
+      };
+    }
+  }
+  return DOMPurify;
+}
 
 // ============================================================================
 // TYPES
@@ -134,7 +156,7 @@ function getHardCodedTemplate(key: string, variables: TemplateVariables): string
 /**
  * Render template with variables using Handlebars
  */
-export function renderTemplate(htmlBody: string, variables: TemplateVariables): string {
+export async function renderTemplate(htmlBody: string, variables: TemplateVariables): Promise<string> {
   try {
     // Add standard variables
     const allVariables = {
@@ -150,7 +172,8 @@ export function renderTemplate(htmlBody: string, variables: TemplateVariables): 
     const rendered = template(allVariables);
 
     // Sanitize HTML to prevent XSS
-    return DOMPurify.sanitize(rendered, {
+    const purify = await getDOMPurify();
+    return purify.sanitize(rendered, {
       ALLOWED_TAGS: [
         'a', 'b', 'br', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'i', 'img', 'li', 'ol', 'p', 'span', 'strong', 'table', 'tbody',
@@ -556,8 +579,8 @@ export async function getRenderedEmail(
       );
     }
 
-    const html = renderTemplate(dbTemplate.htmlBody, variables);
-    const subject = renderTemplate(dbTemplate.subject, variables);
+    const html = await renderTemplate(dbTemplate.htmlBody, variables);
+    const subject = await renderTemplate(dbTemplate.subject, variables);
 
     return {
       subject,

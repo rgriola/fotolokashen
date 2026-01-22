@@ -8,7 +8,8 @@ import './src/lib/env';
 const nextConfig: NextConfig = {
   // Exclude problematic packages from server components bundle
   // exifr and its dependencies (jsdom, parse5) should only run on the client
-  serverExternalPackages: ['exifr', 'jsdom', 'parse5'],
+  // isomorphic-dompurify uses jsdom which has ES Module issues in serverless
+  serverExternalPackages: ['exifr', 'jsdom', 'parse5', 'isomorphic-dompurify'],
 
   webpack: (config, { isServer }) => {
     // Externalize these packages to prevent bundling on the server
@@ -21,6 +22,7 @@ const nextConfig: NextConfig = {
         'canvas',
         'bufferutil',
         'utf-8-validate',
+        'isomorphic-dompurify',
       ];
     }
     return config;

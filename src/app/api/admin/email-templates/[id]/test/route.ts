@@ -104,8 +104,8 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     // Render template
-    const htmlBody = renderTemplate(template.htmlBody, testVariables);
-    const subject = renderTemplate(template.subject, testVariables);
+    const htmlBody = await renderTemplate(template.htmlBody, testVariables);
+    const subject = await renderTemplate(template.subject, testVariables);
 
     // Send email in development mode
     const EMAIL_MODE = process.env.EMAIL_MODE || 'development';
