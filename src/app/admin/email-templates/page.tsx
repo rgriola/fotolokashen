@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Users, MailIcon, Plus, Search, Filter, Edit, Copy, History, Trash2 } from 'lucide-react';
+import { Users, MailIcon, Plus, Search, Filter, Edit, Copy, History, Trash2, Sparkles } from 'lucide-react';
 import { AdminRoute } from '@/components/auth/AdminRoute';
 import {
   Table,
@@ -40,6 +40,7 @@ export default function EmailTemplatesPage() {
   const router = useRouter();
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
@@ -90,6 +91,33 @@ export default function EmailTemplatesPage() {
     } catch (error) {
       console.error('Error deleting template:', error);
       toast.error('Failed to delete template');
+    }
+  };
+
+  const handleSeedTemplates = async () => {
+    if (!confirm('This will create the default email templates. Continue?')) {
+      return;
+    }
+
+    try {
+      setSeeding(true);
+      const response = await fetch('/api/admin/email-templates/seed', {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to seed templates');
+      }
+
+      const data = await response.json();
+      toast.success(data.summary || 'Templates seeded successfully');
+      fetchTemplates();
+    } catch (error) {
+      console.error('Error seeding templates:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to seed templates');
+    } finally {
+      setSeeding(false);
     }
   };
 
@@ -205,8 +233,24 @@ export default function EmailTemplatesPage() {
                 </TableRow>
               ) : filteredTemplates.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
-                    No templates found
+                  <TableCell colSpan={8} className="text-center py-12">
+                    <div className="flex flex-col items-center gap-4">
+                      <MailIcon className="w-12 h-12 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">No templates found</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {templates.length === 0 
+                            ? 'Get started by seeding the default templates'
+                            : 'Try adjusting your search or filters'}
+                        </p>
+                      </div>
+                      {templates.length === 0 && (
+                        <Button onClick={handleSeedTemplates} disabled={seeding} className="gap-2">
+                          <Sparkles className="w-4 h-4" />
+                          {seeding ? 'Seeding...' : 'Seed Default Templates'}
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
