@@ -95,6 +95,7 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
         headerGradientStart: body.headerGradientStart,
         headerGradientEnd: body.headerGradientEnd,
         buttonColor: body.buttonColor,
+        headerImageUrl: body.headerImageUrl,
         requiredVariables: body.requiredVariables,
         changeNote: body.changeNote,
       },

@@ -483,6 +483,7 @@ model EmailTemplate {
   headerGradientStart String                 @default("#4285f4")
   headerGradientEnd   String                 @default("#5a67d8")
   buttonColor         String                 @default("#4285f4")
+  headerImageUrl      String?                // Optional header image URL
   
   // Template Variables (JSON array of required variables)
   requiredVariables   Json                   @default("[]")

@@ -11,17 +11,18 @@ export default function AdminUsersPage() {
 
     return (
         <AdminRoute>
-            <div className="container max-w-7xl mx-auto py-8 px-4">
-                {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold">Admin Panel</h1>
-                    <p className="text-muted-foreground mt-1">
-                        Manage users and system settings
-                    </p>
+            <div className="container max-w-7xl mx-auto py-6 px-4">
+                {/* Compact Header - Breadcrumb style */}
+                <div className="mb-4 flex items-center gap-2 text-sm">
+                    <span className="font-semibold text-muted-foreground">Admin Panel</span>
+                    <span className="text-muted-foreground">/</span>
+                    <span className="font-semibold">Members</span>
+                    <span className="text-muted-foreground">—</span>
+                    <span className="text-muted-foreground">Manage user accounts and permissions</span>
                 </div>
 
                 {/* Admin Navigation Tabs */}
-                <div className="mb-6">
+                <div className="mb-4">
                     <div className="flex gap-2 border-b">
                         <Button
                             variant="ghost"
@@ -32,14 +33,6 @@ export default function AdminUsersPage() {
                         </Button>
                         <Button
                             variant="ghost"
-                            onClick={() => router.push('/admin/email-preview')}
-                            className="rounded-b-none"
-                        >
-                            <MailIcon className="w-4 h-4 mr-2" />
-                            Email Preview
-                        </Button>
-                        <Button
-                            variant="ghost"
                             onClick={() => router.push('/admin/email-templates')}
                             className="rounded-b-none"
                         >
@@ -47,14 +40,6 @@ export default function AdminUsersPage() {
                             Email Templates
                         </Button>
                     </div>
-                </div>
-
-                {/* Page Title */}
-                <div className="mb-6">
-                    <h2 className="text-2xl font-bold">Members</h2>
-                    <p className="text-muted-foreground mt-1">
-                        Manage user accounts and permissions
-                    </p>
                 </div>
 
                 <UserManagementTable />

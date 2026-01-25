@@ -129,17 +129,18 @@ export default function EmailTemplatesPage() {
 
   return (
     <AdminRoute>
-      <div className="container max-w-7xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">Admin Panel</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage users and system settings
-          </p>
+      <div className="container max-w-7xl mx-auto py-6 px-4">
+        {/* Compact Header - Breadcrumb style */}
+        <div className="mb-4 flex items-center gap-2 text-sm">
+          <span className="font-semibold text-muted-foreground">Admin Panel</span>
+          <span className="text-muted-foreground">/</span>
+          <span className="font-semibold">Email Templates</span>
+          <span className="text-muted-foreground">—</span>
+          <span className="text-muted-foreground">Manage templates with version control</span>
         </div>
 
         {/* Admin Navigation Tabs */}
-        <div className="mb-6">
+        <div className="mb-4">
           <div className="flex gap-2 border-b">
             <Button
               variant="ghost"
@@ -151,14 +152,6 @@ export default function EmailTemplatesPage() {
             </Button>
             <Button
               variant="ghost"
-              onClick={() => router.push('/admin/email-preview')}
-              className="rounded-b-none"
-            >
-              <MailIcon className="w-4 h-4 mr-2" />
-              Email Preview
-            </Button>
-            <Button
-              variant="ghost"
               className="rounded-b-none border-b-2 border-primary"
             >
               <MailIcon className="w-4 h-4 mr-2" />
@@ -167,36 +160,19 @@ export default function EmailTemplatesPage() {
           </div>
         </div>
 
-        {/* Page Title & Actions */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Email Templates</h2>
-            <p className="text-muted-foreground mt-1">
-              Manage email templates with version control
-            </p>
-          </div>
-          <Button
-            onClick={() => router.push('/admin/email-templates/new')}
-            className="gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Create Template
-          </Button>
-        </div>
-
-        {/* Filters */}
-        <div className="mb-6 flex gap-4">
-          <div className="flex-1 relative">
+        {/* Search, Filters & Actions - Single Row */}
+        <div className="mb-4 flex items-center gap-3">
+          <div className="relative w-80">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search templates..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-9"
             />
           </div>
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] h-9">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Category" />
             </SelectTrigger>
@@ -207,6 +183,14 @@ export default function EmailTemplatesPage() {
               <SelectItem value="campaign">Campaign</SelectItem>
             </SelectContent>
           </Select>
+          <div className="flex-1" />
+          <Button
+            onClick={() => router.push('/admin/email-templates/new')}
+            className="gap-2 h-9"
+          >
+            <Plus className="w-4 h-4" />
+            Create Template
+          </Button>
         </div>
 
         {/* Templates Table */}

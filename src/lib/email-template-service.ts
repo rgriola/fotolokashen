@@ -58,6 +58,7 @@ export interface CreateTemplateInput {
   headerGradientStart?: string;
   headerGradientEnd?: string;
   buttonColor?: string;
+  headerImageUrl?: string;
   requiredVariables?: string[];
 }
 
@@ -73,6 +74,7 @@ export interface UpdateTemplateInput {
   headerGradientStart?: string;
   headerGradientEnd?: string;
   buttonColor?: string;
+  headerImageUrl?: string;
   requiredVariables?: string[];
   changeNote?: string;
 }
@@ -403,6 +405,7 @@ export async function updateTemplate(
       ...(data.headerGradientStart && { headerGradientStart: data.headerGradientStart }),
       ...(data.headerGradientEnd && { headerGradientEnd: data.headerGradientEnd }),
       ...(data.buttonColor && { buttonColor: data.buttonColor }),
+      ...(data.headerImageUrl !== undefined && { headerImageUrl: data.headerImageUrl }),
       ...(data.requiredVariables && { requiredVariables: data.requiredVariables }),
       version: existing.version + 1,
       updatedBy: userId,
@@ -422,6 +425,7 @@ export async function updateTemplate(
         headerGradientStart: updated.headerGradientStart,
         headerGradientEnd: updated.headerGradientEnd,
         buttonColor: updated.buttonColor,
+        headerImageUrl: (updated as { headerImageUrl?: string }).headerImageUrl || null,
       },
       changeNote: data.changeNote || 'Updated template',
       createdBy: userId,
