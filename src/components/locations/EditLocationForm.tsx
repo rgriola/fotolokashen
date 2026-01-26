@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Tag, X, Map, AlertCircle } from "lucide-react";
+import { MapPin, Tag, X, Map, AlertCircle, Sparkles } from "lucide-react";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
 import { PhotoCarouselManager } from "@/components/ui/PhotoCarouselManager";
 import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/location-constants";
@@ -18,6 +18,7 @@ import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR } from "@/lib/form-constant
 import { Location, UserSave } from "@/types/location";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
 import { useAuth } from "@/lib/auth-context";
+import { useImproveDescription } from "@/hooks/useImproveDescription";
 import Image from "next/image";
 
 const editLocationSchema = z.object({
@@ -69,6 +70,10 @@ export function EditLocationForm({
     const [photosToDelete, setPhotosToDelete] = useState<number[]>([]);
     const [hasChanges, setHasChanges] = useState(false);
     const [changes, setChanges] = useState<string[]>([]);
+    const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+    
+    // AI description improvement hook
+    const { improveDescription, isLoading: isAiLoading, error: aiError } = useImproveDescription();
 
     const form = useForm<EditLocationFormData>({
         resolver: zodResolver(editLocationSchema),
@@ -325,6 +330,57 @@ export function EditLocationForm({
         setTags(tags.filter((tag) => tag !== tagToRemove));
     };
 
+    const handleImproveProductionNotes = async () => {
+        const currentNotes = form.getValues("productionNotes");
+        if (!currentNotes || currentNotes.trim().length === 0) return;
+
+        const improved = await improveDescription(currentNotes, "improve");
+        if (improved) {
+            form.setValue("productionNotes", improved, { shouldDirty: true });
+        }
+    };
+
+    const handleSuggestTags = async () => {
+        const currentNotes = form.getValues("productionNotes");
+        if (!currentNotes || currentNotes.trim().length === 0) return;
+
+        const tagsResult = await improveDescription(currentNotes, "tags");
+        if (tagsResult) {
+            // Parse comma-separated tags and clean them up
+            const newTags = tagsResult
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag.length > 0 && tag.length <= 25)
+                .slice(0, 10); // Limit to 10 suggestions
+            
+            setSuggestedTags(newTags);
+        }
+    };
+
+    const handleAddSuggestedTag = (tag: string) => {
+        if (!tags.includes(tag) && tags.length < 20) {
+            setTags([...tags, tag]);
+        }
+        // Remove from suggestions after adding
+        setSuggestedTags(suggestedTags.filter(t => t !== tag));
+    };
+
+    const handleAddAllSuggestedTags = () => {
+        const availableSlots = 20 - tags.length;
+        const tagsToAdd = suggestedTags
+            .filter(tag => !tags.includes(tag))
+            .slice(0, availableSlots);
+        
+        if (tagsToAdd.length > 0) {
+            setTags([...tags, ...tagsToAdd]);
+            setSuggestedTags([]);
+        }
+    };
+
+    const handleDismissSuggestedTags = () => {
+        setSuggestedTags([]);
+    };
+
     const handleRemovePhoto = (index: number) => {
         const photoToRemove = photos[index];
 
@@ -543,6 +599,22 @@ export function EditLocationForm({
                             rows={2}
                             maxLength={500}
                         />
+                        <div className="flex items-center gap-2 mt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleImproveProductionNotes}
+                                disabled={isAiLoading || !watchedProductionNotes || watchedProductionNotes.trim().length === 0}
+                                className="text-xs gap-1.5"
+                            >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                {isAiLoading ? "Improving..." : "Improve with AI"}
+                            </Button>
+                            {aiError && (
+                                <span className="text-xs text-red-500">{aiError}</span>
+                            )}
+                        </div>
                     </div>
 
                     <div>
@@ -577,6 +649,65 @@ export function EditLocationForm({
                                 <Tag className="w-4 h-4" />
                             </Button>
                         </div>
+                        
+                        {/* AI Suggest Tags Button */}
+                        <div className="mt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleSuggestTags}
+                                disabled={isAiLoading || !watchedProductionNotes || watchedProductionNotes.trim().length === 0 || suggestedTags.length > 0}
+                                className="text-xs gap-1.5"
+                            >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                {isAiLoading ? "Generating..." : "Suggest Tags from Notes"}
+                            </Button>
+                        </div>
+
+                        {/* Suggested Tags */}
+                        {suggestedTags.length > 0 && (
+                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-xs font-semibold text-blue-900">AI Suggested Tags:</p>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={handleAddAllSuggestedTags}
+                                            className="text-xs h-6 px-2 text-blue-700 hover:text-blue-900"
+                                        >
+                                            Add All
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={handleDismissSuggestedTags}
+                                            className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
+                                        >
+                                            Dismiss
+                                        </Button>
+                                    </div>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {suggestedTags.map((tag) => (
+                                        <Badge
+                                            key={tag}
+                                            variant="outline"
+                                            className="gap-1 cursor-pointer hover:bg-blue-100 border-blue-300 text-blue-800"
+                                            onClick={() => handleAddSuggestedTag(tag)}
+                                        >
+                                            + {tag}
+                                        </Badge>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-blue-700 italic">Click a tag to add it to your location</p>
+                            </div>
+                        )}
+
+                        {/* Current Tags */}
                         {tags.length > 0 && (
                             <div className="flex flex-wrap gap-2 mt-2">
                                 {tags.map((tag) => (
@@ -586,7 +717,7 @@ export function EditLocationForm({
                                             type="button"
                                             onClick={() => handleRemoveTag(tag)}
                                             className="ml-1 hover:text-destructive"
-                                        >
+                                >
                                             <X className="w-3 h-3" />
                                         </button>
                                     </Badge>

@@ -1,24 +1,25 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-01-17  
+**Last Updated**: 2026-01-25  
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
 ## Current Focus
 
-### 🎯 Active Development (January 17, 2026)
+### 🎯 Active Development (January 25, 2026)
 
 **Today's Goals:**
-1. **Email Feature in Admin Section** - Enhanced email management for administrators
+1. **Admin Email Template Editor** - Unified editing, preview, and duplication for email templates
 2. **Helper Docs for Users** - In-app documentation and help system
 3. **New User Tour** - Onboarding experience to explain features
 
-**Recent Completion (January 16-17, 2026):**
-- ✅ Save Location Panel UX Enhancements
-- ✅ Photo Upload Encouragement (green Camera icon, always visible)
-- ✅ ShareLocationDialog Consolidation
-- ✅ People Page Expansion (5 tabs)
-- ✅ Map Controls Reorganization
+**Recent Completion (January 25, 2026):**
+- ✅ Email Template Editor: Unified edit/preview, device preview, validation, info dialog
+- ✅ Email Template Duplication: Duplicate any template with pre-filled form
+- ✅ Production-safe seeding endpoint for default templates
+- ✅ Compact admin UI: Breadcrumb headers, tabbed settings/colors, search/filter row
+- ✅ Merged email-preview into edit page for single workflow
+- ✅ Copy HTML, device preview toggles, and info dialog in tab bar
 
 ### 📱 iOS Companion App (January 2026)
 **Status**: Active Development  
@@ -41,171 +42,37 @@ The fotolokashen iOS app is a camera-first mobile companion for location scoutin
 
 ## Recent Major Updates
 
-### 2026-01-16: iOS App & Session Management Improvements ✅ COMPLETE
+### 2026-01-25: Admin Email Template Editor & Duplication Features ✅ COMPLETE
 
-**iOS Photo Upload System**
-- ✅ Fixed image dimension corruption (3024×4032 → 6750×9000)
-  - Root cause: UIImage.size returns points, not pixels on retina displays
-  - Solution: Calculate actual pixel dimensions using image.scale
-  - Result: Images now properly resized to ≤3000px max dimension
-- ✅ Fixed ImageKit folder path leading slash issue
-  - OAuth endpoints now strip leading "/" before upload
-  - Prevents silent upload failures (200 OK but no file saved)
-- ✅ Enhanced photo upload error handling and logging
-- ✅ Made ImageKit response fields optional for robustness
-
-**Session Management Overhaul**
-- ✅ **Complete session metadata capture** for all auth methods:
-  - `ipAddress` - User's IP from X-Forwarded-For or X-Real-IP headers
-  - `userAgent` - Full browser/device user agent string
-  - `deviceType` - Auto-detected: web, mobile-browser-ios, mobile-browser-android, ios (OAuth)
-  - `deviceName` - Extracted from user agent (e.g., "Windows NT 10.0; Win64; x64")
-  - `loginMethod` - Distinguishes: email_password, registration, password_reset, oauth2_pkce, oauth2_refresh
-  - `isActive` - Always true on creation
-  - `country` - Null (ready for IP geolocation integration)
-
-- ✅ **Multi-device session support**:
-  - REMOVED session wipe on login (previously deleted all user sessions)
-  - Web and iOS sessions can now coexist without conflicts
-  - Users can be logged in on multiple devices simultaneously
-  - iOS logout only affects iOS sessions, not web sessions
-
-- ✅ **OAuth session improvements**:
-  - Token exchange captures device metadata from request body
-  - iOS app sends device name, user agent, country/region
-  - Refresh token grant also captures full metadata
-  - Session cleanup on logout only affects iOS device type
-
-**ImageKit URL Management**
-- ✅ Replaced all hardcoded `https://ik.imagekit.io/rgriola` URLs
-- ✅ Centralized URL management with `getImageKitUrl()` helper
-- ✅ Safe hardcoded fallback for client-side rendering
-- ✅ Server uses `IMAGEKIT_URL_ENDPOINT` from Vercel environment
-- ✅ Reduced vendor lock-in (one place to change CDN URLs)
+**Admin Email Template System Overhaul**
+- ✅ Unified editor for email templates (edit, preview, validation, info dialog)
+- ✅ Device preview (Desktop, Tablet, Mobile) in tab bar
+- ✅ Copy HTML and info dialog in tab bar
+- ✅ Tabbed interface for Settings, Colors, and (future) Header image
+- ✅ Real-time validation for key, name, subject
+- ✅ Production-safe seeding endpoint (`/api/admin/email-templates/seed`)
+- ✅ Compact admin UI: Breadcrumb headers, search/filter/create row
+- ✅ Merged email-preview into edit page for single workflow
+- ✅ Email template duplication: Pre-fills form for new template based on existing one
+- ✅ All changes TypeScript error-free and production-ready
 
 **Files Updated:**
-- Backend (Session Metadata):
-  - `src/app/api/auth/login/route.ts`
-  - `src/app/api/auth/register/route.ts`
-  - `src/app/api/auth/reset-password/route.ts`
-  - `src/app/api/auth/oauth/token/route.ts`
-  - `src/app/api/auth/oauth/revoke/route.ts`
+- Backend (Admin Email Templates):
+  - `src/app/api/admin/email-templates/route.ts`
+  - `src/app/api/admin/email-templates/seed.ts`
 
-- Frontend (ImageKit URLs):
-  - `src/lib/imagekit.ts`
-  - `src/app/[username]/locations/[id]/page.tsx`
-  - `src/app/[username]/page.tsx`
-  - `src/app/[username]/locations/page.tsx`
-  - `src/app/[username]/locations/[id]/test-page.tsx`
-
-- iOS App:
-  - `fotolokashen-ios/fotolokashen/fotolokashen/swift-utilities/ImageCompressor.swift`
-  - `fotolokashen-ios/fotolokashen/fotolokashen/swift-utilities/AuthService.swift`
-  - `fotolokashen-ios/fotolokashen/fotolokashen/swift-utilities/Models/Photo.swift`
+- Frontend (Admin Email Template Editor):
+  - `src/app/admin/email-template-editor/page.tsx`
+  - `src/components/admin/EmailTemplateEditor.tsx`
+  - `src/components/admin/EmailTemplatePreview.tsx`
 
 **Benefits:**
-- Better debugging of multi-device session issues
-- Understanding user login patterns across platforms
-- Identifying suspicious login attempts by device/location
-- Support for simultaneous web + mobile usage
-- Proper iOS/web session isolation
+- Streamlined email template management for administrators
+- Reduced complexity with unified editing and previewing
+- Increased efficiency with template duplication feature
+- Improved admin UI for better usability
 
 ---
-
-### 2026-01-13: Phase 2A - Social & Privacy Features ✅ COMPLETE
-
-**10-Day Implementation** - Days 1-10 Complete
-- **Follow System** (Days 1-3): Database schema, API endpoints, UI components
-- **User Search** (Days 4-6): Backend search, autocomplete, search UI
-- **Privacy Settings** (Day 7): 5 privacy controls with database schema
-- **Privacy Enforcement** (Day 8): Server-side validation, permission checks
-- **Integration Testing** (Day 9): 23+ test scenarios, automated test suite
-- **Documentation** (Day 10): User guides, deployment checklist, completion summary
-
-**Features Delivered:**
-- ✅ Follow/unfollow system with optimistic updates
-- ✅ Full-text user search with autocomplete
-- ✅ Profile visibility controls (public/followers/private)
-- ✅ Saved locations privacy (public/followers/private)
-- ✅ Search visibility toggle (showInSearch)
-- ✅ Location display toggle (showLocation)
-- ✅ Follow request controls (allowFollowRequests)
-- ✅ Public user profiles with privacy-aware content
-- ✅ Server-side privacy enforcement (no client-side bypasses)
-
-**Statistics:**
-- 6,750+ lines of code written
-- 3,500+ lines of documentation
-- 12 git commits (all builds passing)
-- 23+ integration test scenarios
-- 100% success criteria met
-
-**Documentation Created:**
-- User Privacy Guide (`docs/user-guides/PRIVACY_GUIDE.md`)
-- Phase 2A Completion Summary (`docs/implementation/PHASE_2A_COMPLETE.md`)
-- Production Deployment Checklist (`PRODUCTION_DEPLOYMENT_CHECKLIST_PHASE2A.md`)
-- Privacy Enforcement Guide (`docs/features/PRIVACY_ENFORCEMENT.md`)
-- Integration Testing Guide (`docs/features/INTEGRATION_TESTING.md`)
-
-**Performance Achieved:**
-- Profile load: < 2000ms (actual: ~800-1200ms) ✅
-- Search response: < 1000ms (actual: ~200-400ms) ✅
-- Follow action: < 500ms (actual: ~150-300ms) ✅
-
-**Next:** Phase 2B - Notifications, Activity Feed, Enhanced Social Features
-
----
-
-### 2026-01-11/12: Security & Email System Overhaul
-
-**Email Template System** ✅ COMPLETED
-- Created comprehensive styled HTML email templates
-- Implemented responsive design for all email types
-- Added email preview admin tool with live customization
-- Templates: Verification, Welcome, Password Reset, Password Changed, Account Deletion
-
-**Email Verification Security** ✅ COMPLETED
-- Added 30-minute token expiration (previously no expiration)
-- Implemented expiry validation in verification endpoint
-- Enhanced verify-email page with specific error states:
-  - "Check Your Email" (no token)
-  - "Link Expired" (expired token)
-  - "Verification Issue" (invalid token)
-- Removed confusing "Register Again" button
-- Added yellow/amber warning UI (replaced harsh red errors)
-
-**Critical Security Fixes** ✅ COMPLETED
-- **Email Verification Bypass Vulnerability**: Fixed password reset allowing login without email verification
-- **Password Reset Rate Limiting**: 
-  - Forgot password: 2 requests per 15 min, 3 per hour
-  - Reset password: 2 attempts per 15 min, 3 per hour
-  - Change password: 5 changes per hour
-- **Race Condition Fix**: Password reset now properly checks verification before auto-login
-- **UX Improvements**: Added 1.5s delays to prevent flash/redirect issues
-
-**Welcome Email Flow** ✅ COMPLETED
-- Sends welcome email after successful email verification
-- Uses user's full name if available, falls back to username
-- Provides getting started guide
-
-**Admin Email Preview Tool** ✅ COMPLETED
-- Live preview of all email templates
-- Device size toggle (Web/Mobile/Tablet)
-- Real-time customization panel
-- Template selector with sample data
-- Copy HTML functionality
-- Navigation integration with Users admin page
-
-**Timestamp Improvements** ✅ COMPLETED
-- Email timestamps now display in user's local timezone
-- Shows timezone abbreviation (EST, PST, UTC, etc.)
-- Handles DST automatically
-- Graceful fallback to UTC if timezone not set
-
-**UI/UX Refinements** ✅ COMPLETED
-- Fixed homepage tagline text centering
-- Improved password reset flow messaging
-- Enhanced error handling and user feedback
 
 ## Current State
 
