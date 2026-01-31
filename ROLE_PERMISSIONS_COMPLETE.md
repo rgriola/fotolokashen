@@ -10,6 +10,7 @@
 Successfully migrated from simple `isAdmin` boolean to a comprehensive two-tier role-based permission system!
 
 ### Database Changes ✅
+
 - Added `role` field to User model (default: "user")
 - Created `ProjectMember` table for project-level permissions
 - Kept `isAdmin` for backward compatibility
@@ -18,11 +19,13 @@ Successfully migrated from simple `isAdmin` boolean to a comprehensive two-tier 
 ### Roles Implemented
 
 **Global Roles (Site-wide):**
+
 - `"user"` - Regular users (default)
 - `"staffer"` - App support team
 - `"super_admin"` - Founders with full control
 
 **Team/Project Roles (Scoped):**
+
 - `"viewer"` - Can view only
 - `"editor"` - Can edit content
 - `"admin"` - Can manage members, send emails
