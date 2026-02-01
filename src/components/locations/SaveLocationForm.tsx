@@ -21,13 +21,14 @@ import type { CachedPhoto, UploadedPhotoData } from "@/types/photo-cache";
 // Security: Regex to prevent XSS and SQL injection in text fields
 const safeTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()]+$/;
 const safeLongTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()\n\r]+$/; // Allows newlines
+const productionNotesRegex = /^[a-zA-Z0-9\s\-.,!?&'"();:@\n\r]+$/; // Allows @, commas, semicolons, colons for emails and phone numbers
 
 const saveLocationSchema = z.object({
     placeId: z.string().min(1, "Place ID is required").max(255),
     name: z.string()
         .min(1, "Location name is required")
         .max(200, "Name must be 200 characters or less")
-        .regex(safeTextRegex, "Name contains invalid characters"),
+        .regex(safeTextRegex, "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
     address: z.string().max(500).optional(),
     lat: z.number().min(-90).max(90),
     lng: z.number().min(-180).max(180),
@@ -44,16 +45,16 @@ const saveLocationSchema = z.object({
     // Production details - User editable, needs strict validation
     productionNotes: z.string().optional()
         .refine((val) => !val || val.length <= 500, "Production notes must be 500 characters or less")
-        .refine((val) => !val || safeLongTextRegex.test(val), "Production notes contain invalid characters"),
+        .refine((val) => !val || productionNotesRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and punctuation (.,!?&'\"()-;:@) are allowed for contact info."),
     entryPoint: z.string().optional()
         .refine((val) => !val || val.length <= 200, "Entry point must be 200 characters or less")
-        .refine((val) => !val || safeTextRegex.test(val), "Entry point contains invalid characters"),
+        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
     parking: z.string().optional()
         .refine((val) => !val || val.length <= 200, "Parking info must be 200 characters or less")
-        .refine((val) => !val || safeTextRegex.test(val), "Parking info contains invalid characters"),
+        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
     access: z.string().optional()
         .refine((val) => !val || val.length <= 200, "Access info must be 200 characters or less")
-        .refine((val) => !val || safeTextRegex.test(val), "Access info contains invalid characters"),
+        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
 
     // User save details - Personal notes, needs validation
     isFavorite: z.boolean().optional(),
@@ -219,17 +220,32 @@ export function SaveLocationForm({
         // Validate tag: alphanumeric, spaces, hyphens only (max 25 chars)
         const tagRegex = /^[a-zA-Z0-9\s\-]+$/;
 
-        if (trimmedTag &&
-            !tags.includes(trimmedTag) &&
-            tags.length < 20 &&
-            trimmedTag.length <= 25 &&
-            tagRegex.test(trimmedTag)) {
-            setTags([...tags, trimmedTag]);
-            setTagInput("");
-        } else if (trimmedTag && !tagRegex.test(trimmedTag)) {
-            // Optionally show error for invalid characters
-            console.warn('Tag contains invalid characters');
+        if (!trimmedTag) {
+            return;
         }
+
+        if (tags.includes(trimmedTag)) {
+            toast.error('This tag already exists');
+            return;
+        }
+
+        if (tags.length >= 20) {
+            toast.error('Maximum 20 tags allowed');
+            return;
+        }
+
+        if (trimmedTag.length > 25) {
+            toast.error('Tag must be 25 characters or less');
+            return;
+        }
+
+        if (!tagRegex.test(trimmedTag)) {
+            toast.error('Invalid characters in tag. Only letters, numbers, spaces, and hyphens are allowed. @ symbol is not allowed.');
+            return;
+        }
+
+        setTags([...tags, trimmedTag]);
+        setTagInput("");
     };
 
     const handleRemoveTag = (tagToRemove: string) => {
@@ -298,7 +314,11 @@ export function SaveLocationForm({
                                 id="name"
                                 {...form.register("name")}
                                 placeholder="e.g., Central Park"
-                                className="focus-visible:ring-green-500 focus-visible:ring-2 pr-8"
+                                className={`focus-visible:ring-green-500 focus-visible:ring-2 pr-8 ${
+                                    form.formState.errors.name 
+                                        ? "border-destructive ring-destructive ring-2" 
+                                        : ""
+                                }`}
                             />
                             {form.watch("name") && (
                                 <button
@@ -433,7 +453,13 @@ export function SaveLocationForm({
                             placeholder="Special considerations..."
                             rows={3}
                             maxLength={500}
+                            className={form.formState.errors.productionNotes ? "border-destructive ring-destructive ring-2" : ""}
                         />
+                        {form.formState.errors.productionNotes && (
+                            <p className="text-sm text-destructive mt-1">
+                                {form.formState.errors.productionNotes.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -492,7 +518,13 @@ export function SaveLocationForm({
                             id="parking"
                             {...form.register("parking")}
                             placeholder="Parking info"
+                            className={form.formState.errors.parking ? "border-destructive ring-destructive ring-2" : ""}
                         />
+                        {form.formState.errors.parking && (
+                            <p className="text-sm text-destructive mt-1">
+                                {form.formState.errors.parking.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -501,7 +533,13 @@ export function SaveLocationForm({
                             id="entryPoint"
                             {...form.register("entryPoint")}
                             placeholder="Main entrance"
+                            className={form.formState.errors.entryPoint ? "border-destructive ring-destructive ring-2" : ""}
                         />
+                        {form.formState.errors.entryPoint && (
+                            <p className="text-sm text-destructive mt-1">
+                                {form.formState.errors.entryPoint.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -510,7 +548,13 @@ export function SaveLocationForm({
                             id="access"
                             {...form.register("access")}
                             placeholder="How to access"
+                            className={form.formState.errors.access ? "border-destructive ring-destructive ring-2" : ""}
                         />
+                        {form.formState.errors.access && (
+                            <p className="text-sm text-destructive mt-1">
+                                {form.formState.errors.access.message}
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

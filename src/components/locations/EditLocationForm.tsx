@@ -20,19 +20,35 @@ import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
 import { useAuth } from "@/lib/auth-context";
 import { useImproveDescription } from "@/hooks/useImproveDescription";
 import Image from "next/image";
+import { toast } from "sonner";
+
+// Security: Regex to prevent XSS and SQL injection in text fields
+const safeTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()]+$/;
+const productionNotesRegex = /^[a-zA-Z0-9\s\-.,!?&'"();:@\n\r]+$/; // Allows @, commas, semicolons, colons for emails and phone numbers
 
 const editLocationSchema = z.object({
     id: z.number(),
-    name: z.string().min(1, "Location name is required"),
+    name: z.string()
+        .min(1, "Location name is required")
+        .max(200, "Name must be 200 characters or less")
+        .regex(safeTextRegex, "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
     address: z.string().optional(),
     type: z.string().min(1, "Type is required"),
     indoorOutdoor: indoorOutdoorSchema,
 
     // Production details
-    productionNotes: z.string().max(500).optional(),
-    entryPoint: z.string().optional(),
-    parking: z.string().optional(),
-    access: z.string().optional(),
+    productionNotes: z.string().optional()
+        .refine((val) => !val || val.length <= 500, "Production notes must be 500 characters or less")
+        .refine((val) => !val || productionNotesRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and punctuation (.,!?&'\"()-;:@) are allowed for contact info."),
+    entryPoint: z.string().optional()
+        .refine((val) => !val || val.length <= 200, "Entry point must be 200 characters or less")
+        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
+    parking: z.string().optional()
+        .refine((val) => !val || val.length <= 200, "Parking info must be 200 characters or less")
+        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
+    access: z.string().optional()
+        .refine((val) => !val || val.length <= 200, "Access info must be 200 characters or less")
+        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
 
     // User save details
     caption: z.string().max(200).optional(),
@@ -320,10 +336,37 @@ export function EditLocationForm({
     };
 
     const handleAddTag = () => {
-        if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 20) {
-            setTags([...tags, tagInput.trim()]);
-            setTagInput("");
+        const trimmedTag = tagInput.trim();
+        
+        // Validate tag: alphanumeric, spaces, hyphens only (max 25 chars)
+        const tagRegex = /^[a-zA-Z0-9\s\-]+$/;
+        
+        if (!trimmedTag) {
+            return;
         }
+        
+        if (tags.includes(trimmedTag)) {
+            toast.error('This tag already exists');
+            return;
+        }
+        
+        if (tags.length >= 20) {
+            toast.error('Maximum 20 tags allowed');
+            return;
+        }
+        
+        if (trimmedTag.length > 25) {
+            toast.error('Tag must be 25 characters or less');
+            return;
+        }
+        
+        if (!tagRegex.test(trimmedTag)) {
+            toast.error('Invalid characters in tag. Only letters, numbers, spaces, and hyphens are allowed. @ symbol is not allowed.');
+            return;
+        }
+        
+        setTags([...tags, trimmedTag]);
+        setTagInput("");
     };
 
     const handleRemoveTag = (tagToRemove: string) => {
@@ -467,7 +510,11 @@ export function EditLocationForm({
                                 id="name"
                                 {...form.register("name")}
                                 placeholder="e.g., Central Park"
-                                className="focus-visible:ring-green-500 focus-visible:ring-2 pr-8"
+                                className={`focus-visible:ring-green-500 focus-visible:ring-2 pr-8 ${
+                                    form.formState.errors.name 
+                                        ? "border-destructive ring-destructive ring-2" 
+                                        : ""
+                                }`}
                             />
                             {form.watch("name") && (
                                 <button
@@ -501,7 +548,11 @@ export function EditLocationForm({
                             >
                                 <SelectTrigger
                                     id="type"
-                                    className="focus:ring-green-500 focus:ring-2 w-full min-w-[140px]"
+                                    className={`focus:ring-green-500 focus:ring-2 w-full min-w-[140px] ${
+                                        form.formState.errors.type 
+                                            ? "border-destructive ring-destructive" 
+                                            : ""
+                                    }`}
                                 >
                                     <SelectValue placeholder="Required Info" />
                                 </SelectTrigger>
@@ -598,7 +649,13 @@ export function EditLocationForm({
                             placeholder="Special considerations..."
                             rows={2}
                             maxLength={500}
+                            className={form.formState.errors.productionNotes ? "border-destructive ring-destructive ring-2" : ""}
                         />
+                        {form.formState.errors.productionNotes && (
+                            <p className="text-sm text-destructive mt-1">
+                                {form.formState.errors.productionNotes.message}
+                            </p>
+                        )}
                         <div className="flex items-center gap-2 mt-2">
                             <Button
                                 type="button"
@@ -732,7 +789,13 @@ export function EditLocationForm({
                             id="parking"
                             {...form.register("parking")}
                             placeholder="Parking info"
+                            className={form.formState.errors.parking ? "border-destructive ring-destructive ring-2" : ""}
                         />
+                        {form.formState.errors.parking && (
+                            <p className="text-sm text-destructive mt-1">
+                                {form.formState.errors.parking.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -741,7 +804,13 @@ export function EditLocationForm({
                             id="entryPoint"
                             {...form.register("entryPoint")}
                             placeholder="Main entrance"
+                            className={form.formState.errors.entryPoint ? "border-destructive ring-destructive ring-2" : ""}
                         />
+                        {form.formState.errors.entryPoint && (
+                            <p className="text-sm text-destructive mt-1">
+                                {form.formState.errors.entryPoint.message}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -750,7 +819,13 @@ export function EditLocationForm({
                             id="access"
                             {...form.register("access")}
                             placeholder="How to access"
+                            className={form.formState.errors.access ? "border-destructive ring-destructive ring-2" : ""}
                         />
+                        {form.formState.errors.access && (
+                            <p className="text-sm text-destructive mt-1">
+                                {form.formState.errors.access.message}
+                            </p>
+                        )}
                     </div>
                 </div>
 
