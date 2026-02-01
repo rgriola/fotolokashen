@@ -13,6 +13,7 @@ import { ProfileStats } from '@/components/profile/ProfileStats';
 import PrivateProfileMessage from '@/components/profile/PrivateProfileMessage';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 async function getCurrentUserId(): Promise<number | null> {
   try {
@@ -379,7 +380,11 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {locations.map((save) => (
+                  {locations.map((save) => {
+                    // Generate Google Maps Static API URL as fallback
+                    const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${save.location.lat},${save.location.lng}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${save.location.lat},${save.location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
+                    
+                    return (
                     <Link
                       key={save.id}
                       href={`/${user.username}/locations/${save.location.id}`}
@@ -392,12 +397,17 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
                             src={getImageKitUrl(save.location.photos[0].imagekitFilePath, 'w-400,h-300,c-at_max')}
                             alt={save.location.name}
                             fill
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             className="object-cover group-hover:scale-105 transition-transform"
                           />
                         </div>
                       ) : (
-                        <div className="w-full h-48 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                          <span className="text-4xl">📍</span>
+                        <div className="relative w-full h-48 bg-muted overflow-hidden">
+                          <img
+                            src={mapImageUrl}
+                            alt={`Map of ${save.location.name}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
                         </div>
                       )}
 
@@ -418,7 +428,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
                         )}
                       </div>
                     </Link>
-                  ))}
+                  )})}
                 </div>
               </div>
             ) : (

@@ -147,16 +147,12 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
 
   const primaryPhoto = save.location.photos.find(p => p.isPrimary) || save.location.photos[0];
   const staticMapUrl = !primaryPhoto ? getStaticMapUrl(save.location.lat, save.location.lng) : null;
+  
+  // Check if current user is the owner of this location
+  const isOwner = currentUserId === user.id;
 
-  return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Location Card - Clickable to open in /map */}
-        <Link 
-          href={`/map?lat=${save.location.lat}&lng=${save.location.lng}&zoom=17&edit=${save.id}`}
-          className="block hover:opacity-90 transition-opacity"
-        >
-          <div className="bg-card border rounded-xl shadow-lg overflow-hidden">
+  const locationCard = (
+    <div className="bg-card border rounded-xl shadow-lg overflow-hidden">
             {/* Primary Photo or Static Map */}
             <div className="relative aspect-video w-full">
               {primaryPhoto ? (
@@ -457,7 +453,22 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
               )}
             </div>
           </div>
-        </Link>
+  );
+
+  return (
+    <div className="min-h-screen bg-muted/30">
+      <div className="container mx-auto px-4 py-8 max-w-3xl">
+        {/* Location Card - Clickable to open in /map (only for owners) */}
+        {isOwner ? (
+          <Link 
+            href={`/map?lat=${save.location.lat}&lng=${save.location.lng}&zoom=17`}
+            className="block hover:opacity-90 transition-opacity"
+          >
+            {locationCard}
+          </Link>
+        ) : (
+          locationCard
+        )}
 
         {/* External Action Buttons (Outside clickable card) */}
         <div className="mt-6 flex flex-col sm:flex-row gap-3">
@@ -490,12 +501,14 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
           )}
         </div>
 
-        {/* Hint Text */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            Click the card to view this location on the map
-          </p>
-        </div>
+        {/* Hint Text - Only for owners */}
+        {isOwner && (
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Click the card to view this location on the map
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

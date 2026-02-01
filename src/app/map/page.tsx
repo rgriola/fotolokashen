@@ -162,38 +162,46 @@ function MapPageInner() {
                 // Fetch the location data
                 fetch(`/api/locations/${editLocationId}`)
                     .then(res => res.json())
-                    .then(location => {
+                    .then(data => {
+                        // Extract userSave from API response
+                        const userSaveData = data.userSave;
+                        const locationData = userSaveData?.location;
+                        
+                        if (!userSaveData || !locationData) {
+                            throw new Error('Invalid location data');
+                        }
+                        
                         // Create marker data from location
                         const markerData = {
-                            id: location.placeId,
-                            position: { lat: location.lat, lng: location.lng },
+                            id: locationData.placeId,
+                            position: { lat: locationData.lat, lng: locationData.lng },
                             data: {
-                                placeId: location.placeId,
-                                name: location.name,
-                                address: location.address,
-                                type: location.type,
-                                rating: location.rating,
-                                street: location.street,
-                                number: location.number,
-                                city: location.city,
-                                state: location.state,
-                                zipcode: location.zipcode,
-                                productionNotes: location.productionNotes,
-                                entryPoint: location.entryPoint,
-                                parking: location.parking,
-                                access: location.access,
-                                indoorOutdoor: location.indoorOutdoor,
-                                isPermanent: location.isPermanent,
-                                photoUrls: location.photoUrls,
-                                permitRequired: location.permitRequired,
-                                permitCost: location.permitCost,
-                                contactPerson: location.contactPerson,
-                                contactPhone: location.contactPhone,
-                                operatingHours: location.operatingHours,
-                                restrictions: location.restrictions,
-                                bestTimeOfDay: location.bestTimeOfDay,
+                                placeId: locationData.placeId,
+                                name: locationData.name,
+                                address: locationData.address,
+                                type: locationData.type,
+                                rating: locationData.rating,
+                                street: locationData.street,
+                                number: locationData.number,
+                                city: locationData.city,
+                                state: locationData.state,
+                                zipcode: locationData.zipcode,
+                                productionNotes: locationData.productionNotes,
+                                entryPoint: locationData.entryPoint,
+                                parking: locationData.parking,
+                                access: locationData.access,
+                                indoorOutdoor: locationData.indoorOutdoor,
+                                isPermanent: locationData.isPermanent,
+                                photoUrls: locationData.photoUrls,
+                                permitRequired: locationData.permitRequired,
+                                permitCost: locationData.permitCost,
+                                contactPerson: locationData.contactPerson,
+                                contactPhone: locationData.contactPhone,
+                                operatingHours: locationData.operatingHours,
+                                restrictions: locationData.restrictions,
+                                bestTimeOfDay: locationData.bestTimeOfDay,
                             },
-                            userSave: location.userSave,
+                            userSave: userSaveData,
                         };
 
                         // Open edit panel
