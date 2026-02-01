@@ -3,6 +3,7 @@ import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
 import { uploadToImageKit, getImageKitFolder, deleteFromImageKit } from '@/lib/imagekit';
 import prisma from '@/lib/prisma';
 import { FOLDER_PATHS } from '@/lib/constants/upload';
+import { scanFile } from '@/lib/virus-scan';
 
 /**
  * POST /api/auth/banner
@@ -52,6 +53,17 @@ export async function POST(request: NextRequest) {
             // Convert file to buffer
             const bytes = await file.arrayBuffer();
             const buffer = Buffer.from(bytes);
+
+            // Scan for viruses and malware
+            const scanResult = await scanFile(buffer, file.name);
+            if (scanResult.isInfected) {
+                console.error(`[Banner API] Virus detected in ${file.name}:`, scanResult.viruses);
+                return apiError(
+                    scanResult.error || 'File failed security scan',
+                    400,
+                    'SECURITY_VIOLATION'
+                );
+            }
 
             // Upload to ImageKit
             const uploadResult = await uploadToImageKit({

@@ -525,7 +525,7 @@ export function SaveLocationForm({
                     <div className="pt-4 border-t">
                         <Button
                             type="submit"
-                            className="w-full bg-green-600 hover:bg-green-700 text-white"
+                            className="bg-green-600 hover:bg-green-700 text-white"
                             disabled={isPending}
                         >
                             {isPending ? 'Saving Location...' : 'Save Location'}

@@ -1,6 +1,8 @@
 
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { Metadata } from 'next';
+import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
 import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
 import Image from 'next/image';
@@ -10,8 +12,24 @@ import { MapPin, Calendar, Star, ExternalLink, Clock, DollarSign, Phone, AlertCi
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
+
 interface PublicLocationPageProps {
   params: Promise<{ username: string; id: string }>;
+}
+
+async function getCurrentUserId(): Promise<number | null> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('auth_token')?.value;
+    
+    if (!token) return null;
+    
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    return decoded.userId;
+  } catch {
+    return null;
+  }
 }
 
 async function getUserByUsername(username: string) {
@@ -101,6 +119,16 @@ export async function generateMetadata({ params }: PublicLocationPageProps): Pro
 
 export default async function PublicLocationPage({ params }: PublicLocationPageProps) {
   const { username, id } = await params;
+  
+  // Check if user is authenticated
+  const currentUserId = await getCurrentUserId();
+  
+  if (!currentUserId) {
+    // Redirect to register page with return URL
+    const returnUrl = encodeURIComponent(`/${username}/locations/${id}`);
+    redirect(`/register?returnUrl=${returnUrl}&message=location`);
+  }
+  
   const user = await getUserByUsername(username);
 
   if (!user) {

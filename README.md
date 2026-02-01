@@ -41,6 +41,7 @@ A modern location discovery and sharing platform where users can search, save, a
 - Google Maps API Key
 - ImageKit account (for photo uploads)
 - Resend account (for transactional emails)
+- **ClamAV** (for virus scanning) - Optional but recommended
 
 ## 🛠️ Getting Started
 
@@ -54,7 +55,29 @@ cd google-search-me-refactor
 npm install
 ```
 
-### 2. Environment Setup
+### 2. Install ClamAV (Optional but Recommended)
+
+ClamAV provides virus scanning for uploaded files.
+
+**macOS:**
+```bash
+brew install clamav
+brew services start clamav
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt install clamav clamav-daemon
+sudo systemctl start clamav-daemon
+```
+
+**To disable virus scanning** (not recommended):
+```bash
+# Add to .env.local
+DISABLE_VIRUS_SCAN="true"
+```
+
+### 3. Environment Setup
 
 Create a `.env.local` file in the root directory (this is the ONLY environment file used for local development):
 
@@ -73,10 +96,12 @@ Required environment variables:
 - `IMAGEKIT_PRIVATE_KEY` - ImageKit private key
 - `IMAGEKIT_URL_ENDPOINT` - ImageKit URL endpoint
 - `EMAIL_SERVER_*` - Resend API configuration
+- `CLAMAV_HOST` - ClamAV host (default: localhost)
+- `CLAMAV_PORT` - ClamAV port (default: 3310)
 
 See [ENV_TEMPLATE.md](./ENV_TEMPLATE.md) for detailed configuration instructions.
 
-### 3. Database Setup
+### 4. Database Setup
 
 ```bash
 # Generate Prisma Client
@@ -89,7 +114,7 @@ npm run db:push
 npm run db:migrate
 ```
 
-### 4. Run Development Server
+### 5. Run Development Server
 
 ```bash
 # Start the development server
@@ -243,6 +268,7 @@ This application implements enterprise-grade security:
 - **Session Management**: Database-validated sessions
 - **Password Security**: bcrypt hashing (10 rounds)
 - **Email Verification**: Mandatory before app access
+- **Virus Scanning**: ClamAV integration for uploaded files (avatars, banners)
 - **XSS Protection**: DOMPurify sanitization on all user inputs
 - **SQL Injection**: Prisma ORM with parameterized queries
 - **Route Protection**: Client-side guards for authenticated pages

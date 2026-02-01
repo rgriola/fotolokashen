@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Star, Info, X, ZoomIn } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Info, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
+import { PhotoLightbox } from "@/components/ui/PhotoLightbox";
 import type { Photo } from "@/types/location";
 
 interface PhotoGalleryProps {
@@ -66,32 +66,105 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                 {/* Main Carousel Display */}
                 <div className="relative">
                     {/* Main Photo */}
-                    <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted border">
+                    <div 
+                        className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted border cursor-pointer group"
+                        onClick={() => setShowLightbox(true)}
+                        title="Click to view full size"
+                    >
                         <img
                             src={photoUrl}
                             alt={currentPhoto.caption || currentPhoto.originalFilename}
                             className="w-full h-full object-cover"
                         />
 
+                        {/* Expand icon on hover */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <div className="bg-black/60 backdrop-blur-sm text-white p-3 rounded-full">
+                                <Maximize2 className="w-6 h-6" />
+                            </div>
+                        </div>
+
                         {/* Primary Star Badge - Top Right */}
                         {currentPhoto.isPrimary && (
-                            <div className="absolute top-2 right-2 bg-amber-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs font-medium">
+                            <div className="absolute top-2 right-2 bg-amber-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs font-medium z-10">
                                 <Star className="w-3 h-3 fill-white" />
                                 Primary
                             </div>
                         )}
 
-                        {/* Zoom Button - Top Left */}
+                        {/* Info Toggle Button - Top Left */}
                         <Button
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="absolute top-2 left-2 w-8 h-8 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all"
-                            onClick={() => setShowLightbox(true)}
-                            title="View full size"
+                            className={cn(
+                                "absolute top-2 left-2 w-7 h-7 backdrop-blur-sm transition-all z-10",
+                                showMetadata
+                                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                    : "bg-black/40 hover:bg-black/60 text-white"
+                            )}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowMetadata(!showMetadata);
+                            }}
+                            title={showMetadata ? "Hide photo info" : "Show photo info"}
                         >
-                            <ZoomIn className="w-4 h-4 text-white" />
+                            <Info className="w-4 h-4" />
                         </Button>
+
+                        {/* Metadata Panel - Top Left (shown when toggled) */}
+                        {showMetadata && (
+                            <div className="absolute top-11 left-2 bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-md text-xs space-y-1 max-w-xs z-10">
+                                {/* File Info */}
+                                <p className="truncate">
+                                    <span className="font-semibold">📄 File:</span> {currentPhoto.originalFilename}
+                                </p>
+                                {currentPhoto.fileSize && (
+                                    <p>
+                                        <span className="font-semibold">💾 Size:</span> {formatFileSize(currentPhoto.fileSize)}
+                                        {currentPhoto.width && currentPhoto.height && (
+                                            <>
+                                                {" · "}
+                                                <span className="font-semibold">📐</span> {currentPhoto.width} × {currentPhoto.height}
+                                            </>
+                                        )}
+                                    </p>
+                                )}
+
+                                {/* Camera Info */}
+                                {(currentPhoto.cameraMake || currentPhoto.cameraModel) && (
+                                    <p className="truncate">
+                                        <span className="font-semibold">📷</span> {currentPhoto.cameraMake} {currentPhoto.cameraModel}
+                                    </p>
+                                )}
+
+                                {/* Date Taken */}
+                                {currentPhoto.dateTaken && (
+                                    <p>
+                                        <span className="font-semibold">📅</span> {formatDate(currentPhoto.dateTaken)}
+                                    </p>
+                                )}
+
+                                {/* GPS Data */}
+                                {currentPhoto.hasGpsData && currentPhoto.gpsLatitude && currentPhoto.gpsLongitude && (
+                                    <p>
+                                        <span className="font-semibold">📍 GPS:</span>{" "}
+                                        {currentPhoto.gpsLatitude.toFixed(3)}, {currentPhoto.gpsLongitude.toFixed(3)}
+                                    </p>
+                                )}
+
+                                {/* Camera Settings */}
+                                {(currentPhoto.iso || currentPhoto.aperture || currentPhoto.shutterSpeed || currentPhoto.focalLength) && (
+                                    <p>
+                                        <span className="font-semibold">⚙️</span>{" "}
+                                        {currentPhoto.iso && `ISO ${currentPhoto.iso}`}
+                                        {currentPhoto.aperture && `, f/${currentPhoto.aperture}`}
+                                        {currentPhoto.shutterSpeed && `, ${currentPhoto.shutterSpeed}`}
+                                        {currentPhoto.focalLength && `, ${currentPhoto.focalLength}mm`}
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         {/* Navigation Arrows (only show if multiple photos) */}
                         {photos.length > 1 && (
@@ -100,8 +173,11 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                                     type="button"
                                     variant="secondary"
                                     size="icon"
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity"
-                                    onClick={goToPrevious}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-10"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        goToPrevious();
+                                    }}
                                 >
                                     <ChevronLeft className="w-5 h-5" />
                                 </Button>
@@ -109,8 +185,11 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                                     type="button"
                                     variant="secondary"
                                     size="icon"
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity"
-                                    onClick={goToNext}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-10"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        goToNext();
+                                    }}
                                 >
                                     <ChevronRight className="w-5 h-5" />
                                 </Button>
@@ -122,87 +201,13 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                             </>
                         )}
 
-                        {/* Photo Metadata - Bottom Left Corner */}
-                        <div className="absolute bottom-2 left-2 flex items-end gap-2">
-                            {/* Info Toggle Button */}
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className={cn(
-                                    "w-6 h-6 backdrop-blur-sm transition-all",
-                                    showMetadata
-                                        ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                        : "bg-black/40 hover:bg-black/60 text-white"
-                                )}
-                                onClick={() => setShowMetadata(!showMetadata)}
-                                title={showMetadata ? "Hide photo info" : "Show photo info"}
-                            >
-                                <Info className="w-3.5 h-3.5" />
-                            </Button>
-
-                            {/* Metadata Panel (shown when toggled) */}
-                            {showMetadata && (
-                                <div className="bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-md text-xs space-y-1 max-w-xs">
-                                    {/* File Info */}
-                                    <p className="truncate">
-                                        <span className="font-semibold">📄 File:</span> {currentPhoto.originalFilename}
-                                    </p>
-                                    {currentPhoto.fileSize && (
-                                        <p>
-                                            <span className="font-semibold">💾 Size:</span> {formatFileSize(currentPhoto.fileSize)}
-                                            {currentPhoto.width && currentPhoto.height && (
-                                                <>
-                                                    {" · "}
-                                                    <span className="font-semibold">📐</span> {currentPhoto.width} × {currentPhoto.height}
-                                                </>
-                                            )}
-                                        </p>
-                                    )}
-
-                                    {/* Camera Info */}
-                                    {(currentPhoto.cameraMake || currentPhoto.cameraModel) && (
-                                        <p className="truncate">
-                                            <span className="font-semibold">📷</span> {currentPhoto.cameraMake} {currentPhoto.cameraModel}
-                                        </p>
-                                    )}
-
-                                    {/* Date Taken */}
-                                    {currentPhoto.dateTaken && (
-                                        <p>
-                                            <span className="font-semibold">📅</span> {formatDate(currentPhoto.dateTaken)}
-                                        </p>
-                                    )}
-
-                                    {/* GPS Data */}
-                                    {currentPhoto.hasGpsData && currentPhoto.gpsLatitude && currentPhoto.gpsLongitude && (
-                                        <p>
-                                            <span className="font-semibold">📍 GPS:</span>{" "}
-                                            {currentPhoto.gpsLatitude.toFixed(3)}, {currentPhoto.gpsLongitude.toFixed(3)}
-                                        </p>
-                                    )}
-
-                                    {/* Camera Settings */}
-                                    {(currentPhoto.iso || currentPhoto.aperture || currentPhoto.shutterSpeed || currentPhoto.focalLength) && (
-                                        <p>
-                                            <span className="font-semibold">⚙️</span>{" "}
-                                            {currentPhoto.iso && `ISO ${currentPhoto.iso}`}
-                                            {currentPhoto.aperture && `, f/${currentPhoto.aperture}`}
-                                            {currentPhoto.shutterSpeed && `, ${currentPhoto.shutterSpeed}`}
-                                            {currentPhoto.focalLength && `, ${currentPhoto.focalLength}mm`}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                        {/* Caption - Bottom Left Corner */}
+                        {currentPhoto.caption && (
+                            <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-md text-sm italic max-w-[60%] z-10">
+                                "{currentPhoto.caption}"
+                            </div>
+                        )}
                     </div>
-
-                    {/* Caption */}
-                    {currentPhoto.caption && (
-                        <div className="mt-2 text-sm text-muted-foreground italic">
-                            "{currentPhoto.caption}"
-                        </div>
-                    )}
                 </div>
 
                 {/* Thumbnail Strip (only show if multiple photos) */}
@@ -238,56 +243,13 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                 )}
             </div>
 
-            {/* Lightbox Modal */}
-            <Dialog open={showLightbox} onOpenChange={setShowLightbox}>
-                <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden">
-                    <div className="relative w-full h-full flex items-center justify-center bg-black">
-                        {/* Close Button */}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-2 right-2 z-10 bg-black/50 hover:bg-black/70 text-white"
-                            onClick={() => setShowLightbox(false)}
-                        >
-                            <X className="w-5 h-5" />
-                        </Button>
-
-                        {/* Navigation in Lightbox */}
-                        {photos.length > 1 && (
-                            <>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white"
-                                    onClick={goToPrevious}
-                                >
-                                    <ChevronLeft className="w-6 h-6" />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white"
-                                    onClick={goToNext}
-                                >
-                                    <ChevronRight className="w-6 h-6" />
-                                </Button>
-
-                                {/* Counter in Lightbox */}
-                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm font-medium">
-                                    {currentIndex + 1} / {photos.length}
-                                </div>
-                            </>
-                        )}
-
-                        {/* Full Size Image */}
-                        <img
-                            src={photoUrl}
-                            alt={currentPhoto.caption || currentPhoto.originalFilename}
-                            className="max-w-full max-h-full object-contain"
-                        />
-                    </div>
-                </DialogContent>
-            </Dialog>
+            {/* Photo Lightbox with Zoom & Rotate */}
+            <PhotoLightbox
+                photoUrl={photoUrl}
+                photoTitle={currentPhoto.caption || currentPhoto.originalFilename}
+                open={showLightbox}
+                onOpenChange={setShowLightbox}
+            />
         </>
     );
 }

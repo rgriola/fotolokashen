@@ -753,6 +753,16 @@ export function EditLocationForm({
                         />
                     </div>
                 </div>
+
+                {/* Save Button - Always visible at bottom of form */}
+                <div className="flex gap-3 pt-4 border-t">
+                    <Button
+                        type="submit"
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                        Save Changes
+                    </Button>
+                </div>
             </div>
 
             {/* Unsaved Changes Banner */}

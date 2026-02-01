@@ -1,7 +1,17 @@
 import Image from 'next/image';
 import { LoginForm } from '@/components/auth/LoginForm';
 
-export default function LoginPage() {
+interface LoginPageProps {
+  searchParams: Promise<{
+    returnUrl?: string;
+    message?: string;
+  }>;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+  const { returnUrl, message } = params;
+  
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       {/* Background Image Layer */}
@@ -30,7 +40,7 @@ export default function LoginPage() {
               priority
             />
           </div>
-          <LoginForm />
+          <LoginForm returnUrl={returnUrl} message={message} />
         </div>
       </div>
     </div>

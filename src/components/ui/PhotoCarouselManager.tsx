@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Star, Trash2, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Trash2, Info, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PhotoLightbox } from "@/components/ui/PhotoLightbox";
 
 interface Photo {
     id?: number;
@@ -36,6 +37,7 @@ export function PhotoCarouselManager({
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isDeleteHovered, setIsDeleteHovered] = useState(false);
     const [showMetadata, setShowMetadata] = useState(false);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
 
     const handleSetPrimary = (index: number) => {
         const newPhotos = photos.map((photo, i) => ({
@@ -71,7 +73,11 @@ export function PhotoCarouselManager({
             {/* Main Carousel Display */}
             <div className="relative">
                 {/* Main Photo */}
-                <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted border">
+                <div 
+                    className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted border cursor-pointer group"
+                    onClick={() => setLightboxOpen(true)}
+                    title="Click to view full size"
+                >
                     <img
                         src={currentPhoto.url}
                         alt={currentPhoto.originalFilename}
@@ -80,6 +86,13 @@ export function PhotoCarouselManager({
                             isCurrentPhotoMarkedForDeletion && "opacity-50"
                         )}
                     />
+
+                    {/* Expand icon on hover */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <div className="bg-black/60 backdrop-blur-sm text-white p-3 rounded-full">
+                            <Maximize2 className="w-6 h-6" />
+                        </div>
+                    </div>
 
                     {/* Deletion Overlay with Red Slash */}
                     {isCurrentPhotoMarkedForDeletion && (
@@ -102,8 +115,11 @@ export function PhotoCarouselManager({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute top-2 right-2 w-8 h-8 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all"
-                        onClick={() => handleSetPrimary(currentIndex)}
+                        className="absolute top-2 right-2 w-8 h-8 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-10"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetPrimary(currentIndex);
+                        }}
                         disabled={currentPhoto.isPrimary}
                         title={currentPhoto.isPrimary ? "Primary Photo" : "Set as Primary"}
                     >
@@ -127,10 +143,11 @@ export function PhotoCarouselManager({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute top-2 left-2 w-8 h-8 bg-black/40 hover:bg-red-600/80 backdrop-blur-sm transition-all"
+                        className="absolute top-2 left-2 w-8 h-8 bg-black/40 hover:bg-red-600/80 backdrop-blur-sm transition-all z-10"
                         onMouseEnter={() => setIsDeleteHovered(true)}
                         onMouseLeave={() => setIsDeleteHovered(false)}
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation();
                             onRemovePhoto(currentIndex);
                             setIsDeleteHovered(false);
                         }}
@@ -151,8 +168,11 @@ export function PhotoCarouselManager({
                                 type="button"
                                 variant="secondary"
                                 size="icon"
-                                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity"
-                                onClick={goToPrevious}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-10"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    goToPrevious();
+                                }}
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </Button>
@@ -160,8 +180,11 @@ export function PhotoCarouselManager({
                                 type="button"
                                 variant="secondary"
                                 size="icon"
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity"
-                                onClick={goToNext}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-10"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    goToNext();
+                                }}
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </Button>
@@ -180,8 +203,11 @@ export function PhotoCarouselManager({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="w-6 h-6 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all"
-                            onClick={() => setShowMetadata(!showMetadata)}
+                            className="w-6 h-6 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-10"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowMetadata(!showMetadata);
+                            }}
                             title={showMetadata ? "Hide photo info" : "Show photo info"}
                         >
                             <Info className="w-3.5 h-3.5 text-white" />
@@ -270,6 +296,14 @@ export function PhotoCarouselManager({
                     })}
                 </div>
             )}
+
+            {/* Photo Lightbox */}
+            <PhotoLightbox
+                photoUrl={currentPhoto.url}
+                photoTitle={currentPhoto.originalFilename}
+                open={lightboxOpen}
+                onOpenChange={setLightboxOpen}
+            />
         </div>
     );
 }

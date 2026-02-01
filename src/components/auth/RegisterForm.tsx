@@ -55,7 +55,12 @@ const registerSchema = z.object({
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
-export function RegisterForm() {
+interface RegisterFormProps {
+  returnUrl?: string;
+  message?: string;
+}
+
+export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -112,8 +117,12 @@ export function RegisterForm() {
 
       toast.success('Account created! Please check your email to verify your account.');
 
-      // Redirect to login or app
-      router.push('/login');
+      // Redirect to login with returnUrl so they can access the location after verifying and logging in
+      if (returnUrl) {
+        router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}&message=${message || ''}`);
+      } else {
+        router.push('/login');
+      }
     } catch (error) {
       console.error('Registration error:', error);
       toast.error('An unexpected error occurred');
@@ -127,7 +136,20 @@ export function RegisterForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Register - Create Account</CardTitle>
         <CardDescription>
-          Enter Your Information To Get Access.
+          {message === 'location' ? (
+            <span className="text-primary font-medium">
+              To view this location please create an account or{' '}
+              <Link 
+                href={`/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
+                className="underline hover:text-primary-foreground"
+              >
+                login if you have one
+              </Link>
+              .
+            </span>
+          ) : (
+            'Enter Your Information To Get Access.'
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>

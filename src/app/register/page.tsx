@@ -1,7 +1,17 @@
 import Image from 'next/image';
 import { RegisterForm } from '@/components/auth/RegisterForm';
 
-export default function RegisterPage() {
+interface RegisterPageProps {
+  searchParams: Promise<{
+    returnUrl?: string;
+    message?: string;
+  }>;
+}
+
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
+  const params = await searchParams;
+  const { returnUrl, message } = params;
+  
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       {/* Background Image Layer */}
@@ -30,7 +40,7 @@ export default function RegisterPage() {
               priority
             />
           </div>
-          <RegisterForm />
+          <RegisterForm returnUrl={returnUrl} message={message} />
         </div>
       </div>
     </div>

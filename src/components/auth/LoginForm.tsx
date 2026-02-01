@@ -22,7 +22,12 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-export function LoginForm() {
+interface LoginFormProps {
+  returnUrl?: string;
+  message?: string;
+}
+
+export function LoginForm({ returnUrl, message }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -148,9 +153,13 @@ export function LoginForm() {
         }
       }
 
-      // Normal web login - redirect to map
+      // Normal web login - redirect to returnUrl or map
       setTimeout(() => {
-        window.location.href = '/map';
+        if (returnUrl) {
+          window.location.href = decodeURIComponent(returnUrl);
+        } else {
+          window.location.href = '/map';
+        }
       }, 200);
     } catch (error) {
       console.error('Login error:', error);
@@ -165,7 +174,20 @@ export function LoginForm() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Login - Welcome Back</CardTitle>
         <CardDescription>
-          Enter Your Creds Below
+          {message === 'location' ? (
+            <span className="text-primary font-medium">
+              To view this location please login or{' '}
+              <Link 
+                href={`/register${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
+                className="underline hover:text-primary-foreground"
+              >
+                create an account if you don't have one
+              </Link>
+              .
+            </span>
+          ) : (
+            'Enter Your Creds Below'
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent>

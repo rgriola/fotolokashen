@@ -19,6 +19,7 @@ You are assisting with the **fotolokashen** location discovery platform.
 
 ### 2. Security First
 - **Sanitize all user inputs**: Use `sanitizeInput()` from `/src/lib/sanitize.ts`
+- **Scan uploaded files**: Use `scanFile()` from `/src/lib/virus-scan.ts` before processing
 - **Protect routes**: Use `requireAuth` middleware for all protected API routes
 - **Validate data**: Use Zod schemas before database operations
 - **Never expose passwords**: Return `PublicUser` type, never raw `User`
@@ -183,6 +184,7 @@ When adding new features, always verify:
 - [ ] Security events are logged to `SecurityLog` table
 - [ ] Rate limiting is implemented for sensitive operations
 - [ ] CORS and authentication headers are set correctly
+- [ ] **File uploads are virus scanned** with `scanFile()` from `/src/lib/virus-scan.ts`
 
 ## Development Workflow
 
