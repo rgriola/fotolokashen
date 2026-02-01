@@ -18,6 +18,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LocationData } from '@/lib/maps-utils';
 import { parseAddressComponents } from '@/lib/address-utils';
 import { useLocations } from '@/hooks/useLocations';
+import { usePublicLocations } from '@/hooks/usePublicLocations';
 import { UserSave, Location } from '@/types/location';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
@@ -40,6 +41,8 @@ interface MarkerData {
     isTemporary?: boolean; // True for markers not yet saved
     userSave?: UserSave; // User save data if this is a saved location
     color?: string; // Marker color for saved locations
+    isPublic?: boolean; // True for public locations from other users
+    ownerUsername?: string; // Username of location owner for public locations
 }
 
 function MapPageInner() {
@@ -60,6 +63,15 @@ function MapPageInner() {
     const [isFavorite, setIsFavorite] = useState(false);
     const [indoorOutdoor, setIndoorOutdoor] = useState<"indoor" | "outdoor">("outdoor");
     const [showSearchDialog, setShowSearchDialog] = useState(false);
+    
+    // Public locations state
+    const [showPublicLocations, setShowPublicLocations] = useState(false);
+    const [mapBounds, setMapBounds] = useState<{
+        north: number;
+        south: number;
+        east: number;
+        west: number;
+    } | null>(null);
 
 
     // GPS permission state
@@ -106,6 +118,27 @@ function MapPageInner() {
 
     // Load saved locations
     const { data: locationsData } = useLocations();
+    
+    // Load public locations when enabled
+    const { data: publicLocationsData } = usePublicLocations({
+        bounds: mapBounds || undefined,
+        enabled: showPublicLocations,
+    });
+    
+    // Update bounds when public locations toggle is turned on
+    useEffect(() => {
+        if (showPublicLocations && map) {
+            const bounds = map.getBounds();
+            if (bounds) {
+                setMapBounds({
+                    north: bounds.getNorthEast().lat(),
+                    south: bounds.getSouthWest().lat(),
+                    east: bounds.getNorthEast().lng(),
+                    west: bounds.getSouthWest().lng(),
+                });
+            }
+        }
+    }, [showPublicLocations, map]);
 
     // Populate markers from saved locations
     useEffect(() => {
@@ -134,15 +167,39 @@ function MapPageInner() {
                     isTemporary: false, // Saved locations are NOT temporary
                     userSave: userSave,
                     color: userSave.color || '#EF4444', // Use user's custom color or default red
+                    isPublic: false,
                 }));
+
+            // Add public location markers if enabled
+            const publicMarkers: MarkerData[] = showPublicLocations && publicLocationsData?.locations
+                ? publicLocationsData.locations.map((publicLoc) => ({
+                    id: `public-${publicLoc.id}`,
+                    position: {
+                        lat: publicLoc.location.lat,
+                        lng: publicLoc.location.lng,
+                    },
+                    data: {
+                        placeId: publicLoc.location.placeId,
+                        name: publicLoc.location.name,
+                        address: publicLoc.location.address || undefined,
+                        latitude: publicLoc.location.lat,
+                        longitude: publicLoc.location.lng,
+                        type: publicLoc.location.type || undefined,
+                    },
+                    isTemporary: false,
+                    color: '#A855F7', // Purple for public locations
+                    isPublic: true,
+                    ownerUsername: publicLoc.user.username,
+                }))
+                : [];
 
             // Update markers, preserving any temporary markers
             setMarkers(prev => {
                 const tempMarkers = prev.filter(m => m.isTemporary);
-                return [...savedMarkers, ...tempMarkers];
+                return [...savedMarkers, ...publicMarkers, ...tempMarkers];
             });
         }
-    }, [locationsData]);
+    }, [locationsData, publicLocationsData, showPublicLocations]);
 
     // Handle URL parameters (from My Locations page navigation)
     useEffect(() => {
@@ -253,7 +310,22 @@ function MapPageInner() {
 
     const handleMapLoad = useCallback((mapInstance: google.maps.Map) => {
         setMap(mapInstance);
-    }, []);
+        
+        // Add listener for bounds changes to update public locations
+        mapInstance.addListener('idle', () => {
+            if (showPublicLocations) {
+                const bounds = mapInstance.getBounds();
+                if (bounds) {
+                    setMapBounds({
+                        north: bounds.getNorthEast().lat(),
+                        south: bounds.getSouthWest().lat(),
+                        east: bounds.getNorthEast().lng(),
+                        west: bounds.getSouthWest().lng(),
+                    });
+                }
+            }
+        });
+    }, [showPublicLocations]);
 
     const handleMapClick = useCallback(async (event: google.maps.MapMouseEvent) => {
         if (event.latLng) {
@@ -667,6 +739,20 @@ function MapPageInner() {
     };
 
     const handleMarkerClick = useCallback((marker: MarkerData) => {
+        // For public locations from other users: show read-only InfoWindow with owner info
+        if (marker.isPublic) {
+            setSelectedMarker(marker);
+            
+            // Center map on the selected location with smooth animation
+            if (map) {
+                map.panTo(marker.position);
+                if (map.getZoom()! < 16) {
+                    map.setZoom(16);
+                }
+            }
+            return;
+        }
+        
         // For saved markers: show Details Panel
         if (!marker.isTemporary && marker.userSave) {
             // Remove any temporary markers when clicking a saved marker
@@ -817,6 +903,22 @@ function MapPageInner() {
                                 <p className="text-xs text-gray-500 font-mono">
                                     {selectedMarker.position.lat.toFixed(3)}, {selectedMarker.position.lng.toFixed(3)}
                                 </p>
+                                {/* Show owner for public locations */}
+                                {selectedMarker.isPublic && selectedMarker.ownerUsername && (
+                                    <div className="flex items-center gap-2 mt-2 p-2 bg-purple-50 rounded border border-purple-200">
+                                        <div className="text-sm">
+                                            <span className="text-gray-600">Shared by </span>
+                                            <a 
+                                                href={`/${selectedMarker.ownerUsername}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="font-medium text-purple-600 hover:text-purple-700 hover:underline"
+                                            >
+                                                @{selectedMarker.ownerUsername}
+                                            </a>
+                                        </div>
+                                    </div>
+                                )}
                                 {selectedMarker.data?.rating && (
                                     <div className="flex items-center gap-1">
                                         <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
@@ -826,8 +928,8 @@ function MapPageInner() {
                                     </div>
                                 )}
                                 <div className="flex gap-2 mt-2">
-                                    {/* View button for saved locations */}
-                                    {selectedMarker.userSave && (
+                                    {/* View button for saved locations (not public) */}
+                                    {selectedMarker.userSave && !selectedMarker.isPublic && (
                                         <button
                                             onClick={() => {
                                                 setLocationToEdit(selectedMarker);
@@ -947,7 +1049,9 @@ function MapPageInner() {
                         }, 100);
                     }}
                     onMyLocationsClick={() => setShowLocationsPanel(true)}
-                    savedLocationsCount={markers.filter(m => !m.isTemporary).length}
+                    onPublicToggle={(showPublic) => setShowPublicLocations(showPublic)}
+                    showPublicLocations={showPublicLocations}
+                    savedLocationsCount={markers.filter(m => !m.isTemporary && !m.isPublic).length}
                 />
 
                 {/* Locations Panel - Slide in from right, same width as save/edit panels */}

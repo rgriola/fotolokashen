@@ -25,6 +25,8 @@ interface MapControlsProps {
     onViewAllClick: () => void;
     onMyLocationsClick: () => void;
     onSearchClick: () => void;
+    onPublicToggle: (showPublic: boolean) => void;
+    showPublicLocations: boolean;
     searchOpen?: boolean; // Optional now
     hideMobileButton?: boolean;
     savedLocationsCount: number;
@@ -37,6 +39,8 @@ export function MapControls({
     onViewAllClick,
     onMyLocationsClick,
     onSearchClick,
+    onPublicToggle,
+    showPublicLocations,
     hideMobileButton = false,
     savedLocationsCount,
 }: MapControlsProps) {
@@ -88,6 +92,18 @@ export function MapControls({
                     title="View all saved locations on map"
                 >
                     <Globe className="w-5 h-5" />
+                </Button>
+
+                {/* Toggle Public Locations Button */}
+                <Button
+                    onClick={() => onPublicToggle(!showPublicLocations)}
+                    className={`shadow-lg border transition-colors h-12 w-12 p-0 ${showPublicLocations
+                        ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
+                        : 'bg-white hover:bg-gray-50 text-gray-900 border-gray-200'
+                        }`}
+                    title={showPublicLocations ? 'Hide public locations' : 'Explore public locations from all users'}
+                >
+                    <Map className={`w-5 h-5 ${showPublicLocations ? 'fill-current' : ''}`} />
                 </Button>
 
                 {/* My Locations List Button */}
@@ -202,6 +218,28 @@ export function MapControls({
                                     <div className="text-xs text-gray-600">
                                         Fit all locations in view
                                     </div>
+                                </div>
+                            </button>
+
+                            {/* Explore Public Locations Toggle */}
+                            <button
+                                onClick={() => {
+                                    handleActionClick(() => onPublicToggle(!showPublicLocations));
+                                }}
+                                className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all ${showPublicLocations
+                                    ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
+                                    : 'bg-white hover:bg-gray-50 text-gray-900 border-gray-200'
+                                    }`}
+                            >
+                                <Map className={`w-5 h-5 flex-shrink-0 ${showPublicLocations ? 'fill-current' : ''}`} />
+                                <div className="flex-1 text-left">
+                                    <div className="font-medium">Explore Public</div>
+                                    <div className={`text-xs ${showPublicLocations ? 'opacity-90' : 'text-gray-600'}`}>
+                                        {showPublicLocations ? 'Showing locations from all users' : 'Discover public locations'}
+                                    </div>
+                                </div>
+                                <div className="text-sm font-medium">
+                                    {showPublicLocations ? 'On' : 'Off'}
                                 </div>
                             </button>
 
