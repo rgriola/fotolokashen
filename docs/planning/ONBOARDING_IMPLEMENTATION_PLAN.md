@@ -1,9 +1,10 @@
 # User Onboarding Implementation Plan
 
-**Status**: 📋 Planned (Not Started)  
-**Priority**: Medium  
-**Estimated Time**: 13-19 hours  
-**Created**: January 12, 2026
+**Status**: � In Progress  
+**Priority**: High  
+**Estimated Time**: 11-15 hours (MVP: 4 steps)  
+**Created**: January 12, 2026  
+**Updated**: February 2, 2026
 
 ---
 
@@ -97,10 +98,12 @@ Show onboarding IF:
 
 ---
 
-### **Tour Steps** (6 Core Steps)
+### **Tour Steps** (MVP: 4 Core Steps)
+
+**Note**: Start with 4 essential steps for MVP. Add remaining steps in V2 after validating core experience.
 
 #### Step 1: Search & Discovery
-**Target**: `.google-maps-search` or search input  
+**Target**: `[data-tour="search-button"]` (Map search button)  
 **Position**: Bottom  
 **Title**: "Search Anywhere"  
 **Content**: "Search for any location worldwide using Google Maps. Try searching for your favorite coffee shop!"  
@@ -113,33 +116,43 @@ Show onboarding IF:
 **Content**: "Found a great spot? Click here to save it to your collection with photos, notes, and ratings."  
 **Action**: None (informational)
 
-#### Step 3: Saved Locations Panel
-**Target**: `[data-tour="saved-locations-panel"]`  
+#### Step 3: My Locations Panel
+**Target**: `[data-tour="my-locations-button"]` (MapControls button with pin icon)  
 **Position**: Left  
 **Title**: "Your Collection"  
-**Content**: "View all your saved locations here. Filter by favorites, ratings, or search by name."  
+**Content**: "View all your saved locations here. Click to see your list and manage your places."  
 **Action**: None (informational)
 
-#### Step 4: Photo Upload
-**Target**: `[data-tour="photo-upload"]` (inside save form)  
-**Position**: Right  
-**Title**: "Add Photos"  
-**Content**: "Attach photos to remember each location. Upload multiple images and set one as primary."  
-**Action**: None (informational)  
-**Note**: Only show if save panel is open (conditional)
-
-#### Step 5: Map Controls
-**Target**: `[data-tour="map-controls"]`  
-**Position**: Left  
-**Title**: "Navigate the Map"  
-**Content**: "Use these controls to zoom, find your current location, and switch map views."  
-**Action**: None (informational)
-
-#### Step 6: Profile & Settings
+#### Step 4: Profile & Settings
 **Target**: `[data-tour="profile-menu"]` (AuthButton)  
 **Position**: Bottom-end  
 **Title**: "Your Account"  
 **Content**: "Access your profile, settings, and restart this tour anytime from here."  
+**Action**: None (informational)
+
+---
+
+### **V2 Steps** (Add After MVP Validation)
+
+#### Step 5: Explore Public Locations
+**Target**: `[data-tour="public-toggle"]` (Purple Map button)  
+**Position**: Left  
+**Title**: "Discover Public Locations"  
+**Content**: "Toggle this to explore locations shared by other users from around the world!"  
+**Action**: None (informational)
+
+#### Step 6: Create from Photo
+**Target**: `[data-tour="create-with-photo"]` (Green Plus button)  
+**Position**: Left  
+**Title**: "Upload Photos with GPS"  
+**Content**: "Have a photo with GPS data? Upload it to automatically create a location with all the details!"  
+**Action**: None (informational)
+
+#### Step 7: GPS Location
+**Target**: `[data-tour="gps-toggle"]` (Blue Navigation button)  
+**Position**: Left  
+**Title**: "Find Your Location"  
+**Content**: "Click to show your current GPS location on the map and quickly save nearby places."  
 **Action**: None (informational)
 
 ---
@@ -183,13 +196,13 @@ model User {
   username              String    @unique
   // ...existing fields...
   
-  // Onboarding Tracking
-  onboardingCompleted   Boolean   @default(false)
-  onboardingStep        Int?      // Last completed step (0-6)
-  onboardingSkipped     Boolean   @default(false)
-  onboardingStartedAt   DateTime?
-  onboardingCompletedAt DateTime?
-  onboardingVersion     Int       @default(1) // Track tour version for updates
+  // Onboarding Tracking (TypeScript camelCase, DB snake_case)
+  onboardingCompleted   Boolean   @default(false) @map("onboarding_completed")
+  onboardingStep        Int?      @map("onboarding_step") // Last completed step (0-4 for MVP, 0-7 for full)
+  onboardingSkipped     Boolean   @default(false) @map("onboarding_skipped")
+  onboardingStartedAt   DateTime? @map("onboarding_started_at")
+  onboardingCompletedAt DateTime? @map("onboarding_completed_at")
+  onboardingVersion     Int       @default(1) @map("onboarding_version") // Track tour version for updates
   
   // ...rest of schema...
 }
@@ -200,12 +213,12 @@ model User {
 ```sql
 -- prisma/migrations/[timestamp]_add_user_onboarding/migration.sql
 
-ALTER TABLE "User" ADD COLUMN "onboardingCompleted" BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE "User" ADD COLUMN "onboardingStep" INTEGER;
-ALTER TABLE "User" ADD COLUMN "onboardingSkipped" BOOLEAN NOT NULL DEFAULT false;
-ALTER TABLE "User" ADD COLUMN "onboardingStartedAt" TIMESTAMP(3);
-ALTER TABLE "User" ADD COLUMN "onboardingCompletedAt" TIMESTAMP(3);
-ALTER TABLE "User" ADD COLUMN "onboardingVersion" INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE "User" ADD COLUMN "onboarding_completed" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN "onboarding_step" INTEGER;
+ALTER TABLE "User" ADD COLUMN "onboarding_skipped" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "User" ADD COLUMN "onboarding_started_at" TIMESTAMP(3);
+ALTER TABLE "User" ADD COLUMN "onboarding_completed_at" TIMESTAMP(3);
+ALTER TABLE "User" ADD COLUMN "onboarding_version" INTEGER NOT NULL DEFAULT 1;
 ```
 
 **Commands:**
@@ -249,16 +262,18 @@ src/
 ```
 
 **New Files to Create**: 11 files  
-**Files to Modify**: 3 files
-- `src/app/map/page.tsx` - Add OnboardingProvider
-- `src/components/layout/AuthButton.tsx` - Add "Restart Tour" menu item
-- `prisma/schema.prisma` - Add onboarding fields
+**Files to Modify**: 5 files
+- `src/app/map/page.tsx` - Add OnboardingProvider wrapper
+- `src/components/layout/AuthButton.tsx` - Add "Restart Tour" menu item + data-tour attribute
+- `src/components/maps/MapControls.tsx` - Add data-tour attributes to buttons
+- `src/components/locations/SaveLocationPanel.tsx` - Add data-tour="save-location-button"
+- `prisma/schema.prisma` - Add onboarding fields with snake_case mapping
 
 ---
 
 ## Implementation Phases
 
-### **Phase 1: Setup & Infrastructure** (2-3 hours)
+### **Phase 1: Setup & Infrastructure** (2 hours)
 
 **Tasks:**
 1. Install dependencies
@@ -308,10 +323,10 @@ src/
    - Implement custom styling
 
 3. **Define Tour Steps** (`onboarding-steps.ts`)
-   - Create step configuration array
+   - Create MVP step configuration array (4 steps)
    - Define targets, content, positioning
-   - Add conditional steps
    - Set up step progression logic
+   - Prepare V2 steps array for future use
 
 4. **Create WelcomeModal** (`WelcomeModal.tsx`)
    - Design welcome screen
@@ -548,9 +563,10 @@ export function useOnboarding() {
 // src/components/onboarding/onboarding-steps.ts
 import { Step } from 'react-joyride';
 
+// MVP: 4 Core Steps
 export const ONBOARDING_STEPS: Step[] = [
   {
-    target: '[data-tour="search-input"]',
+    target: '[data-tour="search-button"]',
     content: 'Search for any location worldwide using Google Maps. Try searching for your favorite coffee shop!',
     title: 'Search Anywhere',
     placement: 'bottom',
@@ -564,21 +580,9 @@ export const ONBOARDING_STEPS: Step[] = [
     placement: 'bottom',
   },
   {
-    target: '[data-tour="saved-locations-panel"]',
-    content: 'View all your saved locations here. Filter by favorites, ratings, or search by name.',
+    target: '[data-tour="my-locations-button"]',
+    content: 'View all your saved locations here. Click to see your list and manage your places.',
     title: 'Your Collection',
-    placement: 'left',
-  },
-  {
-    target: '[data-tour="photo-upload"]',
-    content: 'Attach photos to remember each location. Upload multiple images and set one as primary.',
-    title: 'Add Photos',
-    placement: 'right',
-  },
-  {
-    target: '[data-tour="map-controls"]',
-    content: 'Use these controls to zoom, find your current location, and switch map views.',
-    title: 'Navigate the Map',
     placement: 'left',
   },
   {
@@ -586,6 +590,29 @@ export const ONBOARDING_STEPS: Step[] = [
     content: 'Access your profile, settings, and restart this tour anytime from here.',
     title: 'Your Account',
     placement: 'bottom-end',
+  },
+];
+
+// V2: Additional Steps (add after MVP validation)
+export const ONBOARDING_STEPS_V2: Step[] = [
+  ...ONBOARDING_STEPS,
+  {
+    target: '[data-tour="public-toggle"]',
+    content: 'Toggle this to explore locations shared by other users from around the world!',
+    title: 'Discover Public Locations',
+    placement: 'left',
+  },
+  {
+    target: '[data-tour="create-with-photo"]',
+    content: 'Have a photo with GPS data? Upload it to automatically create a location with all the details!',
+    title: 'Upload Photos with GPS',
+    placement: 'left',
+  },
+  {
+    target: '[data-tour="gps-toggle"]',
+    content: 'Click to show your current GPS location on the map and quickly save nearby places.',
+    title: 'Find Your Location',
+    placement: 'left',
   },
 ];
 ```
@@ -650,31 +677,35 @@ export function OnboardingTour() {
 
 ```typescript
 // src/app/api/onboarding/complete/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { requireAuth } from '@/lib/auth/require-auth';
+import prisma from '@/lib/prisma';
+import { requireAuth } from '@/lib/api-middleware';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
+  const auth = await requireAuth(request);
+  if (!auth.authenticated) {
+    return Response.json({ error: auth.error }, { status: 401 });
+  }
+
+  const user = auth.user; // PublicUser type (no password)
+
   try {
-    const user = await requireAuth(request);
-
     await prisma.user.update({
       where: { id: user.id },
       data: {
         onboardingCompleted: true,
         onboardingCompletedAt: new Date(),
-        onboardingStep: 6, // All steps completed
+        onboardingStep: 4, // MVP: 4 steps (or 7 for full version)
       },
     });
 
-    return NextResponse.json({
+    return Response.json({
       success: true,
       message: 'Onboarding completed',
     });
   } catch (error) {
     console.error('Onboarding completion error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to complete onboarding' },
+    return Response.json(
+      { error: 'Failed to complete onboarding' },
       { status: 500 }
     );
   }
@@ -683,18 +714,40 @@ export async function POST(request: NextRequest) {
 
 ### 5. Data Tour Attributes
 
+**IMPORTANT**: No data-tour attributes currently exist. These must be added to components.
+
 Add these attributes to your existing components:
 
 ```tsx
-// In search component
-<input
-  data-tour="search-input"
-  type="text"
-  placeholder="Search locations..."
-  // ...other props
-/>
+// MapControls.tsx - Search button (desktop)
+<Button
+  data-tour="search-button"
+  onClick={onSearchClick}
+  className="bg-white hover:bg-gray-50..."
+>
+  <Search className="w-5 h-5" />
+</Button>
 
-// In save button
+// MapControls.tsx - My Locations button (desktop)
+<Button
+  data-tour="my-locations-button"
+  onClick={onMyLocationsClick}
+  className="bg-white hover:bg-gray-50..."
+>
+  <MapPinIcon className="w-5 h-5" />
+  {savedLocationsCount > 0 && <span>...</span>}
+</Button>
+
+// AuthButton.tsx - Profile button/avatar
+<Button
+  data-tour="profile-menu"
+  variant="ghost"
+  // ...other props
+>
+  {/* Avatar or menu trigger */}
+</Button>
+
+// When implementing save location panel, add:
 <Button
   data-tour="save-location-button"
   onClick={handleSave}
@@ -702,15 +755,10 @@ Add these attributes to your existing components:
   Save Location
 </Button>
 
-// In saved locations panel
-<div
-  data-tour="saved-locations-panel"
-  className="saved-locations-container"
->
-  {/* Panel content */}
-</div>
-
-// Similar for photo-upload, map-controls, profile-menu
+// V2 Attributes (for additional steps):
+// - data-tour="public-toggle" (Purple Map button in MapControls)
+// - data-tour="create-with-photo" (Green Plus button in MapControls)
+// - data-tour="gps-toggle" (Blue Navigation button in MapControls)
 ```
 
 ---
@@ -722,8 +770,8 @@ Add these attributes to your existing components:
 
 export const ONBOARDING_CONFIG = {
   VERSION: 1, // Increment when tour changes significantly
-  TOTAL_STEPS: 6,
-  ESTIMATED_DURATION_MINUTES: 2,
+  TOTAL_STEPS: 4, // MVP (7 for full V2)
+  ESTIMATED_DURATION_MINUTES: 1, // MVP is faster
   
   // Feature flags
   ENABLE_WELCOME_MODAL: true,
@@ -905,12 +953,13 @@ function trackOnboardingEvent(event: string, data?: any) {
 ## Success Criteria
 
 ### Must Have (MVP)
-- ✅ 6 core steps functional
+- ✅ 4 core steps functional (search, save, my locations, profile)
 - ✅ Welcome modal works
 - ✅ Skip functionality works
 - ✅ Progress saved to database
 - ✅ Mobile responsive
 - ✅ No critical bugs
+- ✅ data-tour attributes added to components
 
 ### Should Have
 - ✅ Completion modal with celebration
@@ -1038,12 +1087,20 @@ function trackOnboardingEvent(event: string, data?: any) {
 ## Estimated Costs
 
 ### Development Time
-- **Setup**: 2-3 hours
-- **Core Development**: 4-6 hours
-- **Styling**: 3-4 hours
-- **Integration**: 2-3 hours
-- **Testing**: 2-3 hours
-- **Total**: 13-19 hours
+
+**MVP (4 Steps):**
+- **Setup**: 2 hours
+- **Core Development**: 4-5 hours
+- **Styling**: 2-3 hours
+- **Integration**: 2 hours
+- **Testing**: 1-2 hours
+- **Total MVP**: 11-14 hours
+
+**Full Version (7 Steps):**
+- **MVP**: 11-14 hours
+- **Additional Steps**: 2-3 hours
+- **Extra Testing**: 1-2 hours
+- **Total Full**: 14-19 hours
 
 ### Third-Party Costs
 - **react-joyride**: Free (MIT license)
@@ -1101,5 +1158,30 @@ function trackOnboardingEvent(event: string, data?: any) {
 
 ---
 
-**Status**: Ready for implementation when prioritized  
-**Last Updated**: January 12, 2026
+**Status**: 🚧 Starting implementation February 3, 2026  
+**Last Updated**: February 2, 2026
+
+---
+
+## Implementation Notes (Feb 2, 2026)
+
+### Current State
+- No data-tour attributes exist yet in codebase
+- Current auth uses requireAuth from @/lib/api-middleware (returns PublicUser)
+- Database uses snake_case columns with @@map in Prisma
+- Mobile UI uses Sheet (bottom drawer) for map controls
+- /create-with-photo is dedicated page (not inline modal)
+
+### MVP Strategy
+- Start with 4 essential steps to validate approach
+- Build V2 steps after user feedback
+- Focus on desktop first, then mobile responsiveness
+- Use existing shadcn/ui Dialog components for modals
+
+### Before You Start
+- [ ] Read through updated plan
+- [ ] Install react-joyride and types
+- [ ] Create feature branch: `git checkout -b feature/user-onboarding`
+- [ ] Add onboarding fields to schema.prisma
+- [ ] Run database migration
+- [ ] Create file structure from Phase 1

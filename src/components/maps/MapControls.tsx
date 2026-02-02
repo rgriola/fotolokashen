@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { 
     MapPinIcon, 
     Navigation, 
@@ -121,13 +122,13 @@ export function MapControls({
                 </Button>
 
                 {/* Photo Upload Button */}
-                <a
+                <Link
                     href="/create-with-photo"
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-12 w-12 bg-green-600 hover:bg-green-700 text-white shadow-lg border border-green-700"
                     title="Create location from photo"
                 >
                     <Plus className="w-5 h-5" />
-                </a>
+                </Link>
             </div>
 
             {/* Mobile View - Sheet menu only (no floating buttons for cleaner UI) */}
@@ -244,7 +245,7 @@ export function MapControls({
                             </button>
 
                             {/* Photo Upload */}
-                            <a
+                            <Link
                                 href="/create-with-photo"
                                 onClick={() => setIsOpen(false)}
                                 className="w-full flex items-center gap-3 p-4 rounded-lg border bg-green-600 hover:bg-green-700 text-white border-green-700 transition-all"
@@ -256,7 +257,7 @@ export function MapControls({
                                         Upload photo with GPS data
                                     </div>
                                 </div>
-                            </a>
+                            </Link>
 
                             {/* Friends */}
                             <button
