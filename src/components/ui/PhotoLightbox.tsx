@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useState, useEffect, useRef } from "react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, ZoomIn, ZoomOut, RotateCw } from "lucide-react";
+import { X, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { VisuallyHidden } from "@/components/ui/visually-hidden";
 
 interface PhotoLightboxProps {
     photoUrl: string;
@@ -14,23 +15,49 @@ interface PhotoLightboxProps {
 }
 
 export function PhotoLightbox({ photoUrl, photoTitle, open, onOpenChange }: PhotoLightboxProps) {
-    const [zoom, setZoom] = useState(1);
+    const [isZoomed, setIsZoomed] = useState(false);
     const [rotation, setRotation] = useState(0);
+    const [transformOrigin, setTransformOrigin] = useState('center center');
+    const [cursorPosition, setCursorPosition] = useState({ x: 50, y: 50 });
+    const containerRef = useRef<HTMLDivElement>(null);
 
     // Reset zoom and rotation when dialog opens
     useEffect(() => {
         if (open) {
-            setZoom(1);
+            setIsZoomed(false);
             setRotation(0);
+            setTransformOrigin('center center');
+            setCursorPosition({ x: 50, y: 50 });
         }
     }, [open]);
 
-    const handleZoomIn = () => {
-        setZoom((prev) => Math.min(prev + 0.5, 10));
+    const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
+        if (!isZoomed) {
+            // Calculate click position relative to the image
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            setTransformOrigin(`${x}% ${y}%`);
+            setCursorPosition({ x, y });
+            setIsZoomed(true);
+        } else {
+            // Zoom out
+            setIsZoomed(false);
+            setTransformOrigin('center center');
+            setCursorPosition({ x: 50, y: 50 });
+        }
     };
 
-    const handleZoomOut = () => {
-        setZoom((prev) => Math.max(prev - 0.5, 0.5));
+    const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
+        if (isZoomed) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            setTransformOrigin(`${x}% ${y}%`);
+            setCursorPosition({ x, y });
+        }
     };
 
     const handleRotate = () => {
@@ -38,13 +65,18 @@ export function PhotoLightbox({ photoUrl, photoTitle, open, onOpenChange }: Phot
     };
 
     const handleReset = () => {
-        setZoom(1);
+        setIsZoomed(false);
         setRotation(0);
+        setTransformOrigin('center center');
+        setCursorPosition({ x: 50, y: 50 });
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 overflow-hidden bg-black/95 border-none">
+                <VisuallyHidden>
+                    <DialogTitle>{photoTitle}</DialogTitle>
+                </VisuallyHidden>
                 {/* Header with controls */}
                 <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
                     <h3 className="text-white font-medium text-sm truncate max-w-md">
@@ -65,34 +97,6 @@ export function PhotoLightbox({ photoUrl, photoTitle, open, onOpenChange }: Phot
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={handleZoomOut}
-                        disabled={zoom <= 0.5}
-                        className="text-white hover:bg-white/20 disabled:opacity-50"
-                        title="Zoom Out"
-                    >
-                        <ZoomOut className="w-5 h-5" />
-                    </Button>
-                    
-                    <span className="text-white text-sm font-medium min-w-[60px] text-center">
-                        {Math.round(zoom * 100)}%
-                    </span>
-                    
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleZoomIn}
-                        disabled={zoom >= 10}
-                        className="text-white hover:bg-white/20 disabled:opacity-50"
-                        title="Zoom In"
-                    >
-                        <ZoomIn className="w-5 h-5" />
-                    </Button>
-
-                    <div className="w-px h-6 bg-white/20 mx-2" />
-
-                    <Button
-                        variant="ghost"
-                        size="icon"
                         onClick={handleRotate}
                         className="text-white hover:bg-white/20"
                         title="Rotate"
@@ -100,41 +104,39 @@ export function PhotoLightbox({ photoUrl, photoTitle, open, onOpenChange }: Phot
                         <RotateCw className="w-5 h-5" />
                     </Button>
 
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleReset}
-                        className="text-white hover:bg-white/20 text-xs"
-                        title="Reset View"
-                    >
-                        Reset
-                    </Button>
+                    {isZoomed && (
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleReset}
+                            className="text-white hover:bg-white/20 text-xs"
+                            title="Reset View"
+                        >
+                            Reset
+                        </Button>
+                    )}
                 </div>
 
-                {/* Photo container with overflow scroll for zoomed images */}
-                <div className="w-full h-[90vh] overflow-auto">
-                    <div 
-                        className="flex items-center justify-center"
+                {/* Photo container */}
+                <div 
+                    ref={containerRef}
+                    className="w-full h-[90vh] flex items-center justify-center overflow-hidden"
+                >
+                    <img
+                        src={photoUrl}
+                        alt={photoTitle}
+                        onClick={handleImageClick}
+                        onMouseMove={handleMouseMove}
+                        className={cn(
+                            "max-w-full max-h-full object-contain transition-transform duration-100 select-none",
+                            isZoomed ? "cursor-zoom-out" : "cursor-zoom-in"
+                        )}
                         style={{
-                            minWidth: `${zoom * 100}%`,
-                            minHeight: `${zoom * 100}%`,
-                            padding: '20%',
+                            transform: `scale(${isZoomed ? 4 : 1}) rotate(${rotation}deg)`,
+                            transformOrigin: transformOrigin,
                         }}
-                    >
-                        <img
-                            src={photoUrl}
-                            alt={photoTitle}
-                            className={cn(
-                                "transition-transform duration-200",
-                                zoom > 1 ? "cursor-grab active:cursor-grabbing" : "cursor-move"
-                            )}
-                            style={{
-                                transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                                transformOrigin: 'center center',
-                            }}
-                            draggable={false}
-                        />
-                    </div>
+                        draggable={false}
+                    />
                 </div>
             </DialogContent>
         </Dialog>
