@@ -58,6 +58,7 @@ export function MapControls({
             <div className="hidden md:flex absolute left-4 top-20 flex-col gap-2 z-10">
                 {/* Search Button */}
                 <Button
+                    data-tour="search-button"
                     onClick={onSearchClick}
                     className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
                     title="Search locations"
@@ -67,6 +68,7 @@ export function MapControls({
 
                 {/* GPS Toggle Button */}
                 <Button
+                    data-tour="gps-toggle"
                     onClick={onGpsToggle}
                     className={`shadow-lg border border-gray-200 transition-colors h-12 w-12 p-0 ${userLocation
                         ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
@@ -79,6 +81,7 @@ export function MapControls({
 
                 {/* Friends Button */}
                 <Button
+                    data-tour="friends-button"
                     onClick={onFriendsClick}
                     className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
                     title="View friends' locations"
@@ -88,6 +91,7 @@ export function MapControls({
 
                 {/* View All Locations Button */}
                 <Button
+                    data-tour="view-all-button"
                     onClick={onViewAllClick}
                     className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
                     title="View all saved locations on map"
@@ -97,6 +101,7 @@ export function MapControls({
 
                 {/* Toggle Public Locations Button */}
                 <Button
+                    data-tour="public-toggle"
                     onClick={() => onPublicToggle(!showPublicLocations)}
                     className={`shadow-lg border transition-colors h-12 w-12 p-0 ${showPublicLocations
                         ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
@@ -109,6 +114,7 @@ export function MapControls({
 
                 {/* My Locations List Button */}
                 <Button
+                    data-tour="my-locations-button"
                     onClick={onMyLocationsClick}
                     className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 relative h-12 w-12 p-0"
                     title={`Show list of saved locations (${savedLocationsCount})`}
@@ -123,6 +129,7 @@ export function MapControls({
 
                 {/* Photo Upload Button */}
                 <Link
+                    data-tour="create-with-photo"
                     href="/create-with-photo"
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-12 w-12 bg-green-600 hover:bg-green-700 text-white shadow-lg border border-green-700"
                     title="Create location from photo"

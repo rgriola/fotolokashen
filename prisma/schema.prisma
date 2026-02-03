@@ -57,6 +57,13 @@ model User {
   showLocation            Boolean                  @default(true)
   showSavedLocations      String                   @default("public") // public, followers, private
   allowFollowRequests     Boolean                  @default(true)
+  // Onboarding Tracking
+  onboardingCompleted     Boolean                  @default(false) @map("onboarding_completed")
+  onboardingStep          Int?                     @map("onboarding_step")
+  onboardingSkipped       Boolean                  @default(false) @map("onboarding_skipped")
+  onboardingStartedAt     DateTime?                @map("onboarding_started_at")
+  onboardingCompletedAt   DateTime?                @map("onboarding_completed_at")
+  onboardingVersion       Int                      @default(1) @map("onboarding_version")
   phoneVerification       PhoneVerification[]
   createdLocations        Location[]               @relation("LocationCreator")
   modifiedLocations       Location[]               @relation("LocationModifier")

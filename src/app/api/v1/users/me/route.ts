@@ -41,6 +41,13 @@ export async function GET(request: NextRequest) {
         showLocation: true,
         showSavedLocations: true,
         allowFollowRequests: true,
+        // Onboarding fields
+        onboardingCompleted: true,
+        onboardingSkipped: true,
+        onboardingStep: true,
+        onboardingStartedAt: true,
+        onboardingCompletedAt: true,
+        onboardingVersion: true,
         createdAt: true,
         updatedAt: true,
       },

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User, LogOut, Shield, FolderKanban, Map, MapPin, Plus } from "lucide-react";
+import { User, LogOut, Shield, FolderKanban, Map, MapPin, Plus, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { canAccessAdminPanel } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,21 @@ export function AuthButton() {
     const { user, isLoading, logout } = useAuth();
     const router = useRouter();
     const [avatarError, setAvatarError] = useState(false);
+
+    const handleStartTour = async () => {
+        // Reset onboarding and navigate to map
+        try {
+            await fetch('/api/onboarding/reset', { 
+                method: 'POST',
+                credentials: 'include',
+            });
+            router.push('/map');
+            // Reload to trigger welcome modal
+            setTimeout(() => window.location.reload(), 100);
+        } catch (error) {
+            console.error('Failed to restart tour:', error);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -54,7 +69,11 @@ export function AuthButton() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button 
+                    data-tour="profile-menu"
+                    variant="ghost" 
+                    className="relative h-8 w-8 rounded-full"
+                >
                     <Avatar className="h-8 w-8">
                         {user.avatar && !avatarError ? (
                             <AvatarImage
@@ -102,6 +121,12 @@ export function AuthButton() {
                 <DropdownMenuItem onClick={() => router.push("/profile")}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
+                </DropdownMenuItem>
+
+                {/* Start Tour */}
+                <DropdownMenuItem onClick={handleStartTour}>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    <span>Start Tour</span>
                 </DropdownMenuItem>
 
                 {canAccessAdminPanel(user) && (

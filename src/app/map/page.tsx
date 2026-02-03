@@ -33,6 +33,10 @@ import { MapPin as MapPinIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
+import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
+import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
+import { CompletionModal } from '@/components/onboarding/CompletionModal';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 
 interface MarkerData {
     id: string;
@@ -1358,9 +1362,41 @@ function MapPageInner() {
 }
 
 function MapPageContent() {
+    const { user } = useAuth();
+    const [userOnboardingStatus, setUserOnboardingStatus] = useState<{
+        onboardingCompleted: boolean;
+        onboardingSkipped: boolean;
+        onboardingStep: number | null;
+    } | null>(null);
+
+    // Fetch user onboarding status
+    useEffect(() => {
+        if (user?.id) {
+            fetch('/api/v1/users/me', {
+                credentials: 'include',
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.user) {
+                        setUserOnboardingStatus({
+                            onboardingCompleted: data.user.onboardingCompleted ?? false,
+                            onboardingSkipped: data.user.onboardingSkipped ?? false,
+                            onboardingStep: data.user.onboardingStep ?? null,
+                        });
+                    }
+                })
+                .catch(err => console.error('Failed to fetch onboarding status:', err));
+        }
+    }, [user?.id]);
+
     return (
         <ProtectedRoute>
-            <MapPageInner />
+            <OnboardingProvider userOnboardingStatus={userOnboardingStatus ?? undefined}>
+                <MapPageInner />
+                <WelcomeModal />
+                <CompletionModal />
+                <OnboardingTour />
+            </OnboardingProvider>
         </ProtectedRoute>
     );
 }

@@ -1,0 +1,13 @@
+/* Prevent layout shift during onboarding tour */
+body.react-joyride-running {
+  /* Prevent scrollbar from causing layout shift */
+  overflow-y: scroll !important;
+  /* Ensure scrollbar space is always reserved */
+  scrollbar-gutter: stable;
+}
+
+/* Ensure the tour doesn't modify body positioning */
+body.react-joyride-running {
+  position: static !important;
+  width: 100% !important;
+}
