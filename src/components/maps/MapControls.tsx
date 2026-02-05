@@ -9,7 +9,8 @@ import {
     Map, 
     Search, 
     Plus,
-    Globe
+    Globe,
+    Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +19,12 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface MapControlsProps {
     userLocation: { lat: number; lng: number } | null;
@@ -46,6 +53,7 @@ export function MapControls({
     savedLocationsCount,
 }: MapControlsProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [showTooltips, setShowTooltips] = useState(true);
 
     const handleActionClick = async (action: () => void | Promise<void>) => {
         setIsOpen(false);
@@ -56,86 +64,164 @@ export function MapControls({
         <>
             {/* Desktop View - Vertical buttons stacked on left side */}
             <div className="hidden md:flex absolute left-4 top-20 flex-col gap-2 z-10">
-                {/* Search Button */}
-                <Button
-                    data-tour="search-button"
-                    onClick={onSearchClick}
-                    className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
-                    title="Search locations"
-                >
-                    <Search className="w-5 h-5" />
-                </Button>
+                <TooltipProvider delayDuration={300}>
+                    {/* Search Button */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                data-tour="search-button"
+                                onClick={onSearchClick}
+                                className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
+                            >
+                                <Search className="w-5 h-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        {showTooltips && (
+                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                <p>Google Maps Search</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
 
-                {/* GPS Toggle Button */}
-                <Button
-                    data-tour="gps-toggle"
-                    onClick={onGpsToggle}
-                    className={`shadow-lg border border-gray-200 transition-colors h-12 w-12 p-0 ${userLocation
-                        ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
-                        : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
-                        }`}
-                    title={userLocation ? 'Hide GPS Location' : 'Show GPS Location'}
-                >
-                    <Navigation className={`w-5 h-5 ${userLocation ? 'fill-current' : ''}`} />
-                </Button>
+                    {/* GPS Toggle Button */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                data-tour="gps-toggle"
+                                onClick={onGpsToggle}
+                                className={`shadow-lg border border-gray-200 transition-colors h-12 w-12 p-0 ${userLocation
+                                    ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
+                                    : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
+                                    }`}
+                            >
+                                <Navigation className={`w-5 h-5 ${userLocation ? 'fill-current' : ''}`} />
+                            </Button>
+                        </TooltipTrigger>
+                        {showTooltips && (
+                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                <p>{userLocation ? 'Hide GPS Location' : 'Show GPS Location'}</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
 
-                {/* Friends Button */}
-                <Button
-                    data-tour="friends-button"
-                    onClick={onFriendsClick}
-                    className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
-                    title="View friends' locations"
-                >
-                    <Users className="w-5 h-5" />
-                </Button>
+                    {/* Friends Button */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                data-tour="friends-button"
+                                onClick={onFriendsClick}
+                                className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
+                            >
+                                <Users className="w-5 h-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        {showTooltips && (
+                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                <p>View friends&apos; locations</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
 
-                {/* View All Locations Button */}
-                <Button
-                    data-tour="view-all-button"
-                    onClick={onViewAllClick}
-                    className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
-                    title="View all saved locations on map"
-                >
-                    <Globe className="w-5 h-5" />
-                </Button>
+                    {/* View All Locations Button */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                data-tour="view-all-button"
+                                onClick={onViewAllClick}
+                                className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
+                            >
+                                <Globe className="w-5 h-5" />
+                            </Button>
+                        </TooltipTrigger>
+                        {showTooltips && (
+                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                <p>View all saved locations on map</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
 
-                {/* Toggle Public Locations Button */}
-                <Button
-                    data-tour="public-toggle"
-                    onClick={() => onPublicToggle(!showPublicLocations)}
-                    className={`shadow-lg border transition-colors h-12 w-12 p-0 ${showPublicLocations
-                        ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
-                        : 'bg-white hover:bg-gray-50 text-gray-900 border-gray-200'
-                        }`}
-                    title={showPublicLocations ? 'Hide public locations' : 'Explore public locations from all users'}
-                >
-                    <Map className={`w-5 h-5 ${showPublicLocations ? 'fill-current' : ''}`} />
-                </Button>
+                    {/* Toggle Public Locations Button */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                data-tour="public-toggle"
+                                onClick={() => onPublicToggle(!showPublicLocations)}
+                                className={`shadow-lg border transition-colors h-12 w-12 p-0 ${showPublicLocations
+                                    ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
+                                    : 'bg-white hover:bg-gray-50 text-gray-900 border-gray-200'
+                                    }`}
+                            >
+                                <Map className={`w-5 h-5 ${showPublicLocations ? 'fill-current' : ''}`} />
+                            </Button>
+                        </TooltipTrigger>
+                        {showTooltips && (
+                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                <p>{showPublicLocations ? 'Hide public locations' : 'Explore public locations from all users'}</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
 
-                {/* My Locations List Button */}
-                <Button
-                    data-tour="my-locations-button"
-                    onClick={onMyLocationsClick}
-                    className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 relative h-12 w-12 p-0"
-                    title={`Show list of saved locations (${savedLocationsCount})`}
-                >
-                    <MapPinIcon className="w-5 h-5" />
-                    {savedLocationsCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                            {savedLocationsCount > 9 ? '9+' : savedLocationsCount}
-                        </span>
-                    )}
-                </Button>
+                    {/* My Locations List Button */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                data-tour="my-locations-button"
+                                onClick={onMyLocationsClick}
+                                className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 relative h-12 w-12 p-0"
+                            >
+                                <MapPinIcon className="w-5 h-5" />
+                                {savedLocationsCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                        {savedLocationsCount > 9 ? '9+' : savedLocationsCount}
+                                    </span>
+                                )}
+                            </Button>
+                        </TooltipTrigger>
+                        {showTooltips && (
+                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                <p>Show list of saved locations ({savedLocationsCount})</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
 
-                {/* Photo Upload Button */}
-                <Link
-                    data-tour="create-with-photo"
-                    href="/create-with-photo"
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-12 w-12 bg-green-600 hover:bg-green-700 text-white shadow-lg border border-green-700"
-                    title="Create location from photo"
-                >
-                    <Plus className="w-5 h-5" />
-                </Link>
+                    {/* Photo Upload Button */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Link
+                                data-tour="create-with-photo"
+                                href="/create-with-photo"
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-12 w-12 bg-green-600 hover:bg-green-700 text-white shadow-lg border border-green-700"
+                            >
+                                <Plus className="w-5 h-5" />
+                            </Link>
+                        </TooltipTrigger>
+                        {showTooltips && (
+                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                <p>Create location from photo</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
+
+                    {/* Tooltip Toggle Button */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                onClick={() => setShowTooltips(!showTooltips)}
+                                className={`shadow-lg border transition-colors h-7 w-7 p-0 mt-2 rounded-full ${
+                                    showTooltips
+                                        ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700'
+                                        : 'bg-gray-300 hover:bg-gray-400 text-gray-700 border-gray-400'
+                                }`}
+                                title={showTooltips ? 'Disable tooltips' : 'Enable tooltips'}
+                            >
+                                <Info className="w-3.5 h-3.5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                            <p>{showTooltips ? 'Disable tooltips' : 'Enable tooltips'}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
 
             {/* Mobile View - Sheet menu only (no floating buttons for cleaner UI) */}

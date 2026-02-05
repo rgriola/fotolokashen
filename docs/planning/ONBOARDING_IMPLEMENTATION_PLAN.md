@@ -53,11 +53,12 @@ Implement an interactive onboarding tour to guide new users through fotolokashen
 **Primary Trigger:**
 - First login after email verification
 - Show welcome modal immediately
+Add feature to alert users to new features. 
 
 **Secondary Triggers:**
 - "Start Tour" button in profile dropdown menu
 - Help icon (?) in header (always accessible)
-- Tour reset after major feature updates (optional)
+- Tour reset after major feature updates 
 
 **Conditions to Show:**
 ```
@@ -166,11 +167,11 @@ Show onboarding IF:
 │                                             │
 │              You're All Set!                │
 │                                             │
-│   You've completed the tour. Ready to      │
-│   start saving your favorite locations?    │
+│   You've completed the tour. Ready to       │
+│   start saving your favorite locations?     │
 │                                             │
-│   💡 Tip: You can restart this tour        │
-│   anytime from your profile menu.          │
+│   💡 Tip: You can restart this tour         │
+│   anytime from your profile menu.           │
 │                                             │
 │              [Start Exploring →]            │
 │                                             │
