@@ -64,6 +64,14 @@ model User {
   onboardingStartedAt     DateTime?                @map("onboarding_started_at")
   onboardingCompletedAt   DateTime?                @map("onboarding_completed_at")
   onboardingVersion       Int                      @default(1) @map("onboarding_version")
+  // Terms Acceptance Tracking
+  termsAcceptedAt         DateTime?                @map("terms_accepted_at")
+  termsVersion            String?                  @map("terms_version")
+  privacyAcceptedAt       DateTime?                @map("privacy_accepted_at")
+  privacyVersion          String?                  @map("privacy_version")
+  // Page-specific Onboarding
+  locationsOnboardingCompleted Boolean             @default(false) @map("locations_onboarding_completed")
+  peopleOnboardingCompleted    Boolean             @default(false) @map("people_onboarding_completed")
   phoneVerification       PhoneVerification[]
   createdLocations        Location[]               @relation("LocationCreator")
   modifiedLocations       Location[]               @relation("LocationModifier")

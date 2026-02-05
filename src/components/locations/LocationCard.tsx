@@ -70,6 +70,7 @@ export const LocationCard = memo(function LocationCard({
 
     return (
         <Card
+            data-tour="location-card"
             className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary/50"
             onClick={handleCardClick}
             style={{
@@ -165,6 +166,7 @@ export const LocationCard = memo(function LocationCard({
                 <div className="flex gap-2">
                     {canEdit && (
                         <Button
+                            data-tour="location-edit"
                             variant="outline"
                             size="sm"
                             onClick={(e) => {
@@ -179,6 +181,7 @@ export const LocationCard = memo(function LocationCard({
                     )}
 
                     <Button
+                        data-tour="location-share"
                         variant="outline"
                         size="sm"
                         onClick={(e) => {

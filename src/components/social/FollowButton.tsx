@@ -96,6 +96,7 @@ export function FollowButton({
   if (variant === 'compact') {
     return (
       <Button
+        data-tour="people-follow"
         onClick={handleFollow}
         disabled={isLoading}
         size="sm"

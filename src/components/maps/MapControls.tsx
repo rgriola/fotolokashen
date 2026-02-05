@@ -99,7 +99,7 @@ export function MapControls({
                         </TooltipTrigger>
                         {showTooltips && (
                             <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
-                                <p>{userLocation ? 'Hide GPS Location' : 'Show GPS Location'}</p>
+                                <p>{userLocation ? 'Location Off' : 'Location On'}</p>
                             </TooltipContent>
                         )}
                     </Tooltip>
@@ -117,7 +117,7 @@ export function MapControls({
                         </TooltipTrigger>
                         {showTooltips && (
                             <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
-                                <p>View friends&apos; locations</p>
+                                <p>Friends&apos; Locations</p>
                             </TooltipContent>
                         )}
                     </Tooltip>
@@ -135,7 +135,7 @@ export function MapControls({
                         </TooltipTrigger>
                         {showTooltips && (
                             <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
-                                <p>View all saved locations on map</p>
+                                <p>Global View of Your Locations</p>
                             </TooltipContent>
                         )}
                     </Tooltip>
@@ -156,7 +156,7 @@ export function MapControls({
                         </TooltipTrigger>
                         {showTooltips && (
                             <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
-                                <p>{showPublicLocations ? 'Hide public locations' : 'Explore public locations from all users'}</p>
+                                <p>{showPublicLocations ? 'Hide Public Locations' : 'View Public Locations'}</p>
                             </TooltipContent>
                         )}
                     </Tooltip>
@@ -179,7 +179,7 @@ export function MapControls({
                         </TooltipTrigger>
                         {showTooltips && (
                             <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
-                                <p>Show list of saved locations ({savedLocationsCount})</p>
+                                <p>Saved Locations ({savedLocationsCount})</p>
                             </TooltipContent>
                         )}
                     </Tooltip>
@@ -197,7 +197,7 @@ export function MapControls({
                         </TooltipTrigger>
                         {showTooltips && (
                             <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
-                                <p>Create location from photo</p>
+                                <p>Snap & Save Location</p>
                             </TooltipContent>
                         )}
                     </Tooltip>
@@ -361,7 +361,7 @@ export function MapControls({
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">Friends</div>
                                     <div className="text-xs text-gray-600">
-                                        View friends&apos; locations
+                                        Friends&apos; Locations
                                     </div>
                                 </div>
                             </button>

@@ -38,6 +38,34 @@ export function AuthButton() {
         }
     };
 
+    const handleRestartLocationsTour = async () => {
+        try {
+            await fetch('/api/onboarding/reset-locations', { 
+                method: 'POST',
+                credentials: 'include',
+            });
+            router.push('/locations');
+            // Reload to trigger tour
+            setTimeout(() => window.location.reload(), 100);
+        } catch (error) {
+            console.error('Failed to restart locations tour:', error);
+        }
+    };
+
+    const handleRestartPeopleTour = async () => {
+        try {
+            await fetch('/api/onboarding/reset-people', { 
+                method: 'POST',
+                credentials: 'include',
+            });
+            router.push('/search');
+            // Reload to trigger tour
+            setTimeout(() => window.location.reload(), 100);
+        } catch (error) {
+            console.error('Failed to restart people tour:', error);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center gap-2">
@@ -127,6 +155,18 @@ export function AuthButton() {
                 <DropdownMenuItem onClick={handleStartTour}>
                     <Sparkles className="mr-2 h-4 w-4" />
                     <span>Start Tour</span>
+                </DropdownMenuItem>
+                
+                {/* Restart Locations Tour */}
+                <DropdownMenuItem onClick={handleRestartLocationsTour}>
+                    <MapPin className="mr-2 h-4 w-4" />
+                    <span>Restart Locations Tour</span>
+                </DropdownMenuItem>
+                
+                {/* Restart People Tour */}
+                <DropdownMenuItem onClick={handleRestartPeopleTour}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Restart People Tour</span>
                 </DropdownMenuItem>
 
                 {canAccessAdminPanel(user) && (

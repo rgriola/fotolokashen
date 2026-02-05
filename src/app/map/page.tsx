@@ -37,6 +37,7 @@ import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
 import { CompletionModal } from '@/components/onboarding/CompletionModal';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { TermsModal } from '@/components/onboarding/TermsModal';
 
 interface MarkerData {
     id: string;
@@ -1367,6 +1368,7 @@ function MapPageContent() {
         onboardingCompleted: boolean;
         onboardingSkipped: boolean;
         onboardingStep: number | null;
+        termsAccepted: boolean;
     } | null>(null);
 
     // Fetch user onboarding status
@@ -1382,6 +1384,7 @@ function MapPageContent() {
                             onboardingCompleted: data.user.onboardingCompleted ?? false,
                             onboardingSkipped: data.user.onboardingSkipped ?? false,
                             onboardingStep: data.user.onboardingStep ?? null,
+                            termsAccepted: !!data.user.termsAcceptedAt,
                         });
                     }
                 })
@@ -1393,6 +1396,7 @@ function MapPageContent() {
         <ProtectedRoute>
             <OnboardingProvider userOnboardingStatus={userOnboardingStatus ?? undefined}>
                 <MapPageInner />
+                <TermsModal />
                 <WelcomeModal />
                 <CompletionModal />
                 <OnboardingTour />

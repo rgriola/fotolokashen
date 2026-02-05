@@ -9,11 +9,12 @@ interface OnboardingContextType {
   isSkipped: boolean;
   showWelcome: boolean;
   showCompletionModal: boolean;
+  showTermsModal: boolean;
   startTour: () => void;
   endTour: () => void;
-  skipTour: () => void;
   setStep: (step: number) => void;
   setShowWelcome: (show: boolean) => void;
+  setShowTermsModal: (show: boolean) => void;
   resetTour: () => void;
   dismissCompletion: () => void;
 }
@@ -26,6 +27,7 @@ interface OnboardingProviderProps {
     onboardingCompleted: boolean;
     onboardingSkipped: boolean;
     onboardingStep: number | null;
+    termsAccepted: boolean;
   };
 }
 
@@ -40,6 +42,7 @@ export function OnboardingProvider({ children, userOnboardingStatus }: Onboardin
   );
   const [showWelcome, setShowWelcome] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // Sync state with userOnboardingStatus prop when it changes
   useEffect(() => {
@@ -49,10 +52,18 @@ export function OnboardingProvider({ children, userOnboardingStatus }: Onboardin
     }
   }, [userOnboardingStatus]);
 
-  // Auto-show welcome modal for eligible users
+  // Show terms modal if user hasn't accepted terms
+  useEffect(() => {
+    if (userOnboardingStatus && !userOnboardingStatus.termsAccepted) {
+      setShowTermsModal(true);
+    }
+  }, [userOnboardingStatus]);
+
+  // Auto-show welcome modal for eligible users (after terms accepted)
   useEffect(() => {
     if (
       userOnboardingStatus &&
+      userOnboardingStatus.termsAccepted &&
       !userOnboardingStatus.onboardingCompleted &&
       !userOnboardingStatus.onboardingSkipped
     ) {
@@ -140,11 +151,12 @@ export function OnboardingProvider({ children, userOnboardingStatus }: Onboardin
         isSkipped,
         showWelcome,
         showCompletionModal,
+        showTermsModal,
         startTour,
         endTour,
-        skipTour,
         setStep,
         setShowWelcome,
+        setShowTermsModal,
         resetTour,
         dismissCompletion,
       }}

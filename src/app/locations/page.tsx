@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 import { useLocations } from "@/hooks/useLocations";
 import { useDeleteLocation } from "@/hooks/useDeleteLocation";
+import { LocationsOnboardingProvider } from "@/components/onboarding/LocationsOnboardingProvider";
 import { LocationList } from "@/components/locations/LocationList";
 import { LocationListCompact } from "@/components/locations/LocationListCompact";
 import { LocationFilters } from "@/components/locations/LocationFilters";
@@ -151,21 +153,24 @@ function LocationsPageInner() {
                     {/* Single Row: Search + Filter Button + Grid/List Toggle */}
                     <div className="flex items-center gap-2">
                         {/* Search - Takes most space */}
-                        <div className="flex-1">
+                        <div className="flex-1" data-tour="locations-search">
                             <LocationFilters
                                 onSearchChange={setSearch}
                             />
                         </div>
 
                         {/* Filters Panel Button */}
-                        <FilterPanel
-                            onTypeChange={setTypeFilter}
-                            onFavoritesToggle={setFavoritesOnly}
-                            onSortChange={setSortBy}
-                        />
+                        <div data-tour="locations-filter">
+                            <FilterPanel
+                                onTypeChange={setTypeFilter}
+                                onFavoritesToggle={setFavoritesOnly}
+                                onSortChange={setSortBy}
+                            />
+                        </div>
 
                         {/* View Toggle Button - Shows icon for the OTHER view */}
                         <Button
+                            data-tour="locations-view-toggle"
                             variant="outline"
                             size="icon"
                             onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
@@ -382,9 +387,30 @@ function LocationsPageInner() {
 }
 
 export default function LocationsPage() {
+    const { user } = useAuth();
+    const [locationsOnboardingCompleted, setLocationsOnboardingCompleted] = useState(false);
+
+    // Fetch user onboarding status
+    useEffect(() => {
+        if (user?.id) {
+            fetch('/api/v1/users/me', {
+                credentials: 'include',
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.user) {
+                        setLocationsOnboardingCompleted(data.user.locationsOnboardingCompleted ?? false);
+                    }
+                })
+                .catch(err => console.error('Failed to fetch onboarding status:', err));
+        }
+    }, [user?.id]);
+
     return (
         <ProtectedRoute>
-            <LocationsPageInner />
+            <LocationsOnboardingProvider locationsOnboardingCompleted={locationsOnboardingCompleted}>
+                <LocationsPageInner />
+            </LocationsOnboardingProvider>
         </ProtectedRoute>
     );
 }

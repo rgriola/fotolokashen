@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Search, UserPlus, Users, UsersRound, Briefcase } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
+import { PeopleOnboardingProvider } from '@/components/onboarding/PeopleOnboardingProvider';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FollowButton } from '@/components/social';
@@ -95,6 +96,25 @@ export default function SearchPage() {
   const [loadingFollowers, setLoadingFollowers] = useState(false);
   const [followingTotal, setFollowingTotal] = useState(0);
   const [followersTotal, setFollowersTotal] = useState(0);
+  
+  // Onboarding state
+  const [peopleOnboardingCompleted, setPeopleOnboardingCompleted] = useState(false);
+
+  // Fetch onboarding status
+  useEffect(() => {
+    if (user?.id) {
+      fetch('/api/v1/users/me', {
+        credentials: 'include',
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.user) {
+            setPeopleOnboardingCompleted(data.user.peopleOnboardingCompleted ?? false);
+          }
+        })
+        .catch(err => console.error('Failed to fetch onboarding status:', err));
+    }
+  }, [user?.id]);
 
   const performSearch = async (query: string, offset: number = 0, append: boolean = false) => {
     if (query.length < 2) {
@@ -244,24 +264,25 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-4xl px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold">People</h1>
-          <p className="text-muted-foreground">
-            Discover new people, manage your connections, and collaborate
-          </p>
-        </div>
+    <PeopleOnboardingProvider peopleOnboardingCompleted={peopleOnboardingCompleted}>
+      <div className="min-h-screen bg-background">
+        <div className="mx-auto max-w-4xl px-4 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="mb-2 text-3xl font-bold">People</h1>
+            <p className="text-muted-foreground">
+              Discover new people, manage your connections, and collaborate
+            </p>
+          </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList data-tour="people-tabs" className="grid w-full grid-cols-5">
             <TabsTrigger value="discover" className="flex items-center gap-2">
               <Search className="w-4 h-4" />
               <span className="hidden sm:inline">Discover</span>
             </TabsTrigger>
-            <TabsTrigger value="following" className="flex items-center gap-2">
+            <TabsTrigger data-tour="people-following-tab" value="following" className="flex items-center gap-2">
               <UserPlus className="w-4 h-4" />
               <span className="hidden sm:inline">Following</span>
               {followingTotal > 0 && <span className="text-xs">({followingTotal})</span>}
@@ -284,7 +305,7 @@ export default function SearchPage() {
           {/* Discover Tab */}
           <TabsContent value="discover" className="space-y-6">
             {/* Search Bar */}
-            <div>
+            <div data-tour="people-search">
               <SearchBar
                 placeholder="Search by username, bio, or location..."
                 autoFocus={!initialQuery}
@@ -294,12 +315,14 @@ export default function SearchPage() {
             </div>
 
             {/* Filters */}
-            <SearchFilters
-              filters={filters}
-              onFilterChange={(key: string, value: string) =>
-                setFilters((prev) => ({ ...prev, [key]: value }))
-              }
-            />
+            <div data-tour="people-filters">
+              <SearchFilters
+                filters={filters}
+                onFilterChange={(key: string, value: string) =>
+                  setFilters((prev) => ({ ...prev, [key]: value }))
+                }
+              />
+            </div>
 
             {/* Results */}
             <div>
@@ -470,5 +493,6 @@ export default function SearchPage() {
         </Tabs>
       </div>
     </div>
+    </PeopleOnboardingProvider>
   );
 }

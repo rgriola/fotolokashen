@@ -13,14 +13,10 @@ import { Button } from '@/components/ui/button';
 import { ONBOARDING_CONFIG } from '@/lib/onboarding/constants';
 
 export function WelcomeModal() {
-  const { showWelcome, setShowWelcome, startTour, skipTour } = useOnboarding();
+  const { showWelcome, setShowWelcome, startTour } = useOnboarding();
 
   const handleStart = () => {
     startTour();
-  };
-
-  const handleSkip = () => {
-    skipTour();
   };
 
   return (
@@ -34,11 +30,10 @@ export function WelcomeModal() {
 
         <div className="text-center pt-4 space-y-4">
           <p className="text-base text-muted-foreground">
-            We&apos;ll show you around in just {ONBOARDING_CONFIG.TOTAL_STEPS} quick steps
-            ({ONBOARDING_CONFIG.ESTIMATED_DURATION_MINUTES} minute).
+            Let&apos;s take a quick tour of fotolokashen!
           </p>
           <p className="text-sm text-muted-foreground">
-            You can skip or restart this tour anytime from your profile menu.
+            This will only take about {ONBOARDING_CONFIG.ESTIMATED_DURATION_MINUTES} minute and will help you get the most out of the app.
           </p>
         </div>
 
@@ -51,19 +46,12 @@ export function WelcomeModal() {
           ))}
         </div>
 
-        <DialogFooter className="flex-row justify-between sm:justify-between gap-2">
-          <Button
-            variant="ghost"
-            onClick={handleSkip}
-            className="flex-1 sm:flex-initial"
-          >
-            Maybe Later
-          </Button>
+        <DialogFooter className="flex justify-center">
           <Button
             onClick={handleStart}
-            className="flex-1 sm:flex-initial bg-indigo-600 hover:bg-indigo-700"
+            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
           >
-            Let&apos;s Go! →
+            Start Tour →
           </Button>
         </DialogFooter>
       </DialogContent>

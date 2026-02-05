@@ -124,7 +124,7 @@ export function FilterPanel({
                         <Separator />
 
                         {/* Sort Section */}
-                        <div className="space-y-3">
+                        <div className="space-y-3" data-tour="locations-sort">
                             <div className="flex items-center gap-2">
                                 <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                                 <Label htmlFor="sort-order" className="text-sm font-semibold">

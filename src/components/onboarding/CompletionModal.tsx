@@ -31,10 +31,22 @@ export function CompletionModal() {
           </DialogTitle>
           <div className="text-center pt-4 space-y-4">
             <p className="text-base">
-              You&apos;ve completed the tour. Ready to start saving your favorite locations?
+              You&apos;ve completed the map tour. Ready to start saving your favorite locations?
             </p>
+            
+            {/* Info box about additional tours */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+              <p className="text-sm font-medium text-blue-900 mb-2">
+                ℹ️ More Tours Available
+              </p>
+              <p className="text-xs text-blue-700">
+                When you visit the <strong>Locations</strong> or <strong>People</strong> pages for the first time, 
+                you&apos;ll see additional guided tours to help you explore those features.
+              </p>
+            </div>
+
             <p className="text-sm text-muted-foreground">
-              💡 Tip: You can restart this tour anytime from your profile menu.
+              💡 Tip: You can restart any tour anytime from your profile menu.
             </p>
           </div>
         </DialogHeader>
