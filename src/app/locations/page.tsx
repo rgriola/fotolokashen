@@ -406,9 +406,17 @@ export default function LocationsPage() {
         }
     }, [user?.id]);
 
+    const handleTourComplete = () => {
+        // Update state immediately when tour completes
+        setLocationsOnboardingCompleted(true);
+    };
+
     return (
         <ProtectedRoute>
-            <LocationsOnboardingProvider locationsOnboardingCompleted={locationsOnboardingCompleted}>
+            <LocationsOnboardingProvider 
+                locationsOnboardingCompleted={locationsOnboardingCompleted}
+                onTourComplete={handleTourComplete}
+            >
                 <LocationsPageInner />
             </LocationsOnboardingProvider>
         </ProtectedRoute>

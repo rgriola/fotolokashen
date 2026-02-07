@@ -116,6 +116,11 @@ export default function SearchPage() {
     }
   }, [user?.id]);
 
+  const handleTourComplete = () => {
+    // Update state immediately when tour completes
+    setPeopleOnboardingCompleted(true);
+  };
+
   const performSearch = async (query: string, offset: number = 0, append: boolean = false) => {
     if (query.length < 2) {
       setError('Please enter at least 2 characters');
@@ -264,7 +269,10 @@ export default function SearchPage() {
   );
 
   return (
-    <PeopleOnboardingProvider peopleOnboardingCompleted={peopleOnboardingCompleted}>
+    <PeopleOnboardingProvider 
+      peopleOnboardingCompleted={peopleOnboardingCompleted}
+      onTourComplete={handleTourComplete}
+    >
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-4xl px-4 py-8">
           {/* Header */}

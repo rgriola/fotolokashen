@@ -171,14 +171,9 @@ export function EditLocationForm({
             hasChanges
         });
         
-        if (!isDirty) {
-            setHasChanges(false);
-            setChanges([]);
-            return;
-        }
-
         const changedFields: string[] = [];
 
+        // Check form field changes
         if (dirtyFields.name) {
             changedFields.push(`Name: ${watchedName || '(empty)'}`);
         }
@@ -207,14 +202,14 @@ export function EditLocationForm({
             changedFields.push(`Setting: ${watchedIndoorOutdoor}`);
         }
 
-        // Check if tags changed (compare arrays)
+        // Check if tags changed (compare arrays) - independent of form dirty state
         const currentTags = JSON.stringify([...tags].sort());
         const originalTags = JSON.stringify([...(userSave.tags || [])].sort());
         if (currentTags !== originalTags) {
             changedFields.push('Tags updated');
         }
 
-        // Check if photos changed
+        // Check if photos changed - independent of form dirty state
         if (photosToDelete.length > 0) {
             changedFields.push(`${photosToDelete.length} photo(s) marked for deletion`);
         }
@@ -827,16 +822,6 @@ export function EditLocationForm({
                             </p>
                         )}
                     </div>
-                </div>
-
-                {/* Save Button - Always visible at bottom of form */}
-                <div className="flex gap-3 pt-4 border-t">
-                    <Button
-                        type="submit"
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                        Save Changes
-                    </Button>
                 </div>
             </div>
 

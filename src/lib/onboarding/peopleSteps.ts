@@ -18,16 +18,6 @@ export const peopleSteps: Step[] = [
     placement: 'bottom',
   },
   {
-    target: '[data-tour="people-user-card"]',
-    content: 'Click any user card to view their full profile, saved locations, and activity.',
-    placement: 'top',
-  },
-  {
-    target: '[data-tour="people-follow"]',
-    content: 'Follow users to see their public locations on the map and stay updated with their activity.',
-    placement: 'left',
-  },
-  {
     target: '[data-tour="people-following-tab"]',
     content: 'View all the people you follow in one place. You can manage your connections here.',
     placement: 'bottom',

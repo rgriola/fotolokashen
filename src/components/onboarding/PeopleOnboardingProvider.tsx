@@ -23,26 +23,34 @@ export function usePeopleOnboarding() {
 interface PeopleOnboardingProviderProps {
   children: ReactNode;
   peopleOnboardingCompleted?: boolean;
+  onTourComplete?: () => void;
 }
 
 export function PeopleOnboardingProvider({
   children,
   peopleOnboardingCompleted = false,
+  onTourComplete,
 }: PeopleOnboardingProviderProps) {
   const { user } = useAuth();
   const [runTour, setRunTour] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(peopleOnboardingCompleted);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setIsCompleted(peopleOnboardingCompleted);
+  }, [peopleOnboardingCompleted]);
 
   // Auto-start tour if not completed
   useEffect(() => {
-    if (user && !peopleOnboardingCompleted) {
+    if (user && !isCompleted) {
       // Small delay to ensure DOM elements are ready
       const timer = setTimeout(() => {
         setRunTour(true);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [user, peopleOnboardingCompleted]);
+  }, [user, isCompleted]);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status, action, index, type } = data;
@@ -53,10 +61,30 @@ export function PeopleOnboardingProvider({
 
       // Mark onboarding as complete
       if (status === STATUS.FINISHED) {
+        console.log('People tour finished, marking as complete...');
+        setIsCompleted(true); // Update local state immediately
         fetch('/api/onboarding/people/complete', {
           method: 'POST',
           credentials: 'include',
-        }).catch(err => console.error('Failed to mark people onboarding complete:', err));
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        .then(async (response) => {
+          const data = await response.json();
+          console.log('People API response:', response.status, data);
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to update');
+          }
+          // Notify parent component
+          if (onTourComplete) {
+            onTourComplete();
+          }
+        })
+        .catch(err => {
+          console.error('Failed to mark people onboarding complete:', err);
+          console.error('Error details:', err.message);
+        });
       }
     } else if (([ACTIONS.CLOSE] as string[]).includes(action)) {
       setRunTour(false);
@@ -81,6 +109,8 @@ export function PeopleOnboardingProvider({
         continuous
         showProgress
         showSkipButton
+        scrollToFirstStep
+        disableScrolling={false}
         callback={handleJoyrideCallback}
         styles={{
           options: {

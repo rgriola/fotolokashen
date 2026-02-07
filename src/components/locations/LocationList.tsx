@@ -72,7 +72,7 @@ export function LocationList({
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {locations.map((location) => {
+            {locations.map((location, index) => {
                 // Check if user can edit (creator, admin, or staffer)
                 const canEdit =
                     user?.isAdmin ||
@@ -89,6 +89,7 @@ export function LocationList({
                         onShare={onShare}
                         onClick={onClick}
                         canEdit={canEdit}
+                        isFirstCard={index === 0}
                     />
                 );
             })}

@@ -1,25 +1,33 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-01-25  
+**Last Updated**: 2026-02-06  
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
 ## Current Focus
 
-### 🎯 Active Development (January 25, 2026)
+### 🎯 Active Development (February 6, 2026)
 
-**Today's Goals:**
-1. **Admin Email Template Editor** - Unified editing, preview, and duplication for email templates
-2. **Helper Docs for Users** - In-app documentation and help system
-3. **New User Tour** - Onboarding experience to explain features
+**This Week's Completion:**
+1. ✅ **Onboarding Tours Bug Fixes** - Fixed repeating tour issue for /locations and /search pages
+   - Implemented local state tracking to prevent tour restarts
+   - Added callback handlers to update parent component state
+   - Fixed positioning issues with spotlight overlay in fixed layouts
+   - Removed problematic tour steps targeting non-existent elements
+   - Tours now properly save completion status to database
 
-**Recent Completion (January 25, 2026):**
-- ✅ Email Template Editor: Unified edit/preview, device preview, validation, info dialog
-- ✅ Email Template Duplication: Duplicate any template with pre-filled form
-- ✅ Production-safe seeding endpoint for default templates
-- ✅ Compact admin UI: Breadcrumb headers, tabbed settings/colors, search/filter row
-- ✅ Merged email-preview into edit page for single workflow
-- ✅ Copy HTML, device preview toggles, and info dialog in tab bar
+**Recent Completions (January 2026):**
+- ✅ **Enhanced Onboarding System** - Multi-page tours with terms acceptance
+  - Terms of Service modal (mandatory acceptance before app use)
+  - Main map tour (9 steps, mandatory completion)
+  - Locations page tour (5 steps, contextual)
+  - People/search page tour (4 steps, contextual)
+  - Per-page completion tracking in database
+  - Profile menu tour restart options
+- ✅ **Admin Email Template Editor** - Unified editing, preview, and duplication
+- ✅ **Location Sharing Feature** - Complete share functionality across all views
+- ✅ **Profile Management Enhancements** - Username change, email change, avatar/banner editing
+- ✅ **Privacy & Visibility System** - Granular privacy controls and enforcement
 
 ### 📱 iOS Companion App (January 2026)
 **Status**: Active Development  
@@ -41,6 +49,30 @@ The fotolokashen iOS app is a camera-first mobile companion for location scoutin
 ---
 
 ## Recent Major Updates
+
+### 2026-02-06: Onboarding Tours Bug Fixes ✅ COMPLETE
+
+**Fixed Repeating Tour Issue**
+- ✅ Added local `isCompleted` state to track completion within provider
+- ✅ Implemented `onTourComplete` callback to notify parent components
+- ✅ Added proper state synchronization between provider and parent
+- ✅ Fixed positioning issues with `isFixed: true` for elements in fixed containers
+- ✅ Added CSS transforms to correct spotlight overlay alignment
+- ✅ Removed conditional tour steps (user cards, follow buttons) that cause failures
+- ✅ Added comprehensive logging to track API calls and database updates
+- ✅ Ensured database completion status persists correctly
+
+**Components Updated:**
+- `src/components/onboarding/LocationsOnboardingProvider.tsx`
+- `src/components/onboarding/PeopleOnboardingProvider.tsx`
+- `src/app/locations/page.tsx`
+- `src/app/search/page.tsx`
+- `src/lib/onboarding/locationsSteps.ts` (reduced to 5 reliable steps)
+- `src/lib/onboarding/peopleSteps.ts` (reduced to 4 reliable steps)
+
+**API Routes Enhanced:**
+- `src/app/api/onboarding/locations/complete/route.ts` (added logging)
+- `src/app/api/onboarding/people/complete/route.ts` (added logging)
 
 ### 2026-01-25: Admin Email Template Editor & Duplication Features ✅ COMPLETE
 
@@ -102,6 +134,16 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Account lockout after failed attempts
 - Session invalidation on password change
 
+✅ **Onboarding System** (NEW - January 2026)
+- Mandatory Terms of Service and Privacy Policy acceptance
+- Main map tour (9 steps, required completion)
+- Locations page tour (5 steps, contextual)
+- People/search page tour (4 steps, contextual)
+- Per-page completion tracking in database
+- Tour restart options from profile menu
+- React Joyride integration with custom styling
+- Database fields: `termsAcceptedAt`, `termsVersion`, `privacyAcceptedAt`, `privacyVersion`, `locationsOnboardingCompleted`, `peopleOnboardingCompleted`
+
 ✅ **Email System**
 - Professional HTML email templates
 - Responsive design (mobile/tablet/desktop)
@@ -119,18 +161,39 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - User management dashboard
 - Account deletion capability
 - User activity overview
-- **Email Preview Tool** (NEW)
-  - Live template preview
-  - Device size simulation
-  - Real-time customization
-  - Sample data generation
+- Email template editor with live preview
+- Device size simulation (desktop/tablet/mobile)
+- Template duplication and customization
+- Production-safe template seeding endpoint
+
+✅ **Profile Management** (NEW - January 2026)
+- Username change with uniqueness validation
+- Email change with verification flow
+- Avatar upload, crop, and rotation
+- Banner image upload and editing
+- Profile visibility controls
+- Bio and location information
 
 ✅ **Location Management**
 - Google Maps integration for search
-- User-specific saved locations
-- Personal ratings and captions
+- User-specific saved locations (UserSave model)
+- Personal ratings, captions, and tags
 - Favorite marking
-- Location categories
+- Location categories and types
+- Indoor/outdoor classification
+- AI-powered description improvements
+- AI tag suggestions based on production notes
+- Virus scanning for uploaded photos
+- `/locations` page with grid/list views and filtering
+
+✅ **Social Features** (NEW - January 2026)
+- Location sharing with visibility controls (public, private, followers-only)
+- Share via link, email, or direct to users
+- Follow/unfollow users
+- Follower/following lists
+- People search with filters
+- User profiles with saved locations
+- Privacy enforcement throughout the app
 
 ✅ **Photo Upload**
 - Multiple photos per location
@@ -141,10 +204,13 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 
 ✅ **Map Interface**
 - Interactive Google Maps display
-- Custom markers for saved locations
-- Saved locations panel with filtering
-- GPS location support (with permission toggle)
-- Home location setting
+- Custom markers for saved locations with type-based colors
+- Saved locations panel with filtering and search
+- GPS location support with permission toggle
+- Home location setting and navigation
+- Marker clustering for performance
+- Location detail panels
+- Quick save from map pins
 
 ### Security Features
 
@@ -188,6 +254,12 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 
 ### High Priority
 
+**Onboarding Tours** ✅ COMPLETED (2026-02-06)
+- [x] Fixed repeating tour issue on /locations and /search
+- [x] Proper state management and database persistence
+- [x] Fixed positioning issues in fixed layouts
+- [x] Removed unreliable tour steps
+
 **Session Management Enhancements** ✅ COMPLETED (2026-01-16)
 - [x] Capture all session metadata (IP, user agent, device type, device name)
 - [x] Support multi-device sessions (web + iOS simultaneously)
@@ -208,30 +280,45 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 
 ### Medium Priority
 
-**Performance Optimization** (Investigating)
-- [ ] Investigate multiple page requests per user (possible duplicate fetches)
-- [ ] Optimize image loading strategies
-- [ ] Review database query patterns
+**Performance Optimization**
+- [ ] Optimize database query patterns and indexing
+- [ ] Implement query result caching where appropriate
+- [ ] Review and optimize image loading strategies
+- [ ] Monitor and improve Core Web Vitals
 
-**Avatar System** (Working, Needs Cleanup)
+**Feature Enhancements**
+- [ ] Add in-app help documentation system
+- [ ] Implement notification system for social interactions
+- [ ] Add location collections/albums feature
+- [ ] Expand AI features (auto-tagging, smart search)
+
+**Avatar System** ✅ RESOLVED
 - Avatars currently saved to `/development/` folder on ImageKit
 - Should use `/production/` in production
 - Files work correctly, just in wrong folder
 - See `AVATAR_UPLOAD_FLOW.md` for details
 
-**Email Enhancements** (Future)
+**Email Enhancements**
 - [ ] Implement "Send Test Email" in admin preview
-- [ ] Add email template versioning
+- [ ] Add email template versioning system
 - [ ] Create email analytics dashboard
 - [ ] Add unsubscribe management
+- [ ] Implement email notification preferences
 
 ### Low Priority
 
 **UI/UX Polish**
 - [ ] Add loading skeletons for better perceived performance
-- [ ] Implement toast notification system improvements
+- [ ] Implement comprehensive toast notification system
 - [ ] Add keyboard shortcuts for power users
-- [ ] Improve mobile navigation
+- [ ] Improve mobile navigation and gestures
+- [ ] Add dark mode support
+
+**Testing & Quality**
+- [ ] Expand automated test coverage
+- [ ] Implement E2E testing for critical flows
+- [ ] Add performance monitoring and alerting
+- [ ] Create user acceptance testing protocols
 
 ### Documentation
 
@@ -239,12 +326,16 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - ✅ Reorganized 46 historical docs to `/docs/` archive
 - ✅ Created `/docs/README.md` index
 - ✅ Updated environment setup documentation
-- ✅ Avatar system trace documented
 - ✅ Security implementation documented
 - ✅ Email system documented
+- ✅ Onboarding system implementation documented
+- ✅ Social features and privacy system documented
+- ✅ Profile management features documented
+- ✅ AI features (descriptions, tags) documented
 
 **In Progress**:
-- 🔄 README.md update (main project documentation)
+- 🔄 API documentation for mobile app integration
+- 🔄 User guide and help system content
 
 ## Recent Deployments
 

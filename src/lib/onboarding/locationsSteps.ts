@@ -14,27 +14,29 @@ export const locationsSteps: Step[] = [
   },
   {
     target: '[data-tour="locations-filter"]',
-    content: 'Filter your locations by type (Nature, Urban, Indoor/Outdoor), show only favorites, or change the sort order.',
+    content: 'Click here to filter your locations by type, show only favorites, or change the sort order.',
     placement: 'bottom-start',
   },
   {
-    target: '[data-tour="locations-sort"]',
-    content: 'Sort your locations by most recent, oldest, name (A-Z or Z-A), or by your personal rating.',
-    placement: 'bottom',
-  },
-  {
     target: '[data-tour="location-card"]',
-    content: 'Click any location card to view full details, photos, and all your notes. Use the action buttons to edit, share, or delete.',
-    placement: 'top',
-  },
-  {
-    target: '[data-tour="location-edit"]',
-    content: 'Edit any location to add your personal rating, caption, tags, or mark it as a favorite. You can also upload photos!',
-    placement: 'left',
+    content: 'Click any location card to view full details, photos, and all your notes.',
+    placement: 'right',
+    isFixed: true,
+    styles: {
+      spotlight: {
+        transform: 'translateY(65px)',
+      },
+    },
   },
   {
     target: '[data-tour="location-share"]',
     content: 'Share your favorite locations with friends via a link, or directly to other fotolokashen users.',
-    placement: 'left',
+    placement: 'right',
+    isFixed: true,
+    styles: {
+      spotlight: {
+        transform: 'translateY(65px)',
+      },
+    },
   },
 ];

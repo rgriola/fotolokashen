@@ -79,39 +79,61 @@ export function TermsModal() {
                         <h2 className="text-xl font-semibold mb-4">Terms of Service</h2>
                         <div className="space-y-4 text-sm text-gray-700">
                             <p>
-                                Welcome to fotolokashen, a location discovery and sharing platform. By accessing or using our service, you agree to be bound by these Terms of Service.
+                                Welcome to Fotolokashen, a professoinal film production managment and location sharing service.  
+                        
                             </p>
 
                             <div>
                                 <h3 className="font-semibold text-gray-900 mb-2">1. Acceptance of Terms</h3>
                                 <p>
-                                    By creating an account, you confirm that you are at least 13 years old and agree to these terms. If you do not agree, please do not use our service.
+                                By using this app you must agree to the full terms of service outlined here. 
+                                These terms of service may be reviewed from the home page at any time and may periodically be updated. 
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">2. User Accounts</h3>
+                                <h3 className="font-semibold text-gray-900 mb-2">2. Age </h3>
                                 <p>
-                                    You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized access.
-                                </p>
+                                Any person must be at least 18 at the time of regiristy to use this service. There are no exceptions to this. 
+                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">3. Content</h3>
+                                <h3 className="font-semibold text-gray-900 mb-2">3. Your Member Account</h3>
                                 <p>
-                                    You retain ownership of content you upload but grant fotolokashen a license to use, display, and distribute your content as part of the service. You are responsible for ensuring you have the right to share any content you upload.
+                                    You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. 
+                                    You agree to notify us immediately of any unauthorized access at security@fotolokashen.com. Do not share your account with anyone.
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">4. Prohibited Conduct</h3>
+                                <h3 className="font-semibold text-gray-900 mb-2">4. Content</h3>
                                 <p>
-                                    You may not use fotolokashen to: violate any laws, infringe on others&apos; rights, distribute malware, spam users, or engage in any harmful activity.
+                                    You retain ownership of your uploaded images but you agree and grant fotolokashen license to use, display, and distribute your content as part of the service. 
+                                    By agreeing to these terms you acknowledge ownership or permission to use all images you upload. 
+                                    You are responsible for ensuring you have the right to share any content you upload, when you upload a image and displayed you are attributed. 
+                                </p>
+                            </div>
+
+                             <div>
+                                <h3 className="font-semibold text-gray-900 mb-2">5.Your Images</h3>
+                                <p>
+                                    Your images are sent to ImageKit a CDN. Your images are compressed to optimize data transfers. 
+                                    This means when you upload an image the orginal quaility is permenently changed.
+                                    Do not use Fotolokashen to store ORIGINAL FILES, you will lose data in this process.
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">5. Termination</h3>
+                                <h3 className="font-semibold text-gray-900 mb-2">6. Prohibited Conduct</h3>
+                                <p>
+                                    You may not use fotolokashen to: violate any laws, infringe on others&apos; rights, distribute malware, spam users, pitch products or engage in any harmful activity.
+                                    We do monitor images for inappropriate content, while fairly liberal Fotolokashen admins are the final arbitors for content issues.  
+                                </p>
+                            </div>
+
+                            <div>
+                                <h3 className="font-semibold text-gray-900 mb-2">7. Termination</h3>
                                 <p>
                                     We reserve the right to suspend or terminate your account at any time for violations of these terms or for any other reason at our discretion.
                                 </p>
@@ -130,7 +152,7 @@ export function TermsModal() {
                             <div>
                                 <h3 className="font-semibold text-gray-900 mb-2">1. Information We Collect</h3>
                                 <p>
-                                    We collect information you provide directly (account details, profile information, locations saved), automatically (usage data, device information, GPS location when permitted), and from third parties (OAuth providers like Google and Apple).
+                                    We collect information you provide directly (Your real name, email, birthday, specific locations data), automatically (usage data, device information, GPS location when permitted), and from third parties (OAuth providers like Google and Apple).
                                 </p>
                             </div>
 
@@ -144,21 +166,24 @@ export function TermsModal() {
                             <div>
                                 <h3 className="font-semibold text-gray-900 mb-2">3. Information Sharing</h3>
                                 <p>
-                                    We do not sell your personal information. We may share data with service providers, when required by law, or with your consent. Your saved locations are only visible according to your privacy settings.
+                                    We do not sell your personal information. We may share data with service providers, when required by law, or with your consent. 
+                                    Your saved locations are only visible according to your privacy settings; by default your locations are all private.
                                 </p>
                             </div>
 
                             <div>
                                 <h3 className="font-semibold text-gray-900 mb-2">4. Data Security</h3>
                                 <p>
-                                    We implement industry-standard security measures to protect your data, including encryption, secure authentication, and regular security audits.
+                                    We implement industry-standard security measures to protect your data, including encryption, secure authentication, and regular security audits. 
+                                    We do not know your password, it encrypted to protect your data. Do not share this with anyone. We will never ask for your password. 
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">5. Your Rights</h3>
+                                <h3 className="font-semibold text-gray-900 mb-2">5. Your Account Rights</h3>
                                 <p>
-                                    You have the right to access, modify, or delete your personal information. You can manage your privacy settings, export your data, or request account deletion at any time.
+                                    You have the right to access, modify, or delete your personal information. 
+                                    Under Account Profile You can manage your privacy settings or auto delete your account at any time.
                                 </p>
                             </div>
 

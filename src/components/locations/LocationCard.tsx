@@ -24,6 +24,7 @@ interface LocationCardProps {
     onShare?: (location: Location) => void;
     onClick?: (location: Location) => void;
     canEdit?: boolean;
+    isFirstCard?: boolean;
 }
 
 export const LocationCard = memo(function LocationCard({
@@ -33,6 +34,7 @@ export const LocationCard = memo(function LocationCard({
     onShare,
     onClick,
     canEdit = false,
+    isFirstCard = false,
 }: LocationCardProps) {
     const [photoError, setPhotoError] = useState(false);
     const [mapError, setMapError] = useState(false);
@@ -70,7 +72,7 @@ export const LocationCard = memo(function LocationCard({
 
     return (
         <Card
-            data-tour="location-card"
+            {...(isFirstCard && { 'data-tour': 'location-card' })}
             className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary/50"
             onClick={handleCardClick}
             style={{
@@ -181,7 +183,7 @@ export const LocationCard = memo(function LocationCard({
                     )}
 
                     <Button
-                        data-tour="location-share"
+                        {...(isFirstCard && { 'data-tour': 'location-share' })}
                         variant="outline"
                         size="sm"
                         onClick={(e) => {
