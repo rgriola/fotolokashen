@@ -300,6 +300,7 @@ npm run db:studio    # Open Prisma Studio (database GUI)
 ## Documentation References
 - **Setup**: `README.md`
 - **Current Status**: `PROJECT_STATUS.md`
+- **Production Deployment**: `.agent/workflows/deploy-to-production.md`
 - **Features**: `/docs/features/`
 - **Guides**: `/docs/guides/`
 - **API Docs**: `/docs/api/`
@@ -350,3 +351,5 @@ if (recentRequests >= 2) {
 - **Email System**: Resend API with custom HTML templates
 - **Photo Storage**: ImageKit CDN with flat directory structure
 - **Privacy**: Server-side enforcement, granular controls per feature
+- **Database**: Neon (PostgreSQL) with connection pooling for production
+- **Deployment**: See `.agent/workflows/deploy-to-production.md` for complete Vercel + Neon + Resend setup

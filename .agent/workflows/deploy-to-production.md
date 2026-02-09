@@ -1,10 +1,10 @@
 ---
-description: Deploy to Vercel + PlanetScale production environment
+description: Deploy to Vercel + Neon production environment
 ---
 
-# 🚀 Production Deployment Guide: Vercel + PlanetScale + Resend
+# 🚀 Production Deployment Guide: Vercel + Neon + Resend
 
-This guide will walk you through deploying your Next.js Google Search Me application to production.
+This guide will walk you through deploying your fotolokashen location discovery platform to production.
 
 ## 📋 Prerequisites Checklist
 
@@ -36,7 +36,7 @@ This guide will walk you through deploying your Next.js Google Search Me applica
 ### 1.3 Generate API Key
 1. In Resend dashboard, go to **API Keys**
 2. Click **Create API Key**
-3. Name it: `Production - Google Search Me`
+3. Name it: `Production - fotolokashen`
 4. Select **Full Access** (or **Sending access** only)
 5. **COPY THE KEY** - you'll need this for Vercel
 6. Format: `re_xxxxxxxxxxxxxxxxxxxxx`
@@ -59,75 +59,73 @@ curl -X POST 'https://api.resend.com/emails' \
 EMAIL_SERVICE="resend"
 EMAIL_API_KEY="re_xxxxxxxxxxxxxxxxxxxxx"  # Your Resend API key
 EMAIL_FROM_ADDRESS="noreply@yourdomain.com"  # Must match verified domain
-EMAIL_FROM_NAME="Google Search Me"
+EMAIL_FROM_NAME="fotolokashen"
 ```
 
 ---
 
-## Phase 2: Database Setup (PlanetScale)
+## Phase 2: Database Setup (Neon)
 
-### 2.1 Create PlanetScale Account
-1. Go to https://planetscale.com
+### 2.1 Create Neon Account
+1. Go to https://neon.tech
 2. Sign up with GitHub (recommended)
-3. Choose the **Hobby** plan (FREE - up to 1 billion row reads/month)
+3. Choose the **Free** plan (FREE - 0.5GB storage, 3GB data transfer)
 
 ### 2.2 Create Database
-1. Click **Create a Database**
-2. Database name: `google-search-me` (or your preferred name)
-3. Region: Choose closest to your users (e.g., `us-east` or `us-west`)
-4. Click **Create Database**
+1. Click **Create Project**
+2. Project name: `fotolokashen` (or your preferred name)
+3. Region: Choose closest to your users (e.g., `US East (Ohio)` or `US West (Oregon)`)
+4. PostgreSQL version: 16 (latest)
+5. Click **Create Project**
 
-### 2.3 Create Production Branch
-PlanetScale uses branches like Git:
-1. You'll start with a `main` branch
-2. This is perfect for production
-3. Later, you can create `dev` branches for testing schema changes
+### 2.3 Database Branches
+Neon automatically creates a `main` branch for production. You can create additional branches for development:
+- `main` - Production database
+- `dev` - Development/testing (optional)
+- Feature branches - For schema testing (optional)
 
 ### 2.4 Get Connection String
-1. In your database, click **Connect**
-2. Select **Prisma** (or **General** if not shown)
+1. In your Neon project dashboard, find the **Connection Details**
+2. Select **Prisma** connection string format
 3. Copy the connection string - it looks like:
    ```
-   mysql://xxxxxxxxx:************@aws.connect.psdb.cloud/google-search-me?sslaccept=strict
+   postgresql://username:password@ep-cool-star-a4dyxqi4.us-east-2.aws.neon.tech/neondb?sslmode=require
    ```
 4. **IMPORTANT**: Save this securely - it contains credentials!
 
-### 2.5 Import Your Local Database
+### 2.5 Set Up Production Database
 
-#### Option A: Export/Import (Recommended)
+#### Option A: Push Schema with Prisma (Recommended)
 ```bash
-# 1. Export your local database
-mysqldump -u root google_search_me > backup.sql
+# 1. Update DATABASE_URL in .env.production.local (create if needed)
+DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
 
-# 2. Install PlanetScale CLI
-brew install planetscale/tap/pscale
-
-# 3. Login to PlanetScale
-pscale auth login
-
-# 4. Connect to your database
-pscale connect google-search-me main --port 3309
-
-# 5. In a new terminal, import the data
-mysql -h 127.0.0.1 -P 3309 -u root google_search_me < backup.sql
-```
-
-#### Option B: Use Prisma (if you have migrations)
-```bash
-# 1. Update DATABASE_URL in .env to PlanetScale connection string
-# 2. Push your schema
+# 2. Push your Prisma schema to Neon
 npx prisma db push
+
+# 3. (Optional) Seed with initial data
+npm run db:seed
 ```
 
-### 2.6 Enable Production Branch Protection
-1. In PlanetScale dashboard, go to your database
-2. Click **Settings** → **General**
-3. Enable **Require approval for schema changes**
-4. This protects your production data
+#### Option B: Run Migrations (if you have migration files)
+```bash
+# 1. Update DATABASE_URL
+DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
+
+# 2. Run migrations
+npx prisma migrate deploy
+```
+
+### 2.6 Enable Connection Pooling (Important for Production)
+1. In Neon dashboard, go to your project
+2. Click on **Connection pooling**
+3. Enable pooling for better performance
+4. You'll get a pooled connection string ending in `/neondb?sslmode=require&pgbouncer=true`
+5. Use the pooled connection for production
 
 **Environment Variable Needed:**
 ```bash
-DATABASE_URL="mysql://user:pass@aws.connect.psdb.cloud/google-search-me?sslaccept=strict"
+DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require&pgbouncer=true"
 ```
 
 ---
@@ -141,7 +139,7 @@ DATABASE_URL="mysql://user:pass@aws.connect.psdb.cloud/google-search-me?sslaccep
 
 ### 3.2 Import Project
 1. Click **Add New...** → **Project**
-2. Find your `google-search-me-refactor` repository
+2. Find your `fotolokashen` repository
 3. Click **Import**
 
 ### 3.3 Configure Build Settings
@@ -159,31 +157,31 @@ Click **Environment Variables** and add ALL of these:
 # Node Environment
 NODE_ENV=production
 
-# Database (from PlanetScale - Step 2.4)
-DATABASE_URL=mysql://xxxxxxxxx:************@aws.connect.psdb.cloud/google-search-me?sslaccept=strict
+# Database (from Neon - Step 2.4)
+DATABASE_URL=postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require&pgbouncer=true
 
 # JWT Secret (GENERATE A NEW ONE FOR PRODUCTION!)
 JWT_SECRET=<GENERATE_NEW_SECRET_SEE_BELOW>
 
-# Google Maps API Key (same as local)
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyCHQECnK2DXcNXIQR0ZfvIEPrAJWIH8JsM
+# Google Maps API Key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=YOUR_GOOGLE_MAPS_KEY
 
-# ImageKit (same as local)
-NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=public_O/9pxeXVXghCIZD8o8ySi04JvK4=
-IMAGEKIT_PRIVATE_KEY=private_z98e1q+JMejEDabjjvzijXlKH84=
-IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/rgriola
+# ImageKit
+NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY=YOUR_IMAGEKIT_PUBLIC_KEY
+IMAGEKIT_PRIVATE_KEY=YOUR_IMAGEKIT_PRIVATE_KEY
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/YOUR_ID
 
 # Email (from Resend - Step 1.3)
 EMAIL_SERVICE=resend
 EMAIL_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
 EMAIL_FROM_ADDRESS=noreply@yourdomain.com
-EMAIL_FROM_NAME=Google Search Me
+EMAIL_FROM_NAME=fotolokashen
 
 # Application URL (will update after first deploy)
 NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 
-# Sentry (same as local)
-NEXT_PUBLIC_SENTRY_DSN=https://1e6219bd27e095b18fc73fec018da187@o4510596205838336.ingest.us.sentry.io/4510596233101312
+# Sentry (optional - for error tracking)
+NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
 ```
 
 #### 🔐 Generate New JWT Secret for Production:
@@ -196,7 +194,7 @@ Copy the output and use it as `JWT_SECRET`
 ### 3.5 Deploy!
 1. Click **Deploy**
 2. Wait 2-3 minutes for build
-3. You'll get a URL like: `https://google-search-me-refactor.vercel.app`
+3. You'll get a URL like: `https://fotolokashen.vercel.app`
 
 ### 3.6 Test Your Deployment
 1. Visit your Vercel URL
@@ -243,39 +241,22 @@ Copy the output and use it as `JWT_SECRET`
 
 ---
 
-## Phase 5: Configure Update Email Service in Code
+## Phase 5: Verify Email Configuration
 
-### 5.1 Update Email Service
-Your current code uses nodemailer with SMTP. We need to switch to Resend's API.
+### 5.1 Email Service Setup
+Fotolokashen uses Resend for email delivery. Your codebase is already configured:
 
-#### Install Resend SDK:
-```bash
-npm install resend
-```
+**Production**: Uses Resend API (configured in Phase 1)
+**Development**: Logs emails to console (no external service needed)
 
-#### Update your email utility to support both:
-Create/update `src/lib/email.ts`:
+#### Verify your email utility (`src/lib/email.ts`):
 
 ```typescript
 import { Resend } from 'resend';
-import nodemailer from 'nodemailer';
-import { env } from './env';
 
-// Initialize Resend for production
-const resend = env.EMAIL_SERVICE === 'resend' 
+// Initialize Resend
+const resend = process.env.EMAIL_API_KEY 
   ? new Resend(process.env.EMAIL_API_KEY) 
-  : null;
-
-// Keep your existing nodemailer transporter for development
-const transporter = env.EMAIL_SERVICE === 'mailtrap' 
-  ? nodemailer.createTransport({
-      host: env.EMAIL_HOST,
-      port: env.EMAIL_PORT,
-      auth: {
-        user: env.EMAIL_USER,
-        pass: env.EMAIL_PASS,
-      },
-    })
   : null;
 
 export async function sendEmail(options: {
@@ -283,47 +264,40 @@ export async function sendEmail(options: {
   subject: string;
   html: string;
 }) {
-  if (env.EMAIL_SERVICE === 'resend' && resend) {
+  if (process.env.NODE_ENV === 'production' && resend) {
     // Production: Use Resend
     return await resend.emails.send({
-      from: `${env.EMAIL_FROM_NAME} <${env.EMAIL_FROM_ADDRESS}>`,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-    });
-  } else if (transporter) {
-    // Development: Use Mailtrap
-    return await transporter.sendMail({
-      from: `${env.EMAIL_FROM_NAME} <${env.EMAIL_FROM_ADDRESS}>`,
+      from: `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM_ADDRESS}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
     });
   } else {
-    throw new Error('No email service configured');
+    // Development: Log to console
+    console.log('📧 Email (Development Mode):', {
+      to: options.to,
+      subject: options.subject,
+      preview: options.html.substring(0, 100) + '...',
+    });
   }
 }
 ```
 
-### 5.2 Update Environment Validation
-Update `src/lib/env.ts` to handle Resend:
+### 5.2 Environment Variables
+Your `.env.local` (development):
+```bash
+NODE_ENV=development
+EMAIL_FROM_ADDRESS=noreply@fotolokashen.com
+EMAIL_FROM_NAME=fotolokashen
+# No EMAIL_API_KEY needed - uses console logging
+```
 
-```typescript
-// Email configuration (conditional based on service)
-EMAIL_SERVICE: z.enum(['mailtrap', 'resend']).default('mailtrap'),
-
-// Resend-specific
-EMAIL_API_KEY: z.string().optional(),
-
-// SMTP-specific (Mailtrap)
-EMAIL_HOST: z.string().optional(),
-EMAIL_PORT: z.string().optional(),
-EMAIL_USER: z.string().optional(),
-EMAIL_PASS: z.string().optional(),
-
-// Common
-EMAIL_FROM_ADDRESS: z.string().email(),
-EMAIL_FROM_NAME: z.string().default('Google Search Me'),
+Your Vercel production environment variables (already set in Phase 3.4):
+```bash
+NODE_ENV=production
+EMAIL_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
+EMAIL_FROM_ADDRESS=noreply@yourdomain.com
+EMAIL_FROM_NAME=fotolokashen
 ```
 
 ---
@@ -334,7 +308,7 @@ EMAIL_FROM_NAME: z.string().default('Google Search Me'),
 - [ ] Check Vercel dashboard for build errors
 - [ ] Review Vercel Analytics (auto-enabled)
 - [ ] Check Sentry dashboard for runtime errors
-- [ ] Monitor PlanetScale Insights for slow queries
+- [ ] Monitor Neon Metrics for database performance and slow queries
 
 ### 6.2 Performance Optimization
 - [ ] Enable Vercel Speed Insights (free)
@@ -344,15 +318,17 @@ EMAIL_FROM_NAME: z.string().default('Google Search Me'),
 
 ### 6.3 Security
 - [ ] Review Vercel Firewall settings
-- [ ] Enable PlanetScale IP restrictions (if needed)
+- [ ] Enable Neon IP Allow lists (if needed for additional security)
 - [ ] Check Cloudflare security settings
 - [ ] Verify HTTPS is working
 - [ ] Test authentication flows
 
 ### 6.4 Backup Strategy
-- [ ] PlanetScale automatically backs up your database
-- [ ] Download a backup: `pscale backup create google-search-me main`
-- [ ] Set up automated backups (PlanetScale settings)
+- [ ] Neon automatically backs up your database (point-in-time recovery available)
+- [ ] Export manual backup: `pg_dump DATABASE_URL > backup.sql`
+- [ ] Set up branch-based backups for critical changes
+- [ ] Free tier: 7 days of backup history
+- [ ] Paid plans: 30 days of backup history + point-in-time recovery
 
 ---
 
@@ -361,7 +337,7 @@ EMAIL_FROM_NAME: z.string().default('Google Search Me'),
 | Service | Plan | Cost | Limits |
 |---------|------|------|--------|
 | **Vercel** | Hobby | $0 | Unlimited deployments, 100GB bandwidth |
-| **PlanetScale** | Hobby | $0 | 1B row reads, 10M row writes/month |
+| **Neon** | Free | $0 | 0.5GB storage, 3GB data transfer/month |
 | **Resend** | Free | $0 | 3,000 emails/month, 100/day |
 | **Cloudflare** | Free | $0 | Unlimited bandwidth |
 | **ImageKit** | Free | $0 | 20GB bandwidth, 20GB storage |
@@ -370,9 +346,9 @@ EMAIL_FROM_NAME: z.string().default('Google Search Me'),
 
 ### When You'll Need to Upgrade:
 - **Vercel Pro ($20/mo)**: Custom domains, analytics, more team members
-- **PlanetScale Scaler ($39/mo)**: More reads/writes, branching
+- **Neon Pro ($19/mo)**: 10GB storage, unlimited compute hours, more data transfer
 - **Resend Email ($20/mo)**: 50k emails/month
-- **Total at scale**: ~$80-100/month for serious traffic
+- **Total at scale**: ~$60-80/month for serious traffic
 
 ---
 
@@ -389,9 +365,11 @@ EMAIL_FROM_NAME: z.string().default('Google Search Me'),
 
 ### Database Connection Errors
 ```bash
-# Ensure PlanetScale connection string is correct
-# Check SSL settings: ?sslaccept=strict
-# Verify branch is not sleeping (Hobby tier doesn't sleep)
+# Ensure Neon connection string is correct
+# Check SSL settings: ?sslmode=require
+# Verify compute endpoint is running (auto-suspends after 5 min inactivity on free tier)
+# Enable connection pooling: &pgbouncer=true
+# Check Neon dashboard for compute status
 ```
 
 ### Emails Not Sending
@@ -414,21 +392,23 @@ EMAIL_FROM_NAME: z.string().default('Google Search Me'),
 
 1. **Set up continuous deployment**: Every push to `main` auto-deploys
 2. **Create preview environments**: Use Vercel preview deployments for PRs
-3. **Database branching**: Use PlanetScale dev branches for schema changes
+3. **Database branching**: Use Neon branches for schema testing and development
 4. **Monitoring alerts**: Set up Sentry alerts for critical errors
-5. **Performance monitoring**: Review Vercel Analytics weekly
+5. **Performance monitoring**: Review Vercel Analytics and Neon Metrics weekly
+6. **Configure autoscaling**: Set compute autoscaling limits in Neon dashboard
 
 ---
 
 ## 📚 Useful Links
 
 - [Vercel Dashboard](https://vercel.com/dashboard)
-- [PlanetScale Dashboard](https://app.planetscale.com)
+- [Neon Console](https://console.neon.tech)
 - [Resend Dashboard](https://resend.com/overview)
 - [Cloudflare Dashboard](https://dash.cloudflare.com)
 - [Vercel Docs](https://vercel.com/docs)
-- [PlanetScale Docs](https://planetscale.com/docs)
+- [Neon Docs](https://neon.tech/docs)
 - [Resend Docs](https://resend.com/docs)
+- [Prisma with Neon Guide](https://neon.tech/docs/guides/prisma)
 
 ---
 
