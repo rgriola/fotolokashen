@@ -24,7 +24,8 @@ export default function VerifyEmailPage() {
         const resent = searchParams.get('resent');
 
         if (emailParam) {
-            setEmail(decodeURIComponent(emailParam));
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setEmail(() => decodeURIComponent(emailParam));
         }
 
         // If resent=true, show success message for new email sent

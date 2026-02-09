@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Send, CheckCircle, AlertCircle, Loader2, MessageSquare, User as UserIcon, Mail } from 'lucide-react';
+import { ArrowLeft, Send, CheckCircle, AlertCircle, Loader2, MessageSquare, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -34,16 +34,14 @@ interface FormErrors {
 
 type SubmitStatus = 'idle' | 'loading' | 'success' | 'error';
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 function MemberSupportPageInner() {
   const { user } = useAuth();
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<FormData>(() => ({
     name: '',
     email: '',
     subject: '',
     message: '',
-  });
+  }));
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle');
   const [submitMessage, setSubmitMessage] = useState('');
@@ -56,12 +54,12 @@ function MemberSupportPageInner() {
         ? `${user.firstName} ${user.lastName}`
         : user.username;
       
-      setFormData({
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormData((prev) => ({
+        ...prev,
         name: fullName,
         email: user.email,
-        subject: '',
-        message: '',
-      });
+      }));
     }
   }, [user]);
 
