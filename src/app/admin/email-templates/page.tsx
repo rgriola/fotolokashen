@@ -276,6 +276,7 @@ export default function EmailTemplatesPage() {
               <SelectItem value="system">System</SelectItem>
               <SelectItem value="notification">Notification</SelectItem>
               <SelectItem value="campaign">Campaign</SelectItem>
+              <SelectItem value="support">Support</SelectItem>
             </SelectContent>
           </Select>
           

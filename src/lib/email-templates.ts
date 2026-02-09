@@ -348,3 +348,191 @@ export function accountDeletionEmailTemplate(username: string, email: string): s
 
   return emailWrapper(content);
 }
+
+/**
+ * Public Support Request Template (sent to admin)
+ */
+export function publicSupportRequestTemplate(
+  name: string,
+  email: string,
+  subject: string,
+  message: string
+): string {
+  const timestamp = new Date().toLocaleString('en-US', {
+    timeZone: 'America/New_York',
+    dateStyle: 'full',
+    timeStyle: 'long',
+  });
+
+  const content = `
+    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
+      📬 New Support Request
+    </h2>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
+      <tr>
+        <td style="background-color: #f8f9fa; padding: 24px; border-radius: 8px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; width: 120px; color: #495057;">From:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">${name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Email:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                <a href="mailto:${email}" style="color: ${BRAND_COLOR}; text-decoration: none;">${email}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Subject:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">${subject}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: 600; color: #495057;">Received:</td>
+              <td style="padding: 8px 0; color: #6c757d; font-size: 14px;">${timestamp}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    
+    <h3 style="margin: 24px 0 12px; color: #212529; font-size: 18px; font-weight: 600;">
+      Message:
+    </h3>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      <tr>
+        <td style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; color: #212529; font-size: 15px; line-height: 1.6;">
+${message}
+        </td>
+      </tr>
+    </table>
+    
+    <p style="margin: 24px 0 0; color: #6c757d; font-size: 13px; text-align: center;">
+      This message was sent via the Fotolokashen Public Support Form
+    </p>
+  `;
+
+  return emailWrapper(content);
+}
+
+/**
+ * Member Support Request Template (sent to admin)
+ */
+export function memberSupportRequestTemplate(
+  name: string,
+  email: string,
+  subject: string,
+  message: string,
+  username: string
+): string {
+  const timestamp = new Date().toLocaleString('en-US', {
+    timeZone: 'America/New_York',
+    dateStyle: 'full',
+    timeStyle: 'long',
+  });
+
+  const content = `
+    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
+      📬 Member Support Request
+    </h2>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
+      <tr>
+        <td style="background-color: #f8f9fa; padding: 24px; border-radius: 8px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; width: 120px; color: #495057;">From:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">${name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Username:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">@${username}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Email:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
+                <a href="mailto:${email}" style="color: ${BRAND_COLOR}; text-decoration: none;">${email}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Subject:</td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">${subject}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-weight: 600; color: #495057;">Received:</td>
+              <td style="padding: 8px 0; color: #6c757d; font-size: 14px;">${timestamp}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    
+    <h3 style="margin: 24px 0 12px; color: #212529; font-size: 18px; font-weight: 600;">
+      Message:
+    </h3>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      <tr>
+        <td style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; color: #212529; font-size: 15px; line-height: 1.6;">
+${message}
+        </td>
+      </tr>
+    </table>
+    
+    <p style="margin: 24px 0 0; color: #6c757d; font-size: 13px; text-align: center;">
+      This message was sent via the Fotolokashen Member Support Form
+    </p>
+  `;
+
+  return emailWrapper(content);
+}
+
+/**
+ * Support Confirmation Template (sent to user)
+ */
+export function supportConfirmationTemplate(name: string, subject: string): string {
+  const content = `
+    <h2 style="margin: 0 0 16px; color: #10b981; font-size: 24px; font-weight: 600;">
+      ✅ Support Request Received
+    </h2>
+    
+    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
+      Hi <strong>${name}</strong>,
+    </p>
+    
+    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
+      Thank you for contacting ${BRAND_NAME} support! We've received your message regarding:
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
+      <tr>
+        <td style="background-color: #f8f9fa; border-left: 4px solid ${BRAND_COLOR}; padding: 20px; border-radius: 4px;">
+          <p style="margin: 0; color: #212529; font-size: 16px; font-weight: 600;">
+            ${subject}
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
+      Our support team will review your message and get back to you within <strong>24-48 hours</strong>.
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
+      <tr>
+        <td style="background-color: #e7f3ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 4px;">
+          <p style="margin: 0; color: #0369a1; font-size: 14px; line-height: 1.6;">
+            💡 <strong>Tip:</strong> If you have any additional information to add, simply reply to this email and we'll include it with your support request.
+          </p>
+        </td>
+      </tr>
+    </table>
+    
+    <p style="margin: 24px 0 0; color: #495057; font-size: 15px; font-weight: 500;">
+      - The ${BRAND_NAME} Support Team
+    </p>
+  `;
+
+  return emailWrapper(content);
+}

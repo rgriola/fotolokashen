@@ -7,6 +7,9 @@ import {
   passwordResetEmailTemplate,
   passwordChangedEmailTemplate,
   accountDeletionEmailTemplate,
+  publicSupportRequestTemplate,
+  memberSupportRequestTemplate,
+  supportConfirmationTemplate,
 } from '@/lib/email-templates';
 
 /**
@@ -78,6 +81,36 @@ export async function POST(req: NextRequest) {
         requiredVariables: ['username', 'email'],
         isDefault: true,
       },
+      {
+        key: 'support_request_public',
+        name: 'Public Support Request (Admin)',
+        description: 'Email sent to admin when public support form is submitted',
+        category: 'support',
+        subject: '[Support] {{subject}}',
+        htmlBody: publicSupportRequestTemplate('{{name}}', '{{email}}', '{{subject}}', '{{message}}'),
+        requiredVariables: ['name', 'email', 'subject', 'message'],
+        isDefault: true,
+      },
+      {
+        key: 'support_request_member',
+        name: 'Member Support Request (Admin)',
+        description: 'Email sent to admin when member support form is submitted',
+        category: 'support',
+        subject: '[Member Support] {{subject}}',
+        htmlBody: memberSupportRequestTemplate('{{name}}', '{{email}}', '{{subject}}', '{{message}}', '{{username}}'),
+        requiredVariables: ['name', 'email', 'subject', 'message', 'username'],
+        isDefault: true,
+      },
+      {
+        key: 'support_confirmation',
+        name: 'Support Request Confirmation',
+        description: 'Confirmation email sent to user after support request',
+        category: 'support',
+        subject: 'Your Support Request Has Been Received',
+        htmlBody: supportConfirmationTemplate('{{name}}', '{{subject}}'),
+        requiredVariables: ['name', 'subject'],
+        isDefault: true,
+      },
     ];
 
     const results = {
@@ -138,7 +171,16 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const defaultKeys = ['verification', 'welcome', 'password_reset', 'password_changed', 'account_deletion'];
+    const defaultKeys = [
+      'verification',
+      'welcome',
+      'password_reset',
+      'password_changed',
+      'account_deletion',
+      'support_request_public',
+      'support_request_member',
+      'support_confirmation',
+    ];
     
     const existing = await prisma.emailTemplate.findMany({
       where: { key: { in: defaultKeys } },
