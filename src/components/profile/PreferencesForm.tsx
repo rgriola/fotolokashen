@@ -1,18 +1,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { Settings, Bell, Globe, Clock, MapPin, AlertCircle } from 'lucide-react';
+import { Settings, Bell, Globe, Clock, MapPin, AlertCircle, Sparkles, Map, User } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { HomeLocationSettings } from '@/components/profile/HomeLocationSettings';
 
 export function PreferencesForm() {
     const { user, refetchUser } = useAuth();
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
     // Current values
@@ -252,6 +254,101 @@ export function PreferencesForm() {
                                 <span className="font-semibold">Privacy Note:</span> Device GPS data is only used while the app is actively running. We never track your location in the background.
                             </p>
                         </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Tour Restart Section */}
+            <Card className="max-w-2xl mx-auto">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5" />
+                        Interactive Tours
+                    </CardTitle>
+                    <CardDescription>
+                        Restart any tutorial tour to review features
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-medium">Map Tour</p>
+                            <p className="text-sm text-muted-foreground">Learn how to navigate and use the map interface</p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                                try {
+                                    await fetch('/api/onboarding/reset', { 
+                                        method: 'POST',
+                                        credentials: 'include',
+                                    });
+                                    router.push('/map');
+                                    setTimeout(() => window.location.reload(), 100);
+                                } catch (error) {
+                                    console.error('Failed to restart tour:', error);
+                                    toast.error('Failed to restart tour');
+                                }
+                            }}
+                        >
+                            <Map className="w-4 h-4 mr-2" />
+                            Restart
+                        </Button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-medium">Locations Tour</p>
+                            <p className="text-sm text-muted-foreground">Manage and organize your saved locations</p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                                try {
+                                    await fetch('/api/onboarding/reset-locations', { 
+                                        method: 'POST',
+                                        credentials: 'include',
+                                    });
+                                    router.push('/locations');
+                                    setTimeout(() => window.location.reload(), 100);
+                                } catch (error) {
+                                    console.error('Failed to restart locations tour:', error);
+                                    toast.error('Failed to restart tour');
+                                }
+                            }}
+                        >
+                            <MapPin className="w-4 h-4 mr-2" />
+                            Restart
+                        </Button>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-medium">People Tour</p>
+                            <p className="text-sm text-muted-foreground">Discover and connect with other members</p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                                try {
+                                    await fetch('/api/onboarding/reset-people', { 
+                                        method: 'POST',
+                                        credentials: 'include',
+                                    });
+                                    router.push('/search');
+                                    setTimeout(() => window.location.reload(), 100);
+                                } catch (error) {
+                                    console.error('Failed to restart people tour:', error);
+                                    toast.error('Failed to restart tour');
+                                }
+                            }}
+                        >
+                            <User className="w-4 h-4 mr-2" />
+                            Restart
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
