@@ -48,6 +48,8 @@ You are assisting with the **fotolokashen** location discovery platform.
 - **Use shadcn/ui**: Components from `/src/components/ui/`
 - **Tailwind utility classes**: Avoid custom CSS unless necessary
 - **Consistent spacing**: Use Tailwind spacing scale (p-4, m-2, etc.)
+- **Image optimization**: Always use Next.js `Image` component, never `<img>` tags
+- **Responsive images**: Include `sizes` attribute for proper optimization
 
 ## Project Structure
 
@@ -83,6 +85,31 @@ prisma/
 ```
 
 ## Common Patterns
+
+### Next.js Image Component
+```typescript
+import Image from "next/image";
+
+// For dynamic images with fill container
+<div className="relative h-56">
+  <Image
+    src={imageUrl}
+    alt="Description"
+    fill
+    className="object-cover"
+    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+  />
+</div>
+
+// For fixed dimensions
+<Image
+  src={imageUrl}
+  alt="Description"
+  width={600}
+  height={400}
+  className="rounded-lg"
+/>
+```
 
 ### Protected API Route
 ```typescript
@@ -152,6 +179,55 @@ export default function MapPage() {
 }
 ```
 
+### Form Change Tracking Pattern
+```typescript
+// Track changes for unsaved changes banner (tags, photos, form fields)
+useEffect(() => {
+  const changedFields: string[] = [];
+
+  // Check form field changes
+  if (dirtyFields.name) {
+    changedFields.push(`Name: ${watchedName}`);
+  }
+  
+  // Check non-form state changes (tags, photos)
+  const currentTags = JSON.stringify([...tags].sort());
+  const originalTags = JSON.stringify([...originalTags].sort());
+  if (currentTags !== originalTags) {
+    changedFields.push('Tags updated');
+  }
+  
+  if (photosToDelete.length > 0) {
+    changedFields.push(`${photosToDelete.length} photo(s) marked for deletion`);
+  }
+
+  setHasChanges(changedFields.length > 0);
+  setChanges(changedFields);
+}, [dirtyFields, tags, originalTags, photosToDelete.length]);
+```
+
+### Onboarding Tour Pattern
+```typescript
+// Provider component with local state + parent callback
+const [isCompleted, setIsCompleted] = useState(propCompleted);
+
+// Sync with prop changes
+useEffect(() => {
+  setIsCompleted(propCompleted);
+}, [propCompleted]);
+
+// On tour complete
+if (status === STATUS.FINISHED) {
+  setIsCompleted(true); // Update local state immediately
+  fetch('/api/onboarding/complete', {
+    method: 'POST',
+    credentials: 'include',
+  }).then(() => {
+    onTourComplete?.(); // Notify parent
+  });
+}
+```
+
 ## Database Schema (Key Models)
 
 ### User
@@ -173,6 +249,22 @@ export default function MapPage() {
 ### Session
 - JWT sessions with device tracking
 - Supports multi-device (web + iOS)
+
+## Key Features Implemented
+
+### Onboarding System
+- **Terms Modal**: Mandatory acceptance with scroll-to-bottom requirement
+- **Tours**: React Joyride integration for /map, /locations, /search pages
+- **State Management**: Local completion tracking + database persistence
+- **Tour Steps**: Only target reliable, always-present DOM elements
+- **Positioning**: Use `isFixed: true` and CSS transforms for fixed layouts
+- **Conditional Attributes**: Only apply `data-tour` to first elements in lists
+
+### Form Change Tracking
+- **Independent State**: Track both form fields AND external state (tags, photos)
+- **No Early Returns**: Don't skip tag/photo checks when form isn't dirty
+- **Display Changes**: Show list of what changed in unsaved changes banner
+- **Save Button Activation**: Activate on ANY change (fields, tags, photos)
 
 ## Security Checklist
 
