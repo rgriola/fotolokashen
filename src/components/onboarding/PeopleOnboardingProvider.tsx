@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import Joyride, { CallBackProps, STATUS, ACTIONS, Step } from 'react-joyride';
+import Joyride, { CallBackProps, STATUS, ACTIONS } from 'react-joyride';
 import { peopleSteps } from '@/lib/onboarding/peopleSteps';
 import { useAuth } from '@/lib/auth-context';
 

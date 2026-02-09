@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -82,22 +83,26 @@ export const LocationCard = memo(function LocationCard({
             {/* Image Section */}
             <div className="relative h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
                 {photoUrl && !photoError ? (
-                    <img
+                    <Image
                         src={photoUrl}
                         alt={location.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={() => setPhotoError(true)}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                 ) : !mapError ? (
-                    <img
+                    <Image
                         src={mapImageUrl}
                         alt={`Map of ${location.name}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={() => {
                             console.error('Google Maps Static API image failed to load:', mapImageUrl);
                             console.error('Troubleshooting: 1) Verify Maps Static API is enabled in Google Cloud Console, 2) Check billing is set up, 3) Verify API key is correct');
                             setMapError(true);
                         }}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
