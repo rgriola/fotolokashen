@@ -188,14 +188,7 @@ function MemberSupportPageInner() {
     <div className="container max-w-4xl mx-auto py-8 px-4">
       {/* Page Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Link href="/profile">
-            <Button variant="outline" size="sm" className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Profile
-            </Button>
-          </Link>
-        </div>
+        
         <h1 className="text-3xl font-bold">Member Support</h1>
         <p className="text-muted-foreground mt-1">
           Get help with your account and submit questions to our support team
