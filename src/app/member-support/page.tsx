@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Send, CheckCircle, AlertCircle, Loader2, MessageSquare, User as UserIcon } from 'lucide-react';
+import { Send, CheckCircle, AlertCircle, Loader2, MessageSquare, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';

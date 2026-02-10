@@ -1,20 +1,36 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-02-06  
+**Last Updated**: 2026-02-10  
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
 ## Current Focus
 
-### 🎯 Active Development (February 6, 2026)
+### 🎯 Active Development (February 10, 2026)
 
 **This Week's Completion:**
-1. ✅ **Onboarding Tours Bug Fixes** - Fixed repeating tour issue for /locations and /search pages
-   - Implemented local state tracking to prevent tour restarts
-   - Added callback handlers to update parent component state
-   - Fixed positioning issues with spotlight overlay in fixed layouts
-   - Removed problematic tour steps targeting non-existent elements
-   - Tours now properly save completion status to database
+1. ✅ **Support System Enhancements** - Public and member support forms with email integration
+   - Public support form at `/support` with human verification (hold-to-verify)
+   - Member support form at `/member-support` (authenticated, no verification needed)
+   - Dual-email system: admin notification + user confirmation
+   - Support form onBlur validation for better UX
+   - Compact form design with reduced spacing
+   - Support email templates added to admin system
+   - Rate limiting: 3/hour (public), 5/hour (members)
+   
+2. ✅ **Navigation & UX Improvements**
+   - Tour management consolidated in Profile → Preferences
+   - "Start Tour" removed from dropdown (auto-starts on first login)
+   - Support link added to member dropdown menu
+   - Interactive Tours card with 3 restart buttons (Map, Locations, People)
+
+**Recent Completions (February 2026):**
+- ✅ **Onboarding Tours Bug Fixes** - Fixed repeating tour issue for /locations and /search pages
+  - Implemented local state tracking to prevent tour restarts
+  - Added callback handlers to update parent component state
+  - Fixed positioning issues with spotlight overlay in fixed layouts
+  - Removed problematic tour steps targeting non-existent elements
+  - Tours now properly save completion status to database
 
 **Recent Completions (January 2026):**
 - ✅ **Enhanced Onboarding System** - Multi-page tours with terms acceptance
@@ -49,6 +65,58 @@ The fotolokashen iOS app is a camera-first mobile companion for location scoutin
 ---
 
 ## Recent Major Updates
+
+### 2026-02-10: Support System & Navigation Enhancements ✅ COMPLETE
+
+**Support Forms**
+- ✅ Public support form at `/support`
+  - Human verification with hold-to-verify component (3-second hold)
+  - OnBlur validation for all fields (name, email, subject, message)
+  - Compact design with optimized spacing
+  - Character counters for subject (200) and message (2000)
+  - Rate limiting: 3 requests per hour (IP-based)
+  - Single email sent to admin
+
+- ✅ Member support form at `/member-support`
+  - Protected route (authentication required)
+  - Pre-populated user info (name, username, email) - non-editable display
+  - No human verification needed (already authenticated)
+  - Profile page styling for consistency
+  - Dual-email system:
+    * Admin notification with username
+    * User confirmation email
+  - Rate limiting: 5 requests per hour (user-based)
+  - Success/error dialog feedback
+
+**Email Templates**
+- ✅ Added three new support templates to `/lib/email-templates.ts`:
+  - `publicSupportRequestTemplate()` - Admin notification for public requests
+  - `memberSupportRequestTemplate()` - Admin notification for member requests (includes username)
+  - `supportConfirmationTemplate()` - User confirmation after submission
+- ✅ Templates integrated into admin seeding system
+- ✅ "Support" category added to email template filters
+- ✅ Professional HTML design matching existing template system
+
+**Navigation Improvements**
+- ✅ Tour management moved to Profile → Preferences → Interactive Tours
+  - Map Tour restart button
+  - Locations Tour restart button
+  - People Tour restart button
+  - Each button calls respective API endpoint
+- ✅ Removed tour links from member dropdown menu
+- ✅ "Start Tour" removed (tours auto-start on first login)
+- ✅ "Support" link added to member dropdown
+
+**Components Updated:**
+- `src/app/support/page.tsx` (onBlur validation, compact design)
+- `src/app/member-support/page.tsx` (new authenticated support form)
+- `src/app/api/support/route.ts` (public support endpoint)
+- `src/app/api/member-support/route.ts` (member support with dual emails)
+- `src/components/layout/AuthButton.tsx` (cleaned up dropdown menu)
+- `src/components/profile/PreferencesForm.tsx` (added Interactive Tours card)
+- `src/lib/email-templates.ts` (3 new support templates)
+- `src/app/api/admin/email-templates/seed/route.ts` (support template seeding)
+- `src/app/admin/email-templates/page.tsx` (added "Support" category filter)
 
 ### 2026-02-06: Onboarding Tours Bug Fixes ✅ COMPLETE
 
@@ -104,6 +172,21 @@ The fotolokashen iOS app is a camera-first mobile companion for location scoutin
 - Increased efficiency with template duplication feature
 - Improved admin UI for better usability
 
+  - Public Support Request (admin notification)
+  - Member Support Request (admin notification with username)
+  - Support Confirmation (user confirmation)
+
+✅ **Support System** (NEW - February 2026)
+- Public support form at `/support`
+  - Human verification (hold-to-verify)
+  - OnBlur field validation
+  - Rate limiting: 3 requests/hour
+- Member support form at `/member-support`
+  - Authenticated users only
+  - Pre-populated user information
+  - Dual-email system (admin + confirmation)
+  - Rate limiting: 5 requests/hour
+- Support email templates in admin system
 ---
 
 ## Current State
