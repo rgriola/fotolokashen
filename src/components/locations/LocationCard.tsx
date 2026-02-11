@@ -43,6 +43,19 @@ export const LocationCard = memo(function LocationCard({
     const router = useRouter();
     const userSave = location.userSave;
 
+    // Helper function to remove country from address
+    const removeCountryFromAddress = (address: string | null): string => {
+        if (!address) return 'No address available';
+        
+        // Remove common country names and variations
+        return address
+            .replace(/, USA$/, '')
+            .replace(/, United States$/, '')
+            .replace(/, US$/, '')
+            .replace(/, United States of America$/, '')
+            .trim();
+    };
+
     // Get the first photo from photos array or photoUrls
     const photoUrl = location.photos && location.photos.length > 0
         ? `${IMAGEKIT_URL_ENDPOINT}${location.photos[0].imagekitFilePath}`
@@ -74,11 +87,8 @@ export const LocationCard = memo(function LocationCard({
     return (
         <Card
             {...(isFirstCard && { 'data-tour': 'location-card' })}
-            className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary/50"
+            className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary/50 bg-white hover:bg-accent/50 p-0"
             onClick={handleCardClick}
-            style={{
-                backgroundColor: `${typeColor}80`, // 80 in hex = 50% opacity
-            }}
         >
             {/* Image Section */}
             <div className="relative h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
@@ -112,8 +122,41 @@ export const LocationCard = memo(function LocationCard({
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
+                {/* Action Buttons - Top Left */}
+                <div className="absolute top-2 left-2 flex gap-1.5 z-10">
+                    {canEdit && (
+                        <Button
+                            data-tour="location-edit"
+                            variant="secondary"
+                            size="icon"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit?.(location);
+                            }}
+                            className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                            title="Edit location"
+                        >
+                            <Edit className="w-3.5 h-3.5" />
+                        </Button>
+                    )}
+
+                    <Button
+                        {...(isFirstCard && { 'data-tour': 'location-share' })}
+                        variant="secondary"
+                        size="icon"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onShare?.(location);
+                        }}
+                        className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                        title="Share location"
+                    >
+                        <Share2 className="w-3.5 h-3.5" />
+                    </Button>
+                </div>
+
                 {/* Top Badges */}
-                <div className="absolute top-3 left-3 right-3 flex items-start justify-between gap-2">
+                <div className="absolute top-2 right-2 flex items-start justify-end gap-2">
                     {location.type && (
                         <Badge
                             className="shadow-lg font-semibold"
@@ -160,6 +203,14 @@ export const LocationCard = memo(function LocationCard({
                     )}
                 </div>
 
+                {/* GPS Coordinates - Above Location Name */}
+                <div className="absolute bottom-14 left-3 right-3">
+                    <div className="text-xs text-white/90 flex items-center gap-1.5 drop-shadow-lg">
+                        <Navigation className="w-3 h-3 text-white" />
+                        <span>{location.lat.toFixed(3)}, {location.lng.toFixed(3)}</span>
+                    </div>
+                </div>
+
                 {/* Location Name */}
                 <div className="absolute bottom-3 left-3 right-3">
                     <h3 className="font-bold text-lg text-white drop-shadow-lg line-clamp-2">
@@ -168,50 +219,29 @@ export const LocationCard = memo(function LocationCard({
                 </div>
             </div>
 
-            <CardHeader className="space-y-3 pb-3">
-                {/* Action Buttons - At the very top */}
-                <div className="flex gap-2">
-                    {canEdit && (
-                        <Button
-                            data-tour="location-edit"
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEdit?.(location);
-                            }}
-                            className="flex-1"
-                        >
-                            <Edit className="w-4 h-4 mr-1" />
-                            Edit
-                        </Button>
-                    )}
-
-                    <Button
-                        {...(isFirstCard && { 'data-tour': 'location-share' })}
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onShare?.(location);
-                        }}
-                        className="flex-1"
-                    >
-                        <Share2 className="w-4 h-4 mr-1" />
-                        Share
-                    </Button>
-                </div>
-
+            <CardHeader className="pt-0 pb-3">
                 {/* Main Address */}
-                <p className="text-sm text-black line-clamp-2 flex items-start gap-2">
+                <div className="text-sm text-black flex items-start gap-2">
                     <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-black" />
-                    <span>{location.address || 'No address available'}</span>
-                </p>
-
-                {/* Coordinates */}
-                <div className="text-xs text-black flex items-center gap-2">
-                    <Navigation className="w-3 h-3 text-black" />
-                    <span>{location.lat.toFixed(3)}, {location.lng.toFixed(3)}</span>
+                    <div className="flex-1">
+                        {/* Street Address - Line 1 */}
+                        {(location.street || location.number) ? (
+                            <div className="line-clamp-1">
+                                {location.number && `${location.number} `}{location.street}
+                            </div>
+                        ) : (
+                            <div className="line-clamp-1">
+                                {removeCountryFromAddress(location.address)}
+                            </div>
+                        )}
+                        
+                        {/* City, State ZIP - Line 2 */}
+                        {(location.city || location.state || location.zipcode) && (
+                            <div className="text-muted-foreground">
+                                {location.city}{location.city && location.state && ', '}{location.state} {location.zipcode}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </CardHeader>
 

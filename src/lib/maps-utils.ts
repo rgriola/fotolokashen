@@ -49,6 +49,8 @@ function toRad(degrees: number): number {
     return degrees * (Math.PI / 180);
 }
 
+import { parseAddressComponents } from './address-utils';
+
 export function formatAddress(place: google.maps.places.PlaceResult): string {
     if (place.formatted_address) {
         return place.formatted_address;
@@ -99,6 +101,9 @@ export function extractPlaceData(
         ? place.photos.slice(0, 5).map((photo) => photo.getUrl({ maxWidth: 800 }))
         : [];
 
+    // Parse address components using shared utility function
+    const addressComponents = parseAddressComponents(place.address_components);
+
     return {
         placeId: place.place_id,
         name: place.name || 'Unnamed location',
@@ -108,5 +113,6 @@ export function extractPlaceData(
         type: place.types?.[0] || undefined,
         rating: place.rating,
         photoUrls,
+        ...addressComponents, // Add parsed address components (street, number, city, state, zipcode)
     };
 }

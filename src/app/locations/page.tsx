@@ -347,7 +347,7 @@ function LocationsPageInner() {
 
             {/* Location Detail Panel */}
             <Sheet open={showDetailModal} onOpenChange={setShowDetailModal}>
-                <SheetContent className="w-full sm:max-w-3xl p-0">
+                <SheetContent className="w-full sm:max-w-3xl p-0" hideCloseButton>
                     <SheetHeader>
                         <VisuallyHidden>
                             <SheetTitle>{selectedLocation?.name || "Location Details"}</SheetTitle>
@@ -377,6 +377,7 @@ function LocationsPageInner() {
                                     const userSaveId = location.userSave?.id || location.id;
                                     router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17&edit=${userSaveId}`);
                                 }}
+                                onClose={() => setShowDetailModal(false)}
                             />
                         )}
                     </div>

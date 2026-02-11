@@ -1,18 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-    Heart,
     MapPin,
     Edit,
     Trash2,
     Share2,
     Map,
-    Star,
     Calendar,
     User,
     Clock,
@@ -20,9 +16,10 @@ import {
     Building2,
     DollarSign,
     Phone,
-    Shield,
     AlertCircle,
     Key,
+    X,
+    Copy,
 } from "lucide-react";
 import { PhotoGallery } from "../locations/PhotoGallery";
 import type { Location } from "@/types/location";
@@ -33,6 +30,7 @@ interface LocationDetailPanelProps {
     onDelete?: (id: number) => void;
     onShare?: (location: Location) => void;
     onViewOnMap?: (location: Location) => void;
+    onClose?: () => void;
 }
 
 export function LocationDetailPanel({
@@ -41,13 +39,11 @@ export function LocationDetailPanel({
     onDelete,
     onShare,
     onViewOnMap,
+    onClose,
 }: LocationDetailPanelProps) {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState("overview");
 
     const typeColor = location.userSave?.color || "#64748B";
-    const isFavorite = location.userSave?.isFavorite || false;
-    const personalRating = location.userSave?.personalRating || 0;
 
     const formatDate = (dateString: string | Date) => {
         try {
@@ -77,93 +73,95 @@ export function LocationDetailPanel({
     return (
         <div className="flex flex-col h-full">
             {/* Header - Fixed at top */}
-            <div className="px-4 pt-4 pb-3 border-b shrink-0">
-                <div className="space-y-3">
-                    {/* Title and Badges */}
-                    <div className="space-y-2">
-                        <h2 className="text-xl font-bold pr-8">
-                            {location.name}
-                        </h2>
-                        <div className="flex items-center gap-2 flex-wrap">
+            <div className="px-4 pb-3 border-b shrink-0">
+                {/* Title with Close Button */}
+                <div className="flex items-center justify-between gap-4">
+                    <h2 className="text-xl font-bold flex-1">
+                        {location.name}
+                    </h2>
+                    {onClose && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onClose}
+                            className="h-8 w-8 hover:bg-muted shrink-0"
+                            title="Close"
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                    )}
+                </div>
+            </div>
+
+            {/* Content - Scrollable */}
+            <div className="flex-1 overflow-y-auto">
+                <div className="px-4 pb-20">
+                    {/* Photo Gallery or Static Map */}
+                    <div className="my-4 relative">
+                        {/* Action Buttons - Overlay top-left */}
+                        <div className="absolute top-2 left-2 flex gap-1.5 z-10">
+                            {onEdit && (
+                                <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    onClick={() => onEdit(location)}
+                                    title="Edit location"
+                                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                >
+                                    <Edit className="w-3.5 h-3.5" />
+                                </Button>
+                            )}
+                            {onShare && (
+                                <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    onClick={() => onShare(location)}
+                                    title="Share location"
+                                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                >
+                                    <Share2 className="w-3.5 h-3.5" />
+                                </Button>
+                            )}
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                onClick={handleViewOnMap}
+                                title="View on Map"
+                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                            >
+                                <Map className="w-3.5 h-3.5" />
+                            </Button>
                             {location.type && (
                                 <Badge
                                     style={{
                                         backgroundColor: typeColor,
                                         color: 'white',
                                     }}
+                                    className="h-7 flex items-center"
                                 >
                                     {location.type}
                                 </Badge>
                             )}
-                            {isFavorite && (
-                                <Badge variant="secondary" className="bg-red-100 text-red-700">
-                                    <Heart className="w-3 h-3 mr-1 fill-current" />
-                                    Favorite
-                                </Badge>
-                            )}
-                            {personalRating > 0 && (
-                                <Badge variant="secondary" className="bg-amber-100 text-amber-700">
-                                    <Star className="w-3 h-3 mr-1 fill-current" />
-                                    {personalRating}/5
-                                </Badge>
+                        </div>
+
+                        {/* Delete button - Overlay top-right */}
+                        <div className="absolute top-2 right-2 flex gap-1.5 z-10">
+                            {onDelete && (
+                                <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    onClick={() => {
+                                        if (confirm('Are you sure you want to delete this location?')) {
+                                            onDelete(location.userSave?.id || location.id);
+                                        }
+                                    }}
+                                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm text-destructive hover:text-destructive"
+                                    title="Delete location"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
                             )}
                         </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 flex-wrap">
-                        <Button
-                            variant="default"
-                            size="sm"
-                            onClick={handleViewOnMap}
-                        >
-                            <Map className="w-4 h-4 mr-2" />
-                            View on Map
-                        </Button>
-                        {onEdit && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => onEdit(location)}
-                            >
-                                <Edit className="w-4 h-4 mr-2" />
-                                Edit
-                            </Button>
-                        )}
-                        {onShare && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => onShare(location)}
-                            >
-                                <Share2 className="w-4 h-4 mr-2" />
-                                Share
-                            </Button>
-                        )}
-                        {onDelete && (
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                    if (confirm('Are you sure you want to delete this location?')) {
-                                        onDelete(location.userSave?.id || location.id);
-                                    }
-                                }}
-                                className="group text-destructive hover:bg-destructive hover:text-white"
-                            >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Content - Scrollable */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="px-4 pb-4">
-                    {/* Photo Gallery or Static Map */}
-                    <div className="my-4">
                     {location.photos && location.photos.length > 0 ? (
                         <PhotoGallery photos={location.photos} />
                     ) : (
@@ -185,241 +183,231 @@ export function LocationDetailPanel({
                     )}
                 </div>
 
-                {/* Tabs */}
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="production">Production</TabsTrigger>
-                        <TabsTrigger value="metadata">Metadata</TabsTrigger>
-                    </TabsList>
-
-                    {/* Overview Tab */}
-                    <TabsContent value="overview" className="space-y-4 mt-4">
-                        {/* Address - Clickable to map */}
-                        <div className="space-y-2">
+                {/* All Content - Single Scrollable Section */}
+                <div className="space-y-4 mt-4">
+                    {/* Address & Coordinates Combined */}
+                    <div className="space-y-2">
+                        <div className="flex items-center justify-between">
                             <h3 className="font-semibold text-sm text-muted-foreground">Address</h3>
-                            <button
-                                onClick={handleViewOnMap}
-                                className="text-left w-full p-3 rounded-lg border hover:bg-accent transition-colors group"
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    navigator.clipboard.writeText(location.address || '');
+                                }}
+                                className="h-7 px-2"
                             >
-                                <div className="flex items-start gap-2">
-                                    <MapPin className="w-4 h-4 mt-0.5 text-primary group-hover:scale-110 transition-transform" />
-                                    <div className="flex-1">
-                                        <p className="font-medium group-hover:text-primary transition-colors">
-                                            {location.address}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                            Click to view on map
-                                        </p>
-                                    </div>
-                                </div>
-                            </button>
+                                <Copy className="w-3.5 h-3.5" />
+                            </Button>
                         </div>
-
-                        {/* Coordinates */}
-                        {location.lat != null && location.lng != null && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Coordinates</h3>
-                                <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-                                    <Navigation className="w-4 h-4 text-muted-foreground" />
-                                    <code className="text-sm font-mono">
-                                        {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                                    </code>
+                        <button
+                            onClick={handleViewOnMap}
+                            className="text-left w-full p-3 rounded-lg border hover:bg-accent transition-colors group"
+                        >
+                            <div className="flex items-start gap-2">
+                                <MapPin className="w-4 h-4 mt-0.5 text-primary group-hover:scale-110 transition-transform" />
+                                <div className="flex-1 space-y-2">
+                                    <p className="font-medium group-hover:text-primary transition-colors">
+                                        {location.address}
+                                    </p>
+                                    {location.lat != null && location.lng != null && (
+                                        <div className="flex items-center gap-2">
+                                            <Navigation className="w-3 h-3 text-muted-foreground" />
+                                            <code className="text-xs font-mono text-muted-foreground">
+                                                {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                                            </code>
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        Click to view on map
+                                    </p>
                                 </div>
                             </div>
-                        )}
+                        </button>
+                    </div>
+                    
+                    {/* Production Notes */}
+                    {location.productionNotes && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Production Notes</h3>
+                            <p className="text-sm p-3 bg-muted rounded-lg whitespace-pre-wrap">
+                                {location.productionNotes}
+                            </p>
+                        </div>
+                    )}
 
-                        {/* Tags */}
-                        {location.userSave?.tags && location.userSave.tags.length > 0 && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Tags</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {location.userSave.tags.map((tag, index) => (
-                                        <Badge key={index} variant="outline">
-                                            {tag}
-                                        </Badge>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Indoor/Outdoor */}
-                        {location.indoorOutdoor && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Environment</h3>
-                                <div className="flex items-center gap-2">
-                                    <Building2 className="w-4 h-4 text-muted-foreground" />
-                                    <span className="capitalize">{location.indoorOutdoor}</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Permanent/Temporary */}
-                        {location.isPermanent !== undefined && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Status</h3>
-                                <div className="flex items-center gap-2">
-                                    <Shield className="w-4 h-4 text-muted-foreground" />
-                                    <span>{location.isPermanent ? 'Permanent' : 'Temporary'}</span>
-                                </div>
-                            </div>
-                        )}
-                    </TabsContent>
-
-                    {/* Production Tab */}
-                    <TabsContent value="production" className="space-y-4 mt-4">
-                        {location.productionNotes && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Production Notes</h3>
-                                <p className="text-sm p-3 bg-muted rounded-lg whitespace-pre-wrap">
-                                    {location.productionNotes}
-                                </p>
-                            </div>
-                        )}
-
-                        {location.entryPoint && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Entry Point</h3>
-                                <p className="text-sm">{location.entryPoint}</p>
-                            </div>
-                        )}
-
-                        {location.parking && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Parking</h3>
-                                <p className="text-sm">{location.parking}</p>
-                            </div>
-                        )}
-
-                        {location.access && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Access</h3>
-                                <p className="text-sm">{location.access}</p>
-                            </div>
-                        )}
-
-                        {location.operatingHours && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Operating Hours</h3>
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm">{location.operatingHours}</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {location.contactPerson && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Contact Person</h3>
-                                <div className="flex items-center gap-2">
-                                    <User className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm">{location.contactPerson}</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {location.contactPhone && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Contact Phone</h3>
-                                <div className="flex items-center gap-2">
-                                    <Phone className="w-4 h-4 text-muted-foreground" />
-                                    <a href={`tel:${location.contactPhone}`} className="text-sm text-primary hover:underline">
-                                        {location.contactPhone}
-                                    </a>
-                                </div>
-                            </div>
-                        )}
-
-                        {location.permitRequired !== undefined && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Permit Required</h3>
-                                <div className="flex items-center gap-2">
-                                    <Key className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm">{location.permitRequired ? 'Yes' : 'No'}</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {location.permitCost !== undefined && location.permitCost !== null && location.permitCost > 0 && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Permit Cost</h3>
-                                <div className="flex items-center gap-2">
-                                    <DollarSign className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm">${location.permitCost}</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {location.restrictions && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Restrictions</h3>
-                                <div className="flex items-start gap-2">
-                                    <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5" />
-                                    <p className="text-sm">{location.restrictions}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {location.bestTimeOfDay && (
-                            <div className="space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">Best Time of Day</h3>
-                                <div className="flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-sm">{location.bestTimeOfDay}</span>
-                                </div>
-                            </div>
-                        )}
-
-                        {!location.productionNotes && !location.entryPoint && !location.parking && !location.access && (
-                            <div className="text-center py-8 text-muted-foreground">
-                                <p className="text-sm">No production details available</p>
-                            </div>
-                        )}
-                    </TabsContent>
-
-                    {/* Metadata Tab */}
-                    <TabsContent value="metadata" className="space-y-4 mt-4">
-                        <div className="space-y-4">
-                            {location.createdAt && (
-                                <div className="space-y-2">
-                                    <h3 className="font-semibold text-sm text-muted-foreground">Created</h3>
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-sm">{formatDate(location.createdAt)}</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {location.lastModifiedAt && (
-                                <div className="space-y-2">
-                                    <h3 className="font-semibold text-sm text-muted-foreground">Last Modified</h3>
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-sm">{formatDate(location.lastModifiedAt)}</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {location.userSave?.savedAt && (
-                                <div className="space-y-2">
-                                    <h3 className="font-semibold text-sm text-muted-foreground">Saved to Collection</h3>
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-sm">{formatDate(location.userSave.savedAt)}</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="pt-4 border-t space-y-2">
-                                <h3 className="font-semibold text-sm text-muted-foreground">IDs</h3>
-                                <div className="space-y-1 text-xs font-mono bg-muted p-3 rounded-lg">
-                                    <p><span className="text-muted-foreground">Location ID:</span> {location.id}</p>
-                                    <p><span className="text-muted-foreground">Place ID:</span> {location.placeId}</p>
-                                </div>
+                    {/* Tags */}
+                    {location.userSave?.tags && location.userSave.tags.length > 0 && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Tags</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {location.userSave.tags.map((tag, index) => (
+                                    <Badge key={index} variant="outline">
+                                        {tag}
+                                    </Badge>
+                                ))}
                             </div>
                         </div>
-                    </TabsContent>
-                </Tabs>
+                    )}
+
+                    {/* Indoor/Outdoor */}
+                    {location.indoorOutdoor && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Environment</h3>
+                            <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-muted-foreground" />
+                                <span className="capitalize">{location.indoorOutdoor}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    
+
+                    {/* Entry Point */}
+                    {location.entryPoint && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Entry Point</h3>
+                            <p className="text-sm">{location.entryPoint}</p>
+                        </div>
+                    )}
+
+                    {/* Parking */}
+                    {location.parking && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Parking</h3>
+                            <p className="text-sm">{location.parking}</p>
+                        </div>
+                    )}
+
+                    {/* Access */}
+                    {location.access && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Access</h3>
+                            <p className="text-sm">{location.access}</p>
+                        </div>
+                    )}
+
+                    {/* Operating Hours */}
+                    {location.operatingHours && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Operating Hours</h3>
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm">{location.operatingHours}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Contact Person */}
+                    {location.contactPerson && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Contact Person</h3>
+                            <div className="flex items-center gap-2">
+                                <User className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm">{location.contactPerson}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Contact Phone */}
+                    {location.contactPhone && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Contact Phone</h3>
+                            <div className="flex items-center gap-2">
+                                <Phone className="w-4 h-4 text-muted-foreground" />
+                                <a href={`tel:${location.contactPhone}`} className="text-sm text-primary hover:underline">
+                                    {location.contactPhone}
+                                </a>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Permit Required */}
+                    {location.permitRequired !== undefined && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Permit Required</h3>
+                            <div className="flex items-center gap-2">
+                                <Key className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm">{location.permitRequired ? 'Yes' : 'No'}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Permit Cost */}
+                    {location.permitCost !== undefined && location.permitCost !== null && location.permitCost > 0 && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Permit Cost</h3>
+                            <div className="flex items-center gap-2">
+                                <DollarSign className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm">${location.permitCost}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Restrictions */}
+                    {location.restrictions && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Restrictions</h3>
+                            <div className="flex items-start gap-2">
+                                <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5" />
+                                <p className="text-sm">{location.restrictions}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Best Time of Day */}
+                    {location.bestTimeOfDay && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Best Time of Day</h3>
+                            <div className="flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm">{location.bestTimeOfDay}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Created */}
+                    {location.createdAt && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Created</h3>
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm">{formatDate(location.createdAt)}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Last Modified */}
+                    {location.lastModifiedAt && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Last Modified</h3>
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm">{formatDate(location.lastModifiedAt)}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Saved to Collection */}
+                    {location.userSave?.savedAt && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Saved to Collection</h3>
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-muted-foreground" />
+                                <span className="text-sm">{formatDate(location.userSave.savedAt)}</span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* IDs */}
+                    <div className="pt-4 border-t space-y-2">
+                        <h3 className="font-semibold text-sm text-muted-foreground">IDs</h3>
+                        <div className="space-y-1 text-xs font-mono bg-muted p-3 rounded-lg">
+                            <p><span className="text-muted-foreground">Location ID:</span> {location.id}</p>
+                            <p><span className="text-muted-foreground">Place ID:</span> {location.placeId}</p>
+                        </div>
+                    </div>
+                </div>
                 </div>
             </div>
         </div>

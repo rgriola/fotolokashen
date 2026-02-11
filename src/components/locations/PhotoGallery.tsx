@@ -16,6 +16,7 @@ interface PhotoGalleryProps {
 export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showMetadata, setShowMetadata] = useState(false);
+    const [showCaption, setShowCaption] = useState(true);
     const [showLightbox, setShowLightbox] = useState(false);
 
     if (!photos || photos.length === 0) {
@@ -84,37 +85,29 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                             </div>
                         </div>
 
-                        {/* Primary Star Badge - Top Right */}
-                        {currentPhoto.isPrimary && (
-                            <div className="absolute top-2 right-2 bg-amber-500 text-white px-2 py-1 rounded-md flex items-center gap-1 text-xs font-medium z-10">
-                                <Star className="w-3 h-3 fill-white" />
-                                Primary
-                            </div>
-                        )}
-
-                        {/* Info Toggle Button - Top Left */}
+                        {/* Info Toggle Button - Bottom Right */}
                         <Button
                             type="button"
                             variant="ghost"
                             size="icon"
                             className={cn(
-                                "absolute top-2 left-2 w-7 h-7 backdrop-blur-sm transition-all z-10",
-                                showMetadata
+                                "absolute bottom-2 right-2 w-7 h-7 backdrop-blur-sm transition-all z-10",
+                                !showCaption
                                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
                                     : "bg-black/40 hover:bg-black/60 text-white"
                             )}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                setShowMetadata(!showMetadata);
+                                setShowCaption(!showCaption);
                             }}
-                            title={showMetadata ? "Hide photo info" : "Show photo info"}
+                            title={showCaption ? "Show photo info" : "Show caption"}
                         >
                             <Info className="w-4 h-4" />
                         </Button>
 
-                        {/* Metadata Panel - Top Left (shown when toggled) */}
-                        {showMetadata && (
-                            <div className="absolute top-11 left-2 bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-md text-xs space-y-1 max-w-xs z-10">
+                        {/* Metadata Panel - Bottom Right (shown when caption is hidden) */}
+                        {!showCaption && (
+                            <div className="absolute bottom-11 right-2 bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-md text-xs space-y-1 max-w-xs z-10">
                                 {/* File Info */}
                                 <p className="truncate">
                                     <span className="font-semibold">📄 File:</span> {currentPhoto.originalFilename}
@@ -193,16 +186,11 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                                 >
                                     <ChevronRight className="w-5 h-5" />
                                 </Button>
-
-                                {/* Photo Counter */}
-                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-medium">
-                                    {currentIndex + 1} / {photos.length}
-                                </div>
                             </>
                         )}
 
                         {/* Caption - Bottom Left Corner */}
-                        {currentPhoto.caption && (
+                        {currentPhoto.caption && showCaption && (
                             <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-md text-sm italic max-w-[60%] z-10">
                                 "{currentPhoto.caption}"
                             </div>

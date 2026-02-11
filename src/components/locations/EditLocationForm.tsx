@@ -214,6 +214,23 @@ export function EditLocationForm({
             changedFields.push(`${photosToDelete.length} photo(s) marked for deletion`);
         }
 
+        // Check if photo captions or primary status changed
+        const originalPhotos = (location.photos || []).map((photo: any) => ({
+            id: photo.id,
+            caption: photo.caption,
+            isPrimary: photo.isPrimary
+        }));
+        const currentPhotos = photos.map(photo => ({
+            id: photo.id,
+            caption: photo.caption,
+            isPrimary: photo.isPrimary
+        }));
+        
+        const photosChanged = JSON.stringify(originalPhotos) !== JSON.stringify(currentPhotos);
+        if (photosChanged) {
+            changedFields.push('Photo details updated');
+        }
+
         setChanges(changedFields);
         setHasChanges(changedFields.length > 0);
     }, [
@@ -230,7 +247,8 @@ export function EditLocationForm({
         watchedIndoorOutdoor,
         tags,
         userSave.tags,
-        photosToDelete.length
+        photosToDelete.length,
+        JSON.stringify(photos.map(p => ({ id: p.id, caption: p.caption, isPrimary: p.isPrimary })))
     ]);
 
     const handleDiscard = () => {
