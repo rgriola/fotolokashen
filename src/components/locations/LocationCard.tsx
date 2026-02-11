@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
     MapPin, Star, Edit, Trash2, Share2, Calendar, Camera,
     Clock, DollarSign, Phone, User, AlertCircle, Key,
-    Navigation, MapPinned, Shield, Heart
+    Navigation, MapPinned, Shield, Heart, Globe, Lock, Users
 } from "lucide-react";
 import type { Location } from "@/types/location";
 import { useState, memo } from "react";
@@ -54,6 +54,21 @@ export const LocationCard = memo(function LocationCard({
             .replace(/, US$/, '')
             .replace(/, United States of America$/, '')
             .trim();
+    };
+
+    // Helper function to get visibility icon
+    const getVisibilityIcon = () => {
+        const visibility = userSave?.visibility || 'public';
+        switch (visibility) {
+            case 'public':
+                return <Globe className="w-3 h-3 ml-1.5" />;
+            case 'private':
+                return <Lock className="w-3 h-3 ml-1.5" />;
+            case 'followers':
+                return <Users className="w-3 h-3 ml-1.5" />;
+            default:
+                return <Globe className="w-3 h-3 ml-1.5" />;
+        }
     };
 
     // Get the first photo from photos array or photoUrls
@@ -159,14 +174,15 @@ export const LocationCard = memo(function LocationCard({
                 <div className="absolute top-2 right-2 flex items-start justify-end gap-2">
                     {location.type && (
                         <Badge
-                            className="shadow-lg font-semibold"
+                            className="shadow-lg font-semibold flex items-center gap-1"
                             style={{
                                 backgroundColor: typeColor,
                                 color: 'white',
                                 borderColor: typeColor,
                             }}
                         >
-                            {location.type}
+                            <span>{location.type}</span>
+                            {getVisibilityIcon()}
                         </Badge>
                     )}
                     {userSave?.isFavorite && (

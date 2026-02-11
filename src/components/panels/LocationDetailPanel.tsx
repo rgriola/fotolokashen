@@ -20,6 +20,9 @@ import {
     Key,
     X,
     Copy,
+    Globe,
+    Lock,
+    Users,
 } from "lucide-react";
 import { PhotoGallery } from "../locations/PhotoGallery";
 import type { Location } from "@/types/location";
@@ -44,6 +47,20 @@ export function LocationDetailPanel({
     const router = useRouter();
 
     const typeColor = location.userSave?.color || "#64748B";
+
+    const getVisibilityIcon = () => {
+        const visibility = location.userSave?.visibility || 'public';
+        switch (visibility) {
+            case 'public':
+                return <Globe className="w-3 h-3 ml-1.5" />;
+            case 'private':
+                return <Lock className="w-3 h-3 ml-1.5" />;
+            case 'followers':
+                return <Users className="w-3 h-3 ml-1.5" />;
+            default:
+                return <Globe className="w-3 h-3 ml-1.5" />;
+        }
+    };
 
     const formatDate = (dateString: string | Date) => {
         try {
@@ -137,9 +154,10 @@ export function LocationDetailPanel({
                                         backgroundColor: typeColor,
                                         color: 'white',
                                     }}
-                                    className="h-7 flex items-center"
+                                    className="h-7 flex items-center gap-1"
                                 >
-                                    {location.type}
+                                    <span>{location.type}</span>
+                                    {getVisibilityIcon()}
                                 </Badge>
                             )}
                         </div>
