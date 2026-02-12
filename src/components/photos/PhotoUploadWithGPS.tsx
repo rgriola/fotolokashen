@@ -1,17 +1,22 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Upload, Camera, MapPin, Calendar, X, AlertCircle, CheckCircle, Info } from "lucide-react";
+import { Upload, Camera, MapPin, Calendar, X, AlertCircle, Info, FileText, Search } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { extractPhotoGPS, reverseGeocodeGPS, formatGPSCoordinates } from "@/lib/photo-utils";
 import type { PhotoMetadata } from "@/lib/photo-utils";
-import { isChrome, isSafari, isChromeMobile, supportsGeolocationFallback } from "@/lib/browser-utils";
+import { isChrome, isChromeMobile, supportsGeolocationFallback } from "@/lib/browser-utils";
+import { convertToJpeg, needsConversion } from "@/lib/image-converter";
 import Image from "next/image";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import { PlacesAutocomplete } from "@/components/maps/PlacesAutocomplete";
+import type { LocationData } from "@/lib/maps-utils";
 
 interface PhotoUploadWithGPSProps {
     onPhotoProcessed: (photoData: {
         file: File;
+        originalFilename: string;
         preview: string;
         gpsData: PhotoMetadata;
         addressData?: {
@@ -28,26 +33,77 @@ interface PhotoUploadWithGPSProps {
     onCancel?: () => void;
 }
 
-export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWithGPSProps) {
+export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: PhotoUploadWithGPSProps) {
     const [file, setFile] = useState<File | null>(null);
+    const [originalFilename, setOriginalFilename] = useState<string>('');
     const [preview, setPreview] = useState<string | null>(null);
+    const [previewError, setPreviewError] = useState(false);
+    const [isConverting, setIsConverting] = useState(false);
+    const [showMetadata, setShowMetadata] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+    const [_isRequestingLocation, setIsRequestingLocation] = useState(false);
     const [gpsData, setGpsData] = useState<PhotoMetadata | null>(null);
-    const [gpsSource, setGpsSource] = useState<'exif' | 'device' | null>(null);
-    const [addressData, setAddressData] = useState<any>(null);
+    const [_gpsSource, setGpsSource] = useState<'exif' | 'device' | null>(null);
+    const [manualLocation, setManualLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [isManualLocationMode, setIsManualLocationMode] = useState(false);
+    const [addressData, setAddressData] = useState<{
+        address: string;
+        name: string;
+        street?: string;
+        number?: string;
+        city?: string;
+        state?: string;
+        zipcode?: string;
+        placeId?: string;
+    } | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [showChromeHint, setShowChromeHint] = useState(false);
-    const [isChromeMobileBrowser, setIsChromeMobileBrowser] = useState(false);
+    const [_showChromeHint, setShowChromeHint] = useState(false);
     const [browserSupportsGeo, setBrowserSupportsGeo] = useState(true);
+
+    // Load Google Maps
+    const { isLoaded: isMapsLoaded } = useJsApiLoader({
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+        libraries: ["places", "maps"] as const,
+    });
 
     // Detect browser on mount
     useEffect(() => {
-        const chromeMobile = isChromeMobile();
-        setIsChromeMobileBrowser(chromeMobile);
         setBrowserSupportsGeo(supportsGeolocationFallback());
-        setShowChromeHint(isChrome() && !chromeMobile); // Desktop Chrome only
+        setShowChromeHint(isChrome() && !isChromeMobile()); // Desktop Chrome only
     }, []);
+
+    // Get user's current location for map centering
+    useEffect(() => {
+        if (isMapsLoaded && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                },
+                (error) => {
+                    console.log('📍 Could not get user location for map:', error.message);
+                    // Fallback to San Francisco will be used
+                },
+                {
+                    enableHighAccuracy: false,
+                    timeout: 5000,
+                    maximumAge: 300000, // 5 minutes cache
+                }
+            );
+        }
+    }, [isMapsLoaded]);
+
+    // Cleanup object URL on unmount to prevent memory leaks
+    useEffect(() => {
+        return () => {
+            if (preview) {
+                URL.revokeObjectURL(preview);
+            }
+        };
+    }, [preview]);
 
     /**
      * Request device location via Geolocation API
@@ -107,22 +163,98 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
             return;
         }
 
-        setFile(selectedFile);
+        // Validate minimum file size (detect corrupted/fake files)
+        const MIN_FILE_SIZE = 1024; // 1KB - real photos are much larger
+        if (selectedFile.size < MIN_FILE_SIZE) {
+            alert(`❌ Invalid Photo File\n\nThis file is only ${selectedFile.size} bytes.\n\nReal photos are typically at least 100KB (most are 1-10MB).\n\nThis might be:\n• A corrupted file\n• A text file renamed as .jpg\n• An incomplete download\n\nPlease select a real photo from your camera.`);
+            return;
+        }
+
         setError(null);
         setGpsSource(null);
+        setOriginalFilename(selectedFile.name); // Preserve original filename
 
-        // Create preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPreview(reader.result as string);
-        };
-        reader.readAsDataURL(selectedFile);
-
-        // Extract GPS data
+        // IMPORTANT: Extract GPS from ORIGINAL file BEFORE conversion
+        // Converting to JPEG can strip EXIF metadata, so we must extract first
+        console.log('📸 Step 1: Extracting metadata from ORIGINAL file...');
         setIsProcessing(true);
+        
+        let metadata: PhotoMetadata;
         try {
-            const metadata = await extractPhotoGPS(selectedFile);
+            metadata = await extractPhotoGPS(selectedFile);
+            console.log('✅ Metadata extracted from original file');
+        } catch (metadataError) {
+            console.error('❌ Metadata extraction failed:', metadataError);
+            setIsProcessing(false);
+            
+            const errorMsg = metadataError instanceof Error
+                ? metadataError.message
+                : 'Failed to read image metadata';
+            
+            alert(`❌ Unable to Read Photo Metadata\n\n${errorMsg}\n\nThis photo may be:\n• Corrupted or incomplete\n• Not a valid image format\n• Missing required metadata\n\nPlease try:\n1. A different photo\n2. Taking a new photo with your camera`);
+            
+            return;
+        }
 
+        // Convert HEIC/TIFF to JPEG in browser (AFTER extracting metadata)
+        console.log('📸 Step 2: Converting image format if needed...');
+        let fileToProcess = selectedFile;
+        
+        if (needsConversion(selectedFile)) {
+            try {
+                setIsConverting(true);
+                console.log('🔄 Converting image to JPEG in browser...');
+                
+                fileToProcess = await convertToJpeg(selectedFile);
+                
+                console.log('✅ Conversion complete:', fileToProcess.name);
+            } catch (conversionError) {
+                console.error('❌ Conversion failed:', conversionError);
+                setIsConverting(false);
+                setIsProcessing(false);
+                
+                const errorMsg = conversionError instanceof Error
+                    ? conversionError.message
+                    : 'Unknown conversion error';
+                
+                alert(`❌ Image Conversion Failed\n\n${errorMsg}\n\nPlease try:\n1. A different photo\n2. Converting the file to JPEG using another app\n3. Using a different browser (Safari works best for HEIC)`);
+                
+                return;
+            } finally {
+                setIsConverting(false);
+            }
+        }
+
+        console.log('📸 Step 3: Setting up preview...');
+        setFile(fileToProcess);
+
+        // Create preview URL using object URL (more efficient than base64)
+        const objectUrl = URL.createObjectURL(fileToProcess);
+        setPreview(objectUrl);
+        setPreviewError(false); // Reset error state
+
+        // Validate image can load
+        const img = new window.Image();
+        img.onload = () => {
+            console.log('✅ Image preview loaded successfully');
+        };
+        img.onerror = () => {
+            console.log('⚠️ Image preview failed to load');
+            setPreviewError(true);
+            alert(`❌ Unable to Display Image\n\nThis file cannot be loaded as an image.\n\nPossible causes:\n• File is corrupted or incomplete\n• Wrong file type (text file with .jpg extension)\n• Unsupported image format\n\nPlease try:\n1. A different photo\n2. Taking a new photo with your camera\n3. Re-downloading the image if it came from elsewhere`);
+            
+            // Reset
+            URL.revokeObjectURL(objectUrl);
+            setFile(null);
+            setPreview(null);
+            setPreviewError(false);
+            setIsProcessing(false);
+        };
+        img.src = objectUrl;
+
+        // Process GPS data (already extracted from original file)
+        console.log('📸 Step 4: Processing GPS data...');
+        try {
             // If GPS found, use it
             if (metadata.hasGPS && metadata.lat && metadata.lng) {
                 console.log('✅ Using GPS from photo EXIF');
@@ -157,20 +289,33 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                     } else {
                         // Device location failed
                         setGpsData(metadata); // hasGPS: false
+                        setIsManualLocationMode(true);
                     }
                 } else {
                     // Chrome: Skip geolocation, just set no GPS
                     console.log('ℹ️ [Chrome] Geolocation fallback skipped (not supported)');
                     setGpsData(metadata); // hasGPS: false
+                    setIsManualLocationMode(true);
                 }
             }
         } catch (err) {
-            console.error('Error processing photo:', err);
-            setError('Failed to process photo. Please try again.');
+            console.error('Error processing GPS data:', err);
+            
+            // Show user-friendly error message
+            const errorMessage = err instanceof Error 
+                ? err.message 
+                : 'Failed to process GPS data';
+            
+            // Show alert and reset
+            alert(`❌ Unable to Process GPS Data\n\n${errorMessage}\n\nPlease try another photo.`);
+            
+            // Reset to allow user to try again
+            handleReset();
         } finally {
             setIsProcessing(false);
             setIsRequestingLocation(false);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [browserSupportsGeo, requestDeviceLocation]);
 
     const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -193,72 +338,109 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
     }, [handleFileSelect]);
 
     const handleReset = () => {
+        // Revoke object URL to prevent memory leaks
+        if (preview) {
+            URL.revokeObjectURL(preview);
+        }
         setFile(null);
+        setOriginalFilename('');
         setPreview(null);
+        setPreviewError(false);
+        setIsConverting(false);
+        setShowMetadata(false);
         setGpsData(null);
         setGpsSource(null);
+        setManualLocation(null);
+        setIsManualLocationMode(false);
         setAddressData(null);
-        setError(null);
+        setError(null); // Clear any error messages
+        // Keep userLocation - it's for map centering, not photo-specific
+        setIsProcessing(false);
         setIsRequestingLocation(false);
     };
+
+    const handlePlaceSelected = useCallback(async (place: LocationData) => {
+        const coordinates = { lat: place.latitude, lng: place.longitude };
+        setManualLocation(coordinates);
+        
+        // Update GPS data
+        setGpsData({
+            ...gpsData!,
+            hasGPS: true,
+            lat: place.latitude,
+            lng: place.longitude,
+        });
+        
+        // Update address data
+        setAddressData({
+            address: place.address || place.name,
+            name: place.name,
+            street: place.street,
+            number: place.number,
+            city: place.city,
+            state: place.state,
+            zipcode: place.zipcode,
+            placeId: place.placeId,
+        });
+        
+        setGpsSource('device');
+    }, [gpsData]);
+
+    const handleMapClick = useCallback(async (e: google.maps.MapMouseEvent) => {
+        if (e.latLng) {
+            const lat = e.latLng.lat();
+            const lng = e.latLng.lng();
+            
+            setManualLocation({ lat, lng });
+            
+            // Reverse geocode to get address
+            const address = await reverseGeocodeGPS(lat, lng);
+            
+            setGpsData({
+                ...gpsData!,
+                hasGPS: true,
+                lat,
+                lng,
+            });
+            
+            setAddressData(address);
+            setGpsSource('device');
+        }
+    }, [gpsData]);
 
     const handleCreateLocation = () => {
         if (file && gpsData) {
             onPhotoProcessed({
                 file,
+                originalFilename,
                 preview: preview!,
                 gpsData,
-                addressData,
+                addressData: addressData ?? undefined,
             });
         }
     };
 
     return (
         <div className="max-w-3xl mx-auto space-y-6">
-            {/* Chrome Mobile Block Message */}
-            {isChromeMobileBrowser && (
-                <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:border-orange-950/50">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-orange-700 dark:text-orange-400">
-                            <AlertCircle className="w-5 h-5" />
-                            Chrome Mobile Not Supported.
-                        </CardTitle>
-                        <CardDescription className="text-orange-600 dark:text-orange-500">
-                            On Mobile Use:<strong>Safari or Firefox</strong><br />
-                            Or download the app.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <p className="text-sm text-muted-foreground">
-                            Unfortunately, Chrome on mobile devices doesn't reliably support GPS
-                            extraction from photos. This feature works best on:
-                        </p>
-                        <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground ml-4">
-                            <li><strong>Safari</strong> - Full camera photo GPS support ✅</li>
-                            <li><strong>Firefox</strong> - Full camera photo GPS support ✅</li>
-                        </ul>
-                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-                            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-1">
-                                💡 How to switch browsers:
-                            </p>
-                            <p className="text-xs text-blue-700 dark:text-blue-300">
-                                Open this page in Safari or Firefox to use the photo upload feature.
-                                You can copy this URL and paste it in Safari's address bar.
-                            </p>
-                        </div>
-                        {onCancel && (
-                            <div className="flex gap-3 mt-4">
-                                <Button variant="outline" onClick={onCancel} className="flex-1">
-                                    ← Back to Map
-                                </Button>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+            {/* Error Alert - Show at top */}
+            {error && (
+                <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                        <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">Upload Error</p>
+                        <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                    </div>
+                    <button
+                        onClick={() => setError(null)}
+                        className="text-red-400 hover:text-red-600 transition-colors"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
             )}
 
-            {/* Upload Area - Only show if not Chrome mobile */}
-            {!file && !isChromeMobileBrowser && (
+            {/* Upload Area */}
+            {!file && (
                 <Card>
                     <CardHeader>
                         <div className="flex items-start justify-between gap-4">
@@ -273,21 +455,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                                 </CardDescription>
                             </div>
                             
-                            {/* Right: Chrome Browser Hint (Desktop only) */}
-                            {showChromeHint && (
-                                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-2 max-w-xs">
-                                    <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                                    <div className="flex-1 text-sm">
-                                        <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                                            💡 Snap & Save Tip
-                                        </p>
-                                        <p className="text-blue-700 dark:text-blue-300">
-                                            On Mobile Use: <strong>Safari or Firefox</strong><br />
-                                            Or download the app.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
+                            
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -309,20 +477,11 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                                     Drag & Drop or Click to Choose.
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    JPG or HEIC • Max: 10MB <br />
-                                    All Images Are Compressed to 2MB. 
+                                    JPEG, HEIC, or TIFF • Max: 10MB <br />
+                                    HEIC & TIFF converted to JPEG in browser • Compressed to 2MB on server
                                 </p>
                             </label>
                         </div>
-
-                        
-
-                        {error && (
-                            <div className="mt-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
-                                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-                            </div>
-                        )}
                     </CardContent>
                 </Card>
             )}
@@ -330,33 +489,93 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
             {/* Processing/Preview */}
             {file && (
                 <div className="space-y-4">
-                    {/* Photo Preview */}
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900">
-                                {preview && (
-                                    <Image
-                                        src={preview}
-                                        alt="Photo preview"
-                                        fill
-                                        className="object-contain"
-                                    />
-                                )}
-                                <button
-                                    onClick={handleReset}
-                                    className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
-                                >
-                                    <X className="w-4 h-4 text-white" />
-                                </button>
-                            </div>
-                            <p className="mt-3 text-sm text-muted-foreground text-center">
-                                {file.name} • {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                        </CardContent>
-                    </Card>
+                    {/* GPS Status Section - Show at top */}
+                    
+                    {/* Converting Status */}
+                    {isConverting && (
+                        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/50">
+                            <CardContent className="pt-6">
+                                <div className="text-center">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                                        Converting to JPEG...
+                                    </p>
+                                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                                        {file?.name}
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
-                    {/* GPS Data Status */}
-                    {isProcessing && (
+                    {/* No GPS - Manual Location Selection */}
+                    {!isConverting && !isProcessing && gpsData && isManualLocationMode && isMapsLoaded && (
+                        <Card className="border-blue-200 dark:border-blue-800">
+                            <CardHeader>
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex-1">
+                                        <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                                            <MapPin className="w-5 h-5" />
+                                            Select Location
+                                        </CardTitle>
+                                        <CardDescription className="text-blue-600 dark:text-blue-500">
+                                            Search for a place, then click the map to fine-tune the exact spot
+                                        </CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {/* Address Search */}
+                                <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border rounded-lg p-2">
+                                    <Search className="w-4 h-4 text-muted-foreground ml-1" />
+                                    <PlacesAutocomplete
+                                        onPlaceSelected={handlePlaceSelected}
+                                        placeholder="Search for an address or place..."
+                                    />
+                                </div>
+
+                                {/* Map */}
+                                <div className="relative h-96 rounded-lg overflow-hidden border">
+                                    <GoogleMap
+                                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                                        center={manualLocation || userLocation || { lat: 37.7749, lng: -122.4194 }}
+                                        zoom={manualLocation ? 15 : 11}
+                                        onClick={handleMapClick}
+                                        options={{
+                                            streetViewControl: false,
+                                            mapTypeControl: false,
+                                            fullscreenControl: true,
+                                        }}
+                                    >
+                                        {manualLocation && (
+                                            <Marker
+                                                position={manualLocation}
+                                                animation={google.maps.Animation.DROP}
+                                            />
+                                        )}
+                                    </GoogleMap>
+                                </div>
+
+                                {/* Selected Location Info */}
+                                {manualLocation && addressData && (
+                                    <div className="p-3 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-200 dark:border-green-800">
+                                        <p className="text-sm font-semibold text-green-900 dark:text-green-100 mb-1">
+                                            ✓ Location Selected
+                                        </p>
+                                        <p className="text-xs text-green-700 dark:text-green-300">
+                                            {addressData.address}
+                                        </p>
+                                        <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-mono">
+                                            {manualLocation.lat.toFixed(6)}, {manualLocation.lng.toFixed(6)}
+                                        </p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Processing */}
+                    {!isConverting && isProcessing && (
                         <Card>
                             <CardContent className="pt-6">
                                 <div className="text-center">
@@ -369,39 +588,32 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                         </Card>
                     )}
 
-                    {!isProcessing && gpsData && (
-                        <>
-                            {gpsData.hasGPS ? (
-                                <Card className="border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/50">
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2 text-green-700 dark:text-green-400">
-                                            <CheckCircle className="w-5 h-5" />
-                                            GPS Data Found!
-                                        </CardTitle>
-                                        <CardDescription className="text-green-600 dark:text-green-500">
-                                            GPS coordinates used
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {/* GPS Coordinates */}
-                                        <div className="flex items-start gap-3">
-                                            <MapPin className="w-5 h-5 text-green-600 mt-0.5" />
-                                            <div className="flex-1">
-                                                <p className="text-sm font-medium">GPS Coordinates</p>
-                                                <p className="text-sm text-muted-foreground font-mono">
-                                                    {formatGPSCoordinates(gpsData.lat, gpsData.lng)}
-                                                </p>
-                                                {addressData && (
-                                                    <p className="text-sm text-muted-foreground mt-1">
-                                                        {addressData.address}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
+                    {/* GPS Data Found */}
+                    {!isConverting && !isProcessing && gpsData && gpsData.hasGPS && (
+                        <Card className="border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/50">
+                            <CardContent className="pt-6 space-y-4">
+                                {/* GPS Coordinates */}
+                                <div className="flex items-start gap-3">
+                                    <MapPin className="w-5 h-5 text-green-600 mt-0.5" />
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium">GPS Coordinates</p>
+                                        <p className="text-sm text-muted-foreground font-mono">
+                                            {formatGPSCoordinates(gpsData.lat, gpsData.lng)}
+                                        </p>
+                                        {addressData && (
+                                            <p className="text-sm text-muted-foreground mt-1">
+                                                {addressData.address}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
 
+                                {/* Date Taken & Camera Info (combined row) */}
+                                {(gpsData.dateTaken || gpsData.camera?.make) && (
+                                    <div className="flex items-start gap-6">
                                         {/* Date Taken */}
                                         {gpsData.dateTaken && (
-                                            <div className="flex items-start gap-3">
+                                            <div className="flex items-start gap-3 flex-1">
                                                 <Calendar className="w-5 h-5 text-green-600 mt-0.5" />
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium">Photo Taken</p>
@@ -414,7 +626,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
 
                                         {/* Camera Info */}
                                         {gpsData.camera?.make && (
-                                            <div className="flex items-start gap-3">
+                                            <div className="flex items-start gap-3 flex-1">
                                                 <Camera className="w-5 h-5 text-green-600 mt-0.5" />
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium">Camera</p>
@@ -429,47 +641,151 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                                                 </div>
                                             </div>
                                         )}
-                                    </CardContent>
-                                </Card>
-                            ) : (
-                                <Card className="border-yellow-200 dark:border-yellow-800 bg-yellow-50/50 dark:bg-yellow-950/50">
-                                    <CardHeader>
-                                        <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
-                                            <AlertCircle className="w-5 h-5" />
-                                            No GPS Data Found
-                                        </CardTitle>
-                                        <CardDescription className="text-yellow-600 dark:text-yellow-500">
-                                            No GPS coordinates
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent>
-                                        <p className="text-sm text-muted-foreground">
-                                            Select the location manually on the map
-                                        </p>
-                                    </CardContent>
-                                </Card>
-                            )}
-                        </>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     )}
+
+                    {/* Photo Preview */}
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900">
+                                {preview && !previewError ? (
+                                    <Image
+                                        src={preview}
+                                        alt="Photo preview"
+                                        fill
+                                        className="object-contain"
+                                        onError={() => {
+                                            console.log('⚠️ Browser cannot display this image format natively');
+                                            setPreviewError(true);
+                                        }}
+                                    />
+                                ) : (
+                                    // Fallback for images browsers cannot display natively
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+                                        <div className="relative w-32 h-32 mb-4">
+                                            {/* Generic file icon representation */}
+                                            <div className="w-full h-full rounded-lg border-4 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                                                <Camera className="w-16 h-16 text-muted-foreground" />
+                                            </div>
+                                        </div>
+                                        <p className="text-sm font-medium text-muted-foreground mb-1">
+                                            {file?.name}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mb-2">
+                                            Image could not be displayed
+                                        </p>
+                                        <p className="text-xs text-green-600 dark:text-green-400">
+                                            ✓ File received successfully
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Filename - Top Left */}
+                                <div className="absolute top-2 left-2 bg-black/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-md text-xs max-w-[60%] z-10">
+                                    <div className="flex items-center gap-1.5 truncate">
+                                        <FileText className="w-3.5 h-3.5 shrink-0" />
+                                        <span className="truncate">{originalFilename}</span>
+                                    </div>
+                                </div>
+
+                                {/* Info Button - Bottom Right */}
+                                {gpsData && (
+                                    <button
+                                        onClick={() => setShowMetadata(!showMetadata)}
+                                        className="absolute bottom-2 right-2 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors z-10"
+                                        title="Toggle photo metadata"
+                                    >
+                                        <Info className="w-4 h-4 text-white" />
+                                    </button>
+                                )}
+
+                                {/* Metadata Panel - Bottom Right (above info button) */}
+                                {showMetadata && gpsData && (
+                                    <div className="absolute bottom-14 right-2 bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-md text-xs space-y-1 max-w-xs z-10">
+                                        {/* GPS Data */}
+                                        {gpsData.hasGPS && (
+                                            <>
+                                                <p>
+                                                    <span className="font-semibold">📍 GPS:</span> {gpsData.lat?.toFixed(6)}, {gpsData.lng?.toFixed(6)}
+                                                </p>
+                                                {gpsData.altitude && (
+                                                    <p>
+                                                        <span className="font-semibold">⛰️ Altitude:</span> {gpsData.altitude.toFixed(2)}m
+                                                    </p>
+                                                )}
+                                            </>
+                                        )}
+
+                                        {/* Image Dimensions */}
+                                        {gpsData.width && gpsData.height && (
+                                            <p>
+                                                <span className="font-semibold">📐 Size:</span> {gpsData.width} × {gpsData.height}
+                                            </p>
+                                        )}
+
+                                        {/* Camera */}
+                                        {gpsData.camera && (gpsData.camera.make || gpsData.camera.model) && (
+                                            <p className="truncate">
+                                                <span className="font-semibold">📷</span> {gpsData.camera.make} {gpsData.camera.model}
+                                            </p>
+                                        )}
+
+                                        {/* Date Taken */}
+                                        {gpsData.dateTaken && (
+                                            <p>
+                                                <span className="font-semibold">📅</span> {new Date(gpsData.dateTaken).toLocaleDateString()} {new Date(gpsData.dateTaken).toLocaleTimeString()}
+                                            </p>
+                                        )}
+
+                                        {/* Camera Settings */}
+                                        {(gpsData.iso || gpsData.focalLength || gpsData.aperture || gpsData.exposureTime) && (
+                                            <p>
+                                                <span className="font-semibold">⚙️ Settings:</span>{" "}
+                                                {[
+                                                    gpsData.iso && `ISO ${gpsData.iso}`,
+                                                    gpsData.focalLength,
+                                                    gpsData.aperture,
+                                                    gpsData.exposureTime
+                                                ].filter(Boolean).join(" · ")}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Close Button */}
+                                <button
+                                    onClick={handleReset}
+                                    className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+                                >
+                                    <X className="w-4 h-4 text-white" />
+                                </button>
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Actions */}
                     {!isProcessing && gpsData && (
-                        <div className="flex gap-3">
+                        <div className="flex justify-center">
                             {gpsData.hasGPS ? (
-                                <Button size="lg" onClick={handleCreateLocation} className="flex-1">
+                                <Button 
+                                    onClick={handleCreateLocation} 
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                >
                                     <MapPin className="w-4 h-4 mr-2" />
-                                    Snap & Save
+                                    Submit
                                 </Button>
                             ) : (
-                                <Button size="lg" variant="outline" onClick={handleCreateLocation} className="flex-1">
+                                <Button 
+                                    onClick={handleCreateLocation} 
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                >
                                     <Camera className="w-4 h-4 mr-2" />
                                     Photo (Manual Location)
                                 </Button>
                             )}
-                            <Button size="lg" variant="outline" onClick={handleReset}>
-                                <X className="w-4 h-4 mr-2" />
-                                Cancel
-                            </Button>
                         </div>
                     )}
                 </div>

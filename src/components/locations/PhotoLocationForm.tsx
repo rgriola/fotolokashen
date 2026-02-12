@@ -46,6 +46,7 @@ export function PhotoLocationForm({
     // Load Google Maps API
     const { isLoaded } = useJsApiLoader({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+        libraries: ["places", "maps"] as const,
     });
 
     const handleSubmit = useCallback(async (data: LocationFormData): Promise<void> => {
@@ -57,69 +58,79 @@ export function PhotoLocationForm({
         setIsSaving(true);
 
         try {
-            // Step 1: Upload photo to ImageKit
-            const authResponse = await fetch('/api/imagekit/auth');
-            if (!authResponse.ok) {
-                throw new Error(ERROR_MESSAGES.IMAGEKIT.AUTH_FAILED);
-            }
-            const authData: ImageKitAuthData = await authResponse.json();
+            // Step 1: Upload photo to secure endpoint (VIRUS SCAN + FORMAT VALIDATION)
+            console.log('[PhotoLocationForm] Uploading photo via secure endpoint...');
+            
+            const uploadFormData = new FormData();
+            uploadFormData.append('photo', photoFile);
+            uploadFormData.append('uploadType', 'location');
+            
+            // Include GPS/EXIF metadata for server-side sanitization
+            const metadata = {
+                hasGPS: photoMetadata.hasGPS,
+                lat: photoMetadata.lat,
+                lng: photoMetadata.lng,
+                altitude: photoMetadata.altitude,
+                dateTaken: photoMetadata.dateTaken,
+                camera: photoMetadata.camera,
+                lens: photoMetadata.lens,
+                iso: photoMetadata.iso,
+                focalLength: photoMetadata.focalLength,
+                aperture: photoMetadata.aperture,
+                exposureTime: photoMetadata.exposureTime,
+                exposureMode: photoMetadata.exposureMode,
+                whiteBalance: photoMetadata.whiteBalance,
+                flash: photoMetadata.flash,
+                orientation: photoMetadata.orientation,
+                colorSpace: photoMetadata.colorSpace,
+            };
+            uploadFormData.append('metadata', JSON.stringify(metadata));
 
-            // Upload to ImageKit using flat user directory structure
-            const formData = new FormData();
-            formData.append('file', photoFile);
-            formData.append('fileName', photoFile.name.replace(/\s+/g, '-'));
-            const uploadFolder = FOLDER_PATHS.userPhotos(user.id);
-            console.log('[PhotoLocationForm] Uploading photo to folder:', uploadFolder);
-            formData.append('folder', uploadFolder);
-            formData.append('publicKey', authData.publicKey);
-            formData.append('signature', authData.signature);
-            formData.append('expire', authData.expire.toString());
-            formData.append('token', authData.token);
-
-            const uploadResponse = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+            const uploadResponse = await fetch('/api/photos/upload', {
                 method: 'POST',
-                body: formData,
+                credentials: 'include',
+                body: uploadFormData,
             });
 
             if (!uploadResponse.ok) {
-                const error = await uploadResponse.text();
-                console.error('ImageKit upload failed:', error);
-                throw new Error(ERROR_MESSAGES.IMAGEKIT.UPLOAD_FAILED);
+                const error = await uploadResponse.json();
+                console.error('Secure upload failed:', error);
+                throw new Error(error.error || ERROR_MESSAGES.IMAGEKIT.UPLOAD_FAILED);
             }
 
-            const uploadResult: ImageKitUploadResponse = await uploadResponse.json();
-            console.log('[PhotoLocationForm] Photo uploaded successfully! Path:', uploadResult.filePath);
+            const secureUploadResult = await uploadResponse.json();
+            console.log('[PhotoLocationForm] Photo uploaded securely! Path:', secureUploadResult.upload.filePath);
 
-            // Step 2: Prepare photo data with GPS/EXIF metadata
+            // Step 2: Prepare photo data from secure upload result
             const photoData: PhotoUploadData = {
-                fileId: uploadResult.fileId,
-                filePath: uploadResult.filePath,
-                name: photoFile.name,
-                size: photoFile.size,
-                type: photoFile.type,
-                width: uploadResult.width,
-                height: uploadResult.height,
-                url: uploadResult.url,
-                thumbnailUrl: uploadResult.thumbnailUrl,
-                // GPS/EXIF metadata
-                gpsLatitude: photoMetadata.hasGPS && photoMetadata.lat ? Number(photoMetadata.lat) : null,
-                gpsLongitude: photoMetadata.hasGPS && photoMetadata.lng ? Number(photoMetadata.lng) : null,
-                gpsAltitude: photoMetadata.altitude ? Number(photoMetadata.altitude) : null,
-                hasGpsData: Boolean(photoMetadata.hasGPS),
-                cameraMake: photoMetadata.camera?.make || null,
-                cameraModel: photoMetadata.camera?.model || null,
-                lensMake: photoMetadata.lens?.make || null,
-                lensModel: photoMetadata.lens?.model || null,
-                dateTaken: photoMetadata.dateTaken ? photoMetadata.dateTaken.toISOString() : null,
-                iso: photoMetadata.iso ? Number(photoMetadata.iso) : null,
-                focalLength: photoMetadata.focalLength || null,
-                aperture: photoMetadata.aperture || null,
-                shutterSpeed: photoMetadata.exposureTime || null,
-                exposureMode: photoMetadata.exposureMode || null,
-                whiteBalance: photoMetadata.whiteBalance || null,
-                flash: photoMetadata.flash || null,
-                orientation: photoMetadata.orientation ? Number(photoMetadata.orientation) : null,
-                colorSpace: photoMetadata.colorSpace || null,
+                fileId: secureUploadResult.upload.fileId,
+                filePath: secureUploadResult.upload.filePath,
+                name: secureUploadResult.file.originalFilename,
+                size: secureUploadResult.file.size,
+                type: secureUploadResult.file.mimeType,
+                width: secureUploadResult.upload.width,
+                height: secureUploadResult.upload.height,
+                url: secureUploadResult.upload.url,
+                thumbnailUrl: secureUploadResult.upload.thumbnailUrl,
+                // GPS/EXIF metadata (SANITIZED by server)
+                gpsLatitude: secureUploadResult.metadata?.gpsLatitude,
+                gpsLongitude: secureUploadResult.metadata?.gpsLongitude,
+                gpsAltitude: secureUploadResult.metadata?.gpsAltitude,
+                hasGpsData: secureUploadResult.metadata?.hasGPS || false,
+                cameraMake: secureUploadResult.metadata?.cameraMake,
+                cameraModel: secureUploadResult.metadata?.cameraModel,
+                lensMake: secureUploadResult.metadata?.lensMake,
+                lensModel: secureUploadResult.metadata?.lensModel,
+                dateTaken: secureUploadResult.metadata?.dateTaken,
+                iso: secureUploadResult.metadata?.iso,
+                focalLength: secureUploadResult.metadata?.focalLength,
+                aperture: secureUploadResult.metadata?.aperture,
+                shutterSpeed: secureUploadResult.metadata?.exposureTime,
+                exposureMode: secureUploadResult.metadata?.exposureMode,
+                whiteBalance: secureUploadResult.metadata?.whiteBalance,
+                flash: secureUploadResult.metadata?.flash,
+                orientation: secureUploadResult.metadata?.orientation,
+                colorSpace: secureUploadResult.metadata?.colorSpace,
                 uploadSource: UPLOAD_SOURCES.PHOTO_GPS,
             };
 
@@ -207,25 +218,6 @@ export function PhotoLocationForm({
                 isPending={isSaving}
                 showPhotoUpload={false} // ✅ Hide photo upload since we already have the GPS photo
             />
-
-            <div className="flex gap-3">
-                <button
-                    type="submit"
-                    form="save-location-form"
-                    disabled={isSaving}
-                    className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                >
-                    {isSaving ? 'Saving Location...' : 'Save Location with GPS Photo'}
-                </button>
-                <button
-                    type="button"
-                    onClick={onCancel}
-                    disabled={isSaving}
-                    className="px-4 py-2 border border-input rounded-md hover:bg-accent disabled:opacity-50 transition-colors"
-                >
-                    Cancel
-                </button>
-            </div>
         </div>
     );
 }

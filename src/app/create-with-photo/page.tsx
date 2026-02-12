@@ -9,7 +9,7 @@ import { PhotoLocationForm } from "@/components/locations/PhotoLocationForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ArrowLeft, Camera, MapPin, Info } from "lucide-react";
+import { Camera, MapPin, Info } from "lucide-react";
 import type { PhotoMetadata } from "@/lib/photo-utils";
 
 function CreateWithPhotoPageInner() {
@@ -17,6 +17,7 @@ function CreateWithPhotoPageInner() {
     const [step, setStep] = useState<'upload' | 'location'>('upload');
     const [photoData, setPhotoData] = useState<{
         file: File;
+        originalFilename: string;
         preview: string;
         gpsData: PhotoMetadata;
         addressData?: Record<string, unknown>;
@@ -28,6 +29,7 @@ function CreateWithPhotoPageInner() {
 
     const handlePhotoProcessed = (data: {
         file: File;
+        originalFilename: string;
         preview: string;
         gpsData: PhotoMetadata;
         addressData?: Record<string, unknown>;
@@ -41,35 +43,30 @@ function CreateWithPhotoPageInner() {
         router.push('/locations');
     };
 
-    const handleBack = () => {
-        if (step === 'location') {
-            setStep('upload');
-            setPhotoData(null);
-        } else {
-            router.push('/map');
-        }
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
             <div className="container max-w-4xl mx-auto py-6 sm:py-8 px-4">
                 {/* Header */}
                 <div className="mb-4 sm:mb-6">
-                    <div className="flex items-center justify-between mb-3">
-                        <Button
-                            variant="ghost"
-                            onClick={handleBack}
-                            className="-ml-2 hover:bg-muted"
-                        >
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            {step === 'upload' ? 'Back to Map' : 'Back to Upload'}
-                        </Button>
-
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+                            <Camera className="w-5 h-5 text-white" />
+                        </div>
+                       
+                        <div className="flex-1">
+                            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                                Snap & Save
+                            </h1>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                                {step === 'upload'
+                                    ? 'Add a location'
+                                    : 'Review and complete location details'}
+                            </p>
+                        </div>
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button variant="outline" size="sm" className="gap-2">
+                                <Button variant="outline" size="icon">
                                     <Info className="w-4 h-4" />
-                                    <span className="hidden sm:inline">How it works</span>
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-md">
@@ -96,25 +93,21 @@ function CreateWithPhotoPageInner() {
                                             <strong>Note:</strong> If your photo doesn't have GPS data, you'll need to select the location manually on the map.
                                         </p>
                                     </div>
+                                    <div className="p-3 bg-orange-50 dark:bg-orange-950 rounded-lg border border-orange-200 dark:border-orange-800">
+                                        <p className="text-sm font-semibold text-orange-900 dark:text-orange-100 mb-2 flex items-center gap-1">
+                                            💡 Snap & Save Tip
+                                        </p>
+                                        <p className="text-xs text-orange-700 dark:text-orange-300 mb-2">
+                                            <strong>On Mobile Use:</strong> Safari or Firefox<br />
+                                            Or download the app.
+                                        </p>
+                                        <p className="text-xs text-orange-600 dark:text-orange-400">
+                                            Chrome on mobile devices doesn't reliably support GPS extraction from photos. Safari and Firefox work best for camera photo uploads with GPS data.
+                                        </p>
+                                    </div>
                                 </div>
                             </DialogContent>
                         </Dialog>
-                    </div>
-
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
-                            <Camera className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex-1">
-                            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                                Snap & Save
-                            </h1>
-                            <p className="text-xs sm:text-sm text-muted-foreground">
-                                {step === 'upload'
-                                    ? 'Add a location'
-                                    : 'Review and complete location details'}
-                            </p>
-                        </div>
                     </div>
 
                     {/* Progress Steps */}

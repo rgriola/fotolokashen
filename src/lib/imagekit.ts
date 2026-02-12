@@ -105,7 +105,16 @@ export async function uploadToImageKit({
     fileName: string;
     folder?: string;
     tags?: string[];
-}): Promise<{ success: boolean; url?: string; fileId?: string; error?: string }> {
+}): Promise<{ 
+    success: boolean; 
+    url?: string; 
+    fileId?: string; 
+    filePath?: string;
+    thumbnailUrl?: string;
+    width?: number;
+    height?: number;
+    error?: string;
+}> {
     try {
         const imagekit = getImageKitInstance();
 
@@ -121,6 +130,10 @@ export async function uploadToImageKit({
             success: true,
             url: result.url,
             fileId: result.fileId,
+            filePath: result.filePath,
+            thumbnailUrl: result.thumbnailUrl,
+            width: result.width,
+            height: result.height,
         };
     } catch (error: unknown) {
         console.error('ImageKit upload error:', error);

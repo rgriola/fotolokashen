@@ -64,6 +64,45 @@ export const FILE_SIZE_LIMITS = {
 } as const;
 
 /**
+ * Allowed image formats for uploads
+ * Supports JPEG, HEIC (Apple), and TIFF formats
+ */
+export const ALLOWED_IMAGE_FORMATS = {
+    MIME_TYPES: [
+        'image/jpeg',      // .jpg, .jpeg
+        'image/heic',      // .heic (Apple HEIF)
+        'image/heif',      // .heif (HEIC variant)
+        'image/tiff',      // .tif, .tiff
+    ],
+    EXTENSIONS: [
+        '.jpg', '.jpeg', '.JPG', '.JPEG',
+        '.heic', '.HEIC',
+        '.tif', '.tiff', '.TIF', '.TIFF',
+    ],
+} as const;
+
+/**
+ * Image compression targets (in MB)
+ * After virus scan and format conversion, images are compressed to these targets
+ */
+export const IMAGE_COMPRESSION_TARGETS = {
+    LOCATION_PHOTO: 2,  // 2MB for location photos (preserve quality for GPS accuracy)
+    AVATAR: 1,          // 1MB for avatars
+    BANNER: 2,          // 2MB for banner images
+} as const;
+
+/**
+ * Image quality settings for compression
+ * Adaptive quality used to meet size targets while preserving dimensions
+ */
+export const IMAGE_QUALITY = {
+    HIGH: 90,    // Initial quality for HEIC/TIFF conversion
+    GOOD: 80,    // Good quality for most photos
+    MEDIUM: 70,  // Medium quality if still too large
+    LOW: 60,     // Minimum acceptable quality
+} as const;
+
+/**
  * Photo upload limits
  */
 export const PHOTO_LIMITS = {

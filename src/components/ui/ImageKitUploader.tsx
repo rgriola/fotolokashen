@@ -189,62 +189,47 @@ export function ImageKitUploader({
         });
     };
 
-    // Upload photo to ImageKit
+    // Upload photo via secure endpoint
     const uploadToImageKit = async (file: File): Promise<UploadedPhoto> => {
         try {
             if (!user) {
                 throw new Error('User not authenticated');
             }
 
-            // Compress image first
-            const compressedBlob = await compressImage(file, maxFileSize);
-            const compressedFile = new File([compressedBlob], file.name, {
-                type: file.type,
-            });
-
-            // Get auth parameters
-            const authParams = await getAuthParams();
-
-            // Prepare form data
+            // Prepare form data for secure upload endpoint
             const formData = new FormData();
-            formData.append('file', compressedFile);
-            formData.append('publicKey', authParams.publicKey);
-            formData.append('signature', authParams.signature);
-            formData.append('expire', authParams.expire);
-            formData.append('token', authParams.token);
-            formData.append('fileName', file.name);
+            formData.append('photo', file);
+            formData.append('uploadType', 'location'); // This uploader is for location photos
+            
+            console.log('[ImageKitUploader] Uploading via secure endpoint...');
 
-            // Flat user directory structure (scalable, environment-separated)
-            // All photos go to /production/users/{userId}/photos/ (database manages location relationships)
-            const uploadFolder = FOLDER_PATHS.userPhotos(user.id);
-            console.log('[ImageKitUploader] Uploading to folder:', uploadFolder);
-            formData.append('folder', uploadFolder);
-
-            // Upload to ImageKit
-            const uploadResponse = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+            // Upload via secure endpoint (includes virus scan, format validation, compression)
+            const uploadResponse = await fetch('/api/photos/upload', {
                 method: 'POST',
+                credentials: 'include',
                 body: formData,
             });
 
             if (!uploadResponse.ok) {
                 const error = await uploadResponse.json();
-                throw new Error(error.message || 'Upload failed');
+                throw new Error(error.error || 'Upload failed');
             }
 
-            const uploadResult = await uploadResponse.json();
+            const result = await uploadResponse.json();
+            const uploadData = result.data;
             
-            console.log('[ImageKitUploader] Upload successful! File path:', uploadResult.filePath);
+            console.log('[ImageKitUploader] Upload successful! File path:', uploadData.upload.filePath);
 
-            // Create photo object
+            // Create photo object matching existing interface
             const photo: UploadedPhoto = {
-                imagekitFileId: uploadResult.fileId,
-                imagekitFilePath: uploadResult.filePath,
-                originalFilename: file.name,
-                fileSize: compressedFile.size,
-                mimeType: file.type,
-                width: uploadResult.width,
-                height: uploadResult.height,
-                url: uploadResult.url,
+                imagekitFileId: uploadData.upload.fileId,
+                imagekitFilePath: uploadData.upload.filePath,
+                originalFilename: uploadData.file.originalFilename,
+                fileSize: uploadData.file.size,
+                mimeType: uploadData.file.mimeType,
+                width: uploadData.upload.width,
+                height: uploadData.upload.height,
+                url: uploadData.upload.url,
             };
 
             return photo;
