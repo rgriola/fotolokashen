@@ -224,12 +224,13 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                             Chrome Mobile Not Supported.
                         </CardTitle>
                         <CardDescription className="text-orange-600 dark:text-orange-500">
-                            For mobile uploads switch to Safari or Firefox.
+                            On Mobile Use:<strong>Safari or Firefox</strong><br />
+                            Or download the app.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <p className="text-sm text-muted-foreground">
-                            Unfortunately, Chrome on mobile devices doesn't reliably support automatic GPS
+                            Unfortunately, Chrome on mobile devices doesn't reliably support GPS
                             extraction from photos. This feature works best on:
                         </p>
                         <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground ml-4">
@@ -301,8 +302,8 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                                         💡 Snap & Save Tip
                                     </p>
                                     <p className="text-blue-700 dark:text-blue-300">
-                                        Using <strong>Safari or Firefox</strong> is recommended.<br />
-                                        Chrome will upload photos, Manually select the location.
+                                        On Mobile Use:<strong>Safari or Firefox</strong><br />
+                                        Or download the app.
                                     </p>
                                 </div>
                             </div>
