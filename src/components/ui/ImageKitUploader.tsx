@@ -37,6 +37,14 @@ interface ImageKitUploaderProps {
 }
 import { FILE_SIZE_LIMITS, PHOTO_LIMITS } from '@/lib/constants/upload';
 
+// Placeholder text constants
+const PLACEHOLDER_TEXT = {
+    CAPTION_DEFERRED: 'Add caption (100 chars max)',
+    CAPTION_IMMEDIATE: 'Add caption (100 chars max)',
+    UPLOAD_PROMPT: 'Drop & Drag or Click to Upload',
+    UPLOADING: 'Uploading and compressing...',
+} as const;
+
 export function ImageKitUploader({
     onPhotosChange,
     maxPhotos = PHOTO_LIMITS.MAX_PHOTOS_PER_LOCATION,
@@ -416,15 +424,15 @@ transition - colors duration - 200
                 {uploading ? (
                     <div className="flex flex-col items-center gap-2">
                         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                        <p className="text-sm text-muted-foreground">Uploading and compressing...</p>
+                        <p className="text-sm text-muted-foreground">{PLACEHOLDER_TEXT.UPLOADING}</p>
                     </div>
                 ) : (
                     <div className="flex flex-col items-center gap-2">
                         <Camera className="w-10 h-10 text-green-600" />
-                        <div>
-                            <p className="text-sm font-medium">Click to upload or drag and drop</p>
+                        <div className="text-center">
+                            <p className="text-sm font-medium">{PLACEHOLDER_TEXT.UPLOAD_PROMPT}</p>
                             <p className="text-xs text-muted-foreground mt-1">
-                                JPG, PNG, WebP • Max {maxFileSize}MB • Up to {maxPhotos} photos
+                                JPG or HEIC • Max {maxFileSize}MB • Up to {maxPhotos} photos
                             </p>
                             <p className="text-xs text-muted-foreground">
                                 {isDeferred ? photoCacheManager.cachedPhotos.length : photos.length} of {maxPhotos} photos {isDeferred ? 'ready' : 'uploaded'}
@@ -468,7 +476,7 @@ transition - colors duration - 200
                                     {/* Caption input */}
                                     <input
                                         type="text"
-                                        placeholder="Add caption (optional)"
+                                        placeholder={PLACEHOLDER_TEXT.CAPTION_DEFERRED}
                                         value={cachedPhoto.caption || ''}
                                         onChange={(e) => photoCacheManager.updateCaption(cachedPhoto.id, e.target.value)}
                                         maxLength={100}
@@ -507,7 +515,7 @@ transition - colors duration - 200
                                     {/* Caption input */}
                                     <input
                                         type="text"
-                                        placeholder="Add caption (optional)"
+                                        placeholder={PLACEHOLDER_TEXT.CAPTION_IMMEDIATE}
                                         value={photo.caption || ''}
                                         onChange={(e) => handleCaptionChange(index, e.target.value)}
                                         maxLength={100}

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Tag, X } from "lucide-react";
+import { MapPin, Tag, X, Navigation, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
 import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/location-constants";
@@ -284,10 +284,11 @@ export function SaveLocationForm({
             {/* Photo Upload - Deferred mode (uploads on save) */}
             {showPhotoUpload && (
                 <div className="space-y-4 pb-4 border-b">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <Camera className="w-4 h-4 text-green-600" />
                         <h3 className="text-sm font-semibold">Add Photos Here</h3>
                         {cachedPhotos.length > 0 && (
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-xs text-muted-foreground ml-auto">
                                 {cachedPhotos.length} photo(s) ready • Will upload when you save
                             </p>
                         )}
@@ -308,7 +309,7 @@ export function SaveLocationForm({
             <div className="space-y-4">
                 <div className="space-y-3">
                     <div>
-                        <Label htmlFor="name">Location Name *</Label>
+                        <Label htmlFor="name" className="pb-2">Location Name *</Label>
                         <div className="relative">
                             <Input
                                 id="name"
@@ -405,33 +406,29 @@ export function SaveLocationForm({
                         </div>
                     </div>
 
-                    <div>
-                        <Label htmlFor="address">Full Address (from Google)</Label>
-                        <div className="relative">
-                            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                            <Input
-                                id="address"
-                                {...form.register("address")}
-                                placeholder="123 Main St, New York, NY 10001"
-                                className="pl-9"
-                                readOnly
-                            />
-                        </div>
-                    </div>
-
-                    {/* GPS Coordinates Display */}
-                    <div className="grid grid-cols-2 gap-3 p-3 bg-muted/50 rounded-md border">
-                        <div>
-                            <Label className="text-xs text-muted-foreground">Latitude</Label>
-                            <p className="text-sm font-mono font-medium">
-                                {form.watch("lat")?.toFixed(6) || "0.000000"}
-                            </p>
-                        </div>
-                        <div>
-                            <Label className="text-xs text-muted-foreground">Longitude</Label>
-                            <p className="text-sm font-mono font-medium">
-                                {form.watch("lng")?.toFixed(6) || "0.000000"}
-                            </p>
+                    {/* Address and GPS Coordinates Combined */}
+                    <div className="space-y-2">
+                        <Label htmlFor="address" className="text-sm text-muted-foreground">Address</Label>
+                        <div className="p-3 rounded-lg border bg-muted/30">
+                            <div className="flex items-start gap-2">
+                                <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                                <div className="flex-1 space-y-2">
+                                    <p className="text-sm font-medium">
+                                        {form.watch("address") || "Address not available"}
+                                    </p>
+                                    {form.watch("lat") != null && form.watch("lng") != null && (
+                                        <div className="flex items-center gap-2">
+                                            <Navigation className="w-3 h-3 text-muted-foreground" />
+                                            <code className="text-xs font-mono text-muted-foreground">
+                                                {form.watch("lat").toFixed(6)}, {form.watch("lng").toFixed(6)}
+                                            </code>
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        From Google Maps
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -442,7 +439,7 @@ export function SaveLocationForm({
                 <div className="space-y-3">
                     <div>
                         <div className="flex justify-between items-center">
-                            <Label htmlFor="productionNotes">Production Notes (Optional)</Label>
+                            <Label htmlFor="productionNotes" className="pb-2">Production Notes</Label>
                             <span className="text-xs text-muted-foreground">
                                 {productionNotesCount}/500 characters
                             </span>
@@ -513,7 +510,7 @@ export function SaveLocationForm({
                     </div>
 
                     <div>
-                        <Label htmlFor="parking">Parking</Label>
+                        <Label htmlFor="parking" className="pb-2">Parking</Label>
                         <Input
                             id="parking"
                             {...form.register("parking")}
@@ -528,7 +525,7 @@ export function SaveLocationForm({
                     </div>
 
                     <div>
-                        <Label htmlFor="entryPoint">Entry Point</Label>
+                        <Label htmlFor="entryPoint" className="pb-2">Entry Point</Label>
                         <Input
                             id="entryPoint"
                             {...form.register("entryPoint")}
@@ -543,7 +540,7 @@ export function SaveLocationForm({
                     </div>
 
                     <div>
-                        <Label htmlFor="access">Access</Label>
+                        <Label htmlFor="access" className="pb-2">Access</Label>
                         <Input
                             id="access"
                             {...form.register("access")}

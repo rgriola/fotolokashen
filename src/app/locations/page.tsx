@@ -235,79 +235,15 @@ function LocationsPageInner() {
             <Sheet open={showEditPanel} onOpenChange={setShowEditPanel}>
                 <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
                     {/* Custom Header with Controls */}
-                    <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-background z-10">
-                        <SheetTitle>Edit Location</SheetTitle>
+                    <div className="flex items-center justify-between px-3 py-2 border-b sticky top-0 bg-background z-10">
+                        <SheetTitle className="text-base">Edit Location</SheetTitle>
                         <div className="flex items-center gap-1">
-                            {/* Photo Upload Toggle */}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setShowPhotoUpload(!showPhotoUpload)}
-                                className={`shrink-0 ${showPhotoUpload ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500'} text-white hover:text-white`}
-                                title="Toggle photo upload"
-                            >
-                                <Camera className="w-4 h-4 text-white" />
-                            </Button>
-                            
-                            {/* Indoor/Outdoor Toggle */}
-                            <div className="flex items-center gap-0.5">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setIndoorOutdoor("outdoor")}
-                                    className="shrink-0"
-                                    title="Outdoor"
-                                >
-                                    <Sun
-                                        className={`w-5 h-5 transition-colors ${
-                                            indoorOutdoor === "outdoor"
-                                                ? "text-amber-500 fill-amber-500"
-                                                : "text-muted-foreground"
-                                        }`}
-                                    />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setIndoorOutdoor("indoor")}
-                                    className="shrink-0"
-                                    title="Indoor"
-                                >
-                                    <Building
-                                        className={`w-5 h-5 transition-colors ${
-                                            indoorOutdoor === "indoor"
-                                                ? "text-blue-600 stroke-[2.5]"
-                                                : "text-muted-foreground"
-                                        }`}
-                                        fill={indoorOutdoor === "indoor" ? "#fbbf24" : "none"}
-                                        fillOpacity={indoorOutdoor === "indoor" ? 0.2 : 0}
-                                    />
-                                </Button>
-                            </div>
-                            
-                            {/* Favorite Toggle */}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setIsFavorite(!isFavorite)}
-                                className="shrink-0"
-                                title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-                            >
-                                <Heart
-                                    className={`w-5 h-5 transition-colors ${
-                                        isFavorite
-                                            ? "fill-red-500 text-red-500"
-                                            : "text-muted-foreground"
-                                    }`}
-                                />
-                            </Button>
-                            
                             {/* Close Button */}
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setShowEditPanel(false)}
-                                className="shrink-0"
+                                className="shrink-0 h-8 w-8"
                             >
                                 <X className="w-4 h-4" />
                             </Button>
@@ -324,6 +260,7 @@ function LocationsPageInner() {
                                 isFavorite={isFavorite}
                                 indoorOutdoor={indoorOutdoor}
                                 showPhotoUpload={showPhotoUpload}
+                                onPhotoUploadToggle={() => setShowPhotoUpload(!showPhotoUpload)}
                                 onSuccess={() => {
                                     setShowEditPanel(false);
                                     setEditLocation(null);

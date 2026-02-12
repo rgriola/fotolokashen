@@ -16,6 +16,7 @@ interface EditLocationPanelProps {
     isFavorite?: boolean;
     indoorOutdoor?: "indoor" | "outdoor";
     showPhotoUpload?: boolean;
+    onPhotoUploadToggle?: () => void;
 }
 
 export function EditLocationPanel({
@@ -28,6 +29,7 @@ export function EditLocationPanel({
     isFavorite,
     indoorOutdoor,
     showPhotoUpload = false,
+    onPhotoUploadToggle,
 }: EditLocationPanelProps) {
     const updateLocation = useUpdateLocation();
 
@@ -56,7 +58,7 @@ export function EditLocationPanel({
     return (
         <div className="flex flex-col h-full">
             {/* Form - Full height scrollable content */}
-            <div className="flex-1 overflow-y-auto p-3">
+            <div className="flex-1 overflow-y-auto px-3 pb-3">
                 <EditLocationForm
                     locationId={locationId}
                     location={location}
@@ -64,6 +66,7 @@ export function EditLocationPanel({
                     onSubmit={handleSubmit}
                     isPending={updateLocation.isPending}
                     showPhotoUpload={showPhotoUpload}
+                    onPhotoUploadToggle={onPhotoUploadToggle}
                 />
             </div>
         </div>

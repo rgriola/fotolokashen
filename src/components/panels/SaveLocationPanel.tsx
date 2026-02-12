@@ -60,7 +60,7 @@ export function SaveLocationPanel({
     return (
         <div className="flex flex-col h-full">
             {/* Form - Full height scrollable content */}
-            <div className="flex-1 overflow-y-auto p-4 relative">
+            <div className="flex-1 overflow-y-auto px-3 pb-3 relative">
                 <SaveLocationForm
                     initialData={initialData}
                     onSubmit={handleSubmit}

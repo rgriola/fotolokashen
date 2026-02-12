@@ -94,20 +94,11 @@ export function PhotoCarouselManager({
                         </div>
                     </div>
 
-                    {/* Deletion Overlay with Red Slash */}
+                    {/* Deletion Badge */}
                     {isCurrentPhotoMarkedForDeletion && (
-                        <>
-                            {/* Dark overlay */}
-                            <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-                            {/* Red diagonal slash */}
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <div className="w-full h-1 bg-red-600 rotate-45 transform scale-150" />
-                            </div>
-                            {/* "Marked for Deletion" text */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white px-4 py-2 rounded-md font-semibold text-sm pointer-events-none">
-                                Marked for Deletion
-                            </div>
-                        </>
+                        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-red-600 text-white px-3 py-1.5 rounded-md font-semibold text-xs shadow-lg z-20 pointer-events-none">
+                            Pending Delete
+                        </div>
                     )}
 
                     {/* Primary Star Button - Top Right */}
@@ -115,7 +106,7 @@ export function PhotoCarouselManager({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute top-2 right-2 w-8 h-8 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-10"
+                        className="absolute top-2 right-2 w-8 h-8 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-[5]"
                         onClick={(e) => {
                             e.stopPropagation();
                             handleSetPrimary(currentIndex);
@@ -143,7 +134,7 @@ export function PhotoCarouselManager({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute top-2 left-2 w-8 h-8 bg-black/40 hover:bg-red-600/80 backdrop-blur-sm transition-all z-10"
+                        className="absolute top-2 left-2 w-8 h-8 bg-black/40 hover:bg-red-600/80 backdrop-blur-sm transition-all z-[5]"
                         onMouseEnter={() => setIsDeleteHovered(true)}
                         onMouseLeave={() => setIsDeleteHovered(false)}
                         onClick={(e) => {
@@ -168,7 +159,7 @@ export function PhotoCarouselManager({
                                 type="button"
                                 variant="secondary"
                                 size="icon"
-                                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-10"
+                                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-[5]"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     goToPrevious();
@@ -180,7 +171,7 @@ export function PhotoCarouselManager({
                                 type="button"
                                 variant="secondary"
                                 size="icon"
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-10"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-[5]"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     goToNext();
@@ -188,31 +179,11 @@ export function PhotoCarouselManager({
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </Button>
-
-                            {/* Photo Counter */}
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white px-3 py-1 rounded-full text-xs font-medium">
-                                {currentIndex + 1} / {photos.length}
-                            </div>
                         </>
                     )}
 
-                    {/* Photo Metadata - Bottom Left Corner */}
-                    <div className="absolute bottom-2 left-2 flex items-end gap-2">
-                        {/* Info Toggle Button */}
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="w-6 h-6 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-10"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowMetadata(!showMetadata);
-                            }}
-                            title={showMetadata ? "Hide photo info" : "Show photo info"}
-                        >
-                            <Info className="w-3.5 h-3.5 text-white" />
-                        </Button>
-
+                    {/* Photo Metadata - Bottom Right Corner */}
+                    <div className="absolute bottom-2 right-2 flex items-end gap-2">
                         {/* Metadata Panel (shown when toggled) */}
                         {showMetadata && (
                             <div className="bg-black/70 backdrop-blur-sm text-white px-3 py-2 rounded-md text-xs space-y-1 max-w-xs">
@@ -230,6 +201,21 @@ export function PhotoCarouselManager({
                                 </p>
                             </div>
                         )}
+
+                        {/* Info Toggle Button */}
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="w-6 h-6 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-[5]"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowMetadata(!showMetadata);
+                            }}
+                            title={showMetadata ? "Hide photo info" : "Show photo info"}
+                        >
+                            <Info className="w-3.5 h-3.5 text-white" />
+                        </Button>
                     </div>
                 </div>
 
@@ -237,15 +223,12 @@ export function PhotoCarouselManager({
                 <div className="mt-2">
                     <input
                         type="text"
-                        placeholder="Add caption (optional)"
+                        placeholder="Add caption (100 chars max)"
                         value={currentPhoto.caption || ""}
                         onChange={(e) => handleCaptionChange(currentIndex, e.target.value)}
                         maxLength={100}
                         className="w-full text-sm px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {currentPhoto.caption?.length || 0}/100 characters
-                    </p>
                 </div>
             </div>
 
@@ -275,14 +258,11 @@ export function PhotoCarouselManager({
                                     )}
                                 />
                                 
-                                {/* Red slash for marked photos */}
+                                {/* Deletion badge for marked photos */}
                                 {isMarkedForDeletion && (
-                                    <>
-                                        <div className="absolute inset-0 bg-black/30 pointer-events-none" />
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            <div className="w-full h-0.5 bg-red-600 rotate-45 transform scale-125" />
-                                        </div>
-                                    </>
+                                    <div className="absolute top-0 left-0 right-0 bg-red-600 text-white text-[9px] font-semibold text-center py-0.5 pointer-events-none">
+                                        DELETE
+                                    </div>
                                 )}
                                 
                                 {/* Primary star on thumbnail */}

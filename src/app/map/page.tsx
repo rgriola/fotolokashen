@@ -1175,10 +1175,10 @@ function MapPageInner() {
                 }}
                 view='save-location'
                 title='Save Location'
-                showFavorite={true}
+                showFavorite={false}
                 isFavorite={isFavorite}
                 onFavoriteToggle={() => setIsFavorite(!isFavorite)}
-                showIndoorOutdoor={true}
+                showIndoorOutdoor={false}
                 indoorOutdoor={indoorOutdoor}
                 onIndoorOutdoorToggle={(value) => setIndoorOutdoor(value)}
                 showSaveButton={false}  // Save button is now at bottom of form
