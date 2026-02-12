@@ -111,7 +111,7 @@ function CreateWithPhotoPageInner() {
                             </h1>
                             <p className="text-xs sm:text-sm text-muted-foreground">
                                 {step === 'upload'
-                                    ? 'Upload a photo with GPS data to get started'
+                                    ? 'Add a location'
                                     : 'Review and complete location details'}
                             </p>
                         </div>
@@ -123,7 +123,7 @@ function CreateWithPhotoPageInner() {
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm shadow-md transition-all ${step === 'upload' ? 'bg-primary text-white scale-110' : 'bg-green-600 text-white'}`}>
                                 {step === 'location' ? '✓' : '1'}
                             </div>
-                            <span className="text-xs sm:text-sm font-medium hidden sm:inline">Upload Photo</span>
+                            <span className="text-xs sm:text-sm font-medium hidden sm:inline">Photo Upload</span>
                         </div>
                         <div className="flex-1 h-1 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-full relative overflow-hidden">
                             {step === 'location' && (

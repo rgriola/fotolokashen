@@ -261,13 +261,34 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
             {!file && !isChromeMobileBrowser && (
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Camera className="w-5 h-5" />
-                            Upload Photo
-                        </CardTitle>
-                        <CardDescription>
-                            Use a photo with GPS data to create a new location.
-                        </CardDescription>
+                        <div className="flex items-start justify-between gap-4">
+                            {/* Left: Title & Description */}
+                            <div className="flex-1">
+                                <CardTitle className="flex items-center gap-2">
+                                    <Camera className="w-5 h-5" />
+                                    Photo Upload
+                                </CardTitle>
+                                <CardDescription>
+                                    Photo GPS metadata will start a new location
+                                </CardDescription>
+                            </div>
+                            
+                            {/* Right: Chrome Browser Hint (Desktop only) */}
+                            {showChromeHint && (
+                                <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-2 max-w-xs">
+                                    <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1 text-sm">
+                                        <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                                            💡 Snap & Save Tip
+                                        </p>
+                                        <p className="text-blue-700 dark:text-blue-300">
+                                            On Mobile Use: <strong>Safari or Firefox</strong><br />
+                                            Or download the app.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <div
@@ -285,29 +306,16 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                             <label htmlFor="photo-upload" className="cursor-pointer">
                                 <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                                 <p className="text-lg font-medium mb-2">
-                                    Drag & drop or click to browse options.
+                                    Drag & Drop or Click to Choose.
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    JPG, HEIC with GPS Coordinates • Max: 10MB
+                                    JPG or HEIC • Max: 10MB <br />
+                                    All Images Are Compressed to 2MB. 
                                 </p>
                             </label>
                         </div>
 
-                        {/* Chrome Browser Hint (Desktop only) */}
-                        {showChromeHint && !file && (
-                            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3">
-                                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                                <div className="flex-1 text-sm">
-                                    <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                                        💡 Snap & Save Tip
-                                    </p>
-                                    <p className="text-blue-700 dark:text-blue-300">
-                                        On Mobile Use:<strong>Safari or Firefox</strong><br />
-                                        Or download the app.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
+                        
 
                         {error && (
                             <div className="mt-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
@@ -455,7 +463,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel }: PhotoUploadWi
                             ) : (
                                 <Button size="lg" variant="outline" onClick={handleCreateLocation} className="flex-1">
                                     <Camera className="w-4 h-4 mr-2" />
-                                    Upload Photo (Manual Location)
+                                    Photo (Manual Location)
                                 </Button>
                             )}
                             <Button size="lg" variant="outline" onClick={handleReset}>
