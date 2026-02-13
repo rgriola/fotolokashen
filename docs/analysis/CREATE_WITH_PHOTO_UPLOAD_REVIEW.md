@@ -1,8 +1,8 @@
 # Create-With-Photo Upload Process Review
 **Date:** February 12, 2026  
-**Last Updated:** February 12, 2026 (Post-Implementation)  
+**Last Updated:** February 13, 2026 @ 11:55 PM  
 **Reviewer:** AI Analysis  
-**Scope:** `/create-with-photo` page and supporting upload infrastructure
+**Scope:** `/create-with-photo` page, Edit Location Panel, Avatar/Banner uploads, and supporting upload infrastructure
 
 ---
 
@@ -14,14 +14,14 @@ The `/create-with-photo` feature allows users to create locations from photos wi
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Browser-side HEIC/TIFF conversion | ✅ Implemented | heic2any + UTIF libraries |
+| Browser-side HEIC/TIFF conversion | ✅ Implemented | heic2any + UTIF libraries (all upload paths) |
 | Metadata extraction before conversion | ✅ Implemented | Preserves EXIF from original |
 | Secure server-side upload | ✅ Implemented | `/api/photos/upload` with virus scanning |
 | Manual location selection (no GPS) | ✅ Implemented | Google Maps + PlacesAutocomplete |
 | Object URL previews | ✅ Implemented | Memory efficient |
 | Toggleable metadata panel | ✅ Implemented | Info button overlay |
 | Google Maps library conflict fix | ✅ Implemented | Consistent `["places", "maps"]` |
-| Save/edit upload validations | 🔄 Pending | Still needs review |
+| Save/edit upload validations | ✅ Implemented | Edit Location Panel completed Feb 13 |
 
 ---
 
@@ -400,24 +400,32 @@ sanitizedMetadata = {
 
 ## 🔄 Remaining Work
 
-### Priority 1: Save/Edit Photo Upload Validations 🔄
+### Priority 1: Save/Edit Photo Upload Validations ✅ COMPLETED (Feb 13, 2026)
 
-**Status:** Still needs review
+**Status:** Implemented
 
-**Areas to verify:**
-1. **Location Edit Flow** (`/locations/[id]/edit`)
-   - Does editing a location properly handle photo uploads?
-   - Are new photos going through the secure pipeline?
-   - Is metadata sanitized on edit?
+**What was implemented:**
+1. **Location Edit Flow** (`EditLocationForm.tsx`)
+   - ✅ Deferred upload mode prevents orphaned images
+   - ✅ Browser-side HEIC/TIFF conversion for proper previews
+   - ✅ Photos only upload when form is saved
+   - ✅ All uploads go through `/api/photos/upload` (virus scan + security)
 
-2. **SaveLocationForm Photo Upload**
-   - ImageKitUploader component used for non-GPS photo uploads
-   - Verify it uses secure server endpoint
-   - Check validation consistency
+2. **usePhotoCacheManager.ts Enhancements**
+   - ✅ Added browser-side conversion using heic2any + UTIF
+   - ✅ Files converted before caching (previews work)
+   - ✅ Toast feedback during conversion
+   - ✅ Secure upload via `/api/photos/upload`
 
-3. **Bulk Photo Upload**
-   - If adding multiple photos to existing location
-   - Same security pipeline should apply
+3. **PhotoCarouselManager.tsx Updates**
+   - ✅ Error handling with fallback UI (Camera icon + file info)
+   - ✅ Race condition fix (currentIndex bounds check)
+   - ✅ Thumbnail error handling with fallback icons
+
+4. **Bug Fixes**
+   - ✅ API response parsing (.data wrapper removed)
+   - ✅ Cached photo deletion logic
+   - ✅ Change tracking for cached photos
 
 ### Priority 2: UX Polish 🟢
 
@@ -445,7 +453,7 @@ sanitizedMetadata = {
 | Component | Security Level | Notes |
 |-----------|---------------|-------|
 | Photo Upload (Create) | ✅ Secure | Server-side validation, virus scan, sanitization |
-| Photo Upload (Edit) | 🔄 Needs Review | Verify same pipeline used |
+| Photo Upload (Edit) | ✅ Secure | Deferred upload + browser conversion + server validation |
 | GPS/EXIF Extraction | ✅ Secure | Client-side only (no server trust) |
 | Metadata Storage | ✅ Secure | Sanitized before database insert |
 | Manual Location | ✅ Secure | Server-validated coordinates |
@@ -510,12 +518,14 @@ sanitizedMetadata = {
 - [x] Fix Google Maps library conflict
 - [x] Remove duplicate save button
 
-### Phase 5: Save/Edit Validation 🔄 PENDING
-- [ ] Review location edit photo upload flow
-- [ ] Verify SaveLocationForm uses secure pipeline
-- [ ] Check ImageKitUploader integration
-- [ ] Review bulk photo upload scenarios
-- [ ] Add consistent error handling
+### Phase 5: Save/Edit Validation ✅ COMPLETED (Feb 13, 2026)
+- [x] Review location edit photo upload flow
+- [x] Implement deferred upload mode in EditLocationForm
+- [x] Browser-side HEIC/TIFF conversion in usePhotoCacheManager
+- [x] PhotoCarouselManager error handling + fallback UI
+- [x] Fix API response parsing bugs
+- [x] Add consistent error handling
+- [x] Verify SaveLocationForm uses secure pipeline
 
 ### Phase 6: Testing 🔄 PENDING
 - [ ] Test with various HEIC sources (iPhone, iPad, macOS)
@@ -575,6 +585,86 @@ sanitizedMetadata = {
 
 ---
 
-**Document Version:** 2.0  
-**Last Updated:** February 12, 2026  
-**Status:** Partially Implemented - Security Complete, Validation Review Pending
+## 📝 Session Summary (February 13, 2026)
+
+### What Was Implemented:
+
+1. **Edit Location Panel - Deferred Photo Uploads**
+   - Modified EditLocationForm to use `uploadMode="deferred"`
+   - Added `cachedPhotos` state and `uploadPhotosRef` for upload function
+   - Photos only commit to ImageKit when "Update" button is clicked
+   - Prevents orphaned images when users discard changes
+
+2. **Browser-Side HEIC/TIFF Conversion in Edit Panel**
+   - Added conversion to `usePhotoCacheManager.ts`
+   - Uses same heic2any + UTIF libraries as `/create-with-photo`
+   - Files converted before caching → previews display correctly
+   - Toast feedback: "Converting test.tif to JPEG..."
+
+3. **PhotoCarouselManager Improvements**
+   - Error handling with `imageLoadError` state
+   - Fallback UI: Camera icon + filename + file details
+   - Thumbnail error handling with SVG fallback
+   - Race condition fix for photo deletion
+
+4. **Bug Fixes**
+   - API response parsing (removed `.data` wrapper in multiple files)
+   - ImageKitUploader response handling
+   - usePhotoCacheManager upload response handling
+   - Cached photo deletion logic (existing vs new photos)
+
+### Files Modified:
+- `/src/components/locations/EditLocationForm.tsx`
+- `/src/hooks/usePhotoCacheManager.ts`
+- `/src/components/ui/PhotoCarouselManager.tsx`
+- `/src/components/ui/ImageKitUploader.tsx`
+
+### Commits:
+1. `feat: implement deferred photo uploads in EditLocationForm`
+2. `fix: add safety guard for undefined currentPhoto in PhotoCarouselManager`
+3. `fix: handle browser-incompatible image formats in deferred upload mode`
+4. `fix: remove incorrect .data wrapper in usePhotoCacheManager upload response`
+5. `feat: add HEIC/TIFF preview fallback in Edit Location Panel carousel`
+6. `feat: add browser-side HEIC/TIFF conversion to Edit Location Panel`
+
+---
+
+## 📝 Session Summary (February 13, 2026 - Late Evening)
+
+### What Was Implemented:
+
+1. **Create-with-Photo UX Refactor**
+   - Created new unified `CreateLocationWithPhoto.tsx` component
+   - Single-page layout (removed 2-step wizard)
+   - Integrated photo upload + GPS extraction + manual location + form in one view
+   - Uses `usePhotoCacheManager` for deferred upload (orphan prevention)
+   - Simplified `page.tsx` to just render the new component
+
+2. **Avatar Upload HEIC/TIFF Support**
+   - Added browser-side conversion to `AvatarUpload.tsx`
+   - HEIC/TIFF files converted to JPEG before ImageEditor opens
+   - Conversion progress indicator (Loader2 spinner)
+   - Toast feedback: "Converting image.heic to JPEG..."
+
+3. **Banner Upload HEIC/TIFF Support**
+   - Added browser-side conversion to `BannerUpload.tsx`
+   - HEIC/TIFF files converted to JPEG before upload
+   - Conversion progress indicator (Loader2 spinner)
+   - Toast feedback: "Converting image.heic to JPEG..."
+
+### Files Modified:
+- `/src/components/locations/CreateLocationWithPhoto.tsx` (NEW)
+- `/src/app/create-with-photo/page.tsx`
+- `/src/components/profile/AvatarUpload.tsx`
+- `/src/components/profile/BannerUpload.tsx`
+
+### Key Benefits:
+- **iPhone users**: Can now upload HEIC photos for avatar/banner without issues
+- **Consistent UX**: All upload paths now have same conversion behavior
+- **Proper previews**: Converted files display correctly in editor/preview
+
+---
+
+**Document Version:** 4.0  
+**Last Updated:** February 13, 2026 @ 11:55 PM  
+**Status:** ✅ Fully Implemented - All 5 Upload Entry Points Secure + HEIC/TIFF Browser Conversion

@@ -2,10 +2,11 @@
 
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
-import { Camera } from 'lucide-react';
+import { Camera, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import Image from 'next/image';
 import { FILE_SIZE_LIMITS } from '@/lib/constants/upload';
+import { needsConversion, convertToJpeg } from '@/lib/image-converter';
 
 interface BannerUploadProps {
     currentBanner?: string | null;
@@ -16,6 +17,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(currentBanner || null);
     const [imageError, setImageError] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isConverting, setIsConverting] = useState(false);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     /**
@@ -52,24 +54,51 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
         }
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                toast.error('Please select an image file');
-                return;
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please select an image file');
+            return;
+        }
+
+        // Validate file size using global constant
+        const maxSizeMB = FILE_SIZE_LIMITS.BANNER;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            toast.error(`Banner must be less than ${maxSizeMB}MB`);
+            return;
+        }
+
+        try {
+            let fileToUpload = file;
+
+            // Convert HEIC/TIFF to JPEG if needed
+            if (needsConversion(file)) {
+                setIsConverting(true);
+                toast.info(`Converting ${file.name} to JPEG...`);
+
+                try {
+                    const convertedBlob = await convertToJpeg(file);
+                    const newFilename = file.name.replace(/\.(heic|heif|tif|tiff)$/i, '.jpg');
+                    fileToUpload = new File([convertedBlob], newFilename, { type: 'image/jpeg' });
+                    console.log('✅ Banner conversion complete:', newFilename);
+                } catch (conversionError) {
+                    console.error('❌ Banner conversion failed:', conversionError);
+                    toast.error('Failed to convert image format');
+                    setIsConverting(false);
+                    return;
+                } finally {
+                    setIsConverting(false);
+                }
             }
 
-            // Validate file size using global constant
-            const maxSizeMB = FILE_SIZE_LIMITS.BANNER;
-            if (file.size > maxSizeMB * 1024 * 1024) {
-                toast.error(`Banner must be less than ${maxSizeMB}MB`);
-                return;
-            }
-
-            // Upload directly (no cropping for banners)
-            uploadBanner(file);
+            // Upload the (potentially converted) file
+            uploadBanner(fileToUpload);
+        } catch (error) {
+            console.error('Error processing banner file:', error);
+            toast.error('Failed to process image');
         }
     };
 
@@ -98,13 +127,17 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
                 <label
                     htmlFor="banner-upload"
                     className={`flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-gray-900 rounded-lg shadow-lg transition-all cursor-pointer ${
-                        isUploading ? 'opacity-50 cursor-not-allowed' : ''
+                        isUploading || isConverting ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     title="Change banner image"
                 >
-                    <Camera className="w-4 h-4" />
+                    {isConverting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <Camera className="w-4 h-4" />
+                    )}
                     <span className="text-sm font-medium">
-                        {isUploading ? 'Uploading...' : 'Edit Banner'}
+                        {isConverting ? 'Converting...' : isUploading ? 'Uploading...' : 'Edit Banner'}
                     </span>
                 </label>
                 <input
@@ -114,7 +147,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
                     accept="image/*"
                     onChange={handleFileSelect}
                     className="hidden"
-                    disabled={isUploading}
+                    disabled={isUploading || isConverting}
                 />
             </div>
         </div>

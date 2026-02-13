@@ -14,6 +14,9 @@ import { PlacesAutocomplete } from "@/components/maps/PlacesAutocomplete";
 import type { LocationData } from "@/lib/maps-utils";
 import { FILE_SIZE_LIMITS } from "@/lib/constants/upload";
 
+// IMPORTANT: Keep libraries array outside component to prevent Google Maps reload warning
+const GOOGLE_MAPS_LIBRARIES: ("places" | "maps")[] = ["places", "maps"];
+
 interface PhotoUploadWithGPSProps {
     onPhotoProcessed: (photoData: {
         file: File;
@@ -65,7 +68,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
     // Load Google Maps
     const { isLoaded: isMapsLoaded } = useJsApiLoader({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-        libraries: ["places", "maps"] as const,
+        libraries: GOOGLE_MAPS_LIBRARIES,
     });
 
     // Detect browser on mount

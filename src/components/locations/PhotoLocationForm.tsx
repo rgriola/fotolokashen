@@ -7,6 +7,9 @@ import { useAuth } from "@/lib/auth-context";
 import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import type { PhotoMetadata, ImageKitAuthData, ImageKitUploadResponse, PhotoUploadData, LocationFormData, LocationSubmitData } from "@/types/photo";
 import { FOLDER_PATHS, UPLOAD_SOURCES } from "@/lib/constants/upload";
+
+// IMPORTANT: Keep libraries array outside component to prevent Google Maps reload warning
+const GOOGLE_MAPS_LIBRARIES: ("places" | "maps")[] = ["places", "maps"];
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/lib/constants/messages";
 
 interface PhotoLocationFormProps {
@@ -46,7 +49,7 @@ export function PhotoLocationForm({
     // Load Google Maps API
     const { isLoaded } = useJsApiLoader({
         googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-        libraries: ["places", "maps"] as const,
+        libraries: GOOGLE_MAPS_LIBRARIES,
     });
 
     const handleSubmit = useCallback(async (data: LocationFormData): Promise<void> => {

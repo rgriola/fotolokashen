@@ -13,12 +13,33 @@
    - Avatar, Banner, Save Location, Edit Location, Create-with-Photo all use secure server pipeline
    - Server-side virus scanning (ClamAV) for all uploads
    - Server-side HEIC/TIFF → JPEG conversion (Sharp)
+   - Browser-side HEIC/TIFF → JPEG conversion (heic2any + UTIF) for proper previews
    - Centralized file size limits (`FILE_SIZE_LIMITS` constants)
    - Removed direct ImageKit client uploads from AvatarUpload, BannerUpload, ProfileHeader
    - Fixed critical security gap in `usePhotoCacheManager.ts` (deferred uploads now go through secure API)
    - Documentation: `/docs/features/UNIFIED_UPLOAD_SECURITY.md`
 
-2. ✅ **LocationDetailPanel UI/UX Refinements** - Cleaner presentation and improved usability
+2. ✅ **Create-with-Photo UX Refactor** (February 13, 2026) - Single-page layout
+   - Created new unified `CreateLocationWithPhoto.tsx` component
+   - Replaced 2-step wizard with single-page form (matches Save/Edit Location patterns)
+   - Integrated photo upload + GPS extraction + manual location + form in one view
+   - Uses `usePhotoCacheManager` for deferred upload (orphan prevention)
+   - Simplified `page.tsx` to render single component
+   - Browser-side HEIC/TIFF conversion with progress indicator
+   - Manual location selection with Google Maps + PlacesAutocomplete
+
+3. ✅ **Avatar/Banner HEIC/TIFF Support** (February 13, 2026)
+   - Added browser-side conversion to AvatarUpload.tsx and BannerUpload.tsx
+   - iPhone users can now upload HEIC photos without issues
+   - Conversion progress indicator (Loader2 spinner)
+   - Toast feedback during conversion
+
+4. ✅ **Google Maps Performance Fix** (February 13, 2026)
+   - Fixed "LoadScript has been reloaded unintentionally" warning
+   - Moved `libraries` array to module-level constant in 3 files
+   - Prevents unnecessary Google Maps script reloads on re-render
+
+5. ✅ **LocationDetailPanel UI/UX Refinements** - Cleaner presentation and improved usability
    - Removed photo counter (1/4 indicator) from PhotoGallery
    - Removed Primary badge and star rating badge from detail display
    - Combined Address and GPS coordinates into single panel with smaller coordinate font

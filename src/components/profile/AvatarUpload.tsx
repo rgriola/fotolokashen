@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Camera, User } from 'lucide-react';
+import { Camera, User, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { getOptimizedAvatarUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import { ImageEditor } from './ImageEditor';
 import { FILE_SIZE_LIMITS } from '@/lib/constants/upload';
+import { needsConversion, convertToJpeg } from '@/lib/image-converter';
 
 interface AvatarUploadProps {
     currentAvatar?: string | null;
@@ -19,6 +20,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(currentAvatar || null);
     const [imageError, setImageError] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [isConverting, setIsConverting] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [editorOpen, setEditorOpen] = useState(false);
 
@@ -64,24 +66,51 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
         }
     };
 
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                toast.error('Please select an image file');
-                return;
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            toast.error('Please select an image file');
+            return;
+        }
+
+        // Validate file size using global constant
+        const maxSizeMB = FILE_SIZE_LIMITS.AVATAR;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            toast.error(`Image must be less than ${maxSizeMB}MB`);
+            return;
+        }
+
+        try {
+            let fileToEdit = file;
+
+            // Convert HEIC/TIFF to JPEG if needed (for proper preview/editing)
+            if (needsConversion(file)) {
+                setIsConverting(true);
+                toast.info(`Converting ${file.name} to JPEG...`);
+
+                try {
+                    const convertedBlob = await convertToJpeg(file);
+                    const newFilename = file.name.replace(/\.(heic|heif|tif|tiff)$/i, '.jpg');
+                    fileToEdit = new File([convertedBlob], newFilename, { type: 'image/jpeg' });
+                    console.log('✅ Avatar conversion complete:', newFilename);
+                } catch (conversionError) {
+                    console.error('❌ Avatar conversion failed:', conversionError);
+                    toast.error('Failed to convert image format');
+                    setIsConverting(false);
+                    return;
+                } finally {
+                    setIsConverting(false);
+                }
             }
 
-            // Validate file size using global constant
-            const maxSizeMB = FILE_SIZE_LIMITS.AVATAR;
-            if (file.size > maxSizeMB * 1024 * 1024) {
-                toast.error(`Image must be less than ${maxSizeMB}MB`);
-                return;
-            }
-
-            setSelectedFile(file);
+            setSelectedFile(fileToEdit);
             setEditorOpen(true);
+        } catch (error) {
+            console.error('Error processing avatar file:', error);
+            toast.error('Failed to process image');
         }
     };
 
@@ -143,7 +172,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                         <label
                             htmlFor="avatar-file-select"
                             className={`relative group flex-shrink-0 w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer z-10 ${
-                                isUploading ? 'cursor-not-allowed' : ''
+                                isUploading || isConverting ? 'cursor-not-allowed' : ''
                             }`}
                             title="Change profile image"
                         >
@@ -167,9 +196,13 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
 
                                 {/* Hover overlay with camera icon */}
                                 <div className={`absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center ${
-                                    isUploading ? 'opacity-100' : ''
+                                    isUploading || isConverting ? 'opacity-100' : ''
                                 }`}>
-                                    <Camera className="w-8 h-8 md:w-10 md:h-10 text-white" />
+                                    {isConverting ? (
+                                        <Loader2 className="w-8 h-8 md:w-10 md:h-10 text-white animate-spin" />
+                                    ) : (
+                                        <Camera className="w-8 h-8 md:w-10 md:h-10 text-white" />
+                                    )}
                                 </div>
                             </div>
 
@@ -180,7 +213,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                                 accept="image/*"
                                 onChange={handleFileSelect}
                                 className="hidden"
-                                disabled={isUploading}
+                                disabled={isUploading || isConverting}
                             />
                         </label>
                     </div>
