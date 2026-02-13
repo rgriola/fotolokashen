@@ -570,7 +570,13 @@ export function EditLocationForm({
                 {/* Photo Carousel (if photos exist) */}
                 {(photos.length > 0 || cachedPhotos.length > 0) ? (
                     <PhotoCarouselManager
-                        photos={[...photos, ...cachedPhotos]}
+                        photos={[
+                            ...photos,
+                            ...cachedPhotos.map(cached => ({
+                                ...cached,
+                                url: cached.url || cached.preview, // Use preview URL for cached photos
+                            }))
+                        ]}
                         onPhotosChange={() => {}} // Not used in edit mode
                         onRemovePhoto={handleRemovePhoto}
                         photosToDelete={photosToDelete}

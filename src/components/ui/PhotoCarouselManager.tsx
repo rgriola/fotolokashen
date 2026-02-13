@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Star, Trash2, Info, Maximize2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Trash2, Info, Maximize2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PhotoLightbox } from "@/components/ui/PhotoLightbox";
@@ -38,6 +38,7 @@ export function PhotoCarouselManager({
     const [isDeleteHovered, setIsDeleteHovered] = useState(false);
     const [showMetadata, setShowMetadata] = useState(false);
     const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [imageLoadError, setImageLoadError] = useState(false);
 
     const handleSetPrimary = (index: number) => {
         const newPhotos = photos.map((photo, i) => ({
@@ -68,6 +69,11 @@ export function PhotoCarouselManager({
         }
     }, [photos.length, currentIndex]);
 
+    // Reset image load error when photo changes
+    useEffect(() => {
+        setImageLoadError(false);
+    }, [currentIndex]);
+
     if (photos.length === 0) {
         return null;
     }
@@ -91,14 +97,30 @@ export function PhotoCarouselManager({
                     onClick={() => setLightboxOpen(true)}
                     title="Click to view full size"
                 >
-                    <img
-                        src={currentPhoto.url}
-                        alt={currentPhoto.originalFilename}
-                        className={cn(
-                            "w-full h-full object-cover transition-all",
-                            isCurrentPhotoMarkedForDeletion && "opacity-50"
-                        )}
-                    />
+                    {!imageLoadError ? (
+                        <img
+                            src={currentPhoto.url}
+                            alt={currentPhoto.originalFilename}
+                            className={cn(
+                                "w-full h-full object-cover transition-all",
+                                isCurrentPhotoMarkedForDeletion && "opacity-50"
+                            )}
+                            onError={() => setImageLoadError(true)}
+                        />
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center">
+                            <Camera className="w-16 h-16 text-muted-foreground mb-4" />
+                            <p className="text-sm font-medium text-foreground mb-1">
+                                {currentPhoto.originalFilename}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                                Preview not available • Will convert on upload
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                {currentPhoto.mimeType} • {(currentPhoto.fileSize / 1024 / 1024).toFixed(2)} MB
+                            </p>
+                        </div>
+                    )}
 
                     {/* Expand icon on hover */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -269,6 +291,18 @@ export function PhotoCarouselManager({
                                         "w-full h-full object-cover transition-all",
                                         isMarkedForDeletion && "opacity-50"
                                     )}
+                                    onError={(e) => {
+                                        // Hide broken thumbnail images
+                                        e.currentTarget.style.display = 'none';
+                                        // Show file icon fallback
+                                        const parent = e.currentTarget.parentElement;
+                                        if (parent && !parent.querySelector('.thumbnail-fallback')) {
+                                            const fallback = document.createElement('div');
+                                            fallback.className = 'thumbnail-fallback absolute inset-0 flex items-center justify-center bg-muted';
+                                            fallback.innerHTML = '<svg class="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>';
+                                            parent.appendChild(fallback);
+                                        }
+                                    }}
                                 />
                                 
                                 {/* Deletion badge for marked photos */}
