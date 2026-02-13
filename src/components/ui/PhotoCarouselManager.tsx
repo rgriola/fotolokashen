@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Star, Trash2, Info, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -61,11 +61,24 @@ export function PhotoCarouselManager({
         setCurrentIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
     };
 
+    // Reset currentIndex if it's out of bounds after photo deletion
+    useEffect(() => {
+        if (currentIndex >= photos.length && photos.length > 0) {
+            setCurrentIndex(photos.length - 1);
+        }
+    }, [photos.length, currentIndex]);
+
     if (photos.length === 0) {
         return null;
     }
 
     const currentPhoto = photos[currentIndex];
+    
+    // Safety check: if currentPhoto is undefined (race condition during deletion), return null
+    if (!currentPhoto) {
+        return null;
+    }
+    
     const isCurrentPhotoMarkedForDeletion = currentPhoto.id && photosToDelete.includes(currentPhoto.id);
 
     return (
