@@ -215,8 +215,7 @@ export function ImageKitUploader({
                 throw new Error(error.error || 'Upload failed');
             }
 
-            const result = await uploadResponse.json();
-            const uploadData = result.data;
+            const uploadData = await uploadResponse.json();
             
             console.log('[ImageKitUploader] Upload successful! File path:', uploadData.upload.filePath);
 
