@@ -1,39 +1,18 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { IKContext, IKUpload } from 'imagekitio-react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Camera, User } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
-import { getOptimizedAvatarUrl, IMAGEKIT_URL_ENDPOINT, getImageKitFolder } from '@/lib/imagekit';
+import { getOptimizedAvatarUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import { ImageEditor } from './ImageEditor';
+import { FILE_SIZE_LIMITS } from '@/lib/constants/upload';
 
 interface AvatarUploadProps {
     currentAvatar?: string | null;
 }
-
-// ImageKit authenticator
-const authenticator = async () => {
-    try {
-        console.log('Fetching ImageKit auth...');
-        const response = await fetch('/api/imagekit/auth');
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Auth response error:', response.status, errorText);
-            throw new Error(`Authentication failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('ImageKit auth successful:', { ...data, signature: '***' });
-        return data;
-    } catch (error) {
-        console.error('ImageKit auth error:', error);
-        throw error;
-    }
-};
 
 export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
     const { user, refetchUser } = useAuth();
@@ -42,7 +21,6 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [editorOpen, setEditorOpen] = useState(false);
-    const ikUploadRef = useRef<HTMLInputElement | null>(null);
 
     // Sync preview with prop changes
     useEffect(() => {
@@ -50,69 +28,40 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
         setImageError(false);
     }, [currentAvatar]);
 
-    const onError = (err: any) => {
-        console.error('ImageKit upload error:', err);
-        console.error('Error type:', typeof err);
-        console.error('Error keys:', Object.keys(err || {}));
-        console.error('Error details:', JSON.stringify(err, null, 2));
-        console.error('Error message:', err?.message);
-        console.error('Error response:', err?.response);
-        console.error('Error help:', err?.help);
-
-        // Determine error message
-        let errorMessage = 'Failed to upload image';
-        
-        if (err?.message) {
-            errorMessage = err.message;
-        } else if (err?.help) {
-            errorMessage = err.help;
-        } else if (err?.response?.data?.message) {
-            errorMessage = err.response.data.message;
-        } else if (typeof err === 'string') {
-            errorMessage = err;
-        }
-
-        toast.error(errorMessage);
-        setIsUploading(false);
-    };
-
-    const onSuccess = async (res: any) => {
-        console.log('ImageKit upload success:', res);
+    /**
+     * Upload cropped image to secure API endpoint
+     */
+    const uploadAvatar = async (file: File): Promise<void> => {
+        setIsUploading(true);
+        toast.info('Uploading image...');
 
         try {
-            // Update user's avatar in database
+            const formData = new FormData();
+            formData.append('avatar', file);
+
             const response = await fetch('/api/auth/avatar', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    avatarUrl: res.url,
-                    fileId: res.fileId,
-                }),
+                credentials: 'include',
+                body: formData,
             });
 
             const result = await response.json();
 
             if (!response.ok) {
-                toast.error(result.error || 'Failed to update avatar');
-                return;
+                throw new Error(result.error || 'Failed to upload avatar');
             }
 
             toast.success('Avatar updated successfully');
-            setPreviewUrl(res.url);
+            setPreviewUrl(result.avatarUrl);
 
             // Refresh user data
             await refetchUser();
         } catch (error) {
-            console.error('Avatar update error:', error);
-            toast.error('Failed to update avatar');
+            console.error('Avatar upload error:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to upload avatar');
         } finally {
             setIsUploading(false);
         }
-    };
-
-    const onUploadStart = () => {
-        setIsUploading(true);
-        toast.info('Uploading image...');
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,9 +73,10 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                 return;
             }
 
-            // Validate file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error('Image must be less than 5MB');
+            // Validate file size using global constant
+            const maxSizeMB = FILE_SIZE_LIMITS.AVATAR;
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                toast.error(`Image must be less than ${maxSizeMB}MB`);
                 return;
             }
 
@@ -137,19 +87,9 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
 
     const handleEditorSave = async (croppedBlob: Blob, fileName: string) => {
         try {
-            // Convert blob to file
+            // Convert blob to file and upload via secure API
             const file = new File([croppedBlob], fileName, { type: 'image/jpeg' });
-
-            // Trigger ImageKit upload programmatically
-            if (ikUploadRef.current) {
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                ikUploadRef.current.files = dataTransfer.files;
-
-                // Trigger change event to start upload
-                const event = new Event('change', { bubbles: true });
-                ikUploadRef.current.dispatchEvent(event);
-            }
+            await uploadAvatar(file);
         } catch (error) {
             console.error('Error uploading edited image:', error);
             toast.error('Failed to upload edited image');
@@ -243,34 +183,6 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                                 disabled={isUploading}
                             />
                         </label>
-
-                        {/* Hidden ImageKit upload component (triggered after editing) */}
-                        <IKContext
-                            publicKey={process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || ''}
-                            urlEndpoint={IMAGEKIT_URL_ENDPOINT}
-                            authenticator={authenticator}
-                        >
-                            <IKUpload
-                                ref={ikUploadRef}
-                                fileName={`avatar-${user?.id}-${Date.now()}`}
-                                folder={getImageKitFolder(`users/${user?.id}/avatars`)}
-                                tags={['avatar', 'profile']}
-                                useUniqueFileName={true}
-                                onError={onError}
-                                onSuccess={onSuccess}
-                                onUploadStart={onUploadStart}
-                                className="hidden"
-                                accept="image/*"
-                                transformation={{
-                                    post: [
-                                        {
-                                            type: 'transformation',
-                                            value: 'w-400,h-400,c-at_max',
-                                        },
-                                    ],
-                                }}
-                            />
-                        </IKContext>
                     </div>
                 </div>
             </CardContent>

@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     const maxSize = uploadType === 'location' 
       ? FILE_SIZE_LIMITS.PHOTO 
       : uploadType === 'banner'
-        ? 10
+        ? FILE_SIZE_LIMITS.BANNER
         : FILE_SIZE_LIMITS.AVATAR;
     
     const maxSizeBytes = maxSize * 1024 * 1024;

@@ -9,7 +9,7 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 import type { CachedPhoto, UploadedPhotoData, PhotoCacheManagerResult } from '@/types/photo-cache';
-import { FOLDER_PATHS, FILE_SIZE_LIMITS, PHOTO_LIMITS } from '@/lib/constants/upload';
+import { FILE_SIZE_LIMITS, PHOTO_LIMITS } from '@/lib/constants/upload';
 
 interface UsePhotoCacheManagerOptions {
     maxPhotos?: number;
@@ -205,75 +205,52 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
     }, []);
 
     /**
-     * Get ImageKit auth parameters
+     * Upload single photo via secure server endpoint
+     * Server handles: virus scan, format conversion, compression, CDN upload
      */
-    const getAuthParams = useCallback(async () => {
-        try {
-            const response = await fetch('/api/imagekit/auth', {
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to get authentication');
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('[PhotoCache] Error getting ImageKit auth:', error);
-            throw new Error('Failed to authenticate for photo upload');
-        }
-    }, []);
-
-    /**
-     * Upload single photo to ImageKit
-     */
-    const uploadPhotoToImageKit = useCallback(async (
-        cachedPhoto: CachedPhoto,
-        authData: { publicKey: string; signature: string; expire: number; token: string }
+    const uploadPhotoSecurely = useCallback(async (
+        cachedPhoto: CachedPhoto
     ): Promise<UploadedPhotoData> => {
         const { file, originalFilename } = cachedPhoto;
 
-        // Prepare folder path (always use user folder - database tracks location relationship)
-        const uploadFolder = FOLDER_PATHS.userPhotos(user?.id || 0);
-
-        // Create form data
+        // Prepare form data for secure upload endpoint
         const formData = new FormData();
-        formData.append('file', file);
-        formData.append('fileName', originalFilename.replace(/\s+/g, '-'));
-        formData.append('folder', uploadFolder);
-        formData.append('publicKey', authData.publicKey);
-        formData.append('signature', authData.signature);
-        formData.append('expire', authData.expire.toString());
-        formData.append('token', authData.token);
+        formData.append('photo', file);
+        formData.append('uploadType', 'location'); // All cached photos are for locations
 
-        console.log('[PhotoCache] Uploading to ImageKit:', uploadFolder);
+        console.log('[PhotoCache] Uploading via secure endpoint...');
 
-        const response = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+        // Upload via secure endpoint (includes virus scan, format validation, compression)
+        const response = await fetch('/api/photos/upload', {
             method: 'POST',
+            credentials: 'include',
             body: formData,
         });
 
         if (!response.ok) {
-            const error = await response.text();
-            console.error('[PhotoCache] ImageKit upload failed:', error);
-            throw new Error('Failed to upload photo to ImageKit');
+            const errorData = await response.json();
+            console.error('[PhotoCache] Secure upload failed:', errorData);
+            throw new Error(errorData.error || 'Failed to upload photo');
         }
 
         const result = await response.json();
+        const uploadData = result.data;
+
+        console.log('[PhotoCache] Upload successful:', uploadData.upload.filePath);
 
         return {
-            imagekitFileId: result.fileId,
-            imagekitFilePath: result.filePath,
+            imagekitFileId: uploadData.upload.fileId,
+            imagekitFilePath: uploadData.upload.filePath,
             originalFilename,
-            fileSize: file.size,
-            mimeType: file.type,
-            width: cachedPhoto.width,
-            height: cachedPhoto.height,
-            url: result.url,
+            fileSize: uploadData.file.size,
+            mimeType: uploadData.file.mimeType,
+            width: uploadData.upload.width,
+            height: uploadData.upload.height,
+            url: uploadData.upload.url,
             isPrimary: cachedPhoto.isPrimary,
             caption: cachedPhoto.caption,
         };
-    }, [user]);
+    }, []);
 
     /**
      * Upload all cached photos to ImageKit
@@ -303,11 +280,8 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
                         )
                     );
 
-                    // Get fresh auth params for EACH photo (ImageKit requires unique tokens)
-                    const authData = await getAuthParams();
-
-                    // Upload
-                    const uploadedPhoto = await uploadPhotoToImageKit(cachedPhoto, authData);
+                    // Upload via secure server endpoint
+                    const uploadedPhoto = await uploadPhotoSecurely(cachedPhoto);
                     uploadedPhotos.push(uploadedPhoto);
 
                     // Update success state
@@ -356,7 +330,7 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
         } finally {
             setIsUploading(false);
         }
-    }, [cachedPhotos, getAuthParams, uploadPhotoToImageKit]);
+    }, [cachedPhotos, uploadPhotoSecurely]);
 
     /**
      * Clear all cached photos

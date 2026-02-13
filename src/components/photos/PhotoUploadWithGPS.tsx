@@ -12,6 +12,7 @@ import Image from "next/image";
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { PlacesAutocomplete } from "@/components/maps/PlacesAutocomplete";
 import type { LocationData } from "@/lib/maps-utils";
+import { FILE_SIZE_LIMITS } from "@/lib/constants/upload";
 
 interface PhotoUploadWithGPSProps {
     onPhotoProcessed: (photoData: {
@@ -157,9 +158,10 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
             return;
         }
 
-        // Validate file size (max 10MB)
-        if (selectedFile.size > 10 * 1024 * 1024) {
-            setError('File size must be less than 10MB');
+        // Validate file size using global constant
+        const maxSizeMB = FILE_SIZE_LIMITS.PHOTO;
+        if (selectedFile.size > maxSizeMB * 1024 * 1024) {
+            setError(`File size must be less than ${maxSizeMB}MB`);
             return;
         }
 

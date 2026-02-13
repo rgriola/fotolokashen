@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
 import { generateSignedUploadUrl } from '@/lib/imagekit';
+import { FILE_SIZE_LIMITS } from '@/lib/constants/upload';
 
 /**
  * POST /api/locations/[id]/photos/request-upload
@@ -77,9 +78,10 @@ export async function POST(
             return apiError('Invalid mime type. Only JPEG, PNG, and HEIC images are allowed', 400);
         }
 
-        // Validate file size (max 10MB)
-        if (size && size > 10 * 1024 * 1024) {
-            return apiError('File size exceeds 10MB limit', 400);
+        // Validate file size using global constant
+        const maxSizeMB = FILE_SIZE_LIMITS.PHOTO;
+        if (size && size > maxSizeMB * 1024 * 1024) {
+            return apiError(`File size exceeds ${maxSizeMB}MB limit`, 400);
         }
 
         // Generate unique filename

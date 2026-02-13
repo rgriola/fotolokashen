@@ -1,31 +1,16 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { IKContext, IKUpload } from 'imagekitio-react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Camera, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
-import { IMAGEKIT_URL_ENDPOINT, getImageKitFolder } from '@/lib/imagekit';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ImageEditor } from './ImageEditor';
 import BannerEditor from './BannerEditor';
-
-// ImageKit authenticator
-const authenticator = async () => {
-    try {
-        const response = await fetch('/api/imagekit/auth');
-        if (!response.ok) {
-            throw new Error(`Authentication failed: ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('ImageKit auth error:', error);
-        throw error;
-    }
-};
+import { FILE_SIZE_LIMITS } from '@/lib/constants/upload';
 
 export function ProfileHeader() {
     const { user, refetchUser } = useAuth();
@@ -39,8 +24,6 @@ export function ProfileHeader() {
     const [selectedBannerFile, setSelectedBannerFile] = useState<File | null>(null);
     const [editorOpen, setEditorOpen] = useState(false);
     const [bannerEditorOpen, setBannerEditorOpen] = useState(false);
-    const avatarUploadRef = useRef<HTMLInputElement | null>(null);
-    const bannerUploadRef = useRef<HTMLInputElement | null>(null);
 
     // Sync preview states with user data
     useEffect(() => {
@@ -52,33 +35,35 @@ export function ProfileHeader() {
         }
     }, [user?.avatar, user?.bannerImage]);
 
-    // Avatar handlers
-    const onAvatarError = (err: any) => {
-        console.error('Avatar upload error:', err);
-        toast.error(err?.message || 'Failed to upload avatar');
-        setIsUploadingAvatar(false);
-    };
+    /**
+     * Upload avatar to secure API endpoint
+     */
+    const uploadAvatar = async (file: File): Promise<void> => {
+        setIsUploadingAvatar(true);
+        toast.info('Uploading avatar...');
 
-    const onAvatarSuccess = async (res: any) => {
         try {
+            const formData = new FormData();
+            formData.append('avatar', file);
+
             const response = await fetch('/api/auth/avatar', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ avatarUrl: res.url, fileId: res.fileId }),
+                credentials: 'include',
+                body: formData,
             });
 
             const result = await response.json();
+
             if (!response.ok) {
-                toast.error(result.error || 'Failed to update avatar');
-                return;
+                throw new Error(result.error || 'Failed to upload avatar');
             }
 
             toast.success('Avatar updated successfully');
-            setAvatarPreview(res.url);
+            setAvatarPreview(result.avatarUrl);
             await refetchUser();
         } catch (error) {
-            console.error('Avatar update error:', error);
-            toast.error('Failed to update avatar');
+            console.error('Avatar upload error:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to upload avatar');
         } finally {
             setIsUploadingAvatar(false);
         }
@@ -91,8 +76,9 @@ export function ProfileHeader() {
                 toast.error('Please select an image file');
                 return;
             }
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error('Image must be less than 5MB');
+            const maxSizeMB = FILE_SIZE_LIMITS.AVATAR;
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                toast.error(`Image must be less than ${maxSizeMB}MB`);
                 return;
             }
             setSelectedFile(file);
@@ -103,13 +89,7 @@ export function ProfileHeader() {
     const handleEditorSave = async (croppedBlob: Blob, fileName: string) => {
         try {
             const file = new File([croppedBlob], fileName, { type: 'image/jpeg' });
-            if (avatarUploadRef.current) {
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                avatarUploadRef.current.files = dataTransfer.files;
-                const event = new Event('change', { bubbles: true });
-                avatarUploadRef.current.dispatchEvent(event);
-            }
+            await uploadAvatar(file);
         } catch (error) {
             console.error('Error uploading edited image:', error);
             toast.error('Failed to upload edited image');
@@ -124,8 +104,9 @@ export function ProfileHeader() {
                 toast.error('Please select an image file');
                 return;
             }
-            if (file.size > 10 * 1024 * 1024) {
-                toast.error('Image must be less than 10MB');
+            const maxSizeMB = FILE_SIZE_LIMITS.BANNER;
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                toast.error(`Image must be less than ${maxSizeMB}MB`);
                 return;
             }
             setSelectedBannerFile(file);
@@ -133,17 +114,45 @@ export function ProfileHeader() {
         }
     };
 
+    /**
+     * Upload banner to secure API endpoint
+     */
+    const uploadBanner = async (file: File): Promise<void> => {
+        setIsUploadingBanner(true);
+        toast.info('Uploading banner...');
+
+        try {
+            const formData = new FormData();
+            formData.append('banner', file);
+
+            const response = await fetch('/api/auth/banner', {
+                method: 'POST',
+                credentials: 'include',
+                body: formData,
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to upload banner');
+            }
+
+            toast.success('Banner updated successfully');
+            setBannerPreview(result.bannerUrl);
+            await refetchUser();
+        } catch (error) {
+            console.error('Banner upload error:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to upload banner');
+        } finally {
+            setIsUploadingBanner(false);
+        }
+    };
+
     const handleBannerEditorSave = async (croppedBlob: Blob) => {
         try {
             const fileName = selectedBannerFile?.name || 'banner.jpg';
             const file = new File([croppedBlob], fileName, { type: 'image/jpeg' });
-            if (bannerUploadRef.current) {
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                bannerUploadRef.current.files = dataTransfer.files;
-                const event = new Event('change', { bubbles: true });
-                bannerUploadRef.current.dispatchEvent(event);
-            }
+            await uploadBanner(file);
             
             // Close the editor
             setBannerEditorOpen(false);
@@ -151,38 +160,6 @@ export function ProfileHeader() {
         } catch (error) {
             console.error('Error uploading edited banner:', error);
             toast.error('Failed to upload edited banner');
-        }
-    };
-
-    const onBannerError = (err: any) => {
-        console.error('Banner upload error:', err);
-        toast.error(err?.message || 'Failed to upload banner');
-        setIsUploadingBanner(false);
-    };
-
-    const onBannerSuccess = async (res: any) => {
-        try {
-            const response = await fetch('/api/auth/banner', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bannerUrl: res.url, fileId: res.fileId }),
-            });
-
-            const result = await response.json();
-            
-            if (!response.ok) {
-                toast.error(result.error || 'Failed to update banner');
-                return;
-            }
-
-            toast.success('Banner updated successfully');
-            setBannerPreview(res.url);
-            await refetchUser();
-        } catch (error) {
-            console.error('Banner update error:', error);
-            toast.error('Failed to update banner');
-        } finally {
-            setIsUploadingBanner(false);
         }
     };
 
@@ -232,32 +209,6 @@ export function ProfileHeader() {
                     />
                 </label>
 
-                {/* Hidden ImageKit upload (triggered after editing) */}
-                <IKContext
-                    publicKey={process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || ''}
-                    urlEndpoint={IMAGEKIT_URL_ENDPOINT}
-                    authenticator={authenticator}
-                >
-                    <IKUpload
-                        ref={bannerUploadRef}
-                        fileName={`banner-${user?.id}-${Date.now()}`}
-                        folder={getImageKitFolder(`users/${user?.id}/banners`)}
-                        tags={['banner', 'profile']}
-                        useUniqueFileName={true}
-                        onError={onBannerError}
-                        onSuccess={onBannerSuccess}
-                        onUploadStart={() => {
-                            setIsUploadingBanner(true);
-                            toast.info('Uploading banner...');
-                        }}
-                        className="hidden"
-                        accept="image/*"
-                        transformation={{
-                            post: [{ type: 'transformation', value: 'w-1200,h-400,c-at_max' }],
-                        }}
-                    />
-                </IKContext>
-
                 {/* Avatar and User Info Section */}
                 <div className="relative px-4 md:px-6 pb-4">
                     {/* Avatar positioned overlapping the banner */}
@@ -303,32 +254,6 @@ export function ProfileHeader() {
                                 disabled={isUploadingAvatar}
                             />
                         </label>
-
-                        {/* Hidden ImageKit upload (triggered after editing) */}
-                        <IKContext
-                            publicKey={process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || ''}
-                            urlEndpoint={IMAGEKIT_URL_ENDPOINT}
-                            authenticator={authenticator}
-                        >
-                            <IKUpload
-                                ref={avatarUploadRef}
-                                fileName={`avatar-${user?.id}-${Date.now()}`}
-                                folder={getImageKitFolder(`users/${user?.id}/avatars`)}
-                                tags={['avatar', 'profile']}
-                                useUniqueFileName={true}
-                                onError={onAvatarError}
-                                onSuccess={onAvatarSuccess}
-                                onUploadStart={() => {
-                                    setIsUploadingAvatar(true);
-                                    toast.info('Uploading avatar...');
-                                }}
-                                className="hidden"
-                                accept="image/*"
-                                transformation={{
-                                    post: [{ type: 'transformation', value: 'w-400,h-400,c-at_max' }],
-                                }}
-                            />
-                        </IKContext>
 
                         {/* User Info */}
                         <div className="flex-1 sm:mb-2">

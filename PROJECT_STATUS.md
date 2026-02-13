@@ -1,15 +1,24 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-02-11  
+**Last Updated**: 2026-02-13  
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
 ## Current Focus
 
-### 🎯 Active Development (February 11, 2026)
+### 🎯 Active Development (February 13, 2026)
 
 **This Week's Completion:**
-1. ✅ **LocationDetailPanel UI/UX Refinements** - Cleaner presentation and improved usability
+1. ✅ **Unified Upload Security** (February 13, 2026) - All 5 image upload entry points secured
+   - Avatar, Banner, Save Location, Edit Location, Create-with-Photo all use secure server pipeline
+   - Server-side virus scanning (ClamAV) for all uploads
+   - Server-side HEIC/TIFF → JPEG conversion (Sharp)
+   - Centralized file size limits (`FILE_SIZE_LIMITS` constants)
+   - Removed direct ImageKit client uploads from AvatarUpload, BannerUpload, ProfileHeader
+   - Fixed critical security gap in `usePhotoCacheManager.ts` (deferred uploads now go through secure API)
+   - Documentation: `/docs/features/UNIFIED_UPLOAD_SECURITY.md`
+
+2. ✅ **LocationDetailPanel UI/UX Refinements** - Cleaner presentation and improved usability
    - Removed photo counter (1/4 indicator) from PhotoGallery
    - Removed Primary badge and star rating badge from detail display
    - Combined Address and GPS coordinates into single panel with smaller coordinate font
@@ -23,7 +32,7 @@
    - Improved PhotoGallery caption/metadata toggle (info button)
    - Removed unused imports and variables for code cleanliness
 
-2. ✅ **Support System Enhancements** - Public and member support forms with email integration
+3. ✅ **Support System Enhancements** - Public and member support forms with email integration
    - Public support form at `/support` with human verification (hold-to-verify)
    - Member support form at `/member-support` (authenticated, no verification needed)
    - Dual-email system: admin notification + user confirmation
@@ -32,7 +41,7 @@
    - Support email templates added to admin system
    - Rate limiting: 3/hour (public), 5/hour (members)
    
-3. ✅ **Navigation & UX Improvements**
+4. ✅ **Navigation & UX Improvements**
    - Tour management consolidated in Profile → Preferences
    - "Start Tour" removed from dropdown (auto-starts on first login)
    - Support link added to member dropdown menu
@@ -210,14 +219,17 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 
 ### Technology Stack
 
-- **Framework**: Next.js 16.0.10 (App Router, React 19, TypeScript)
+- **Framework**: Next.js 16.0.10 (App Router, React 19, TypeScript 5)
 - **Database**: PostgreSQL (Neon Cloud)
   - Production: `ep-cool-star-a4dyxqi4`
   - Development: `ep-solitary-waterfall-a4yhnlsh`
 - **ORM**: Prisma 6.19.1
 - **CDN**: ImageKit (photo storage)
+- **Image Processing**: Sharp 0.33.x (server-side conversion/compression)
+- **Security**: ClamAV (virus scanning via clamav.js)
 - **Authentication**: Custom JWT-based system
 - **Email**: Resend API with custom HTML templates
+- **State Management**: TanStack Query (React Query)
 - **Deployment**: Vercel
 - **Monitoring**: Sentry (error tracking)
 
@@ -293,12 +305,16 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - User profiles with saved locations
 - Privacy enforcement throughout the app
 
-✅ **Photo Upload**
+✅ **Photo Upload** (Enhanced February 2026)
 - Multiple photos per location
 - ImageKit CDN storage
 - Flat directory structure: `/{environment}/users/{userId}/photos/`
+- **Unified secure upload pipeline** (all 5 entry points)
+- Server-side virus scanning (ClamAV)
+- Server-side HEIC/TIFF → JPEG conversion (Sharp)
+- Centralized file size limits (10MB global max)
 - Photo viewer with lightbox
-- EXIF data extraction (GPS, camera info)
+- EXIF data extraction and preservation (GPS, camera info)
 
 ✅ **Map Interface**
 - Interactive Google Maps display
@@ -436,6 +452,15 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - 🔄 User guide and help system content
 
 ## Recent Deployments
+
+**2026-02-13**: Unified Upload Security Implementation
+- Secured all 5 image upload entry points (Avatar, Banner, Save Location, Edit Location, Create-with-Photo)
+- Implemented server-side virus scanning via ClamAV for all uploads
+- Added server-side HEIC/TIFF → JPEG conversion using Sharp
+- Centralized file size limits in `FILE_SIZE_LIMITS` constants (10MB global max)
+- Removed direct ImageKit client uploads from AvatarUpload, BannerUpload, ProfileHeader
+- Fixed critical security gap in `usePhotoCacheManager.ts` (deferred uploads now use `/api/photos/upload`)
+- All uploads now go through secure server pipeline with validation, scanning, and processing
 
 **2026-01-11/12**: Security & Email System Overhaul
 - Implemented comprehensive email template system

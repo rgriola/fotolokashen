@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
 import { uploadToImageKit, deleteFromImageKit } from '@/lib/imagekit';
 import prisma from '@/lib/prisma';
-import { FOLDER_PATHS } from '@/lib/constants/upload';
+import { FOLDER_PATHS, FILE_SIZE_LIMITS } from '@/lib/constants/upload';
 import { scanFile } from '@/lib/virus-scan';
 
 /**
@@ -45,9 +45,10 @@ export async function POST(request: NextRequest) {
                 return apiError('File must be an image', 400, 'INVALID_FILE_TYPE');
             }
 
-            // Validate file size (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                return apiError('File size must be less than 5MB', 400, 'FILE_TOO_LARGE');
+            // Validate file size
+            const maxSizeMB = FILE_SIZE_LIMITS.AVATAR;
+            if (file.size > maxSizeMB * 1024 * 1024) {
+                return apiError(`File size must be less than ${maxSizeMB}MB`, 400, 'FILE_TOO_LARGE');
             }
 
             // Convert file to buffer

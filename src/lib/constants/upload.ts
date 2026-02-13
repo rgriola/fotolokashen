@@ -57,10 +57,16 @@ export function getUserRootFolder(userId: number): string {
 
 /**
  * File size limits (in MB)
+ * UPLOAD_MAX is the universal maximum for all uploads (web + iOS)
  */
 export const FILE_SIZE_LIMITS = {
-    PHOTO: 10, // Increased from 1.5 MB to 10 MB for modern photos
-    AVATAR: 5,
+    // Universal maximum - used by all upload endpoints and client validation
+    UPLOAD_MAX: 10,     // 10MB - Maximum file size accepted by server
+    
+    // Type-specific limits (can be <= UPLOAD_MAX)
+    PHOTO: 10,          // 10MB for location photos
+    AVATAR: 5,          // 5MB for avatars (smaller images)
+    BANNER: 10,         // 10MB for banner images (larger format)
 } as const;
 
 /**
