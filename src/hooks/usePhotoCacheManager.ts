@@ -68,6 +68,7 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
 
     /**
      * Load image and get dimensions
+     * For browser-incompatible formats (HEIC, TIFF), returns placeholder dimensions
      */
     const getImageDimensions = useCallback((file: File): Promise<{ width: number; height: number }> => {
         return new Promise((resolve, reject) => {
@@ -81,7 +82,11 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
 
             img.onerror = () => {
                 URL.revokeObjectURL(objectUrl);
-                reject(new Error('Failed to load image'));
+                
+                // For formats browser can't preview (HEIC, TIFF, etc.), use placeholder dimensions
+                // Actual dimensions will be determined server-side during upload/conversion
+                console.log('[PhotoCache] Browser cannot preview this format, using placeholder dimensions');
+                resolve({ width: 1920, height: 1080 }); // Placeholder - server will provide real dimensions
             };
 
             img.src = objectUrl;
