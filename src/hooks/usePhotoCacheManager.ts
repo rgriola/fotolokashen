@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 import type { CachedPhoto, UploadedPhotoData, PhotoCacheManagerResult } from '@/types/photo-cache';
 import { FILE_SIZE_LIMITS, PHOTO_LIMITS } from '@/lib/constants/upload';
+import { needsConversion, convertToJpeg } from '@/lib/image-converter';
 
 interface UsePhotoCacheManagerOptions {
     maxPhotos?: number;
@@ -121,23 +122,48 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
         console.log('[PhotoCache] Validation passed, proceeding with upload...');
 
         try {
-            // Get dimensions
-            const { width, height } = await getImageDimensions(file);
+            // Convert HEIC/TIFF to JPEG if needed (for browser preview)
+            let fileToCache = file;
+            const originalFilename = file.name;
+            
+            if (needsConversion(file)) {
+                console.log('[PhotoCache] 🔄 Converting', file.type, 'to JPEG for preview...');
+                toast.info(`Converting ${file.name} to JPEG...`);
+                
+                try {
+                    const convertedBlob = await convertToJpeg(file);
+                    
+                    // Create new File from converted Blob with .jpg extension
+                    const newFilename = originalFilename.replace(/\.(heic|heif|tif|tiff)$/i, '.jpg');
+                    fileToCache = new File([convertedBlob], newFilename, { type: 'image/jpeg' });
+                    
+                    console.log('[PhotoCache] ✅ Conversion successful:', newFilename);
+                    console.log('[PhotoCache] Original size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+                    console.log('[PhotoCache] Converted size:', (fileToCache.size / 1024 / 1024).toFixed(2), 'MB');
+                } catch (conversionError) {
+                    console.error('[PhotoCache] ❌ Conversion failed:', conversionError);
+                    toast.error('Failed to convert image format');
+                    return;
+                }
+            }
+
+            // Get dimensions from the file to cache (converted or original)
+            const { width, height } = await getImageDimensions(fileToCache);
             console.log('[PhotoCache] Got dimensions:', width, 'x', height);
 
-            // Create preview URL
-            const preview = URL.createObjectURL(file);
+            // Create preview URL from converted file (browsers can display JPEG)
+            const preview = URL.createObjectURL(fileToCache);
             objectUrlsRef.current.add(preview);
             console.log('[PhotoCache] Created preview URL:', preview);
 
-            // Create cached photo
+            // Create cached photo with converted file
             const cachedPhoto: CachedPhoto = {
                 id: `cached-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                file,
+                file: fileToCache, // Use converted file (JPEG) for upload
                 preview,
-                originalFilename: file.name,
-                fileSize: file.size,
-                mimeType: file.type,
+                originalFilename, // Keep original filename for display
+                fileSize: fileToCache.size, // Use converted file size
+                mimeType: fileToCache.type, // Will be 'image/jpeg' if converted
                 width,
                 height,
                 isPrimary: false, // Will be set in the updater function
