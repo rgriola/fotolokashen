@@ -207,7 +207,7 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                                 type="button"
                                 onClick={() => setCurrentIndex(index)}
                                 className={cn(
-                                    "relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all",
+                                    "relative shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all",
                                     currentIndex === index
                                         ? "border-primary ring-2 ring-primary/20"
                                         : "border-border hover:border-primary/50"

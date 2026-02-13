@@ -386,8 +386,8 @@ export function ImageKitUploader({
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
                 className={`
-border - 2 border - dashed rounded - lg p - 8 text - center cursor - pointer
-transition - colors duration - 200
+border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
+transition-colors duration-200
                     ${dragActive
                         ? 'border-primary bg-primary/5'
                         : 'border-border hover:border-primary/50'

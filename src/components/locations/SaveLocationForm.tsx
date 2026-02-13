@@ -353,7 +353,7 @@ export function SaveLocationForm({
                             >
                                 <SelectTrigger
                                     id="type"
-                                    className={`focus:ring-green-500 focus:ring-2 w-full min-w-[140px] ${
+                                    className={`focus:ring-green-500 focus:ring-2 w-full min-w-35 ${
                                         form.formState.errors.type 
                                             ? "border-destructive ring-destructive" 
                                             : ""
@@ -391,7 +391,7 @@ export function SaveLocationForm({
                                 }
                                 defaultValue={form.getValues("personalRating")?.toString()}
                             >
-                                <SelectTrigger className="w-full min-w-[110px]">
+                                <SelectTrigger className="w-full min-w-27.5">
                                     <SelectValue placeholder="Rate" />
                                 </SelectTrigger>
                                 <SelectContent>

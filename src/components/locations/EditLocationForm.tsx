@@ -636,7 +636,7 @@ export function EditLocationForm({
                             >
                                 <SelectTrigger
                                     id="type"
-                                    className={`focus:ring-green-500 focus:ring-2 w-full min-w-[140px] ${
+                                    className={`focus:ring-green-500 focus:ring-2 w-full min-w-35 ${
                                         form.formState.errors.type 
                                             ? "border-destructive ring-destructive" 
                                             : ""
@@ -674,7 +674,7 @@ export function EditLocationForm({
                                 }
                                 defaultValue={form.getValues("personalRating")?.toString()}
                             >
-                                <SelectTrigger className="w-full min-w-[110px]">
+                                <SelectTrigger className="w-full min-w-27.5">
                                     <SelectValue placeholder="Rate" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -918,7 +918,7 @@ export function EditLocationForm({
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
+                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-500 shrink-0" />
                                 <p className="font-semibold text-sm sm:text-base text-amber-900 dark:text-amber-100">
                                     Unsaved changes
                                 </p>
@@ -934,7 +934,7 @@ export function EditLocationForm({
                                 )}
                             </ul>
                         </div>
-                        <div className="flex gap-2 sm:gap-2 sm:flex-shrink-0">
+                        <div className="flex gap-2 sm:gap-2 sm:shrink-0">
                             <Button
                                 variant="outline"
                                 size="sm"

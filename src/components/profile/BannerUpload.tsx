@@ -103,7 +103,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
     };
 
     return (
-        <div className="relative w-full h-[240px] md:h-[300px] group overflow-hidden rounded-t-lg">
+        <div className="relative w-full h-60 md:h-75 group overflow-hidden rounded-t-lg">
             {/* Banner Image */}
             {previewUrl && !imageError ? (
                 <Image
@@ -116,7 +116,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
                     unoptimized={previewUrl.startsWith('data:')}
                 />
             ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500" />
+                <div className="w-full h-full bg-linear-to-br from-blue-500 via-purple-500 to-pink-500" />
             )}
 
             {/* Overlay for better visibility */}

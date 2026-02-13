@@ -141,7 +141,7 @@ export function PhotoCarouselManager({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute top-2 right-2 w-8 h-8 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-[5]"
+                        className="absolute top-2 right-2 w-8 h-8 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-5"
                         onClick={(e) => {
                             e.stopPropagation();
                             handleSetPrimary(currentIndex);
@@ -169,7 +169,7 @@ export function PhotoCarouselManager({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute top-2 left-2 w-8 h-8 bg-black/40 hover:bg-red-600/80 backdrop-blur-sm transition-all z-[5]"
+                        className="absolute top-2 left-2 w-8 h-8 bg-black/40 hover:bg-red-600/80 backdrop-blur-sm transition-all z-5"
                         onMouseEnter={() => setIsDeleteHovered(true)}
                         onMouseLeave={() => setIsDeleteHovered(false)}
                         onClick={(e) => {
@@ -194,7 +194,7 @@ export function PhotoCarouselManager({
                                 type="button"
                                 variant="secondary"
                                 size="icon"
-                                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-[5]"
+                                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-5"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     goToPrevious();
@@ -206,7 +206,7 @@ export function PhotoCarouselManager({
                                 type="button"
                                 variant="secondary"
                                 size="icon"
-                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-[5]"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 opacity-80 hover:opacity-100 transition-opacity z-5"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     goToNext();
@@ -242,7 +242,7 @@ export function PhotoCarouselManager({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="w-6 h-6 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-[5]"
+                            className="w-6 h-6 bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-all z-5"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setShowMetadata(!showMetadata);
@@ -278,7 +278,7 @@ export function PhotoCarouselManager({
                                 type="button"
                                 onClick={() => setCurrentIndex(index)}
                                 className={cn(
-                                    "relative flex-shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all",
+                                    "relative shrink-0 w-20 h-20 rounded-md overflow-hidden border-2 transition-all",
                                     currentIndex === index
                                         ? "border-primary ring-2 ring-primary/20"
                                         : "border-border hover:border-primary/50"

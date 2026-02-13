@@ -1321,7 +1321,7 @@ function MapPageInner() {
 
             {/* Floating Search Bar - Appears above buttons */}
             {showSearchDialog && (
-                <div className="absolute top-20 left-20 w-[400px] max-w-[calc(100vw-6rem)] z-20 animate-in slide-in-from-left">
+                <div className="absolute top-20 left-20 w-100 max-w-[calc(100vw-6rem)] z-20 animate-in slide-in-from-left">
                     <div className="bg-white rounded-lg shadow-2xl border border-gray-200 p-3">
                         <div className="flex items-center gap-2">
                             <div className="flex-1">
@@ -1337,7 +1337,7 @@ function MapPageInner() {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setShowSearchDialog(false)}
-                                className="flex-shrink-0"
+                                className="shrink-0"
                             >
                                 <X className="w-4 h-4" />
                             </Button>

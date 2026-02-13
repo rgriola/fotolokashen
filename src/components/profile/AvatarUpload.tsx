@@ -129,7 +129,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
         <>
         <Card className="overflow-hidden">
             <CardContent className="p-0">
-                <div className="relative h-[200px] md:h-[240px]">
+                <div className="relative h-50 md:h-60">
                     {/* Background Image / Banner */}
                     <div className="absolute inset-0">
                         {previewUrl && !imageError ? (
@@ -148,7 +148,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                             <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600" />
                         )}
                         {/* Overlay for better text readability */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
+                        <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/40 to-transparent" />
                     </div>
 
                     {/* Content Overlay */}
@@ -171,13 +171,13 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                         {/* Hover-triggered upload - Avatar-style circular area on right */}
                         <label
                             htmlFor="avatar-file-select"
-                            className={`relative group flex-shrink-0 w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer z-10 ${
+                            className={`relative group shrink-0 w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden cursor-pointer z-10 ${
                                 isUploading || isConverting ? 'cursor-not-allowed' : ''
                             }`}
                             title="Change profile image"
                         >
                             {/* Avatar preview */}
-                            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-600 relative">
+                            <div className="w-full h-full bg-linear-to-br from-blue-400 to-purple-600 relative">
                                 {previewUrl && !imageError ? (
                                     <Image
                                         src={getOptimizedAvatarUrl(previewUrl, 256) || previewUrl}

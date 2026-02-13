@@ -30,10 +30,10 @@ export default function Home() {
           style={{ backgroundImage: 'url(/images/landing/hero/hero-background.jpg)' }}
         />
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
+        <div className="absolute inset-0 bg-linear-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
 
         {/* Content - 100px from top */}
-        <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 pt-[100px]">
+        <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 pt-25">
           <div className="mx-auto max-w-3xl text-center w-full">
             {/* Logo */}
             <div className="mb-6 flex justify-center">
@@ -54,7 +54,7 @@ export default function Home() {
             {/* Buttons - Reduced width by ~50% */}
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center items-center">
               {user ? (
-                <Button size="lg" asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/50 max-w-[200px] w-full">
+                <Button size="lg" asChild className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/50 max-w-50 w-full">
                   <Link href="/map">
                     <MapPin className="mr-2 h-5 w-5" />
                     Open Map
@@ -62,10 +62,10 @@ export default function Home() {
                 </Button>
               ) : (
                 <>
-                  <Button size="lg" asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/50 max-w-[180px] w-full">
+                  <Button size="lg" asChild className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/50 max-w-45 w-full">
                     <Link href="/register">Get Started</Link>
                   </Button>
-                  <Button size="lg" variant="outline" asChild className="bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20 max-w-[180px] w-full">
+                  <Button size="lg" variant="outline" asChild className="bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20 max-w-45 w-full">
                     <Link href="/login">Sign In</Link>
                   </Button>
                 </>

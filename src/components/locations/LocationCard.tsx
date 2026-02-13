@@ -106,7 +106,7 @@ export const LocationCard = memo(function LocationCard({
             onClick={handleCardClick}
         >
             {/* Image Section */}
-            <div className="relative h-56 bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
+            <div className="relative h-56 bg-linear-to-br from-muted to-muted/50 overflow-hidden">
                 {photoUrl && !photoError ? (
                     <Image
                         src={photoUrl}
@@ -130,12 +130,12 @@ export const LocationCard = memo(function LocationCard({
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                    <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/10 to-primary/5">
                         <Camera className="w-20 h-20 text-muted-foreground/30" />
                     </div>
                 )}
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
 
                 {/* Action Buttons - Top Left */}
                 <div className="absolute top-2 left-2 flex gap-1.5 z-10">
