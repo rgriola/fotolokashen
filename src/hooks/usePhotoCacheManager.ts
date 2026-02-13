@@ -238,8 +238,7 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
             throw new Error(errorData.error || 'Failed to upload photo');
         }
 
-        const result = await response.json();
-        const uploadData = result.data;
+        const uploadData = await response.json();
 
         console.log('[PhotoCache] Upload successful:', uploadData.upload.filePath);
 
