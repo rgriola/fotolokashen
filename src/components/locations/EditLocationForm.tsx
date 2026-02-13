@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -89,6 +89,11 @@ export function EditLocationForm({
     const [hasChanges, setHasChanges] = useState(false);
     const [changes, setChanges] = useState<string[]>([]);
     const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+    
+    // Deferred photo upload state (new photos staged but not yet uploaded)
+    const [cachedPhotos, setCachedPhotos] = useState<any[]>([]);
+    const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
+    const uploadPhotosRef = useRef<(() => Promise<any[]>) | null>(null);
     
     // AI description improvement hook
     const { improveDescription, isLoading: isAiLoading, error: aiError } = useImproveDescription();
@@ -232,6 +237,11 @@ export function EditLocationForm({
         if (photosChanged) {
             changedFields.push('Photo details updated');
         }
+        
+        // Check for new cached photos (not yet uploaded)
+        if (cachedPhotos.length > 0) {
+            changedFields.push(`${cachedPhotos.length} new photo(s) ready to upload`);
+        }
 
         setChanges(changedFields);
         setHasChanges(changedFields.length > 0);
@@ -250,6 +260,7 @@ export function EditLocationForm({
         tags,
         userSave.tags,
         photosToDelete.length,
+        cachedPhotos.length,
         JSON.stringify(photos.map(p => ({ id: p.id, caption: p.caption, isPrimary: p.isPrimary })))
     ]);
 
@@ -276,6 +287,9 @@ export function EditLocationForm({
 
         // Reset photos to delete
         setPhotosToDelete([]);
+        
+        // Clear cached photos (new uploads)
+        setCachedPhotos([]);
 
         // Reset photos to original
         const originalPhotos = (location.photos || []).map((photo: any) => ({
@@ -295,6 +309,30 @@ export function EditLocationForm({
     };
 
     const handleSubmit = async (data: EditLocationFormData) => {
+        let uploadedPhotos: any[] = [];
+
+        // If there are cached photos (new uploads), upload them first
+        if (cachedPhotos.length > 0 && uploadPhotosRef.current) {
+            console.log('[EditLocationForm] Starting photo upload for', cachedPhotos.length, 'photos');
+            try {
+                setIsUploadingPhotos(true);
+                toast.info(`Uploading ${cachedPhotos.length} photo(s)...`);
+                
+                // Upload all cached photos to ImageKit using the function from ImageKitUploader
+                uploadedPhotos = await uploadPhotosRef.current();
+                
+                console.log('[EditLocationForm] Photos uploaded successfully:', uploadedPhotos);
+                toast.success(`${uploadedPhotos.length} photo(s) uploaded successfully!`);
+            } catch (error) {
+                const message = error instanceof Error ? error.message : 'Failed to upload photos';
+                toast.error(message);
+                setIsUploadingPhotos(false);
+                return; // Don't proceed with location save if photo upload fails
+            } finally {
+                setIsUploadingPhotos(false);
+            }
+        }
+
         // Show warning if photos are marked for deletion
         if (photosToDelete.length > 0) {
             const message = `You are about to delete ${photosToDelete.length} ${photosToDelete.length === 1 ? 'photo' : 'photos'} on this update. This action cannot be undone.\n\nDo you want to continue?`;
@@ -327,8 +365,11 @@ export function EditLocationForm({
         const finalColor = data.color || TYPE_COLOR_MAP[data.type || ""] || "";
         const finalIndoorOutdoor = data.indoorOutdoor || DEFAULT_INDOOR_OUTDOOR;
 
-        // Filter out deleted photos from the photos array before submitting
-        const remainingPhotos = photos.filter(photo => !photo.id || !photosToDelete.includes(photo.id));
+        // Combine existing photos with newly uploaded photos
+        const allPhotos = [...photos, ...uploadedPhotos];
+        
+        // Filter out deleted photos from the combined array
+        const remainingPhotos = allPhotos.filter(photo => !photo.id || !photosToDelete.includes(photo.id));
 
         const submitData = {
             id: data.id,
@@ -347,7 +388,15 @@ export function EditLocationForm({
             photos: remainingPhotos.length > 0 ? remainingPhotos : undefined,
         };
 
-        onSubmit(submitData);
+        try {
+            await onSubmit(submitData);
+            
+            // Clear photo cache on successful save
+            setCachedPhotos([]);
+        } catch (error) {
+            // Error handling is done by parent, but we keep photos cached
+            console.error('Edit location error:', error);
+        }
     };
 
     const handleAddTag = () => {
@@ -440,23 +489,29 @@ export function EditLocationForm({
     };
 
     const handleRemovePhoto = (index: number) => {
-        const photoToRemove = photos[index];
+        // Determine if this photo is from existing photos or cached photos
+        const allPhotos = [...photos, ...cachedPhotos];
+        const photoToRemove = allPhotos[index];
 
-        // If photo has a database ID, toggle its deletion status
-        if (photoToRemove.id) {
-            setPhotosToDelete(prev => {
-                if (prev.includes(photoToRemove.id)) {
-                    // Already marked - unmark it
-                    return prev.filter(id => id !== photoToRemove.id);
-                } else {
-                    // Not marked - mark it for deletion
-                    return [...prev, photoToRemove.id];
-                }
-            });
+        if (index < photos.length) {
+            // This is an existing photo (from database)
+            if (photoToRemove.id) {
+                // Toggle its deletion status
+                setPhotosToDelete(prev => {
+                    if (prev.includes(photoToRemove.id)) {
+                        // Already marked - unmark it
+                        return prev.filter(id => id !== photoToRemove.id);
+                    } else {
+                        // Not marked - mark it for deletion
+                        return [...prev, photoToRemove.id];
+                    }
+                });
+            }
         } else {
-            // New photo not yet saved - just remove from local state
-            const newPhotos = photos.filter((_, i) => i !== index);
-            setPhotos(newPhotos);
+            // This is a cached photo (not yet uploaded) - remove it from cache
+            const cachedIndex = index - photos.length;
+            const newCachedPhotos = cachedPhotos.filter((_, i) => i !== cachedIndex);
+            setCachedPhotos(newCachedPhotos);
         }
     };
 
@@ -493,22 +548,30 @@ export function EditLocationForm({
 
                 {/* Photo Upload Section - Reveals beneath button when toggled */}
                 {showPhotoUpload && (
-                    <div>
+                    <div className="space-y-2">
+                        {cachedPhotos.length > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                                {cachedPhotos.length} photo(s) ready • Will upload when you save
+                            </p>
+                        )}
                         <ImageKitUploader
-                            onPhotosChange={setPhotos}
+                            uploadMode="deferred"
+                            onCachedPhotosChange={setCachedPhotos}
+                            onUploadReady={(uploadFn) => {
+                                uploadPhotosRef.current = uploadFn;
+                            }}
                             maxPhotos={20}
                             // maxFileSize uses default from FILE_SIZE_LIMITS.PHOTO (10 MB)
-                            existingPhotos={photos}
                             showPhotoGrid={false}
                         />
                     </div>
                 )}
                 
                 {/* Photo Carousel (if photos exist) */}
-                {photos.length > 0 ? (
+                {(photos.length > 0 || cachedPhotos.length > 0) ? (
                     <PhotoCarouselManager
-                        photos={photos}
-                        onPhotosChange={setPhotos}
+                        photos={[...photos, ...cachedPhotos]}
+                        onPhotosChange={() => {}} // Not used in edit mode
                         onRemovePhoto={handleRemovePhoto}
                         photosToDelete={photosToDelete}
                         maxPhotos={20}
