@@ -120,3 +120,101 @@ export async function GET(
         return apiError('Failed to list photos', 500);
     }
 }
+
+/**
+ * POST /api/locations/[id]/photos
+ * 
+ * Add a photo to a location (after secure upload via /api/photos/upload)
+ * Creates a Photo record linked to the location
+ */
+export async function POST(
+    request: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        // Require authentication
+        const authResult = await requireAuth(request);
+        if (!authResult.authorized || !authResult.user) {
+            return apiError('Authentication required', 401);
+        }
+        const user = authResult.user;
+
+        const { id } = await params;
+        const locationId = parseInt(id);
+        if (isNaN(locationId)) {
+            return apiError('Invalid location ID', 400);
+        }
+
+        // Verify location exists
+        const location = await prisma.location.findUnique({
+            where: { id: locationId },
+        });
+
+        if (!location) {
+            return apiError('Location not found', 404);
+        }
+
+        // Parse request body
+        const body = await request.json();
+        const {
+            fileId,
+            filePath,
+            url,
+            thumbnailUrl,
+            width,
+            height,
+            caption,
+            gpsLatitude,
+            gpsLongitude,
+            gpsAltitude,
+        } = body;
+
+        // Validate required fields
+        if (!fileId || !filePath || !url) {
+            return apiError('Missing required fields: fileId, filePath, url', 400);
+        }
+
+        // Create photo record
+        const photo = await prisma.photo.create({
+            data: {
+                locationId,
+                placeId: location.placeId,
+                userId: user.id,
+                imagekitFileId: fileId,
+                imagekitFilePath: filePath,
+                originalFilename: filePath.split('/').pop() || 'photo.jpg',
+                width,
+                height,
+                gpsLatitude,
+                gpsLongitude,
+                gpsAltitude,
+                hasGpsData: !!(gpsLatitude && gpsLongitude),
+                caption,
+                uploadSource: 'mobile',
+            },
+        });
+
+        // Format response
+        const formattedPhoto = {
+            id: photo.id,
+            imagekitFilePath: photo.imagekitFilePath,
+            url: url,
+            thumbnailUrl: thumbnailUrl || `${url}?tr=w-400,h-400,c-at_max,fo-auto,q-80`,
+            caption: photo.caption,
+            width: photo.width,
+            height: photo.height,
+            uploadedAt: photo.uploadedAt.toISOString(),
+            gpsLatitude: photo.gpsLatitude,
+            gpsLongitude: photo.gpsLongitude,
+            isPrimary: photo.isPrimary,
+            fileSize: photo.fileSize,
+            mimeType: photo.mimeType,
+        };
+
+        return apiResponse(formattedPhoto, 201);
+
+    } catch (error) {
+        console.error('Create photo error:', error);
+        return apiError('Failed to create photo', 500);
+    }
+}
