@@ -127,6 +127,7 @@ model Location {
   createdBy        Int
   lastModifiedBy   Int?
   lastModifiedAt   DateTime?
+  productionDate   DateTime?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   access           String?

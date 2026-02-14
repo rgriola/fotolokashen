@@ -1,11 +1,22 @@
 'use client';
 
+/**
+ * Preview Page - Admin Component Testing & Layout Preview
+ * 
+ * Purpose: This page allows admins to preview and test all major UI components 
+ * (panels, dialogs, cards) in isolation before deploying new features to production.
+ * Each section displays the current production version of components with accurate 
+ * layouts, widths, and functionality for visual QA and feature testing.
+ * 
+ * Last Updated: February 13, 2026 6:35pm EST 
+ */
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShareLocationDialog } from '@/components/dialogs/ShareLocationDialog';
 import { LocationDetailPanel } from '@/components/panels/LocationDetailPanel';
-import { Share2, Edit, Eye, MapPin, Loader2, Save, Info, PanelLeft, Heart, Sun, Building, Camera, X } from 'lucide-react';
+import { Share2, Edit, Eye, MapPin, Loader2, Info, PanelLeft, X, Save } from 'lucide-react';
 import type { Location } from '@/types/location';
 import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetTitle, SheetHeader } from '@/components/ui/sheet';
@@ -165,7 +176,7 @@ export default function PreviewPage() {
                                     Panel Components
                                 </CardTitle>
                                 <CardDescription>
-                                    Current production panels - Details, Edit, Save (50% viewport width)
+                                    Current production panels - Details (max-w-3xl), Edit & Save (max-w-2xl)
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
@@ -280,8 +291,9 @@ export default function PreviewPage() {
                                     <strong className="block mb-1">✅ Panels (Sheet components):</strong>
                                     <ul className="list-disc list-inside space-y-1 ml-2">
                                         <li>Used for: Forms (Save, Edit), Browsing content (Details)</li>
-                                        <li>Width: 50% viewport on desktop, full-width on mobile</li>
-                                        <li>Behavior: Slide from right/bottom, dismissible by swipe</li>
+                                        <li>Width: Details (max-w-3xl), Edit & Save (max-w-2xl), full-width on mobile</li>
+                                        <li>Behavior: Slide from right/bottom, dismissible by swipe or close button</li>
+                                        <li>Header: Simple title + close button in production</li>
                                     </ul>
                                 </div>
                                 <div>
@@ -315,128 +327,55 @@ export default function PreviewPage() {
                         onOpenChange={setShareDialogOpen}
                     />
 
-                    {/* Details Panel */}
+                    {/* Details Panel - Current Production Version */}
                     <Sheet open={detailPanelOpen} onOpenChange={setDetailPanelOpen}>
-                        <SheetContent className="w-full sm:w-1/2 p-0">
+                        <SheetContent className="w-full sm:max-w-3xl p-0" hideCloseButton>
                             <SheetHeader>
                                 <VisuallyHidden>
                                     <SheetTitle>{selectedLocation.name}</SheetTitle>
                                 </VisuallyHidden>
                             </SheetHeader>
-                            <LocationDetailPanel
-                                location={selectedLocation}
-                                onEdit={(loc) => {
-                                    setSelectedLocation(loc);
-                                    setIsFavorite(loc.userSave?.isFavorite || false);
-                                    setIndoorOutdoor((loc.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
-                                    setShowPhotoUpload(false);
-                                    setDetailPanelOpen(false);
-                                    setEditPanelOpen(true);
-                                }}
-                                onShare={(loc) => {
-                                    setSelectedLocation(loc);
-                                    setDetailPanelOpen(false);
-                                    setShareDialogOpen(true);
-                                }}
-                                onDelete={(id) => {
-                                    toast.info(`Delete disabled in preview mode (location ID: ${id})`);
-                                }}
-                                onViewOnMap={(loc) => {
-                                    window.location.href = `/map?lat=${loc.lat}&lng=${loc.lng}&zoom=17`;
-                                }}
-                            />
+                            <div className="h-full">
+                                <LocationDetailPanel
+                                    location={selectedLocation}
+                                    onEdit={(loc) => {
+                                        setSelectedLocation(loc);
+                                        setIsFavorite(loc.userSave?.isFavorite || false);
+                                        setIndoorOutdoor((loc.indoorOutdoor as "indoor" | "outdoor") || "outdoor");
+                                        setShowPhotoUpload(false);
+                                        setDetailPanelOpen(false);
+                                        setEditPanelOpen(true);
+                                    }}
+                                    onShare={(loc) => {
+                                        setSelectedLocation(loc);
+                                        setShareDialogOpen(true);
+                                    }}
+                                    onDelete={(id) => {
+                                        toast.info(`Delete disabled in preview mode (location ID: ${id})`);
+                                        setDetailPanelOpen(false);
+                                    }}
+                                    onViewOnMap={(loc) => {
+                                        window.location.href = `/map?lat=${loc.lat}&lng=${loc.lng}&zoom=17`;
+                                    }}
+                                    onClose={() => setDetailPanelOpen(false)}
+                                />
+                            </div>
                         </SheetContent>
                     </Sheet>
 
-                    {/* Edit Panel */}
+                    {/* Edit Panel - Current Production Version */}
                     <Sheet open={editPanelOpen} onOpenChange={setEditPanelOpen}>
-                        <SheetContent className="w-full sm:w-1/2 overflow-y-auto p-0">
-                            {/* Custom Header with Controls (matching production) */}
-                            <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-background z-10">
-                                <SheetTitle>Edit Location</SheetTitle>
+                        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+                            {/* Custom Header with Controls */}
+                            <div className="flex items-center justify-between px-3 py-2 border-b sticky top-0 bg-background z-10">
+                                <SheetTitle className="text-base">Edit Location</SheetTitle>
                                 <div className="flex items-center gap-1">
-                                    {/* Save Button (DISABLED - Preview Mode) */}
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => toast.info('Save disabled in preview mode')}
-                                        disabled={false}
-                                        className="shrink-0 bg-indigo-600 hover:bg-indigo-700 hover:text-white opacity-50 cursor-not-allowed"
-                                        title="Save disabled in preview mode"
-                                    >
-                                        <Save className="w-4 h-4 text-white" />
-                                    </Button>
-                                    
-                                    {/* Photo Upload Toggle */}
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setShowPhotoUpload(!showPhotoUpload)}
-                                        className={`shrink-0 ${showPhotoUpload ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500'} text-white hover:text-white`}
-                                        title="Toggle photo upload"
-                                    >
-                                        <Camera className="w-4 h-4 text-white" />
-                                    </Button>
-                                    
-                                    {/* Indoor/Outdoor Toggle */}
-                                    <div className="flex items-center gap-0.5">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => setIndoorOutdoor("outdoor")}
-                                            className="shrink-0"
-                                            title="Outdoor"
-                                        >
-                                            <Sun
-                                                className={`w-5 h-5 transition-colors ${
-                                                    indoorOutdoor === "outdoor"
-                                                        ? "text-amber-500 fill-amber-500"
-                                                        : "text-muted-foreground"
-                                                }`}
-                                            />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => setIndoorOutdoor("indoor")}
-                                            className="shrink-0"
-                                            title="Indoor"
-                                        >
-                                            <Building
-                                                className={`w-5 h-5 transition-colors ${
-                                                    indoorOutdoor === "indoor"
-                                                        ? "text-blue-600 stroke-[2.5]"
-                                                        : "text-muted-foreground"
-                                                }`}
-                                                fill={indoorOutdoor === "indoor" ? "#fbbf24" : "none"}
-                                                fillOpacity={indoorOutdoor === "indoor" ? 0.2 : 0}
-                                            />
-                                        </Button>
-                                    </div>
-                                    
-                                    {/* Favorite Toggle */}
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setIsFavorite(!isFavorite)}
-                                        className="shrink-0"
-                                        title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-                                    >
-                                        <Heart
-                                            className={`w-5 h-5 transition-colors ${
-                                                isFavorite
-                                                    ? "fill-red-500 text-red-500"
-                                                    : "text-muted-foreground"
-                                            }`}
-                                        />
-                                    </Button>
-                                    
                                     {/* Close Button */}
                                     <Button
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => setEditPanelOpen(false)}
-                                        className="shrink-0"
+                                        className="shrink-0 h-8 w-8"
                                     >
                                         <X className="w-4 h-4" />
                                     </Button>
@@ -453,11 +392,14 @@ export default function PreviewPage() {
                                         isFavorite={isFavorite}
                                         indoorOutdoor={indoorOutdoor}
                                         showPhotoUpload={showPhotoUpload}
+                                        onPhotoUploadToggle={() => setShowPhotoUpload(!showPhotoUpload)}
                                         onSuccess={() => {
                                             setEditPanelOpen(false);
-                                            toast.info("Save disabled in preview mode");
+                                            toast.info("Changes saved (preview mode)");
                                         }}
-                                        onCancel={() => setEditPanelOpen(false)}
+                                        onCancel={() => {
+                                            setEditPanelOpen(false);
+                                        }}
                                     />
                                 )}
                             </div>
@@ -466,95 +408,18 @@ export default function PreviewPage() {
                 </>
             )}
 
-            {/* Save Panel */}
+            {/* Save Panel - Note: /map page uses RightSidebar component, but basic panel shown here */}
             <Sheet open={savePanelOpen} onOpenChange={setSavePanelOpen}>
-                <SheetContent className="w-full sm:w-1/2 overflow-y-auto p-0">
-                    {/* Custom Header with Controls (matching production) */}
-                    <div className="flex items-center justify-between p-3 border-b sticky top-0 bg-background z-10">
-                        <SheetTitle>Save Location</SheetTitle>
+                <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
+                    {/* Simple Header */}
+                    <div className="flex items-center justify-between px-3 py-2 border-b sticky top-0 bg-background z-10">
+                        <SheetTitle className="text-base">Save Location</SheetTitle>
                         <div className="flex items-center gap-1">
-                            {/* Save Button (DISABLED - Preview Mode) */}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => toast.info('Save disabled in preview mode')}
-                                disabled={false}
-                                className="shrink-0 bg-indigo-600 hover:bg-indigo-700 hover:text-white opacity-50 cursor-not-allowed"
-                                title="Save disabled in preview mode"
-                            >
-                                <Save className="w-4 h-4 text-white" />
-                            </Button>
-                            
-                            {/* Photo Upload Toggle */}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setShowPhotoUpload(!showPhotoUpload)}
-                                className={`shrink-0 ${showPhotoUpload ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-400 hover:bg-gray-500'} text-white hover:text-white`}
-                                title="Toggle photo upload"
-                            >
-                                <Camera className="w-4 h-4 text-white" />
-                            </Button>
-                            
-                            {/* Indoor/Outdoor Toggle */}
-                            <div className="flex items-center gap-0.5">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setIndoorOutdoor("outdoor")}
-                                    className="shrink-0"
-                                    title="Outdoor"
-                                >
-                                    <Sun
-                                        className={`w-5 h-5 transition-colors ${
-                                            indoorOutdoor === "outdoor"
-                                                ? "text-amber-500 fill-amber-500"
-                                                : "text-muted-foreground"
-                                        }`}
-                                    />
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setIndoorOutdoor("indoor")}
-                                    className="shrink-0"
-                                    title="Indoor"
-                                >
-                                    <Building
-                                        className={`w-5 h-5 transition-colors ${
-                                            indoorOutdoor === "indoor"
-                                                ? "text-blue-600 stroke-[2.5]"
-                                                : "text-muted-foreground"
-                                        }`}
-                                        fill={indoorOutdoor === "indoor" ? "#fbbf24" : "none"}
-                                        fillOpacity={indoorOutdoor === "indoor" ? 0.2 : 0}
-                                    />
-                                </Button>
-                            </div>
-                            
-                            {/* Favorite Toggle */}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setIsFavorite(!isFavorite)}
-                                className="shrink-0"
-                                title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-                            >
-                                <Heart
-                                    className={`w-5 h-5 transition-colors ${
-                                        isFavorite
-                                            ? "fill-red-500 text-red-500"
-                                            : "text-muted-foreground"
-                                    }`}
-                                />
-                            </Button>
-                            
-                            {/* Close Button */}
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setSavePanelOpen(false)}
-                                className="shrink-0"
+                                className="shrink-0 h-8 w-8"
                             >
                                 <X className="w-4 h-4" />
                             </Button>
@@ -574,7 +439,7 @@ export default function PreviewPage() {
                             }}
                             onSuccess={() => {
                                 setSavePanelOpen(false);
-                                toast.info("Save disabled in preview mode");
+                                toast.info("Changes saved (preview mode)");
                             }}
                             onCancel={() => setSavePanelOpen(false)}
                             showPhotoUpload={showPhotoUpload}

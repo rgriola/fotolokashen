@@ -254,6 +254,27 @@ export function LocationDetailPanel({
                         </div>
                     )}
 
+                    {/* Production Date */}
+                    {location.productionDate && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Production Date</h3>
+                            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                                <Calendar className="w-4 h-4 text-primary" />
+                                <span className="text-sm font-medium">
+                                    {(() => {
+                                        const d = new Date(location.productionDate);
+                                        return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                            timeZone: 'UTC'
+                                        });
+                                    })()}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Tags */}
                     {location.userSave?.tags && location.userSave.tags.length > 0 && (
                         <div className="space-y-2">

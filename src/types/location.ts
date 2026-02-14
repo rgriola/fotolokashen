@@ -72,6 +72,7 @@ export interface Location {
     createdBy: number;
     lastModifiedBy: number | null;
     lastModifiedAt: Date | null;
+    productionDate: Date | null;
     createdAt: Date;
     updatedAt: Date;
 

@@ -123,6 +123,9 @@ export async function PATCH(
                 ...(body.state !== undefined && { state: body.state }),
                 ...(body.zipcode !== undefined && { zipcode: body.zipcode }),
                 // Production details
+                ...(body.productionDate !== undefined && { 
+                    productionDate: body.productionDate ? new Date(body.productionDate) : null 
+                }),
                 ...(body.productionNotes !== undefined && { productionNotes: body.productionNotes }),
                 ...(body.entryPoint !== undefined && { entryPoint: body.entryPoint }),
                 ...(body.parking !== undefined && { parking: body.parking }),

@@ -9,7 +9,17 @@
 ### 🎯 Active Development (February 13, 2026)
 
 **This Week's Completion:**
-1. ✅ **Unified Upload Security** (February 13, 2026) - All 5 image upload entry points secured
+1. ✅ **Production Date Feature** (February 13, 2026) - Track filming/production dates for locations
+   - Added `productionDate` field to Location model (DateTime?, nullable)
+   - Updated API endpoints: POST /api/locations and PATCH /api/locations/[id]
+   - Added date picker to EditLocationForm and CreateLocationWithPhoto
+   - Added production date display in LocationDetailPanel (Calendar icon)
+   - UTC-based date handling to prevent timezone conversion issues
+   - Change detection triggers save button on date changes
+   - Optional field (supports past and future dates)
+   - Documentation: `/fotolokashen-ios/docs/PRODUCTION_DATE_API.md` (iOS implementation guide)
+
+2. ✅ **Unified Upload Security** (February 13, 2026) - All 5 image upload entry points secured
    - Avatar, Banner, Save Location, Edit Location, Create-with-Photo all use secure server pipeline
    - Server-side virus scanning (ClamAV) for all uploads
    - Server-side HEIC/TIFF → JPEG conversion (Sharp)
@@ -309,6 +319,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Google Maps integration for search
 - User-specific saved locations (UserSave model)
 - Personal ratings, captions, and tags
+- **Production date tracking** (filming/production dates independent of EXIF/creation dates)
 - Favorite marking
 - Location categories and types
 - Indoor/outdoor classification

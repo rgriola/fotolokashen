@@ -1236,6 +1236,7 @@ function MapPageInner() {
                                     city: locationToEdit.data?.city ?? null,
                                     state: locationToEdit.data?.state ?? null,
                                     zipcode: locationToEdit.data?.zipcode ?? null,
+                                    productionDate: locationToEdit.userSave.location?.productionDate ?? null,
                                     productionNotes: locationToEdit.userSave.location?.productionNotes ?? null,
                                     entryPoint: locationToEdit.userSave.location?.entryPoint ?? null,
                                     parking: locationToEdit.userSave.location?.parking ?? null,

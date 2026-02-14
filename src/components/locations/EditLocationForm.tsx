@@ -37,6 +37,7 @@ const editLocationSchema = z.object({
     indoorOutdoor: indoorOutdoorSchema,
 
     // Production details
+    productionDate: z.string().optional(),
     productionNotes: z.string().optional()
         .refine((val) => !val || val.length <= 500, "Production notes must be 500 characters or less")
         .refine((val) => !val || productionNotesRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and punctuation (.,!?&'\"()-;:@) are allowed for contact info."),
@@ -106,6 +107,12 @@ export function EditLocationForm({
             address: location.address || "",
             type: location.type || "",
             indoorOutdoor: (location.indoorOutdoor as "indoor" | "outdoor" | "both") || DEFAULT_INDOOR_OUTDOOR,
+            productionDate: location.productionDate 
+                ? (() => {
+                    const d = new Date(location.productionDate);
+                    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+                })()
+                : "",
             productionNotes: location.productionNotes || "",
             entryPoint: location.entryPoint || "",
             parking: location.parking || "",
@@ -121,6 +128,7 @@ export function EditLocationForm({
     const watchedName = useWatch({ control: form.control, name: "name" });
     const watchedType = useWatch({ control: form.control, name: "type" });
     const watchedCaption = useWatch({ control: form.control, name: "caption" });
+    const watchedProductionDate = useWatch({ control: form.control, name: "productionDate" });
     const watchedProductionNotes = useWatch({ control: form.control, name: "productionNotes" });
     const watchedPersonalRating = useWatch({ control: form.control, name: "personalRating" });
     const watchedIndoorOutdoor = useWatch({ control: form.control, name: "indoorOutdoor" });
@@ -157,6 +165,12 @@ export function EditLocationForm({
             address: location.address || "",
             type: location.type || "",
             indoorOutdoor: (location.indoorOutdoor as "indoor" | "outdoor" | "both") || DEFAULT_INDOOR_OUTDOOR,
+            productionDate: location.productionDate 
+                ? (() => {
+                    const d = new Date(location.productionDate);
+                    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+                })()
+                : "",
             productionNotes: location.productionNotes || "",
             entryPoint: location.entryPoint || "",
             parking: location.parking || "",
@@ -189,6 +203,10 @@ export function EditLocationForm({
         }
         if (dirtyFields.caption) {
             changedFields.push('Caption updated');
+        }        if (dirtyFields.productionDate) {
+            changedFields.push('Production date updated');
+        }        if (dirtyFields.productionDate) {
+            changedFields.push('Production date updated');
         }
         if (dirtyFields.productionNotes) {
             changedFields.push('Production notes updated');
@@ -251,14 +269,15 @@ export function EditLocationForm({
         watchedName,
         watchedType,
         watchedCaption,
+        watchedProductionDate,
         watchedProductionNotes,
         watchedPersonalRating,
         watchedParking,
         watchedEntryPoint,
         watchedAccess,
         watchedIndoorOutdoor,
-        tags,
-        userSave.tags,
+        JSON.stringify(tags),
+        JSON.stringify(userSave.tags || []),
         photosToDelete.length,
         cachedPhotos.length,
         JSON.stringify(photos.map(p => ({ id: p.id, caption: p.caption, isPrimary: p.isPrimary })))
@@ -376,6 +395,7 @@ export function EditLocationForm({
             name: data.name,
             type: data.type,
             indoorOutdoor: finalIndoorOutdoor,
+            productionDate: data.productionDate || undefined,
             productionNotes: data.productionNotes,
             entryPoint: data.entryPoint,
             parking: data.parking,
@@ -665,27 +685,18 @@ export function EditLocationForm({
                             )}
                         </div>
 
-                        {/* Rating */}
+                        {/* Production Date */}
                         <div className="space-y-2">
-                            <Label htmlFor="personalRating" className="pb-2">Film Date</Label>
-                            <Select
-                                onValueChange={(value) =>
-                                    form.setValue("personalRating", parseInt(value))
-                                }
-                                defaultValue={form.getValues("personalRating")?.toString()}
-                            >
-                                <SelectTrigger className="w-full min-w-27.5">
-                                    <SelectValue placeholder="Rate" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="0">No rating</SelectItem>
-                                    <SelectItem value="1">⭐</SelectItem>
-                                    <SelectItem value="2">⭐⭐</SelectItem>
-                                    <SelectItem value="3">⭐⭐⭐</SelectItem>
-                                    <SelectItem value="4">⭐⭐⭐⭐</SelectItem>
-                                    <SelectItem value="5">⭐⭐⭐⭐⭐</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Label htmlFor="productionDate">Production Date</Label>
+                            <Input
+                                id="productionDate"
+                                type="date"
+                                {...form.register("productionDate")}
+                                className="w-full"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Date this location was/will be used for filming
+                            </p>
                         </div>
                     </div>
 

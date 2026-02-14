@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
             // Address components
             street, number, city, state, zipcode,
             // Production details
-            productionNotes, entryPoint, parking, access,
+            productionDate, productionNotes, entryPoint, parking, access,
             // Indoor/Outdoor
             indoorOutdoor,
             // Photo data
@@ -208,6 +208,7 @@ export async function POST(request: NextRequest) {
                 ...(state && { state }),
                 ...(zipcode && { zipcode }),
                 // Production details
+                ...(productionDate && { productionDate: new Date(productionDate) }),
                 ...(productionNotes && { productionNotes }),
                 ...(entryPoint && { entryPoint }),
                 ...(parking && { parking }),

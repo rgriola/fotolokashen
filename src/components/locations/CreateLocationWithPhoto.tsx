@@ -57,6 +57,7 @@ const createLocationSchema = z.object({
     city: z.string().max(100).optional(),
     state: z.string().max(100).optional(),
     zipcode: z.string().max(20).optional(),
+    productionDate: z.string().optional(),
     productionNotes: z.string().optional()
         .refine((val) => !val || val.length <= 500, "Production notes must be 500 characters or less")
         .refine((val) => !val || productionNotesRegex.test(val), "Invalid characters detected"),
@@ -146,6 +147,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
             lng: 0,
             type: "",
             indoorOutdoor: DEFAULT_INDOOR_OUTDOOR,
+            productionDate: "",
             isFavorite: false,
             personalRating: 0,
         },
@@ -766,7 +768,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
                             )}
                         </div>
 
-                        {/* Type and Rating */}
+                        {/* Type and Production Date */}
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <Label htmlFor="type">Type *</Label>
@@ -800,23 +802,13 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
                             </div>
 
                             <div>
-                                <Label htmlFor="personalRating">Rating</Label>
-                                <Select
-                                    onValueChange={(value) => form.setValue("personalRating", parseInt(value))}
-                                    defaultValue="0"
-                                >
-                                    <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Rate" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="0">No rating</SelectItem>
-                                        <SelectItem value="1">⭐</SelectItem>
-                                        <SelectItem value="2">⭐⭐</SelectItem>
-                                        <SelectItem value="3">⭐⭐⭐</SelectItem>
-                                        <SelectItem value="4">⭐⭐⭐⭐</SelectItem>
-                                        <SelectItem value="5">⭐⭐⭐⭐⭐</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                <Label htmlFor="productionDate">Production Date</Label>
+                                <Input
+                                    id="productionDate"
+                                    type="date"
+                                    {...form.register("productionDate")}
+                                    className="mt-1"
+                                />
                             </div>
                         </div>
 
