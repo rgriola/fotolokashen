@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Sheet,
@@ -18,34 +17,24 @@ import { LOCATION_TYPES } from "@/lib/location-constants";
 import { LOCATION_SORT_OPTIONS } from "@/lib/form-constants";
 
 interface FilterPanelProps {
+    typeFilter: string;
+    favoritesOnly: boolean;
+    sortBy: string;
     onTypeChange: (type: string) => void;
     onFavoritesToggle: (favoritesOnly: boolean) => void;
     onSortChange: (sort: string) => void;
 }
 
 export function FilterPanel({
+    typeFilter,
+    favoritesOnly,
+    sortBy,
     onTypeChange,
     onFavoritesToggle,
     onSortChange,
 }: FilterPanelProps) {
-    const [favoritesOnly, setFavoritesOnly] = useState(false);
-    const [selectedType, setSelectedType] = useState("all");
-    const [selectedSort, setSelectedSort] = useState("recent");
-
     const handleFavoritesToggle = () => {
-        const newValue = !favoritesOnly;
-        setFavoritesOnly(newValue);
-        onFavoritesToggle(newValue);
-    };
-
-    const handleTypeChange = (value: string) => {
-        setSelectedType(value);
-        onTypeChange(value);
-    };
-
-    const handleSortChange = (value: string) => {
-        setSelectedSort(value);
-        onSortChange(value);
+        onFavoritesToggle(!favoritesOnly);
     };
 
     return (
@@ -98,8 +87,8 @@ export function FilterPanel({
                                 </Label>
                             </div>
                             <Select 
-                                value={selectedType} 
-                                onValueChange={handleTypeChange}
+                                value={typeFilter} 
+                                onValueChange={onTypeChange}
                             >
                                 <SelectTrigger id="type-filter" className="h-11">
                                     <SelectValue placeholder="All Types" />
@@ -132,8 +121,8 @@ export function FilterPanel({
                                 </Label>
                             </div>
                             <Select 
-                                value={selectedSort} 
-                                onValueChange={handleSortChange}
+                                value={sortBy} 
+                                onValueChange={onSortChange}
                             >
                                 <SelectTrigger id="sort-order" className="h-11">
                                     <SelectValue placeholder="Most Recent" />

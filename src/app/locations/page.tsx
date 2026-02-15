@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useLocations } from "@/hooks/useLocations";
 import { useDeleteLocation } from "@/hooks/useDeleteLocation";
@@ -17,7 +18,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
-import { List, LayoutGrid, X, Camera, Sun, Building, Heart } from "lucide-react";
+import { List, LayoutGrid, X, Camera, Sun, Building, Heart, Plus } from "lucide-react";
 import type { Location, UserSave } from "@/types/location";
 
 function LocationsPageInner() {
@@ -150,39 +151,58 @@ function LocationsPageInner() {
             {/* Fixed Controls Section - Compact Mobile Layout */}
             <div className="flex-shrink-0 bg-background border-b">
                 <div className="container mx-auto px-4 py-3 max-w-7xl">
-                    {/* Single Row: Search + Filter Button + Grid/List Toggle */}
-                    <div className="flex items-center gap-2">
-                        {/* Search - Takes most space */}
-                        <div className="flex-1" data-tour="locations-search">
+                    {/* Single Row: Search (left) + Buttons (right) */}
+                    <div className="flex items-center justify-between gap-4">
+                        {/* Search - Full width mobile, max 50% desktop */}
+                        <div className="flex-1 min-w-0 md:flex-none md:w-1/2" data-tour="locations-search">
                             <LocationFilters
                                 onSearchChange={setSearch}
                             />
                         </div>
 
-                        {/* Filters Panel Button */}
-                        <div data-tour="locations-filter">
-                            <FilterPanel
-                                onTypeChange={setTypeFilter}
-                                onFavoritesToggle={setFavoritesOnly}
-                                onSortChange={setSortBy}
-                            />
-                        </div>
+                        {/* Action Buttons - Grouped right */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {/* Create with Photo Button */}
+                            <Button
+                                asChild
+                                variant="default"
+                                size="icon"
+                                className="shrink-0 bg-green-600 hover:bg-green-700"
+                                title="Add location with photo"
+                            >
+                                <Link href="/create-with-photo">
+                                    <Plus className="w-4 h-4" />
+                                </Link>
+                            </Button>
 
-                        {/* View Toggle Button - Shows icon for the OTHER view */}
-                        <Button
-                            data-tour="locations-view-toggle"
-                            variant="outline"
-                            size="icon"
-                            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-                            className="shrink-0"
-                            title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
-                        >
-                            {viewMode === "grid" ? (
-                                <List className="w-4 h-4" />
-                            ) : (
-                                <LayoutGrid className="w-4 h-4" />
-                            )}
-                        </Button>
+                            {/* Filters Panel Button */}
+                            <div data-tour="locations-filter">
+                                <FilterPanel
+                                    typeFilter={typeFilter}
+                                    favoritesOnly={favoritesOnly}
+                                    sortBy={sortBy}
+                                    onTypeChange={setTypeFilter}
+                                    onFavoritesToggle={setFavoritesOnly}
+                                    onSortChange={setSortBy}
+                                />
+                            </div>
+
+                            {/* View Toggle Button - Shows icon for the OTHER view */}
+                            <Button
+                                data-tour="locations-view-toggle"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+                                className="shrink-0"
+                                title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
+                            >
+                                {viewMode === "grid" ? (
+                                    <List className="w-4 h-4" />
+                                ) : (
+                                    <LayoutGrid className="w-4 h-4" />
+                                )}
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Error State */}

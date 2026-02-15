@@ -80,6 +80,9 @@ export function SavedLocationsPanel({
                         />
                     </div>
                     <FilterPanel
+                        typeFilter={typeFilter}
+                        favoritesOnly={favoritesOnly}
+                        sortBy={sortBy}
                         onTypeChange={setTypeFilter}
                         onFavoritesToggle={setFavoritesOnly}
                         onSortChange={setSortBy}

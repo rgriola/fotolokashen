@@ -79,11 +79,11 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net", // Google Maps + Monaco Editor CDN
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net https://va.vercel-scripts.com", // Google Maps + Monaco Editor CDN + Vercel Speed Insights
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net", // Google Fonts + Monaco CSS
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https://ik.imagekit.io https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org", // ImageKit, Google Maps, OSM
-              "connect-src 'self' https://maps.googleapis.com https://upload.imagekit.io https://ik.imagekit.io https://o4510596205838336.ingest.us.sentry.io https://cdn.jsdelivr.net", // API, ImageKit, Sentry, Monaco source maps
+              "connect-src 'self' https://maps.googleapis.com https://upload.imagekit.io https://ik.imagekit.io https://o4510596205838336.ingest.us.sentry.io https://cdn.jsdelivr.net https://va.vercel-scripts.com https://vitals.vercel-insights.com", // API, ImageKit, Sentry, Monaco source maps, Vercel Speed Insights
               "worker-src 'self' blob:", // Allow Monaco Editor web workers
               "frame-src 'none'",
               "object-src 'none'",
