@@ -12,6 +12,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Heart, SlidersHorizontal, Filter, ArrowUpDown } from "lucide-react";
 import { LOCATION_TYPES } from "@/lib/location-constants";
 import { LOCATION_SORT_OPTIONS } from "@/lib/form-constants";
@@ -39,11 +40,18 @@ export function FilterPanel({
 
     return (
         <Sheet>
-            <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="shrink-0">
-                    <SlidersHorizontal className="w-4 h-4" />
-                </Button>
-            </SheetTrigger>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <SheetTrigger asChild>
+                        <Button variant="outline" size="icon" className="shrink-0">
+                            <SlidersHorizontal className="w-4 h-4" />
+                        </Button>
+                    </SheetTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                    <p>Filter and sort locations</p>
+                </TooltipContent>
+            </Tooltip>
             <SheetContent side="right" className="w-[320px] sm:w-95 flex flex-col">
                 <SheetHeader className="pb-4">
                     <SheetTitle className="flex items-center gap-2">

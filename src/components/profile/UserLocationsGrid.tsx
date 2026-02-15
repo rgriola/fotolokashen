@@ -7,15 +7,19 @@ import { Button } from "@/components/ui/button";
 import { getImageKitUrl } from "@/lib/imagekit";
 
 interface LocationPhoto {
-  imagekitFilePath: string;
+  id: number;
+  url: string;
+  thumbnailUrl: string;
+  isPrimary: boolean;
+  caption?: string;
 }
 
 interface Location {
   id: number;
   name: string;
   address?: string;
-  lat: number;
-  lng: number;
+  latitude: number;
+  longitude: number;
   type?: string;
   photos: LocationPhoto[];
 }
@@ -57,7 +61,12 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
       }
       const data = await res.json();
       if (data.locations) {
-        setLocations(prev => [...prev, ...data.locations]);
+        // Deduplicate locations by save.id to prevent duplicate keys
+        setLocations(prev => {
+          const existingIds = new Set(prev.map(loc => loc.id));
+          const newLocations = data.locations.filter((loc: UserSave) => !existingIds.has(loc.id));
+          return [...prev, ...newLocations];
+        });
         setHasMore(data.pagination.hasMore);
       }
     } catch (error) {
@@ -115,7 +124,13 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
     <div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {locations.map((save) => {
-          const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${save.location.lat},${save.location.lng}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${save.location.lat},${save.location.lng}&key=${googleMapsApiKey}`;
+          // Validate coordinates before creating map URL
+          const hasValidCoords = save.location.latitude && save.location.longitude;
+          const mapImageUrl = hasValidCoords 
+            ? `https://maps.googleapis.com/maps/api/staticmap?center=${save.location.latitude},${save.location.longitude}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${save.location.latitude},${save.location.longitude}&key=${googleMapsApiKey}`
+            : '';
+          const hasValidPhoto = save.location.photos[0]?.url;
+          
           return (
             <Link
               key={save.id}
@@ -123,17 +138,17 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
               className="group block bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-shadow"
             >
               {/* Location Image */}
-              {save.location.photos[0] ? (
+              {hasValidPhoto ? (
                 <div className="relative w-full h-48 bg-muted">
                   <Image
-                    src={getImageKitUrl(save.location.photos[0].imagekitFilePath, 'w-400,h-300,c-at_max')}
+                    src={getImageKitUrl(save.location.photos[0].url, 'w-400,h-300,c-at_max')}
                     alt={save.location.name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover group-hover:scale-105 transition-transform"
                   />
                 </div>
-              ) : (
+              ) : hasValidCoords && mapImageUrl ? (
                 <div className="relative w-full h-48 bg-muted overflow-hidden">
                   <Image
                     src={mapImageUrl}
@@ -143,6 +158,10 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
                     className="object-cover group-hover:scale-105 transition-transform"
                     unoptimized
                   />
+                </div>
+              ) : (
+                <div className="w-full h-48 bg-muted flex items-center justify-center">
+                  <div className="text-muted-foreground text-sm">No image</div>
                 </div>
               )}
               {/* Location Info */}

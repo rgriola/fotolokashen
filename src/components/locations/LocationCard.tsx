@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
     MapPin, Star, Edit, Trash2, Share2, Calendar, Camera,
     Clock, DollarSign, Phone, User, AlertCircle, Key,
@@ -144,22 +145,28 @@ export const LocationCard = memo(function LocationCard({
                 {/* Action Buttons - Top Left */}
                 <div className="absolute top-2 left-2 flex gap-1.5 z-10">
                     {/* Edit Button - Always visible, disabled for non-user locations */}
-                    <Button
-                        data-tour="location-edit"
-                        variant="secondary"
-                        size="icon"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (source === 'user' && canEdit) {
-                                onEdit?.(location);
-                            }
-                        }}
-                        className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                        title={source !== 'user' ? 'You cannot edit this location' : 'Edit location'}
-                        disabled={source !== 'user' || !canEdit}
-                    >
-                        <Edit className="w-3.5 h-3.5" />
-                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                data-tour="location-edit"
+                                variant="secondary"
+                                size="icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (source === 'user' && canEdit) {
+                                        onEdit?.(location);
+                                    }
+                                }}
+                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                disabled={source !== 'user' || !canEdit}
+                            >
+                                <Edit className="w-3.5 h-3.5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                            <p>{source !== 'user' ? 'You cannot edit this location' : 'Edit location'}</p>
+                        </TooltipContent>
+                    </Tooltip>
                     
                     {/* Quick-Save Button - Only for public/friend locations (DISABLED - Future Feature) */}
                     {source !== 'user' && (
@@ -177,19 +184,25 @@ export const LocationCard = memo(function LocationCard({
                         </Button>
                     )}
 
-                    <Button
-                        {...(isFirstCard && { 'data-tour': 'location-share' })}
-                        variant="secondary"
-                        size="icon"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onShare?.(location);
-                        }}
-                        className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                        title="Share location"
-                    >
-                        <Share2 className="w-3.5 h-3.5" />
-                    </Button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                {...(isFirstCard && { 'data-tour': 'location-share' })}
+                                variant="secondary"
+                                size="icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onShare?.(location);
+                                }}
+                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                            >
+                                <Share2 className="w-3.5 h-3.5" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                            <p>Share location</p>
+                        </TooltipContent>
+                    </Tooltip>
                 </div>
 
                 {/* Top Badges */}

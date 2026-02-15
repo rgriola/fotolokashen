@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
     MapPin,
     Edit,
@@ -106,15 +107,21 @@ export function LocationDetailPanel({
                         {location.name}
                     </h2>
                     {onClose && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={onClose}
-                            className="h-8 w-8 hover:bg-muted shrink-0"
-                            title="Close"
-                        >
-                            <X className="w-4 h-4" />
-                        </Button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={onClose}
+                                    className="h-8 w-8 hover:bg-muted shrink-0"
+                                >
+                                    <X className="w-4 h-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                <p>Close panel</p>
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                 </div>
             </div>
@@ -127,20 +134,26 @@ export function LocationDetailPanel({
                         {/* Action Buttons - Overlay top-left */}
                         <div className="absolute top-2 left-2 flex gap-1.5 z-10">
                             {/* Edit Button - Always visible, disabled for non-user locations */}
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                onClick={() => {
-                                    if (source === 'user' && canEdit && onEdit) {
-                                        onEdit(location);
-                                    }
-                                }}
-                                title={source !== 'user' ? 'You cannot edit this location' : 'Edit location'}
-                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                                disabled={source !== 'user' || !canEdit}
-                            >
-                                <Edit className="w-3.5 h-3.5" />
-                            </Button>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="secondary"
+                                        size="icon"
+                                        onClick={() => {
+                                            if (source === 'user' && canEdit && onEdit) {
+                                                onEdit(location);
+                                            }
+                                        }}
+                                        className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                        disabled={source !== 'user' || !canEdit}
+                                    >
+                                        <Edit className="w-3.5 h-3.5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                    <p>{source !== 'user' ? 'You cannot edit this location' : 'Edit location'}</p>
+                                </TooltipContent>
+                            </Tooltip>
                             
                             {/* Quick-Save Button - Only for public/friend locations (DISABLED - Future Feature) */}
                             {source !== 'user' && (
@@ -156,25 +169,37 @@ export function LocationDetailPanel({
                                 </Button>
                             )}
                             {onShare && (
-                                <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    onClick={() => onShare(location)}
-                                    title="Share location"
-                                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                                >
-                                    <Share2 className="w-3.5 h-3.5" />
-                                </Button>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="secondary"
+                                            size="icon"
+                                            onClick={() => onShare(location)}
+                                            className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                        >
+                                            <Share2 className="w-3.5 h-3.5" />
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                        <p>Share location</p>
+                                    </TooltipContent>
+                                </Tooltip>
                             )}
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                onClick={handleViewOnMap}
-                                title="View on Map"
-                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                            >
-                                <Map className="w-3.5 h-3.5" />
-                            </Button>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="secondary"
+                                        size="icon"
+                                        onClick={handleViewOnMap}
+                                        className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                    >
+                                        <Map className="w-3.5 h-3.5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                    <p>View on map</p>
+                                </TooltipContent>
+                            </Tooltip>
                             {location.type && (
                                 <Badge
                                     style={{
@@ -191,22 +216,28 @@ export function LocationDetailPanel({
 
                         {/* Delete button - Overlay top-right */}
                         <div className="absolute top-2 right-2 flex gap-1.5 z-10">
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                onClick={() => {
-                                    if (source === 'user' && canEdit && onDelete) {
-                                        if (confirm('Are you sure you want to delete this location?')) {
-                                            onDelete(location.userSave?.id || location.id);
-                                        }
-                                    }
-                                }}
-                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm text-destructive hover:text-destructive disabled:text-muted-foreground"
-                                title={source !== 'user' ? 'You cannot delete this location' : 'Delete location'}
-                                disabled={source !== 'user' || !canEdit}
-                            >
-                                <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="secondary"
+                                        size="icon"
+                                        onClick={() => {
+                                            if (source === 'user' && canEdit && onDelete) {
+                                                if (confirm('Are you sure you want to delete this location?')) {
+                                                    onDelete(location.userSave?.id || location.id);
+                                                }
+                                            }
+                                        }}
+                                        className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm text-destructive hover:text-destructive disabled:text-muted-foreground"
+                                        disabled={source !== 'user' || !canEdit}
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                    <p>{source !== 'user' ? 'You cannot delete this location' : 'Delete location'}</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
                     {location.photos && location.photos.length > 0 ? (
                         <PhotoGallery photos={location.photos} />
@@ -238,10 +269,12 @@ export function LocationDetailPanel({
                     {location.userSave?.user && (
                         <div className="space-y-2">
                             <h3 className="font-semibold text-sm text-muted-foreground">Saved By</h3>
-                            <Link 
-                                href={`/@${location.userSave.user.username}`}
-                                className="flex items-center gap-2.5 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
-                            >
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link 
+                                        href={`/@${location.userSave.user.username}`}
+                                        className="flex items-center gap-2.5 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
+                                    >
                                 <Avatar className="h-10 w-10">
                                     {location.userSave.user.avatar ? (
                                         <AvatarImage
@@ -266,7 +299,12 @@ export function LocationDetailPanel({
                                         </span>
                                     )}
                                 </div>
-                            </Link>
+                                    </Link>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                    <p>View profile</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
                     )}
                     
@@ -274,21 +312,30 @@ export function LocationDetailPanel({
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <h3 className="font-semibold text-sm text-muted-foreground">Address</h3>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                    navigator.clipboard.writeText(location.address || '');
-                                }}
-                                className="h-7 px-2"
-                            >
-                                <Copy className="w-3.5 h-3.5" />
-                            </Button>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(location.address || '');
+                                        }}
+                                        className="h-7 px-2"
+                                    >
+                                        <Copy className="w-3.5 h-3.5" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                    <p>Copy address</p>
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
-                        <button
-                            onClick={handleViewOnMap}
-                            className="text-left w-full p-3 rounded-lg border hover:bg-accent transition-colors group"
-                        >
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button
+                                    onClick={handleViewOnMap}
+                                    className="text-left w-full p-3 rounded-lg border hover:bg-accent transition-colors group"
+                                >
                             <div className="flex items-start gap-2">
                                 <MapPin className="w-4 h-4 mt-0.5 text-primary group-hover:scale-110 transition-transform" />
                                 <div className="flex-1 space-y-2">
@@ -308,7 +355,12 @@ export function LocationDetailPanel({
                                     </p>
                                 </div>
                             </div>
-                        </button>
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                <p>View on map</p>
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                     
                     {/* Production Notes */}
@@ -421,9 +473,16 @@ export function LocationDetailPanel({
                             <h3 className="font-semibold text-sm text-muted-foreground">Contact Phone</h3>
                             <div className="flex items-center gap-2">
                                 <Phone className="w-4 h-4 text-muted-foreground" />
-                                <a href={`tel:${location.contactPhone}`} className="text-sm text-primary hover:underline">
-                                    {location.contactPhone}
-                                </a>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <a href={`tel:${location.contactPhone}`} className="text-sm text-primary hover:underline">
+                                            {location.contactPhone}
+                                        </a>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                        <p>Call {location.contactPhone}</p>
+                                    </TooltipContent>
+                                </Tooltip>
                             </div>
                         </div>
                     )}

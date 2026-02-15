@@ -20,6 +20,12 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { List, LayoutGrid, X, Plus, Map, Users, MapPin } from "lucide-react";
 import type { Location, UserSave, LocationWithSource } from "@/types/location";
 
@@ -220,84 +226,121 @@ function LocationsPageInner() {
                         </div>
 
                         {/* Location Source Toggles - Center */}
-                        <div className="hidden md:flex items-center gap-1 shrink-0" data-tour="location-source-toggles">
-                            {/* My Locations - Always Active */}
-                            <Button
-                                variant="default"
-                                size="sm"
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                                disabled
-                            >
-                                <MapPin className="w-4 h-4 mr-1.5" />
-                                <span className="text-xs">Mine</span>
-                            </Button>
+                        <TooltipProvider delayDuration={300}>
+                            <div className="hidden md:flex items-center gap-1 shrink-0" data-tour="location-source-toggles">
+                                {/* My Locations - Always Active */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                            disabled
+                                        >
+                                            <MapPin className="w-4 h-4 mr-1.5" />
+                                            <span className="text-xs">Mine</span>
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                        Show my saved locations
+                                    </TooltipContent>
+                                </Tooltip>
 
-                            {/* Public Locations Toggle */}
-                            <Button
-                                variant={showPublic ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setShowPublic(!showPublic)}
-                                className={showPublic ? "bg-purple-600 hover:bg-purple-700 text-white" : ""}
-                            >
-                                <Map className="w-4 h-4 mr-1.5" />
-                                <span className="text-xs">Public</span>
-                            </Button>
+                                {/* Public Locations Toggle */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant={showPublic ? "default" : "outline"}
+                                            size="sm"
+                                            onClick={() => setShowPublic(!showPublic)}
+                                            className={showPublic ? "bg-purple-600 hover:bg-purple-700 text-white" : ""}
+                                        >
+                                            <Map className="w-4 h-4 mr-1.5" />
+                                            <span className="text-xs">Public</span>
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                        Discover public locations from the community
+                                    </TooltipContent>
+                                </Tooltip>
 
-                            {/* Friends Locations Toggle */}
-                            <Button
-                                variant={showFriends ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setShowFriends(!showFriends)}
-                                className={showFriends ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}
-                            >
-                                <Users className="w-4 h-4 mr-1.5" />
-                                <span className="text-xs">Friends</span>
-                            </Button>
-                        </div>
+                                {/* Friends Locations Toggle */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant={showFriends ? "default" : "outline"}
+                                            size="sm"
+                                            onClick={() => setShowFriends(!showFriends)}
+                                            className={showFriends ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}
+                                        >
+                                            <Users className="w-4 h-4 mr-1.5" />
+                                            <span className="text-xs">Friends</span>
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                        View locations saved by people you follow
+                                    </TooltipContent>
+                                </Tooltip>
+                            </div>
+                        </TooltipProvider>
 
                         {/* Action Buttons - Grouped right */}
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            {/* Create with Photo Button */}
-                            <Button
-                                asChild
-                                variant="default"
-                                size="icon"
-                                className="shrink-0 bg-green-600 hover:bg-green-700"
-                                title="Add location with photo"
-                            >
-                                <Link href="/create-with-photo">
-                                    <Plus className="w-4 h-4" />
-                                </Link>
-                            </Button>
+                        <TooltipProvider delayDuration={300}>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {/* Create with Photo Button */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            asChild
+                                            variant="default"
+                                            size="icon"
+                                            className="shrink-0 bg-green-600 hover:bg-green-700"
+                                        >
+                                            <Link href="/create-with-photo">
+                                                <Plus className="w-4 h-4" />
+                                            </Link>
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                        Add location with photo
+                                    </TooltipContent>
+                                </Tooltip>
 
-                            {/* Filters Panel Button */}
-                            <div data-tour="locations-filter">
-                                <FilterPanel
-                                    typeFilter={typeFilter}
-                                    favoritesOnly={favoritesOnly}
-                                    sortBy={sortBy}
-                                    onTypeChange={setTypeFilter}
-                                    onFavoritesToggle={setFavoritesOnly}
-                                    onSortChange={setSortBy}
-                                />
+                                {/* Filters Panel Button */}
+                                <div data-tour="locations-filter">
+                                    <FilterPanel
+                                        typeFilter={typeFilter}
+                                        favoritesOnly={favoritesOnly}
+                                        sortBy={sortBy}
+                                        onTypeChange={setTypeFilter}
+                                        onFavoritesToggle={setFavoritesOnly}
+                                        onSortChange={setSortBy}
+                                    />
+                                </div>
+
+                                {/* View Toggle Button - Shows icon for the OTHER view */}
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            data-tour="locations-view-toggle"
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+                                            className="shrink-0"
+                                        >
+                                            {viewMode === "grid" ? (
+                                                <List className="w-4 h-4" />
+                                            ) : (
+                                                <LayoutGrid className="w-4 h-4" />
+                                            )}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                        {viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
+                                    </TooltipContent>
+                                </Tooltip>
                             </div>
-
-                            {/* View Toggle Button - Shows icon for the OTHER view */}
-                            <Button
-                                data-tour="locations-view-toggle"
-                                variant="outline"
-                                size="icon"
-                                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-                                className="shrink-0"
-                                title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
-                            >
-                                {viewMode === "grid" ? (
-                                    <List className="w-4 h-4" />
-                                ) : (
-                                    <LayoutGrid className="w-4 h-4" />
-                                )}
-                            </Button>
-                        </div>
+                        </TooltipProvider>
                     </div>
 
                     {/* Error State */}
