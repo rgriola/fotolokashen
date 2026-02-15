@@ -1,3 +1,57 @@
+/**
+ * MAP PAGE - Main Interactive Map View
+ * 
+ * OVERVIEW:
+ * This page displays an interactive Google Map showing the user's saved locations
+ * and optionally public locations from other users. The map auto-fits to show all
+ * locations on initial load and provides interactive controls for saving, editing,
+ * and managing locations.
+ * 
+ * DATA FLOW:
+ * 1. User's saved locations are loaded via useLocations() hook (always fetched)
+ * 2. Public locations are loaded via usePublicLocations() hook when toggle is enabled
+ * 3. Public locations are filtered by current map bounds to only show visible area
+ * 4. Markers are deduplicated by placeId (user's saved locations take precedence)
+ * 
+ * AUTO-FIT BEHAVIOR (Initial Load):
+ * - Map starts with neutral default center (NYC: 40.7128, -74.006)
+ * - Once markers load, fitBounds() is called to show all user + public locations
+ * - Zoom is capped at 16 to prevent over-zooming on single/few locations
+ * - hasInitialFit flag prevents re-fitting when markers update later
+ * - After auto-fit completes, map's 'idle' event updates bounds for public locations
+ * 
+ * PUBLIC LOCATIONS:
+ * - Default: enabled (showPublicLocations = true)
+ * - Only loads locations within current map viewport (bounds)
+ * - Bounds update on map pan/zoom via 'idle' event listener
+ * - Color: purple (#A855F7) to distinguish from user's locations
+ * - Shows owner username on marker click
+ * 
+ * MARKER TYPES:
+ * - Temporary (red): Newly clicked location, not yet saved
+ * - Saved (custom color): User's saved locations with clustering
+ * - Public (purple): Other users' saved locations with clustering
+ * - Home (house icon): User's designated home location (if set)
+ * - User (blue dot): User's current GPS location (if enabled)
+ * 
+ * DEDUPLICATION:
+ * - Public and saved markers are deduplicated by Google Places placeId
+ * - User's saved locations always take precedence over public versions
+ * - Temporary markers are never deduplicated (always shown)
+ * 
+ * KEY INTERACTIONS:
+ * - Click map: Create temporary marker, reverse geocode to get place info
+ * - Click marker: Show info window or open details panel (saved locations)
+ * - Click "Global View": Fit bounds to show all saved locations
+ * - Toggle Public Locations: Show/hide locations from other users
+ * - Search: Autocomplete search to find and center on locations
+ * 
+ * URL PARAMETERS:
+ * - lat/lng/zoom: Navigate to specific location (from My Locations page)
+ * - edit: Open edit panel for specific location ID
+ * - When URL params exist, auto-fit is skipped to respect the navigation intent
+ */
+
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';

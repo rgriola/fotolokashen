@@ -159,7 +159,7 @@ These toggles use the same icons as /map page (`Map` for public, `Users` for fri
   - `'followers'`: Include if current user follows them AND visibility='followers' OR 'public'
   - `'public'`: Include only if visibility='public'
 - Always respect `UserSave.visibility` field
-- Filter out soft-deleted locations (`deletedAt IS NULL`)
+- Filter out soft-deleted locations (`deletedAt IS NULL`) 
 
 **Notes**:
 <!-- Add your implementation notes here -->
@@ -271,7 +271,7 @@ export function useFriendsLocations(params: UseFriendsLocationsParams = {}) {
 **Changes**:
 - Add `source` prop to location items: `'user' | 'friend' | 'public'`
 - For non-user locations, display:
-  - Small badge: "Public" (purple bg) or "Friend" (blue bg)
+  - Small badge: "Public" (purple bg) or "Friend" (blue bg) <!-- this is good -->
   - Owner username + avatar (link to `/@{username}`)
   - Quick-save button (bookmark icon) instead of edit/delete actions
 - Conditional rendering:
