@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
                     gte: bounds.west,
                     lte: bounds.east,
                 };
-            } catch (_error) {
+            } catch {
                 return apiError('Invalid bounds parameter', 400, 'INVALID_BOUNDS');
             }
         }

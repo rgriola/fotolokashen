@@ -2,6 +2,7 @@
 
 import { Star, Share2, Camera, Heart, Copy, Check, Bookmark } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import type { Location, LocationWithSource } from "@/types/location";
 import { useAuth } from "@/lib/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -214,20 +215,24 @@ function LocationListItem({
             </div>
 
             {/* Photo Thumbnail */}
-            <div className="shrink-0 w-16 h-16 rounded overflow-hidden bg-muted">
+            <div className="shrink-0 w-16 h-16 rounded overflow-hidden bg-muted relative">
                 {photoUrl && !photoError ? (
-                    <img
+                    <Image
                         src={photoUrl}
                         alt={location.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                         onError={() => setPhotoError(true)}
+                        sizes="64px"
                     />
                 ) : !mapError ? (
-                    <img
+                    <Image
                         src={mapImageUrl}
                         alt={`Map of ${location.name}`}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                         onError={() => setMapError(true)}
+                        sizes="64px"
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/10 to-primary/5">

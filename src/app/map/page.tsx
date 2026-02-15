@@ -84,7 +84,14 @@ function MapPageInner() {
     const router = useRouter();
     const { requestLocation, updateUserPermission } = useGpsLocation();
     const [showGpsDialog, setShowGpsDialog] = useState(false);
-    const [showWelcomeBanner, setShowWelcomeBanner] = useState(false);
+    // Lazy initialize showWelcomeBanner from localStorage
+    const [showWelcomeBanner, setShowWelcomeBanner] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const dismissed = localStorage.getItem('gpsWelcomeBannerDismissed');
+            return !dismissed;
+        }
+        return false;
+    });
     const [showLocationsPanel, setShowLocationsPanel] = useState(false);
 
     // Use home location as default center if set, otherwise NYC
@@ -100,20 +107,18 @@ function MapPageInner() {
 
     const [center, setCenter] = useState(defaultCenter);
 
-    // Show welcome banner on first visit if GPS not configured
+    // Hide welcome banner if user is not eligible (sync with user profile)
     useEffect(() => {
-        if (user && user.gpsPermission === 'not_asked') {
-            // Check if banner was previously dismissed (could use localStorage)
-            const dismissed = localStorage.getItem('gpsWelcomeBannerDismissed');
-            if (!dismissed) {
-                setShowWelcomeBanner(true);
-            }
+        if (user && user.gpsPermission !== 'not_asked') {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setShowWelcomeBanner(false);
         }
     }, [user]);
 
-    // Update map center when home location is loaded/changed
+    // Update map center when home location changes (sync with user profile)
     useEffect(() => {
         if (user?.homeLocationLat && user?.homeLocationLng) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setCenter({
                 lat: user.homeLocationLat,
                 lng: user.homeLocationLng,
@@ -135,6 +140,7 @@ function MapPageInner() {
         if (showPublicLocations && map) {
             const bounds = map.getBounds();
             if (bounds) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setMapBounds({
                     north: bounds.getNorthEast().lat(),
                     south: bounds.getSouthWest().lat(),
@@ -199,6 +205,7 @@ function MapPageInner() {
                 : [];
 
             // Update markers, preserving any temporary markers
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setMarkers(prev => {
                 const tempMarkers = prev.filter(m => m.isTemporary);
                 return [...savedMarkers, ...publicMarkers, ...tempMarkers];

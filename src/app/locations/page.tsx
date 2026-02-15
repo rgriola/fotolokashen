@@ -67,12 +67,14 @@ function LocationsPageInner() {
     const deleteLocation = useDeleteLocation();
 
     // Transform UserSave[] to Location[] (API returns UserSave with nested location)
-    const allLocations = data?.locations
-        ?.filter((userSave: UserSave) => userSave.location)
-        ?.map((userSave: UserSave) => ({
-            ...(userSave.location as Location),
-            userSave: userSave, // Attach the UserSave data
-        })) || [];
+    const allLocations = useMemo(() => {
+        return data?.locations
+            ?.filter((userSave: UserSave) => userSave.location)
+            ?.map((userSave: UserSave) => ({
+                ...(userSave.location as Location),
+                userSave: userSave, // Attach the UserSave data
+            })) || [];
+    }, [data?.locations]);
 
     // Merge locations from all sources (user's saves, public, friends)
     const mergedLocations = useMemo(() => {
@@ -89,7 +91,7 @@ function LocationsPageInner() {
                 if (userSave.location && !locationMap.has(userSave.location.id)) {
                     const loc = {
                         ...(userSave.location as Location),
-                        userSave: userSave as any,
+                        userSave: userSave as UserSave,
                         source: 'friend' as const,
                     };
                     locationMap.set(userSave.location.id, loc);
@@ -103,7 +105,7 @@ function LocationsPageInner() {
                 if (userSave.location && !locationMap.has(userSave.location.id)) {
                     const loc = {
                         ...(userSave.location as Location),
-                        userSave: userSave as any,
+                        userSave: userSave as UserSave,
                         source: 'public' as const,
                     };
                     locationMap.set(userSave.location.id, loc);
