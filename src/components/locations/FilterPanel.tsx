@@ -69,11 +69,11 @@ export function FilterPanel({
                                 <Heart className={`w-4 h-4 mr-2 ${favoritesOnly ? 'fill-white text-white' : ''}`} />
                                 {favoritesOnly ? 'Favorites' : 'Favorites'}
                             </Button>
-                            {favoritesOnly && (
-                                <p className="text-xs text-muted-foreground">
-                                    Only showing your favorited locations
-                                </p>
-                            )}
+                            <p className="text-xs text-muted-foreground">
+                                {favoritesOnly 
+                                    ? 'Only showing your favorited locations' 
+                                    : 'Favorites filter applies only to your saved locations'}
+                            </p>
                         </div>
 
                         <Separator />

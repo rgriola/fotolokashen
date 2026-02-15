@@ -8,6 +8,11 @@ export const locationsSteps: Step[] = [
     placement: 'bottom',
   },
   {
+    target: '[data-tour="location-source-toggles"]',
+    content: 'Toggle to view public locations from the community or locations shared by friends you follow.',
+    placement: 'bottom',
+  },
+  {
     target: '[data-tour="locations-view-toggle"]',
     content: 'Switch between grid view (with photos) and compact list view for different browsing experiences.',
     placement: 'bottom',

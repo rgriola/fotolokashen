@@ -3,9 +3,10 @@ import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
 
 /**
- * GET /api/v1/locations/public
- * Get all public locations from all users with optional viewport bounds filtering
- * Requires authentication to prevent abuse
+ * GET /api/v1/locations/friends
+ * Get locations from users the current user follows
+ * Respects privacy settings (visibility and showSavedLocations)
+ * Requires authentication
  */
 export async function GET(request: NextRequest) {
     try {
@@ -15,15 +16,38 @@ export async function GET(request: NextRequest) {
             return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
         }
 
+        const currentUserId = authResult.user.id;
         const searchParams = request.nextUrl.searchParams;
         const boundsParam = searchParams.get('bounds');
         const typeFilter = searchParams.get('type');
         
-        // Enforce stricter limit when bounds not provided (grid view use case)
+        // Enforce stricter limit when bounds not provided
         const requestedLimit = parseInt(searchParams.get('limit') || '100');
         const limit = boundsParam 
             ? Math.min(requestedLimit, 500)  // Map view: max 500
             : Math.min(requestedLimit, 100); // Grid view: max 100
+
+        // Get all users that current user follows
+        const following = await prisma.userFollow.findMany({
+            where: {
+                followerId: currentUserId,
+            },
+            select: {
+                followingId: true,
+            },
+        });
+
+        const followingIds = following.map(f => f.followingId);
+
+        if (followingIds.length === 0) {
+            // User doesn't follow anyone, return empty array
+            return apiResponse({ 
+                locations: [],
+                total: 0,
+                limit: limit,
+                hasMore: false,
+            });
+        }
 
         // Build location filter with proper typing
         interface LocationFilter {
@@ -56,15 +80,32 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        const whereClause = {
-            visibility: 'public' as const,
-            location: {
-                is: locationFilter,
+        // Query UserSaves from followed users with privacy enforcement
+        const friendsLocations = await prisma.userSave.findMany({
+            where: {
+                userId: { in: followingIds },
+                OR: [
+                    // Public visibility (regardless of showSavedLocations)
+                    {
+                        visibility: 'public',
+                        user: {
+                            showSavedLocations: { in: ['public', 'followers'] }
+                        }
+                    },
+                    // Followers visibility (only if user allows followers to see saves)
+                    {
+                        visibility: 'followers',
+                        user: {
+                            showSavedLocations: 'followers'
+                        }
+                    },
+                ],
+                ...(Object.keys(locationFilter).length > 0 && {
+                    location: {
+                        is: locationFilter,
+                    },
+                }),
             },
-        };
-
-        const publicLocations = await prisma.userSave.findMany({
-            where: whereClause,
             take: limit + 1, // Fetch one extra to check if there are more
             select: {
                 id: true,
@@ -75,6 +116,7 @@ export async function GET(request: NextRequest) {
                 tags: true,
                 color: true,
                 savedAt: true,
+                visibility: true,
                 location: {
                     select: {
                         id: true,
@@ -112,8 +154,8 @@ export async function GET(request: NextRequest) {
         });
 
         // Check if there are more results
-        const hasMore = publicLocations.length > limit;
-        const locationsToReturn = hasMore ? publicLocations.slice(0, limit) : publicLocations;
+        const hasMore = friendsLocations.length > limit;
+        const locationsToReturn = hasMore ? friendsLocations.slice(0, limit) : friendsLocations;
 
         return apiResponse({ 
             locations: locationsToReturn,
@@ -122,7 +164,7 @@ export async function GET(request: NextRequest) {
             hasMore: hasMore,
         });
     } catch (error: unknown) {
-        console.error('Error fetching public locations:', error);
-        return apiError('Failed to fetch public locations', 500, 'FETCH_ERROR');
+        console.error('Error fetching friends locations:', error);
+        return apiError('Failed to fetch friends locations', 500, 'FETCH_ERROR');
     }
 }

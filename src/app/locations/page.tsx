@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useLocations } from "@/hooks/useLocations";
+import { usePublicLocations } from "@/hooks/usePublicLocations";
+import { useFriendsLocations } from "@/hooks/useFriendsLocations";
 import { useDeleteLocation } from "@/hooks/useDeleteLocation";
 import { LocationsOnboardingProvider } from "@/components/onboarding/LocationsOnboardingProvider";
 import { LocationList } from "@/components/locations/LocationList";
@@ -18,7 +20,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
-import { List, LayoutGrid, X, Plus } from "lucide-react";
+import { List, LayoutGrid, X, Plus, Map, Users, MapPin } from "lucide-react";
 import type { Location, UserSave } from "@/types/location";
 
 function LocationsPageInner() {
@@ -29,6 +31,8 @@ function LocationsPageInner() {
     const [typeFilter, setTypeFilter] = useState("all");
     const [favoritesOnly, setFavoritesOnly] = useState(false);
     const [sortBy, setSortBy] = useState("recent");
+    const [showPublic, setShowPublic] = useState(false);
+    const [showFriends, setShowFriends] = useState(false);
     const [shareLocation, setShareLocation] = useState<Location | null>(null);
     const [editLocation, setEditLocation] = useState<Location | null>(null);
     const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -46,6 +50,18 @@ function LocationsPageInner() {
         type: typeFilter !== "all" ? typeFilter : undefined,
     });
 
+    // Fetch public locations (conditionally)
+    const { data: publicLocationsData, isLoading: isLoadingPublic } = usePublicLocations({
+        enabled: showPublic,
+        type: typeFilter !== "all" ? typeFilter : undefined,
+    });
+
+    // Fetch friends locations (conditionally)
+    const { data: friendsLocationsData, isLoading: isLoadingFriends } = useFriendsLocations({
+        enabled: showFriends,
+        type: typeFilter !== "all" ? typeFilter : undefined,
+    });
+
     // Delete mutation
     const deleteLocation = useDeleteLocation();
 
@@ -56,6 +72,46 @@ function LocationsPageInner() {
             ...(userSave.location as Location),
             userSave: userSave, // Attach the UserSave data
         })) || [];
+
+    // Merge locations from all sources (user's saves, public, friends)
+    const mergedLocations = useMemo(() => {
+        const locationMap = new globalThis.Map<number, any>();
+
+        // Add user's own locations first (highest precedence)
+        allLocations.forEach(loc => {
+            locationMap.set(loc.id, { ...loc, source: 'user' as const });
+        });
+
+        // Add friends locations (skip if already in user's saves)
+        if (showFriends && friendsLocationsData?.locations) {
+            friendsLocationsData.locations.forEach(userSave => {
+                if (userSave.location && !locationMap.has(userSave.location.id)) {
+                    const loc = {
+                        ...(userSave.location as Location),
+                        userSave: userSave,
+                        source: 'friend' as const,
+                    };
+                    locationMap.set(userSave.location.id, loc);
+                }
+            });
+        }
+
+        // Add public locations (skip if already exists)
+        if (showPublic && publicLocationsData?.locations) {
+            publicLocationsData.locations.forEach(userSave => {
+                if (userSave.location && !locationMap.has(userSave.location.id)) {
+                    const loc = {
+                        ...(userSave.location as Location),
+                        userSave: userSave,
+                        source: 'public' as const,
+                    };
+                    locationMap.set(userSave.location.id, loc);
+                }
+            });
+        }
+
+        return Array.from(locationMap.values());
+    }, [allLocations, publicLocationsData, friendsLocationsData, showPublic, showFriends]);
 
     // Auto-open Edit Panel when navigating from map with ?edit=userSaveId
     useEffect(() => {
@@ -93,7 +149,7 @@ function LocationsPageInner() {
     }, [searchParams, data, router]);
 
     // Filter and sort locations client-side
-    let filteredLocations = allLocations;
+    let filteredLocations = mergedLocations;
 
     // Filter by search query
     if (search && search.trim()) {
@@ -115,10 +171,10 @@ function LocationsPageInner() {
         });
     }
 
-    // Filter favorites
+    // Filter favorites (only applies to user's own locations)
     if (favoritesOnly) {
         filteredLocations = filteredLocations.filter(
-            (loc) => loc.userSave?.isFavorite
+            (loc) => (loc as any).source === 'user' && loc.userSave?.isFavorite
         );
     }
 
@@ -151,13 +207,49 @@ function LocationsPageInner() {
             {/* Fixed Controls Section - Compact Mobile Layout */}
             <div className="shrink-0 bg-background border-b">
                 <div className="container mx-auto px-4 py-3 max-w-7xl">
-                    {/* Single Row: Search (left) + Buttons (right) */}
+                    {/* Single Row: Search (left) + Toggles + Buttons (right) */}
                     <div className="flex items-center justify-between gap-4">
                         {/* Search - Full width mobile, max 50% desktop */}
                         <div className="flex-1 min-w-0 md:flex-none md:w-1/2" data-tour="locations-search">
                             <LocationFilters
                                 onSearchChange={setSearch}
                             />
+                        </div>
+
+                        {/* Location Source Toggles - Center */}
+                        <div className="hidden md:flex items-center gap-1 shrink-0" data-tour="location-source-toggles">
+                            {/* My Locations - Always Active */}
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                disabled
+                            >
+                                <MapPin className="w-4 h-4 mr-1.5" />
+                                <span className="text-xs">Mine</span>
+                            </Button>
+
+                            {/* Public Locations Toggle */}
+                            <Button
+                                variant={showPublic ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setShowPublic(!showPublic)}
+                                className={showPublic ? "bg-purple-600 hover:bg-purple-700 text-white" : ""}
+                            >
+                                <Map className="w-4 h-4 mr-1.5" />
+                                <span className="text-xs">Public</span>
+                            </Button>
+
+                            {/* Friends Locations Toggle */}
+                            <Button
+                                variant={showFriends ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setShowFriends(!showFriends)}
+                                className={showFriends ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}
+                            >
+                                <Users className="w-4 h-4 mr-1.5" />
+                                <span className="text-xs">Friends</span>
+                            </Button>
                         </div>
 
                         {/* Action Buttons - Grouped right */}
@@ -218,11 +310,37 @@ function LocationsPageInner() {
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto">
                 <div className="container mx-auto px-4 py-6 max-w-7xl">
+                    {/* Empty state for public locations toggle */}
+                    {showPublic && !isLoadingPublic && publicLocationsData?.locations.length === 0 && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-4">
+                            <h3 className="font-semibold text-purple-900 mb-2">No public locations found</h3>
+                            <p className="text-sm text-purple-700">
+                                Try adjusting your filters or check back later for new public locations.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Empty state for friends locations toggle */}
+                    {showFriends && !isLoadingFriends && friendsLocationsData?.locations.length === 0 && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-4">
+                            <h3 className="font-semibold text-blue-900 mb-2">No friends&apos; locations found</h3>
+                            <p className="text-sm text-blue-700 mb-3">
+                                You&apos;re not following anyone yet, or your friends haven&apos;t shared any locations.
+                            </p>
+                            <Link 
+                                href="/search" 
+                                className="text-sm font-medium text-blue-600 hover:text-blue-800 underline"
+                            >
+                                Find people to follow →
+                            </Link>
+                        </div>
+                    )}
+
                     {/* Conditional rendering based on viewMode */}
                     {viewMode === "grid" ? (
                         <LocationList
                             locations={filteredLocations}
-                            isLoading={isLoading}
+                            isLoading={isLoading || isLoadingPublic || isLoadingFriends}
                             onEdit={(location) => {
                                 setEditLocation(location);
                                 setIsFavorite(location.userSave?.isFavorite || false);
@@ -240,7 +358,7 @@ function LocationsPageInner() {
                     ) : (
                         <LocationListCompact
                             locations={filteredLocations}
-                            isLoading={isLoading}
+                            isLoading={isLoading || isLoadingPublic || isLoadingFriends}
                             onShare={setShareLocation}
                             onClick={(location) => {
                                 setSelectedLocation(location);
