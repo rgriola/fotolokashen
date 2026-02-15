@@ -3,12 +3,15 @@
 You are assisting with the **fotolokashen** location discovery platform.
 
 ## Tech Stack
-- **Framework**: Next.js 16.0.10 (App Router), React 19, TypeScript 5
+- **Framework**: Next.js 16.1.6 (App Router), React 19.2.1, TypeScript 5
 - **Database**: PostgreSQL (Neon Cloud) with Prisma 6.19.1 ORM
 - **Styling**: Tailwind CSS v4, shadcn/ui components
-- **APIs**: Google Maps JavaScript API, ImageKit CDN, Resend (email)
+- **APIs**: Google Maps JavaScript API, ImageKit CDN, Resend (email), OpenAI (AI features)
 - **State**: TanStack Query (React Query)
 - **Auth**: Custom JWT-based authentication
+- **Image Processing**: Sharp (server-side HEIC/TIFF conversion)
+- **Security**: ClamAV (virus scanning), DOMPurify (XSS protection)
+- **Monitoring**: Vercel Speed Insights, Sentry
 
 ## Key Principles
 
@@ -61,27 +64,38 @@ src/
 │   │   ├── locations/    # Location management
 │   │   ├── photos/       # Photo uploads
 │   │   ├── users/        # User management
+│   │   ├── onboarding/   # Tour completion tracking
 │   │   └── admin/        # Admin tools
 │   ├── map/              # Main map interface
+│   ├── locations/        # Locations grid/list page
+│   ├── search/           # People search page
+│   ├── profile/          # User profile settings
+│   ├── create-with-photo/ # Photo-first location creation
+│   ├── support/          # Public support form
+│   ├── member-support/   # Authenticated support form
 │   ├── admin/            # Admin dashboard
+│   ├── [username]/       # Public user profiles
 │   └── (auth routes)     # login, register, verify-email
 ├── components/
 │   ├── auth/             # Auth components & route guards
 │   ├── maps/             # Google Maps integration
 │   ├── locations/        # Location UI components
+│   ├── panels/           # SaveLocationPanel, EditLocationPanel, LocationDetailPanel
+│   ├── onboarding/       # Tour providers (Map, Locations, People)
 │   ├── admin/            # Admin components
 │   └── ui/               # shadcn/ui components
 ├── lib/
 │   ├── auth.ts           # JWT generation/verification
 │   ├── api-middleware.ts # requireAuth middleware
 │   ├── sanitize.ts       # Input sanitization
+│   ├── virus-scan.ts     # ClamAV file scanning
 │   ├── prisma.ts         # Database client
 │   └── email.ts          # Email sending
 ├── hooks/                # Custom React hooks
 └── types/                # TypeScript type definitions
 
 prisma/
-└── schema.prisma         # Database schema (14 models)
+└── schema.prisma         # Database schema
 ```
 
 ## Common Patterns
@@ -228,6 +242,94 @@ if (status === STATUS.FINISHED) {
 }
 ```
 
+### Google Maps Libraries (CRITICAL)
+```typescript
+// MUST be defined at module level as a constant
+// If defined inline, useLoadScript will re-initialize on every render
+const GOOGLE_MAPS_LIBRARIES: ("places" | "maps")[] = ["places", "maps"];
+
+// In component:
+const { isLoaded } = useLoadScript({
+  googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+  libraries: GOOGLE_MAPS_LIBRARIES,
+});
+```
+
+### Centralized Upload Constants
+```typescript
+import { 
+  FILE_SIZE_LIMITS, 
+  PHOTO_LIMITS, 
+  TEXT_LIMITS,
+  FOLDER_PATHS,
+  ALLOWED_IMAGE_FORMATS 
+} from '@/lib/constants/upload';
+
+// File size validation
+const maxBytes = FILE_SIZE_LIMITS.PHOTO * 1024 * 1024; // 10MB
+if (file.size > maxBytes) {
+  return `File size must be less than ${FILE_SIZE_LIMITS.PHOTO}MB`;
+}
+
+// Photo limits
+if (photos.length >= PHOTO_LIMITS.MAX_PHOTOS_PER_LOCATION) { // 20
+  return 'Maximum photos reached';
+}
+
+// Text field validation with Zod
+const schema = z.object({
+  caption: z.string().max(TEXT_LIMITS.CAPTION).optional(), // 200
+  notes: z.string().max(TEXT_LIMITS.PRODUCTION_NOTES).optional(), // 500
+});
+
+// ImageKit folder paths (flat structure)
+const folder = FOLDER_PATHS.userPhotos(userId); // /{env}/users/{id}/photos
+```
+
+### Photo Cache Manager (Deferred Uploads)
+```typescript
+import { usePhotoCacheManager } from '@/hooks/usePhotoCacheManager';
+
+// Photos are cached locally until user saves location
+const {
+  cachedPhotos,      // Photos pending upload
+  isUploading,       // Upload in progress
+  addPhotos,         // Add files to cache (validates, converts HEIC)
+  removePhoto,       // Remove from cache by ID
+  uploadAllPhotos,   // Upload to ImageKit on save
+  clearCache,        // Clear all cached photos
+} = usePhotoCacheManager();
+
+// Add photos to cache (handles HEIC conversion automatically)
+await addPhotos(files);
+
+// Upload when user saves location
+const uploadedPhotos = await uploadAllPhotos(userId);
+```
+
+### Browser-Side Image Conversion
+```typescript
+import { needsConversion, convertToJpeg } from '@/lib/image-converter';
+
+// Check if file needs conversion (HEIC/TIFF → JPEG)
+if (needsConversion(file)) {
+  const { blob, exif } = await convertToJpeg(file);
+  // blob: converted JPEG, exif: preserved metadata
+}
+```
+
+### Custom Hooks Reference
+- `usePhotoCacheManager` - Manage photos before upload
+- `useLocations` - Fetch user's saved locations (TanStack Query)
+- `usePublicLocations` - Fetch locations for public profile
+- `useSaveLocation` - Save/unsave location mutations
+- `useUpdateLocation` - Update location details
+- `useDeleteLocation` - Delete location with confirmation
+- `useGpsLocation` - Get browser geolocation
+- `useReverseGeocode` - Convert coordinates to address
+- `useImproveDescription` - AI description improvement
+- `useMarkerClusterer` - Google Maps marker clustering
+
 ## Database Schema (Key Models)
 
 ### User
@@ -276,7 +378,10 @@ When adding new features, always verify:
 - [ ] Security events are logged to `SecurityLog` table
 - [ ] Rate limiting is implemented for sensitive operations
 - [ ] CORS and authentication headers are set correctly
-- [ ] **File uploads are virus scanned** with `scanFile()` from `/src/lib/virus-scan.ts`
+- [ ] **File uploads use secure pipeline** - All 5 entry points (Avatar, Banner, Save Location, Edit Location, Create-with-Photo) go through `/api/photos/upload` with:
+  - Server-side virus scanning (ClamAV)
+  - Server-side HEIC/TIFF → JPEG conversion (Sharp)
+  - Centralized file size limits (10MB max)
 
 ## Development Workflow
 
@@ -351,7 +456,9 @@ if (recentRequests >= 2) {
 - **Custom JWT Auth**: We use custom JWT, NOT NextAuth.js
 - **Session Management**: Multi-device sessions supported (web + iOS)
 - **Email System**: Resend API with custom HTML templates
-- **Photo Storage**: ImageKit CDN with flat directory structure
+- **Photo Storage**: ImageKit CDN with flat directory structure: `/{environment}/users/{userId}/photos/`
+- **Photo Uploads**: All uploads go through secure server pipeline with virus scanning and format conversion
 - **Privacy**: Server-side enforcement, granular controls per feature
 - **Database**: Neon (PostgreSQL) with connection pooling for production
+- **Monitoring**: Vercel Speed Insights for Core Web Vitals, Sentry for error tracking
 - **Deployment**: See `.agent/workflows/deploy-to-production.md` for complete Vercel + Neon + Resend setup

@@ -1,10 +1,8 @@
 # fotolokashen
 
-**Last Updated**: 2026-01-13 (Phase 2A Complete)  
+**Last Updated**: 2026-02-15 11:53am
 **Production**: [fotolokashen.com](https://fotolokashen.com) ✅ Live  
-**Status**: Active Development - Phase 2A Social & Privacy Features Complete
-
-> **Rebranding Note**: Application rebranded from "fotolokashen" to "fotolokashen" on January 7, 2026 at 5:52 PM EST.
+**Status**: Active Development - v2.0.0
 
 A modern location discovery and sharing platform where users can search, save, and organize places with photos, personal ratings, and notes. Built with Next.js 16, PostgreSQL, and ImageKit CDN.
 
@@ -12,27 +10,30 @@ A modern location discovery and sharing platform where users can search, save, a
 
 ### Core
 
-- **Framework**: Next.js 16.0.10 (App Router, React 19, TypeScript 5)
+- **Framework**: Next.js 16.1.6 (App Router, React 19.2.1, TypeScript 5)
 - **Database**: PostgreSQL (Neon Cloud)
-- **ORM**: Prisma 6.19.1 - ORM (Object-Relational Mapping)
+- **ORM**: Prisma 6.19.1
 - **CDN**: ImageKit (photo storage)
 - **Deployment**: Vercel
-- **Authentication**: NextAuth.js with JWT
+- **Authentication**: Custom JWT-based authentication
+- **Monitoring**: Vercel Speed Insights, Sentry
 
 ### Frontend
 
 - **Styling**: Tailwind CSS v4
-- **Components**: shadcn/ui
+- **Components**: shadcn/ui + Radix UI primitives
 - **Maps**: Google Maps JavaScript API with @react-google-maps/api
 - **State Management**: TanStack Query (React Query)
 - **Forms**: React Hook Form + Zod validation
+- **Onboarding**: React Joyride (guided tours)
 
 ### Backend & Infrastructure
 
 - **API**: Next.js API Routes
-- **Email**: Resend
-- **Monitoring**: Sentry (error tracking)
-- **Security**: DOMPurify (XSS protection), bcrypt (password hashing)
+- **Email**: Resend API with custom HTML templates
+- **Image Processing**: Sharp (server-side conversion/compression)
+- **Security**: DOMPurify (XSS protection), bcrypt (password hashing), ClamAV (virus scanning)
+- **AI**: OpenAI API (description improvements, tag suggestions)
 
 ## 📋 Prerequisites
 
@@ -41,23 +42,21 @@ A modern location discovery and sharing platform where users can search, save, a
 - Google Maps API Key
 - ImageKit account (for photo uploads)
 - Resend account (for transactional emails)
-- **ClamAV** (for virus scanning) - Optional but recommended
+- **ClamAV** (for virus scanning) - Required for production, can be disabled for local development
 
 ## 🛠️ Getting Started
 
 ### 1. Clone and Install
 
 ```bash
-# Navigate to the project directory
-cd google-search-me-refactor
-
-# Install dependencies
+git clone <repository-url>
+cd fotolokashen
 npm install
 ```
 
-### 2. Install ClamAV (Optional but Recommended)
+### 2. Install ClamAV (Required for Production)
 
-ClamAV provides virus scanning for uploaded files.
+ClamAV provides virus scanning for all uploaded files. All 5 upload entry points (Avatar, Banner, Save Location, Edit Location, Create-with-Photo) use server-side virus scanning.
 
 **macOS:**
 ```bash
@@ -71,35 +70,42 @@ sudo apt install clamav clamav-daemon
 sudo systemctl start clamav-daemon
 ```
 
-**To disable virus scanning** (not recommended):
+**To disable virus scanning** (local development only):
 ```bash
-# Add to .env.local
+# Add to .env.local - NOT for production
 DISABLE_VIRUS_SCAN="true"
 ```
 
 ### 3. Environment Setup
 
-Create a `.env.local` file in the root directory (this is the ONLY environment file used for local development):
+Create a `.env.local` file in the root directory:
 
 ```bash
-# See ENV_TEMPLATE.md for complete configuration guide
-cp ENV_TEMPLATE.md .env.local
-# Edit .env.local with your actual values
+# Database
+DATABASE_URL="postgresql://..."
+
+# Authentication
+JWT_SECRET="your-secret-key-min-32-chars"
+
+# Google Maps
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="your-google-maps-key"
+
+# ImageKit CDN
+NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY="your-public-key"
+IMAGEKIT_PRIVATE_KEY="your-private-key"
+IMAGEKIT_URL_ENDPOINT="https://ik.imagekit.io/your-id"
+
+# Email (Resend)
+RESEND_API_KEY="re_..."
+EMAIL_FROM="noreply@yourdomain.com"
+
+# App URL
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Optional: ClamAV
+CLAMAV_HOST="localhost"
+CLAMAV_PORT="3310"
 ```
-
-Required environment variables:
-
-- `DATABASE_URL` - PostgreSQL connection string (Neon)
-- `JWT_SECRET` - Secret key for JWT tokens (min 32 characters)
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - Google Maps API key
-- `NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY` - ImageKit public key
-- `IMAGEKIT_PRIVATE_KEY` - ImageKit private key
-- `IMAGEKIT_URL_ENDPOINT` - ImageKit URL endpoint
-- `EMAIL_SERVER_*` - Resend API configuration
-- `CLAMAV_HOST` - ClamAV host (default: localhost)
-- `CLAMAV_PORT` - ClamAV port (default: 3310)
-
-See [ENV_TEMPLATE.md](./ENV_TEMPLATE.md) for detailed configuration instructions.
 
 ### 4. Database Setup
 
@@ -107,21 +113,17 @@ See [ENV_TEMPLATE.md](./ENV_TEMPLATE.md) for detailed configuration instructions
 # Generate Prisma Client
 npm run db:generate
 
-# Push schema to database (for development)
+# Push schema to database (development)
 npm run db:push
 
-# OR run migrations (for production)
+# OR run migrations (production)
 npm run db:migrate
 ```
 
 ### 5. Run Development Server
 
 ```bash
-# Start the development server
 npm run dev
-
-# In a separate terminal, open Prisma Studio (optional)
-npm run db:studio
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -129,226 +131,127 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📁 Project Structure
 
 ```
-
-google-search-me-refactor/
+fotolokashen/
 ├── prisma/
-│   └── schema.prisma          # Database schema (9 tables, 128 fields)
+│   └── schema.prisma          # Database schema
 ├── public/                     # Static assets
 ├── src/
 │   ├── app/                    # Next.js App Router
-│   │   ├── api/               # API routes (auth, locations, etc.)
-│   │   ├── map/               # Map page (protected)
-│   │   ├── locations/         # Locations page (protected)
-│   │   ├── login/             # Login page
-│   │   ├── register/          # Registration page
-│   │   └── verify-email/      # Email verification page
+│   │   ├── api/               # API routes
+│   │   ├── map/               # Main map interface
+│   │   ├── locations/         # Locations management
+│   │   ├── search/            # User search/people page
+│   │   ├── profile/           # User profile settings
+│   │   ├── admin/             # Admin dashboard
+│   │   └── [username]/        # Public user profiles
 │   ├── components/            # React components
-│   │   ├── auth/              # Auth components (ProtectedRoute, AdminRoute, etc.)
-│   │   ├── locations/         # Location management components
-│   │   ├── maps/              # Map components (GoogleMap, markers, etc.)
-│   │   ├── panels/            # SaveLocationPanel, EditLocationPanel
-│   │   ├── layout/            # Header, Footer, Navigation
+│   │   ├── auth/              # Authentication components
+│   │   ├── locations/         # Location management
+│   │   ├── maps/              # Google Maps components
+│   │   ├── onboarding/        # Tour providers
+│   │   ├── panels/            # Side panels (Save, Edit, Detail)
 │   │   └── ui/                # shadcn/ui components
-│   ├── hooks/                 # Custom React hooks (useAuth, useSaveLocation, etc.)
+│   ├── hooks/                 # Custom React hooks
 │   ├── lib/                   # Utilities and libraries
-│   │   ├── auth.ts            # JWT token generation/verification
-│   │   ├── auth-context.tsx   # Authentication context provider
-│   │   ├── api-middleware.ts  # API utilities (requireAuth, session validation)
-│   │   ├── sanitize.ts        # XSS protection utilities
-│   │   ├── validation-config.ts # Centralized validation rules
-│   │   ├── prisma.ts          # Prisma client singleton
-│   │   └── utils.ts           # Utility functions
-│   └── types/                 # TypeScript type definitions
-├── ENV_TEMPLATE.md            # Environment configuration guide
-├── REFACTOR_STATUS.md         # Detailed project status (updated frequently)
-└── package.json
+│   └── types/                 # TypeScript definitions
+├── docs/                       # Documentation
+├── scripts/                    # Utility scripts
+├── PROJECT_STATUS.md          # Current status & priorities
+└── README.md                  # This file
 ```
 
-## 🗄️ Database Schema
+## ✨ Key Features
 
-The application uses **9 interconnected tables** with **128 total fields**:
+### Authentication & Security
+- Email/password registration with email verification
+- Password reset with rate limiting
+- JWT-based session management (7-day default, 30-day with "remember me")
+- Multi-device session support (web + iOS)
+- Account lockout after failed attempts
+- ClamAV virus scanning for all uploads
 
-### Core Tables
+### Location Management
+- Google Maps integration with Places Autocomplete
+- User-specific saved locations with personal ratings, captions, and tags
+- Production date tracking for filming/shoots
+- Favorite marking and categorization
+- Indoor/outdoor classification
+- AI-powered description improvements
+- AI tag suggestions
 
-- **users** (31 fields) - User accounts with authentication, profile, OAuth, 2FA, GPS permissions
-- **locations** (31 fields) - Saved Google Maps locations with production details
-- **user_saves** (10 fields) - Many-to-many with tags, favorites, ratings, colors
-- **sessions** (13 fields) - Secure session management with device tracking
-- **photos** (13 fields) - ImageKit integration for location photos
+### Photo System
+- Multiple photos per location
+- ImageKit CDN storage with flat directory structure
+- Server-side HEIC/TIFF to JPEG conversion
+- EXIF data extraction (GPS, camera info)
+- Browser-side format conversion for previews
 
-### Production Tables
+### Social Features
+- Follow/unfollow users
+- Public user profiles with saved locations
+- User search with autocomplete
+- Privacy controls (public, followers-only, private)
 
-- **projects** (11 fields) - Campaign/shoot organization
-- **project_locations** (6 fields) - Many-to-many for shoots
-- **location_contacts** (8 fields) - Property managers, owners
-- **team_members** (5 fields) - Crew collaboration
+### Onboarding System
+- Mandatory Terms of Service acceptance
+- Guided tours for Map, Locations, and People pages
+- Per-page completion tracking
 
-> **Note**: Schema significantly enhanced beyond legacy database with enterprise features while maintaining backward compatibility.
+### Support System
+- Public support form with human verification
+- Member support form (authenticated)
+- Rate limiting and email notifications
 
-## � Key Features
-
-### Authentication & User Management
-
-- ✅ Email/password registration and login
-- ✅ Email verification with token system
-- ✅ Password reset functionality
-- ✅ JWT-based session management
-- ✅ Admin dashboard for user management
-- ✅ User account deletion
-
-### Location Discovery & Management
-
-- ✅ Google Maps integration with interactive search
-- ✅ Places Autocomplete for quick location finding
-- ✅ User-specific saved locations (each user has their own saves)
-- ✅ Personal ratings and captions for each location
-- ✅ Favorite marking
-- ✅ Location categories
-- ✅ GPS location support with permission toggle
-- ✅ Home location setting
-- ✅ **Public location sharing** - Share locations on your profile
-
-### Social Features (Phase 2A - NEW!)
-
-- ✅ **Follow/unfollow system** - Connect with other users
-- ✅ **Follower/following counts** - Track your network
-- ✅ **Follow status indicators** - See who you follow and who follows you
-- ✅ **Privacy-aware follow requests** - Control who can follow you
-- ✅ **User search** - Discover users by name or username
-- ✅ **Search autocomplete** - Fast user discovery with live suggestions
-- ✅ **Search privacy controls** - Choose whether to appear in search results
-- ✅ **Public user profiles** - View other users' profiles and saved locations
-
-### Privacy & Security Controls (Phase 2A - NEW!)
-
-- ✅ **Profile visibility settings**:
-  - Public: Visible to everyone
-  - Followers: Visible only to followers
-  - Private: Visible only to you
-- ✅ **Saved locations privacy**:
-  - Public: All users can see your saved locations
-  - Followers: Only followers can see your saved locations
-  - Private: Only you can see your saved locations
-- ✅ **Search privacy** - Hide your profile from search results
-- ✅ **Location display toggle** - Show/hide your city and country
-- ✅ **Follow request controls** - Enable/disable follow requests
-- ✅ **Server-side privacy enforcement** - All checks validated on backend
-
-### Photo Management
-
-- ✅ Multiple photos per location
-- ✅ ImageKit CDN integration
-- ✅ Flat directory structure for scalability
-- ✅ Photo viewer with lightbox
-- ✅ Automatic photo metadata storage
-
-### Map Interface
-
-- ✅ Interactive Google Maps display
-- ✅ Custom markers for saved locations
-- ✅ Saved locations panel with filtering/sorting
-- ✅ Quick save from map InfoWindow
-- ✅ Mobile-responsive map controls
-
-### Security & Performance
-
-- ✅ XSS protection with DOMPurify
-- ✅ Input validation and sanitization
-- ✅ Session validation on every request
-- ✅ Sentry error tracking
-- ✅ TanStack Query for optimized data fetching
-- ✅ **Privacy enforcement at route level** - Server-side authorization checks
-- ✅ **Permission-based content filtering** - Dynamic based on user relationships
+### Admin Features
+- User management dashboard
+- Email template editor with live preview
+- Device size simulation (desktop/tablet/mobile)
+- Template duplication
 
 ## 🔒 Security Features
 
-This application implements enterprise-grade security:
-
-- **Authentication**: JWT tokens with secure httpOnly cookies
-- **Session Management**: Database-validated sessions
+- **Authentication**: Custom JWT with secure httpOnly cookies
 - **Password Security**: bcrypt hashing (10 rounds)
-- **Email Verification**: Mandatory before app access
-- **Virus Scanning**: ClamAV integration for uploaded files (avatars, banners)
-- **XSS Protection**: DOMPurify sanitization on all user inputs
+- **Email Verification**: Required, 30-minute token expiration
+- **Rate Limiting**: Password reset (2/15min, 3/hour), Login attempts (lockout)
+- **Virus Scanning**: ClamAV integration for all file uploads
+- **XSS Protection**: DOMPurify sanitization
 - **SQL Injection**: Prisma ORM with parameterized queries
-- **Route Protection**: Client-side guards for authenticated pages
-- **Input Validation**: Centralized config with max lengths
-- **CSRF Protection**: SameSite cookie attribute
-- **Rate Limiting**: Email verification (3 per hour)
+- **Input Validation**: Zod schemas with centralized config
 
 ## 🔧 Available Scripts
 
 ```bash
-npm run dev          # Start development server (http://localhost:3000)
+npm run dev          # Start development server
 npm run build        # Build for production
 npm run start        # Start production server
 npm run lint         # Run ESLint
-npm run db:generate  # Generate Prisma Client (uses .env.local)
-npm run db:push      # Push schema to database (uses .env.local)
-npm run db:migrate   # Run database migrations (uses .env.local)
-npm run db:studio    # Open Prisma Studio (uses .env.local)
+npm run db:generate  # Generate Prisma Client
+npm run db:push      # Push schema to database
+npm run db:migrate   # Run database migrations
+npm run db:studio    # Open Prisma Studio
+npm run db:seed      # Seed database with templates
 ```
-
-**Note**: All Prisma scripts automatically use `.env.local` via `dotenv-cli`.
-
-## 📝 Development Guidelines
-
-### Code Style
-
-- TypeScript strict mode enabled
-- ESLint with Next.js recommended config
-- Prettier for code formatting
-- Tailwind CSS for styling (utility-first)
-
-### Database Conventions
-
-- Snake_case for database column names
-- CamelCase for TypeScript/JavaScript
-- Soft deletes using `deletedAt` field
-- Timestamps on all tables (createdAt, updatedAt)
-
-### API Conventions
-
-- RESTful endpoints
-- Standard HTTP status codes
-- Consistent error response format
-- Authentication via requireAuth middleware
-- Input sanitization before storage
 
 ## 📚 Documentation
 
-### Essential Guides
-- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Current project status and priorities
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment guide
-- **[PRODUCTION_CHECKLIST.md](./PRODUCTION_CHECKLIST.md)** - Pre-deployment checklist
-
-### Feature Documentation
-- **[Social Collaboration](./docs/features/social-collaboration.md)** - User invites, friends, teams (planned)
-- **[Avatar Upload](./docs/features/avatar-upload.md)** - Avatar system documentation
-- **[Phone Verification](./docs/features/phone-verification.md)** - Phone verification setup
-- **[Photo Features](./docs/features/photo-testing.md)** - Photo upload and testing guide
-
-### Development Guides
-- **[Icon Management](./docs/guides/icon-management.md)** - Icon system guide
-- **[Prisma Naming](./docs/guides/prisma-naming.md)** - Database naming conventions
-- **[Map Repositioning](./docs/guides/map-repositioning.md)** - Map UX improvements
-- **[Security](./docs/guides/security.md)** - Security implementation details
-
-### Additional Resources
-- **[/docs/](./docs/)** - Complete documentation archive
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Current status, priorities, and recent updates
+- **[docs/](./docs/)** - Complete documentation archive
+  - `api/` - API documentation (Follow System, Search System)
+  - `features/` - Feature specifications
+  - `guides/` - Development guides
+  - `deployment/` - Deployment documentation
+  - `user-guides/` - End-user documentation
 
 ## 🚀 Deployment
 
 The application is deployed to Vercel at [fotolokashen.com](https://fotolokashen.com).
 
 ### Automatic Deployment
-
 - Push to `main` branch triggers automatic deployment
 - Environment variables configured in Vercel dashboard
-- Production database: Neon PostgreSQL
 
 ### Manual Deployment
-
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -356,9 +259,8 @@ npm i -g vercel
 # Deploy to production
 vercel --prod
 
-npx vercel for preview. 
-
-
+# Preview deployment
+npx vercel
 ```
 
 ## 🔗 Useful Links

@@ -1,268 +1,85 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-02-13  
+**Last Updated**: 2026-02-15  
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
 ## Current Focus
 
-### 🎯 Active Development (February 13, 2026)
+### 🎯 Recent Completions (February 2026)
 
-**This Week's Completion:**
-1. ✅ **Production Date Feature** (February 13, 2026) - Track filming/production dates for locations
-   - Added `productionDate` field to Location model (DateTime?, nullable)
-   - Updated API endpoints: POST /api/locations and PATCH /api/locations/[id]
-   - Added date picker to EditLocationForm and CreateLocationWithPhoto
-   - Added production date display in LocationDetailPanel (Calendar icon)
-   - UTC-based date handling to prevent timezone conversion issues
-   - Change detection triggers save button on date changes
-   - Optional field (supports past and future dates)
-   - Documentation: `/fotolokashen-ios/docs/PRODUCTION_DATE_API.md` (iOS implementation guide)
+1. ✅ **Production Date Feature** - Track filming/production dates for locations
+   - Added `productionDate` field to Location model
+   - Date picker in EditLocationForm and CreateLocationWithPhoto
+   - UTC-based date handling
 
-2. ✅ **Unified Upload Security** (February 13, 2026) - All 5 image upload entry points secured
-   - Avatar, Banner, Save Location, Edit Location, Create-with-Photo all use secure server pipeline
-   - Server-side virus scanning (ClamAV) for all uploads
+2. ✅ **Unified Upload Security** - All 5 image upload entry points secured
+   - Avatar, Banner, Save Location, Edit Location, Create-with-Photo
+   - Server-side virus scanning (ClamAV)
    - Server-side HEIC/TIFF → JPEG conversion (Sharp)
-   - Browser-side HEIC/TIFF → JPEG conversion (heic2any + UTIF) for proper previews
-   - Centralized file size limits (`FILE_SIZE_LIMITS` constants)
-   - Removed direct ImageKit client uploads from AvatarUpload, BannerUpload, ProfileHeader
-   - Fixed critical security gap in `usePhotoCacheManager.ts` (deferred uploads now go through secure API)
-   - Documentation: `/docs/features/UNIFIED_UPLOAD_SECURITY.md`
+   - Browser-side format conversion for previews
 
-2. ✅ **Create-with-Photo UX Refactor** (February 13, 2026) - Single-page layout
-   - Created new unified `CreateLocationWithPhoto.tsx` component
-   - Replaced 2-step wizard with single-page form (matches Save/Edit Location patterns)
-   - Integrated photo upload + GPS extraction + manual location + form in one view
-   - Uses `usePhotoCacheManager` for deferred upload (orphan prevention)
-   - Simplified `page.tsx` to render single component
-   - Browser-side HEIC/TIFF conversion with progress indicator
-   - Manual location selection with Google Maps + PlacesAutocomplete
+3. ✅ **Create-with-Photo UX Refactor** - Single-page layout
+   - Replaced 2-step wizard with unified single-page form
+   - Photo upload + GPS extraction + manual location in one view
 
-3. ✅ **Avatar/Banner HEIC/TIFF Support** (February 13, 2026)
-   - Added browser-side conversion to AvatarUpload.tsx and BannerUpload.tsx
-   - iPhone users can now upload HEIC photos without issues
-   - Conversion progress indicator (Loader2 spinner)
-   - Toast feedback during conversion
+4. ✅ **Avatar/Banner HEIC/TIFF Support**
+   - Browser-side conversion for iPhone HEIC photos
+   - Progress indicator and toast feedback
 
-4. ✅ **Google Maps Performance Fix** (February 13, 2026)
+5. ✅ **Google Maps Performance Fix**
    - Fixed "LoadScript has been reloaded unintentionally" warning
-   - Moved `libraries` array to module-level constant in 3 files
-   - Prevents unnecessary Google Maps script reloads on re-render
+   - Module-level constants for libraries array
 
-5. ✅ **LocationDetailPanel UI/UX Refinements** - Cleaner presentation and improved usability
-   - Removed photo counter (1/4 indicator) from PhotoGallery
-   - Removed Primary badge and star rating badge from detail display
-   - Combined Address and GPS coordinates into single panel with smaller coordinate font
-   - Added copy address button for quick clipboard access
-   - Removed Status (Permanent/Temporary) field display
-   - Removed tab navigation (Overview, Production, Metadata)
-   - Consolidated all content into single scrollable section
-   - Increased bottom padding (pb-20) for full content visibility
-   - Added custom close button (X) to header, removed duplicate Sheet close button
-   - Fixed photo caption change detection in EditLocationForm
-   - Improved PhotoGallery caption/metadata toggle (info button)
-   - Removed unused imports and variables for code cleanliness
+6. ✅ **LocationDetailPanel UI/UX Refinements**
+   - Cleaner presentation with consolidated content
+   - Combined Address and GPS into single panel
+   - Added copy address button
 
-3. ✅ **Support System Enhancements** - Public and member support forms with email integration
-   - Public support form at `/support` with human verification (hold-to-verify)
-   - Member support form at `/member-support` (authenticated, no verification needed)
-   - Dual-email system: admin notification + user confirmation
-   - Support form onBlur validation for better UX
-   - Compact form design with reduced spacing
-   - Support email templates added to admin system
+7. ✅ **Support System**
+   - Public support form at `/support` with human verification
+   - Member support form at `/member-support`
    - Rate limiting: 3/hour (public), 5/hour (members)
-   
-4. ✅ **Navigation & UX Improvements**
-   - Tour management consolidated in Profile → Preferences
-   - "Start Tour" removed from dropdown (auto-starts on first login)
-   - Support link added to member dropdown menu
-   - Interactive Tours card with 3 restart buttons (Map, Locations, People)
 
-**Recent Completions (February 2026):**
-- ✅ **Onboarding Tours Bug Fixes** - Fixed repeating tour issue for /locations and /search pages
-  - Implemented local state tracking to prevent tour restarts
-  - Added callback handlers to update parent component state
-  - Fixed positioning issues with spotlight overlay in fixed layouts
-  - Removed problematic tour steps targeting non-existent elements
-  - Tours now properly save completion status to database
+8. ✅ **Vercel Speed Insights** - Performance monitoring integration
+
+9. ✅ **Documentation Cleanup** - Reorganized /docs folder structure
 
 **Recent Completions (January 2026):**
+- ✅ **Onboarding Tours Bug Fixes** - Fixed repeating tour issue
 - ✅ **Enhanced Onboarding System** - Multi-page tours with terms acceptance
-  - Terms of Service modal (mandatory acceptance before app use)
-  - Main map tour (9 steps, mandatory completion)
-  - Locations page tour (5 steps, contextual)
-  - People/search page tour (4 steps, contextual)
-  - Per-page completion tracking in database
-  - Profile menu tour restart options
 - ✅ **Admin Email Template Editor** - Unified editing, preview, and duplication
-- ✅ **Location Sharing Feature** - Complete share functionality across all views
-- ✅ **Profile Management Enhancements** - Username change, email change, avatar/banner editing
-- ✅ **Privacy & Visibility System** - Granular privacy controls and enforcement
+- ✅ **Location Sharing Feature** - Complete share functionality
+- ✅ **Profile Management Enhancements** - Username/email change, avatar/banner editing
+- ✅ **Privacy & Visibility System** - Granular privacy controls
 
-### 📱 iOS Companion App (January 2026)
+### 📱 iOS Companion App
 **Status**: Active Development  
 **Location**: `/fotolokashen-ios/` workspace
 
-The fotolokashen iOS app is a camera-first mobile companion for location scouting and photo management. Development is underway with focus on:
-
 - **Tech Stack**: SwiftUI, MVVM Architecture, Swift Concurrency
 - **Core Features**: Camera-first workflow, GPS tagging, offline support
-- **Backend Integration**: OAuth2 + PKCE authentication, mobile-optimized APIs
-- **Phase**: Backend gap analysis complete, mobile development in progress
+- **Backend Integration**: OAuth2 + PKCE authentication
 
-**Documentation**:
-- Main README: `/fotolokashen-ios/README.md`
-- iOS Development Stack: `/fotolokashen-ios/docs/IOS_DEVELOPMENT_STACK.md`
-- Backend Evaluation: `/fotolokashen-ios/docs/IOS_APP_EVALUATION.md`
-- API Specification: `/fotolokashen-ios/docs/API.md`
-
----
-
-## Recent Major Updates
-
-### 2026-02-10: Support System & Navigation Enhancements ✅ COMPLETE
-
-**Support Forms**
-- ✅ Public support form at `/support`
-  - Human verification with hold-to-verify component (3-second hold)
-  - OnBlur validation for all fields (name, email, subject, message)
-  - Compact design with optimized spacing
-  - Character counters for subject (200) and message (2000)
-  - Rate limiting: 3 requests per hour (IP-based)
-  - Single email sent to admin
-
-- ✅ Member support form at `/member-support`
-  - Protected route (authentication required)
-  - Pre-populated user info (name, username, email) - non-editable display
-  - No human verification needed (already authenticated)
-  - Profile page styling for consistency
-  - Dual-email system:
-    * Admin notification with username
-    * User confirmation email
-  - Rate limiting: 5 requests per hour (user-based)
-  - Success/error dialog feedback
-
-**Email Templates**
-- ✅ Added three new support templates to `/lib/email-templates.ts`:
-  - `publicSupportRequestTemplate()` - Admin notification for public requests
-  - `memberSupportRequestTemplate()` - Admin notification for member requests (includes username)
-  - `supportConfirmationTemplate()` - User confirmation after submission
-- ✅ Templates integrated into admin seeding system
-- ✅ "Support" category added to email template filters
-- ✅ Professional HTML design matching existing template system
-
-**Navigation Improvements**
-- ✅ Tour management moved to Profile → Preferences → Interactive Tours
-  - Map Tour restart button
-  - Locations Tour restart button
-  - People Tour restart button
-  - Each button calls respective API endpoint
-- ✅ Removed tour links from member dropdown menu
-- ✅ "Start Tour" removed (tours auto-start on first login)
-- ✅ "Support" link added to member dropdown
-
-**Components Updated:**
-- `src/components/panels/LocationDetailPanel.tsx` (major UI restructuring)
-- `src/components/locations/PhotoGallery.tsx` (caption/metadata toggle)
-- `src/components/locations/EditLocationForm.tsx` (photo caption change detection)
-- `src/components/ui/sheet.tsx` (added hideCloseButton prop)
-- `src/app/locations/page.tsx` (added onClose and hideCloseButton props)
-
----
-
-### 2026-02-10: Support System & Navigation Enhancements ✅ COMPLETE
-
-**Support Forms**
-- ✅ Public support form at `/support`
-
-**Fixed Repeating Tour Issue**
-- ✅ Added local `isCompleted` state to track completion within provider
-- ✅ Implemented `onTourComplete` callback to notify parent components
-- ✅ Added proper state synchronization between provider and parent
-- ✅ Fixed positioning issues with `isFixed: true` for elements in fixed containers
-- ✅ Added CSS transforms to correct spotlight overlay alignment
-- ✅ Removed conditional tour steps (user cards, follow buttons) that cause failures
-- ✅ Added comprehensive logging to track API calls and database updates
-- ✅ Ensured database completion status persists correctly
-
-**Components Updated:**
-- `src/components/onboarding/LocationsOnboardingProvider.tsx`
-- `src/components/onboarding/PeopleOnboardingProvider.tsx`
-- `src/app/locations/page.tsx`
-- `src/app/search/page.tsx`
-- `src/lib/onboarding/locationsSteps.ts` (reduced to 5 reliable steps)
-- `src/lib/onboarding/peopleSteps.ts` (reduced to 4 reliable steps)
-
-**API Routes Enhanced:**
-- `src/app/api/onboarding/locations/complete/route.ts` (added logging)
-- `src/app/api/onboarding/people/complete/route.ts` (added logging)
-
-### 2026-01-25: Admin Email Template Editor & Duplication Features ✅ COMPLETE
-
-**Admin Email Template System Overhaul**
-- ✅ Unified editor for email templates (edit, preview, validation, info dialog)
-- ✅ Device preview (Desktop, Tablet, Mobile) in tab bar
-- ✅ Copy HTML and info dialog in tab bar
-- ✅ Tabbed interface for Settings, Colors, and (future) Header image
-- ✅ Real-time validation for key, name, subject
-- ✅ Production-safe seeding endpoint (`/api/admin/email-templates/seed`)
-- ✅ Compact admin UI: Breadcrumb headers, search/filter/create row
-- ✅ Merged email-preview into edit page for single workflow
-- ✅ Email template duplication: Pre-fills form for new template based on existing one
-- ✅ All changes TypeScript error-free and production-ready
-
-**Files Updated:**
-- Backend (Admin Email Templates):
-  - `src/app/api/admin/email-templates/route.ts`
-  - `src/app/api/admin/email-templates/seed.ts`
-
-- Frontend (Admin Email Template Editor):
-  - `src/app/admin/email-template-editor/page.tsx`
-  - `src/components/admin/EmailTemplateEditor.tsx`
-  - `src/components/admin/EmailTemplatePreview.tsx`
-
-**Benefits:**
-- Streamlined email template management for administrators
-- Reduced complexity with unified editing and previewing
-- Increased efficiency with template duplication feature
-- Improved admin UI for better usability
-
-  - Public Support Request (admin notification)
-  - Member Support Request (admin notification with username)
-  - Support Confirmation (user confirmation)
-
-✅ **Support System** (NEW - February 2026)
-- Public support form at `/support`
-  - Human verification (hold-to-verify)
-  - OnBlur field validation
-  - Rate limiting: 3 requests/hour
-- Member support form at `/member-support`
-  - Authenticated users only
-  - Pre-populated user information
-  - Dual-email system (admin + confirmation)
-  - Rate limiting: 5 requests/hour
-- Support email templates in admin system
 ---
 
 ## Current State
 
-fotolokashen is a location discovery and sharing platform built with Next.js 16, PostgreSQL (Neon), and ImageKit CDN. Users can search for locations, save them with photos and personal notes, and manage their collection through a responsive map interface.
+fotolokashen is a location discovery and sharing platform built with Next.js 16, PostgreSQL (Neon), and ImageKit CDN.
 
 ### Technology Stack
 
-- **Framework**: Next.js 16.0.10 (App Router, React 19, TypeScript 5)
+- **Framework**: Next.js 16.1.6 (App Router, React 19.2.1, TypeScript 5)
 - **Database**: PostgreSQL (Neon Cloud)
-  - Production: `ep-cool-star-a4dyxqi4`
-  - Development: `ep-solitary-waterfall-a4yhnlsh`
 - **ORM**: Prisma 6.19.1
 - **CDN**: ImageKit (photo storage)
-- **Image Processing**: Sharp 0.33.x (server-side conversion/compression)
-- **Security**: ClamAV (virus scanning via clamav.js)
+- **Image Processing**: Sharp 0.34.x (server-side conversion/compression)
+- **Security**: ClamAV (virus scanning)
 - **Authentication**: Custom JWT-based system
 - **Email**: Resend API with custom HTML templates
 - **State Management**: TanStack Query (React Query)
 - **Deployment**: Vercel
-- **Monitoring**: Sentry (error tracking)
+- **Monitoring**: Vercel Speed Insights, Sentry (error tracking)
 
 ### Core Features (Deployed)
 

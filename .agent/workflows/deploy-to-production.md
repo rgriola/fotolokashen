@@ -64,27 +64,51 @@ EMAIL_FROM_NAME="fotolokashen"
 
 ---
 
-## Phase 2: Database Setup (Neon)
+## Phase 2: Additional Services Setup
 
-### 2.1 Create Neon Account
+### 2.1 Sentry Setup (Error Tracking)
+
+1. Go to https://sentry.io and sign up (GitHub recommended)
+2. Create a new project:
+   - Platform: **Next.js**
+   - Project name: `fotolokashen`
+3. Copy your **DSN** from the project settings
+4. Generate an **Auth Token**:
+   - Go to Settings → Auth Tokens
+   - Create token with `project:releases` and `org:read` scopes
+5. Note your **Organization slug** (from URL: sentry.io/organizations/YOUR-ORG/)
+
+**Environment Variables:**
+```bash
+NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+SENTRY_AUTH_TOKEN=sntrys_your-auth-token
+SENTRY_ORG=your-org-slug
+SENTRY_PROJECT=fotolokashen
+```
+
+---
+
+## Phase 3: Database Setup (Neon)
+
+### 3.1 Create Neon Account
 1. Go to https://neon.tech
 2. Sign up with GitHub (recommended)
 3. Choose the **Free** plan (FREE - 0.5GB storage, 3GB data transfer)
 
-### 2.2 Create Database
+### 3.2 Create Database
 1. Click **Create Project**
 2. Project name: `fotolokashen` (or your preferred name)
 3. Region: Choose closest to your users (e.g., `US East (Ohio)` or `US West (Oregon)`)
 4. PostgreSQL version: 16 (latest)
 5. Click **Create Project**
 
-### 2.3 Database Branches
+### 3.3 Database Branches
 Neon automatically creates a `main` branch for production. You can create additional branches for development:
 - `main` - Production database
 - `dev` - Development/testing (optional)
 - Feature branches - For schema testing (optional)
 
-### 2.4 Get Connection String
+### 3.4 Get Connection String
 1. In your Neon project dashboard, find the **Connection Details**
 2. Select **Prisma** connection string format
 3. Copy the connection string - it looks like:
@@ -93,7 +117,7 @@ Neon automatically creates a `main` branch for production. You can create additi
    ```
 4. **IMPORTANT**: Save this securely - it contains credentials!
 
-### 2.5 Set Up Production Database
+### 3.5 Set Up Production Database
 
 #### Option A: Push Schema with Prisma (Recommended)
 ```bash
@@ -116,7 +140,7 @@ DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=
 npx prisma migrate deploy
 ```
 
-### 2.6 Enable Connection Pooling (Important for Production)
+### 3.6 Enable Connection Pooling (Important for Production)
 1. In Neon dashboard, go to your project
 2. Click on **Connection pooling**
 3. Enable pooling for better performance
@@ -130,19 +154,72 @@ DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=
 
 ---
 
-## Phase 3: Vercel Deployment
+## Phase 4: ClamAV Setup (Virus Scanning)
 
-### 3.1 Create Vercel Account
+**⚠️ CRITICAL: All file uploads require virus scanning in production.**
+
+Fotolokashen uses ClamAV to scan all uploaded files (avatars, banners, location photos). Choose one of these options:
+
+### Option A: Cloud ClamAV Service (Recommended)
+Use a managed ClamAV API service:
+- [ClamAV REST](https://github.com/solita/clamav-rest) - Self-hostable REST API
+- [VirusTotal API](https://www.virustotal.com/gui/home/upload) - Commercial option
+- [Cloudmersive](https://cloudmersive.com/virus-api) - Free tier available
+
+### Option B: Docker Sidecar (Self-hosted)
+If using a container platform (Railway, Render, Fly.io):
+
+```yaml
+# docker-compose.yml example
+services:
+  clamav:
+    image: clamav/clamav:latest
+    ports:
+      - "3310:3310"
+    restart: unless-stopped
+```
+
+### Option C: Separate ClamAV Server
+Deploy ClamAV on a small VPS:
+```bash
+# On Ubuntu/Debian server
+sudo apt update && sudo apt install clamav clamav-daemon -y
+sudo systemctl enable clamav-daemon
+sudo systemctl start clamav-daemon
+
+# Configure to accept remote connections
+sudo nano /etc/clamav/clamd.conf
+# Add: TCPSocket 3310
+# Add: TCPAddr 0.0.0.0
+sudo systemctl restart clamav-daemon
+```
+
+**Environment Variables:**
+```bash
+CLAMAV_HOST=your-clamav-server-ip-or-hostname
+CLAMAV_PORT=3310
+```
+
+**⚠️ Security Notes:**
+- NEVER set `DISABLE_VIRUS_SCAN=true` in production
+- Restrict ClamAV server access via firewall (only allow from Vercel IPs)
+- Keep virus definitions updated (automatic with clamav-freshclam)
+
+---
+
+## Phase 5: Vercel Deployment
+
+### 5.1 Create Vercel Account
 1. Go to https://vercel.com
 2. Sign up with GitHub (MUST use same account as your repo)
 3. Skip any onboarding wizards
 
-### 3.2 Import Project
+### 5.2 Import Project
 1. Click **Add New...** → **Project**
 2. Find your `fotolokashen` repository
 3. Click **Import**
 
-### 3.3 Configure Build Settings
+### 5.3 Configure Build Settings
 Vercel should auto-detect Next.js. Verify:
 - **Framework Preset**: Next.js
 - **Root Directory**: `./` (leave default)
@@ -150,7 +227,7 @@ Vercel should auto-detect Next.js. Verify:
 - **Output Directory**: `.next` (auto-detected)
 - **Install Command**: `npm install` (auto-detected)
 
-### 3.4 Add Environment Variables
+### 5.4 Add Environment Variables
 Click **Environment Variables** and add ALL of these:
 
 ```bash
@@ -177,11 +254,24 @@ EMAIL_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
 EMAIL_FROM_ADDRESS=noreply@yourdomain.com
 EMAIL_FROM_NAME=fotolokashen
 
+# AI Features (OpenAI) - for description improvement
+OPENAI_API_KEY=sk-your-openai-api-key
+
+# ClamAV Virus Scanning (REQUIRED for production)
+# Option 1: Self-hosted ClamAV (Docker sidecar or separate service)
+CLAMAV_HOST=your-clamav-host
+CLAMAV_PORT=3310
+# Option 2: Use a cloud ClamAV service
+# NEVER set DISABLE_VIRUS_SCAN=true in production!
+
 # Application URL (will update after first deploy)
 NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 
-# Sentry (optional - for error tracking)
-NEXT_PUBLIC_SENTRY_DSN=YOUR_SENTRY_DSN
+# Sentry Error Tracking (from Phase 2.5)
+NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+SENTRY_AUTH_TOKEN=sntrys_your-auth-token
+SENTRY_ORG=your-org-slug
+SENTRY_PROJECT=fotolokashen
 ```
 
 #### 🔐 Generate New JWT Secret for Production:
@@ -191,12 +281,12 @@ openssl rand -base64 48
 ```
 Copy the output and use it as `JWT_SECRET`
 
-### 3.5 Deploy!
+### 5.5 Deploy!
 1. Click **Deploy**
 2. Wait 2-3 minutes for build
 3. You'll get a URL like: `https://fotolokashen.vercel.app`
 
-### 3.6 Test Your Deployment
+### 5.6 Test Your Deployment
 1. Visit your Vercel URL
 2. Test authentication (sign up/login)
 3. Test map features
@@ -205,15 +295,15 @@ Copy the output and use it as `JWT_SECRET`
 
 ---
 
-## Phase 4: Custom Domain Setup (Cloudflare DNS)
+## Phase 6: Custom Domain Setup (Cloudflare DNS)
 
-### 4.1 Add Domain to Vercel
+### 6.1 Add Domain to Vercel
 1. In Vercel dashboard, select your project
 2. Go to **Settings** → **Domains**
 3. Add your domain (e.g., `app.yourdomain.com`)
 4. Vercel will provide DNS records
 
-### 4.2 Configure Cloudflare DNS
+### 6.2 Configure Cloudflare DNS
 1. Go to Cloudflare dashboard
 2. Select your domain
 3. Go to **DNS** → **Records**
@@ -226,7 +316,7 @@ Copy the output and use it as `JWT_SECRET`
    ```
 5. Wait 5-10 minutes for DNS propagation
 
-### 4.3 Update Environment Variable
+### 6.3 Update Environment Variable
 1. In Vercel, go to **Settings** → **Environment Variables**
 2. Update `NEXT_PUBLIC_APP_URL` to your custom domain:
    ```
@@ -235,15 +325,15 @@ Copy the output and use it as `JWT_SECRET`
 3. Click **Save**
 4. Redeploy (Settings → Deployments → Click ⋯ → Redeploy)
 
-### 4.4 Enable Automatic HTTPS
+### 6.4 Enable Automatic HTTPS
 - Vercel + Cloudflare will automatically provision SSL certificates
 - Your site will be HTTPS within 5-10 minutes
 
 ---
 
-## Phase 5: Verify Email Configuration
+## Phase 7: Verify Email Configuration
 
-### 5.1 Email Service Setup
+### 7.1 Email Service Setup
 Fotolokashen uses Resend for email delivery. Your codebase is already configured:
 
 **Production**: Uses Resend API (configured in Phase 1)
@@ -283,7 +373,7 @@ export async function sendEmail(options: {
 }
 ```
 
-### 5.2 Environment Variables
+### 7.2 Environment Variables
 Your `.env.local` (development):
 ```bash
 NODE_ENV=development
@@ -302,28 +392,28 @@ EMAIL_FROM_NAME=fotolokashen
 
 ---
 
-## Phase 6: Post-Deployment Checklist
+## Phase 8: Post-Deployment Checklist
 
-### 6.1 Monitoring Setup
+### 8.1 Monitoring Setup
 - [ ] Check Vercel dashboard for build errors
 - [ ] Review Vercel Analytics (auto-enabled)
 - [ ] Check Sentry dashboard for runtime errors
 - [ ] Monitor Neon Metrics for database performance and slow queries
 
-### 6.2 Performance Optimization
+### 8.2 Performance Optimization
 - [ ] Enable Vercel Speed Insights (free)
 - [ ] Review Lighthouse scores
 - [ ] Check Core Web Vitals in Vercel dashboard
 - [ ] Test from different locations (use https://webpagetest.org)
 
-### 6.3 Security
+### 8.3 Security
 - [ ] Review Vercel Firewall settings
 - [ ] Enable Neon IP Allow lists (if needed for additional security)
 - [ ] Check Cloudflare security settings
 - [ ] Verify HTTPS is working
 - [ ] Test authentication flows
 
-### 6.4 Backup Strategy
+### 8.4 Backup Strategy
 - [ ] Neon automatically backs up your database (point-in-time recovery available)
 - [ ] Export manual backup: `pg_dump DATABASE_URL > backup.sql`
 - [ ] Set up branch-based backups for critical changes
