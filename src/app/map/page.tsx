@@ -58,6 +58,7 @@ function MapPageInner() {
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [showFriendsDialog, setShowFriendsDialog] = useState(false);
     const [shareLocation, setShareLocation] = useState<Location | null>(null);
+    const [hasInitialFit, setHasInitialFit] = useState(false);
 
     // Sidebar state
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -70,7 +71,7 @@ function MapPageInner() {
     const [showSearchDialog, setShowSearchDialog] = useState(false);
     
     // Public locations state
-    const [showPublicLocations, setShowPublicLocations] = useState(false);
+    const [showPublicLocations, setShowPublicLocations] = useState(true);
     const [mapBounds, setMapBounds] = useState<{
         north: number;
         south: number;
@@ -114,16 +115,10 @@ function MapPageInner() {
     });
     const [showLocationsPanel, setShowLocationsPanel] = useState(false);
 
-    // Use home location as default center if set, otherwise NYC
+    // Use neutral default center (NYC) - auto-fit will adjust to show all locations
     const defaultCenter = useMemo(() => {
-        if (user?.homeLocationLat && user?.homeLocationLng) {
-            return {
-                lat: user.homeLocationLat,
-                lng: user.homeLocationLng,
-            };
-        }
-        return { lat: 40.7128, lng: -74.006 }; // NYC fallback
-    }, [user]);
+        return { lat: 40.7128, lng: -74.006 }; // NYC
+    }, []);
 
     const [center, setCenter] = useState(defaultCenter);
 
@@ -134,16 +129,6 @@ function MapPageInner() {
         }
     }, [user]);
 
-    // Update map center when home location changes (sync with user profile)
-    useEffect(() => {
-        if (user?.homeLocationLat && user?.homeLocationLng) {
-            setCenter({
-                lat: user.homeLocationLat,
-                lng: user.homeLocationLng,
-            });
-        }
-    }, [user?.homeLocationLat, user?.homeLocationLng]);
-
     // Load saved locations
     const { data: locationsData } = useLocations();
     
@@ -153,16 +138,16 @@ function MapPageInner() {
         enabled: showPublicLocations,
     });
     
-    // Update bounds when public locations toggle is turned on
+    // Update bounds when public locations toggle is turned on (after initial fit)
     useEffect(() => {
-        if (showPublicLocations && map) {
+        if (showPublicLocations && map && hasInitialFit) {
             const bounds = map.getBounds();
             if (bounds) {
                 setMapBounds(expandBounds(bounds));
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showPublicLocations, map]);
+    }, [showPublicLocations, map, hasInitialFit]);
 
     // Populate markers from saved locations
     useEffect(() => {
@@ -235,6 +220,39 @@ function MapPageInner() {
             });
         }
     }, [locationsData, publicLocationsData, showPublicLocations]);
+
+    // Fit map bounds to show all markers on initial load
+    useEffect(() => {
+        // Don't auto-fit if URL has specific coordinates (navigation from My Locations)
+        const hasUrlCoords = searchParams.get('lat') && searchParams.get('lng');
+        
+        if (map && markers.length > 0 && !hasInitialFit && !hasUrlCoords) {
+            const bounds = new google.maps.LatLngBounds();
+            let hasValidMarkers = false;
+
+            // Add all non-temporary markers to bounds
+            markers.forEach((marker) => {
+                if (!marker.isTemporary) {
+                    bounds.extend(marker.position);
+                    hasValidMarkers = true;
+                }
+            });
+
+            // Fit bounds if we have valid markers
+            if (hasValidMarkers) {
+                map.fitBounds(bounds);
+                
+                // Add some padding to prevent over-zooming (same as Global View button)
+                setTimeout(() => {
+                    if (map.getZoom()! > 16) {
+                        map.setZoom(16);
+                    }
+                    // Mark initial fit as complete - let 'idle' event handle bounds update
+                    setHasInitialFit(true);
+                }, 100);
+            }
+        }
+    }, [map, markers, hasInitialFit, searchParams, showPublicLocations, expandBounds]);
 
     // Handle URL parameters (from My Locations page navigation)
     useEffect(() => {
@@ -347,8 +365,9 @@ function MapPageInner() {
         setMap(mapInstance);
         
         // Add listener for bounds changes to update public locations
+        // Skip during initial auto-fit to prevent multiple API calls
         mapInstance.addListener('idle', () => {
-            if (showPublicLocations) {
+            if (showPublicLocations && hasInitialFit) {
                 const bounds = mapInstance.getBounds();
                 if (bounds) {
                     setMapBounds(expandBounds(bounds));
@@ -356,7 +375,7 @@ function MapPageInner() {
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showPublicLocations]);
+    }, [showPublicLocations, hasInitialFit]);
 
     const handleMapClick = useCallback(async (event: google.maps.MapMouseEvent) => {
         if (event.latLng) {
