@@ -159,6 +159,7 @@ function MapPageInner() {
     const router = useRouter();
     const { requestLocation, updateUserPermission } = useGpsLocation();
     const [showGpsDialog, setShowGpsDialog] = useState(false);
+    const [gpsEnabled, setGpsEnabled] = useState(false);
     // Lazy initialize showWelcomeBanner from localStorage
     const [showWelcomeBanner, setShowWelcomeBanner] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -589,6 +590,13 @@ function MapPageInner() {
     }, [map, isSidebarOpen]);
 
     const handleGPSClick = async () => {
+        // If GPS is currently enabled, toggle it off
+        if (gpsEnabled && userLocation) {
+            setGpsEnabled(false);
+            setUserLocation(null);
+            return;
+        }
+
         // Check app-level permission
         if (user?.gpsPermission === 'denied') {
             toast.error('GPS is disabled', {
@@ -614,6 +622,7 @@ function MapPageInner() {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
             };
+            setGpsEnabled(true);
             setCenter(coords);
             setUserLocation(coords);
             if (map) {
@@ -635,6 +644,7 @@ function MapPageInner() {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude,
             };
+            setGpsEnabled(true);
             setCenter(coords);
             setUserLocation(coords);
             if (map) {
@@ -946,7 +956,13 @@ function MapPageInner() {
                     onClick={handleMapClick}
                     className="w-full h-full"
                 >
-                    {/* User location blue dot */}
+                    {/* User location blue dot - only show when GPS is enabled */}
+                    {gpsEnabled && (
+                        <UserLocationMarker
+                            position={userLocation}
+                            onClick={handleUserLocationClick}
+                        />
+                    )}
 
                     {/* Home location marker (house icon) */}
                     {user?.homeLocationLat && user?.homeLocationLng && (
@@ -959,11 +975,6 @@ function MapPageInner() {
                             onClick={handleHomeLocationClick}
                         />
                     )}
-
-                    <UserLocationMarker
-                        position={userLocation}
-                        onClick={handleUserLocationClick}
-                    />
 
                     {/* Render temporary markers (not clustered) */}
                     {markers.filter(m => m.isTemporary).map((marker) => (
@@ -1112,6 +1123,25 @@ function MapPageInner() {
                         </InfoWindow>
                     )}
                 </GoogleMap>
+
+                {/* GPS Coordinates Display - Top Right, to the left of map controls */}
+                <div 
+                    className={`
+                        fixed top-20 z-10
+                        bg-black/50 text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg
+                        transition-all duration-300 ease-in-out
+                        ${(isSidebarOpen || showDetailsSheet || showLocationsPanel) ? 'right-[calc(50%+14rem)]' : 'right-56'}
+                    `}
+                >
+                    {gpsEnabled && userLocation ? (
+                        <div className="flex gap-3">
+                            <span>Lat: {userLocation.lat.toFixed(3)}</span>
+                            <span>Lng: {userLocation.lng.toFixed(3)}</span>
+                        </div>
+                    ) : (
+                        <div>Toggle GPS</div>
+                    )}
+                </div>
 
                 {/* Custom Map Controls - Top Right (Map type + Zoom) */}
                 <CustomMapControls 
