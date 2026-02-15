@@ -2,7 +2,7 @@
 
 import { LocationCard } from "./LocationCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Location } from "@/types/location";
+import type { Location, LocationWithSource } from "@/types/location";
 import { useAuth } from "@/lib/auth-context";
 
 interface LocationListProps {
@@ -79,6 +79,10 @@ export function LocationList({
                     user?.role === 'staffer' ||
                     user?.role === 'super_admin' ||
                     location.createdBy === user?.id;
+                
+                // Get source from location metadata (set when merging user/friends/public locations)
+                const locWithSource = location as LocationWithSource;
+                const source = locWithSource.source || 'user';
 
                 return (
                     <LocationCard
@@ -90,6 +94,7 @@ export function LocationList({
                         onClick={onClick}
                         canEdit={canEdit}
                         isFirstCard={index === 0}
+                        source={source}
                     />
                 );
             })}

@@ -1,11 +1,14 @@
 "use client";
 
-import { Star, Share2, Camera, Heart, Copy, Check } from "lucide-react";
-import type { Location } from "@/types/location";
+import { Star, Share2, Camera, Heart, Copy, Check, Bookmark } from "lucide-react";
+import Link from "next/link";
+import type { Location, LocationWithSource } from "@/types/location";
 import { useAuth } from "@/lib/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { IMAGEKIT_URL_ENDPOINT, getOptimizedAvatarUrl } from "@/lib/imagekit";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -31,7 +34,7 @@ export function LocationListCompact({
             <div className="space-y-2">
                 {Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-4 p-4 border rounded-lg">
-                        <Skeleton className="h-16 w-16 rounded flex-shrink-0" />
+                        <Skeleton className="h-16 w-16 rounded shrink-0" />
                         <div className="flex-1 space-y-2">
                             <Skeleton className="h-4 w-3/4" />
                             <Skeleton className="h-3 w-1/2" />
@@ -88,6 +91,10 @@ export function LocationListCompact({
 
                 // Generate Google Maps Static API URL as fallback
                 const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=16&size=200x200&scale=2&maptype=roadmap&markers=color:red%7C${location.lat},${location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
+                
+                // Get source from location metadata
+                const locWithSource = location as LocationWithSource;
+                const source = locWithSource.source || 'user';
 
                 return (
                     <LocationListItem
@@ -98,6 +105,7 @@ export function LocationListCompact({
                         mapImageUrl={mapImageUrl}
                         onClick={onClick}
                         onShare={onShare}
+                        source={source}
                     />
                 );
             })}
@@ -113,6 +121,7 @@ function LocationListItem({
     mapImageUrl,
     onClick,
     onShare,
+    source = 'user',
 }: {
     location: Location;
     personalRating: number;
@@ -120,10 +129,12 @@ function LocationListItem({
     mapImageUrl: string;
     onClick?: (location: Location) => void;
     onShare?: (location: Location) => void;
+    source?: 'user' | 'friend' | 'public';
 }) {
     const [photoError, setPhotoError] = useState(false);
     const [mapError, setMapError] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const { user } = useAuth();
 
     const handleCopyLink = async (e: React.MouseEvent) => {
@@ -145,6 +156,35 @@ function LocationListItem({
         e.stopPropagation();
         onShare?.(location);
     };
+    
+    const handleSave = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsSaving(true);
+        try {
+            const response = await fetch('/api/locations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    locationId: location.id,
+                }),
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                toast.error(error.error || 'Failed to save location');
+                return;
+            }
+            
+            toast.success('Location saved!');
+            window.location.reload();
+        } catch (error) {
+            console.error('Error saving location:', error);
+            toast.error('Failed to save location');
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     return (
         <div
@@ -152,7 +192,21 @@ function LocationListItem({
             onClick={() => onClick?.(location)}
         >
             {/* Left Side Actions */}
-            <div className="flex flex-col gap-2 flex-shrink-0">
+            <div className="flex flex-col gap-2 shrink-0">
+                {/* Quick-Save Button for Public/Friend Locations */}
+                {source !== 'user' && (
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={handleSave}
+                        title="Save to my locations"
+                        disabled={isSaving}
+                    >
+                        <Bookmark className="w-4 h-4" />
+                    </Button>
+                )}
+                
                 {/* Share Button */}
                 {onShare && (
                     <Button
@@ -166,24 +220,26 @@ function LocationListItem({
                     </Button>
                 )}
                 
-                {/* Copy Link Button */}
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={handleCopyLink}
-                    title="Copy link to clipboard"
-                >
-                    {copied ? (
-                        <Check className="w-4 h-4 text-green-600" />
-                    ) : (
-                        <Copy className="w-4 h-4" />
-                    )}
-                </Button>
+                {/* Copy Link Button - Only for user's own locations */}
+                {source === 'user' && (
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={handleCopyLink}
+                        title="Copy link to clipboard"
+                    >
+                        {copied ? (
+                            <Check className="w-4 h-4 text-green-600" />
+                        ) : (
+                            <Copy className="w-4 h-4" />
+                        )}
+                    </Button>
+                )}
             </div>
 
             {/* Photo Thumbnail */}
-            <div className="flex-shrink-0 w-16 h-16 rounded overflow-hidden bg-muted">
+            <div className="shrink-0 w-16 h-16 rounded overflow-hidden bg-muted">
                 {photoUrl && !photoError ? (
                     <img
                         src={photoUrl}
@@ -199,7 +255,7 @@ function LocationListItem({
                         onError={() => setMapError(true)}
                     />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5">
+                    <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/10 to-primary/5">
                         <Camera className="w-6 h-6 text-muted-foreground/30" />
                     </div>
                 )}
@@ -208,14 +264,26 @@ function LocationListItem({
             {/* Location Info */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
+                    {/* Source Badge */}
+                    {source !== 'user' && (
+                        <Badge
+                            className={`text-xs ${
+                                source === 'public' 
+                                    ? 'bg-purple-600 hover:bg-purple-700' 
+                                    : 'bg-blue-600 hover:bg-blue-700'
+                            } text-white border-none`}
+                        >
+                            {source === 'public' ? 'Public' : 'Friend'}
+                        </Badge>
+                    )}
                     <h3 className="font-semibold text-base truncate">
                         {location.name}
                     </h3>
                     {location.userSave?.isFavorite && (
-                        <Heart className="w-4 h-4 fill-red-500 text-red-500 flex-shrink-0" />
+                        <Heart className="w-4 h-4 fill-red-500 text-red-500 shrink-0" />
                     )}
                     {personalRating > 0 && (
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="flex items-center gap-1 shrink-0">
                             <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
                             <span className="text-xs text-muted-foreground">
                                 {personalRating}
@@ -223,6 +291,32 @@ function LocationListItem({
                         </div>
                     )}
                 </div>
+                {/* Owner Info */}
+                {source !== 'user' && location.userSave?.user && (
+                    <Link 
+                        href={`/@${location.userSave.user.username}`}
+                        className="flex items-center gap-1.5 mb-1 hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Avatar className="h-4 w-4">
+                            {location.userSave.user.avatar ? (
+                                <AvatarImage
+                                    src={getOptimizedAvatarUrl(location.userSave.user.avatar, 32) || location.userSave.user.avatar}
+                                    alt={location.userSave.user.username}
+                                />
+                            ) : null}
+                            <AvatarFallback className="text-[8px]">
+                                {location.userSave.user.username.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-muted-foreground">
+                            {location.userSave.user.firstName && location.userSave.user.lastName 
+                                ? `${location.userSave.user.firstName} ${location.userSave.user.lastName}`
+                                : `@${location.userSave.user.username}`
+                            }
+                        </span>
+                    </Link>
+                )}
                 <p className="text-sm text-muted-foreground truncate">
                     {location.address || `${location.lat.toFixed(3)}, ${location.lng.toFixed(3)}`}
                 </p>

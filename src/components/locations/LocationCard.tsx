@@ -1,18 +1,20 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     MapPin, Star, Edit, Trash2, Share2, Calendar, Camera,
     Clock, DollarSign, Phone, User, AlertCircle, Key,
-    Navigation, MapPinned, Shield, Heart, Globe, Lock, Users
+    Navigation, MapPinned, Shield, Heart, Globe, Lock, Users, Bookmark
 } from "lucide-react";
 import type { Location } from "@/types/location";
 import { useState, memo } from "react";
 import { useRouter } from "next/navigation";
-import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
+import { IMAGEKIT_URL_ENDPOINT, getOptimizedAvatarUrl } from "@/lib/imagekit";
 import { TYPE_COLOR_MAP } from "@/lib/location-constants";
 
 // Get Google Maps API key for static images
@@ -26,6 +28,7 @@ interface LocationCardProps {
     onClick?: (location: Location) => void;
     canEdit?: boolean;
     isFirstCard?: boolean;
+    source?: 'user' | 'friend' | 'public';
 }
 
 export const LocationCard = memo(function LocationCard({
@@ -36,10 +39,12 @@ export const LocationCard = memo(function LocationCard({
     onClick,
     canEdit = false,
     isFirstCard = false,
+    source = 'user',
 }: LocationCardProps) {
     const [photoError, setPhotoError] = useState(false);
     const [mapError, setMapError] = useState(false);
     const [showAllData, setShowAllData] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const router = useRouter();
     const userSave = location.userSave;
 
@@ -139,21 +144,61 @@ export const LocationCard = memo(function LocationCard({
 
                 {/* Action Buttons - Top Left */}
                 <div className="absolute top-2 left-2 flex gap-1.5 z-10">
-                    {canEdit && (
+                    {source === 'user' && canEdit ? (
+                        <>
+                            <Button
+                                data-tour="location-edit"
+                                variant="secondary"
+                                size="icon"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit?.(location);
+                                }}
+                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                title="Edit location"
+                            >
+                                <Edit className="w-3.5 h-3.5" />
+                            </Button>
+                        </>
+                    ) : source !== 'user' ? (
                         <Button
-                            data-tour="location-edit"
                             variant="secondary"
                             size="icon"
-                            onClick={(e) => {
+                            onClick={async (e) => {
                                 e.stopPropagation();
-                                onEdit?.(location);
+                                setIsSaving(true);
+                                try {
+                                    const response = await fetch('/api/locations', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({
+                                            locationId: location.id,
+                                        }),
+                                    });
+                                    
+                                    if (!response.ok) {
+                                        const error = await response.json();
+                                        alert(error.error || 'Failed to save location');
+                                        return;
+                                    }
+                                    
+                                    // Refresh the page to show saved location in user's list
+                                    window.location.reload();
+                                } catch (error) {
+                                    console.error('Error saving location:', error);
+                                    alert('Failed to save location');
+                                } finally {
+                                    setIsSaving(false);
+                                }
                             }}
                             className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                            title="Edit location"
+                            title="Save to my locations"
+                            disabled={isSaving}
                         >
-                            <Edit className="w-3.5 h-3.5" />
+                            <Bookmark className="w-3.5 h-3.5" />
                         </Button>
-                    )}
+                    ) : null}
 
                     <Button
                         {...(isFirstCard && { 'data-tour': 'location-share' })}
@@ -172,6 +217,18 @@ export const LocationCard = memo(function LocationCard({
 
                 {/* Top Badges */}
                 <div className="absolute top-2 right-2 flex items-start justify-end gap-2">
+                    {/* Source Badge - Public/Friend */}
+                    {source !== 'user' && (
+                        <Badge
+                            className={`shadow-lg font-semibold ${
+                                source === 'public' 
+                                    ? 'bg-purple-600 hover:bg-purple-700' 
+                                    : 'bg-blue-600 hover:bg-blue-700'
+                            } text-white border-none`}
+                        >
+                            {source === 'public' ? 'Public' : 'Friend'}
+                        </Badge>
+                    )}
                     {location.type && (
                         <Badge
                             className="shadow-lg font-semibold flex items-center gap-1"
@@ -236,6 +293,36 @@ export const LocationCard = memo(function LocationCard({
             </div>
 
             <CardHeader className="pt-0 pb-3">
+                {/* Owner Info - For Public/Friend Locations */}
+                {source !== 'user' && location.userSave?.user && (
+                    <Link 
+                        href={`/@${location.userSave.user.username}`}
+                        className="flex items-center gap-2 mb-3 p-2 rounded-md hover:bg-accent/50 transition-colors border border-border/50"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Avatar className="h-8 w-8">
+                            {location.userSave.user.avatar ? (
+                                <AvatarImage
+                                    src={getOptimizedAvatarUrl(location.userSave.user.avatar, 32) || location.userSave.user.avatar}
+                                    alt={location.userSave.user.username}
+                                />
+                            ) : null}
+                            <AvatarFallback>
+                                {location.userSave.user.username.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                            <span className="text-xs text-muted-foreground">Saved by</span>
+                            <span className="text-sm font-medium text-foreground">
+                                {location.userSave.user.firstName && location.userSave.user.lastName 
+                                    ? `${location.userSave.user.firstName} ${location.userSave.user.lastName}`
+                                    : `@${location.userSave.user.username}`
+                                }
+                            </span>
+                        </div>
+                    </Link>
+                )}
+                
                 {/* Main Address */}
                 <div className="text-sm text-black flex items-start gap-2">
                     <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-black" />

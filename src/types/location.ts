@@ -86,6 +86,11 @@ export interface LocationWithCreator extends Location {
     lastModifier?: PublicUser | null;
 }
 
+// Location with source info (used when merging user/friends/public locations)
+export interface LocationWithSource extends Location {
+    source: 'user' | 'friend' | 'public';
+}
+
 export interface UserSave {
     id: number
     userId: number
@@ -108,6 +113,15 @@ export interface UserSave {
     visibility: 'public' | 'private' | 'followers'
 
     location?: Location
+    
+    // User info (included when fetching public/friends locations)
+    user?: {
+        id: number
+        username: string
+        firstName: string | null
+        lastName: string | null
+        avatar: string | null
+    }
 }
 
 export interface SaveLocationRequest {
