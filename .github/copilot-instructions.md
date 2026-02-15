@@ -298,6 +298,8 @@ npm run db:studio    # Open Prisma Studio (database GUI)
 ```
 
 ## Documentation References
+- **Documentation Updates** 
+- When creating a new documentation file or updating an exisiting one always add the Current Date and Time. This helps the human track when the documentation was last updated and if it is still relevant.
 - **Setup**: `README.md`
 - **Current Status**: `PROJECT_STATUS.md`
 - **Production Deployment**: `.agent/workflows/deploy-to-production.md`
