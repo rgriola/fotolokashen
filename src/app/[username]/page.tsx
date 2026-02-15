@@ -4,13 +4,14 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
-import { getImageKitUrl } from '@/lib/imagekit';
+// import { getImageKitUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { ProfileStats } from '@/components/profile/ProfileStats';
 import PrivateProfileMessage from '@/components/profile/PrivateProfileMessage';
+import { UserLocationsGrid } from '@/components/profile/UserLocationsGrid';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -149,39 +150,40 @@ async function canViewLocations(
   return false;
 }
 
-async function getUserPublicLocations(userId: number, limit: number = 6) {
-  return await prisma.userSave.findMany({
-    where: {
-      userId,
-      visibility: 'public',
-    },
-    include: {
-      location: {
-        select: {
-          id: true,
-          name: true,
-          address: true,
-          lat: true,
-          lng: true,
-          type: true,
-          photos: {
-            where: {
-              isPrimary: true,
-            },
-            take: 1,
-            select: {
-              imagekitFilePath: true,
-            },
-          },
-        },
-      },
-    },
-    orderBy: {
-      savedAt: 'desc',
-    },
-    take: limit,
-  });
-}
+// No longer used - locations are fetched client-side via API in UserLocationsGrid
+// async function getUserPublicLocations(userId: number, limit: number = 6) {
+//   return await prisma.userSave.findMany({
+//     where: {
+//       userId,
+//       visibility: 'public',
+//     },
+//     include: {
+//       location: {
+//         select: {
+//           id: true,
+//           name: true,
+//           address: true,
+//           lat: true,
+//           lng: true,
+//           type: true,
+//           photos: {
+//             where: {
+//               isPrimary: true,
+//             },
+//             take: 1,
+//             select: {
+//               imagekitFilePath: true,
+//             },
+//           },
+//         },
+//       },
+//     },
+//     orderBy: {
+//       savedAt: 'desc',
+//     },
+//     take: limit,
+//   });
+// }
 
 export async function generateMetadata({ params }: UserProfilePageProps): Promise<Metadata> {
   const { username } = await params;
@@ -264,7 +266,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
   );
 
   // Only fetch locations if user has permission
-  const locations = canViewSavedLocations ? await getUserPublicLocations(user.id) : [];
+  // const locations = canViewSavedLocations ? await getUserPublicLocations(user.id) : [];
   
   const displayName = user.firstName && user.lastName 
     ? `${user.firstName} ${user.lastName}` 
@@ -363,81 +365,13 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
             </p>
           </div>
 
-          {/* Locations Grid */}
+          {/* Locations Grid (client-side, with Load More) */}
           {canViewSavedLocations ? (
-            locations.length > 0 ? (
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold">Public Locations</h2>
-                  {user._count.savedLocations > 6 && (
-                    <Link
-                      href={`/${user.username}/locations`}
-                      className="text-primary hover:underline"
-                    >
-                      View all ({user._count.savedLocations})
-                    </Link>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {locations.map((save) => {
-                    // Generate Google Maps Static API URL as fallback
-                    const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${save.location.lat},${save.location.lng}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${save.location.lat},${save.location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
-                    
-                    return (
-                    <Link
-                      key={save.id}
-                      href={`/${user.username}/locations/${save.location.id}`}
-                      className="group block bg-card rounded-lg border overflow-hidden hover:shadow-lg transition-shadow"
-                    >
-                      {/* Location Image */}
-                      {save.location.photos[0] ? (
-                        <div className="relative w-full h-48 bg-muted">
-                          <Image
-                            src={getImageKitUrl(save.location.photos[0].imagekitFilePath, 'w-400,h-300,c-at_max')}
-                            alt={save.location.name}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-cover group-hover:scale-105 transition-transform"
-                          />
-                        </div>
-                      ) : (
-                        <div className="relative w-full h-48 bg-muted overflow-hidden">
-                          <img
-                            src={mapImageUrl}
-                            alt={`Map of ${save.location.name}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                          />
-                        </div>
-                      )}
-
-                      {/* Location Info */}
-                      <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-1 line-clamp-1">
-                          {save.location.name}
-                        </h3>
-                        {save.caption && (
-                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                            {save.caption}
-                          </p>
-                        )}
-                        {save.location.address && (
-                          <p className="text-xs text-muted-foreground line-clamp-1">
-                            {save.location.address}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                  )})}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-card rounded-lg border">
-                <p className="text-muted-foreground">
-                  {displayName} hasn't shared any locations yet.
-                </p>
-              </div>
-            )
+            <UserLocationsGrid
+              username={user.username}
+              displayName={displayName}
+              googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+            />
           ) : (
             <div className="text-center py-12 bg-card rounded-lg border">
               <div className="flex flex-col items-center gap-3">

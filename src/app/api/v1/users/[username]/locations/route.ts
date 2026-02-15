@@ -62,7 +62,9 @@ export async function GET(
           },
         },
       },
-      orderBy: { savedAt: 'desc' },
+      orderBy: [
+        { location: { createdAt: 'desc' } },
+      ],
       take: limit,
       skip: offset,
     });
