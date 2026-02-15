@@ -286,7 +286,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           />
         </div>
       ) : (
-        <div className="w-full h-32 md:h-40 bg-gradient-to-r from-primary/20 to-primary/10" />
+        <div className="w-full h-32 md:h-40 bg-linear-to-r from-primary/20 to-primary/10" />
       )}
 
       {/* Profile Content */}

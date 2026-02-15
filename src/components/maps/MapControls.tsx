@@ -230,7 +230,7 @@ export function MapControls({
                 {!hideMobileButton && (
                     <button
                         onClick={() => setIsOpen(true)}
-                        className="fixed right-6 z-[90] h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white flex items-center justify-center transition-all active:scale-95"
+                        className="fixed right-6 z-90 h-14 w-14 rounded-full shadow-2xl bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white flex items-center justify-center transition-all active:scale-95"
                         style={{ bottom: '7.75rem' }}
                         aria-label="Map controls menu"
                     >
@@ -253,7 +253,7 @@ export function MapControls({
                                 onClick={() => handleActionClick(onSearchClick)}
                                 className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
                             >
-                                <Search className="w-5 h-5 flex-shrink-0" />
+                                <Search className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">Search</div>
                                     <div className="text-xs text-gray-600">
@@ -271,7 +271,7 @@ export function MapControls({
                                     }`}
                             >
                                 <Navigation
-                                    className={`w-5 h-5 flex-shrink-0 ${userLocation ? 'fill-current' : ''}`}
+                                    className={`w-5 h-5 shrink-0 ${userLocation ? 'fill-current' : ''}`}
                                 />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">GPS Location</div>
@@ -289,7 +289,7 @@ export function MapControls({
                                 onClick={() => handleActionClick(onMyLocationsClick)}
                                 className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
                             >
-                                <MapPinIcon className="w-5 h-5 flex-shrink-0" />
+                                <MapPinIcon className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">My Locations</div>
                                     <div className="text-xs text-gray-600">
@@ -306,7 +306,7 @@ export function MapControls({
                                 onClick={() => handleActionClick(onViewAllClick)}
                                 className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
                             >
-                                <Globe className="w-5 h-5 flex-shrink-0" />
+                                <Globe className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">View All</div>
                                     <div className="text-xs text-gray-600">
@@ -325,7 +325,7 @@ export function MapControls({
                                     : 'bg-white hover:bg-gray-50 text-gray-900 border-gray-200'
                                     }`}
                             >
-                                <Map className={`w-5 h-5 flex-shrink-0 ${showPublicLocations ? 'fill-current' : ''}`} />
+                                <Map className={`w-5 h-5 shrink-0 ${showPublicLocations ? 'fill-current' : ''}`} />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">Explore Public</div>
                                     <div className={`text-xs ${showPublicLocations ? 'opacity-90' : 'text-gray-600'}`}>
@@ -343,7 +343,7 @@ export function MapControls({
                                 onClick={() => setIsOpen(false)}
                                 className="w-full flex items-center gap-3 p-4 rounded-lg border bg-green-600 hover:bg-green-700 text-white border-green-700 transition-all"
                             >
-                                <Plus className="w-5 h-5 flex-shrink-0" />
+                                <Plus className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">Create from Photo</div>
                                     <div className="text-xs opacity-90">
@@ -357,7 +357,7 @@ export function MapControls({
                                 onClick={() => handleActionClick(onFriendsClick)}
                                 className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
                             >
-                                <Users className="w-5 h-5 flex-shrink-0" />
+                                <Users className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">Friends</div>
                                     <div className="text-xs text-gray-600">

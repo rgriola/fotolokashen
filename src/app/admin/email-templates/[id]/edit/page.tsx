@@ -42,7 +42,7 @@ type DeviceSize = keyof typeof DEVICE_SIZES;
 const Editor = dynamic(() => import('@monaco-editor/react'), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-[500px] border rounded-md bg-gray-900">
+    <div className="flex items-center justify-center h-125 border rounded-md bg-gray-900">
       <p className="text-gray-400">Loading editor...</p>
     </div>
   ),
@@ -602,7 +602,7 @@ export default function EmailTemplateEditPage({
                       <Label className="text-xs">{label}</Label>
                       <div className="flex gap-2 mt-0.5">
                         <div
-                          className="w-8 h-8 rounded border cursor-pointer flex-shrink-0 transition-transform hover:scale-105"
+                          className="w-8 h-8 rounded border cursor-pointer shrink-0 transition-transform hover:scale-105"
                           style={{ backgroundColor: template[key as keyof TemplateData] as string }}
                           onClick={() => setShowColorPicker(showColorPicker === key ? null : key)}
                         />

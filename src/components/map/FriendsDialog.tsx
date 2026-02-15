@@ -126,7 +126,7 @@ export function FriendsDialog({ open, onOpenChange }: FriendsDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] h-[600px] max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-150 h-150 max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Friends & Followers</DialogTitle>
           <DialogDescription>

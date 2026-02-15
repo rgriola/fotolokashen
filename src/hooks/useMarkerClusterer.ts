@@ -31,24 +31,37 @@ export function useMarkerClusterer({ map, markers }: UseMarkerClustererOptions) 
                 render: ({ count, position }) => {
                     // Custom cluster marker styling
                     const color = count > 10 ? '#DC2626' : count > 5 ? '#F59E0B' : '#3B82F6';
+                    
+                    // Calculate width based on count digits (wider for larger numbers)
+                    const countStr = count.toString();
+                    const width = countStr.length === 1 ? 68 : countStr.length === 2 ? 76 : 84;
 
                     return new google.maps.Marker({
                         position,
                         icon: {
                             url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-                                <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-                                    <!-- Outer circle -->
-                                    <circle cx="30" cy="30" r="28" fill="${color}" opacity="0.3"/>
-                                    <!-- Inner circle -->
-                                    <circle cx="30" cy="30" r="22" fill="${color}" stroke="white" stroke-width="3"/>
-                                    <!-- Count text -->
-                                    <text x="30" y="36" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="Arial">
+                                <svg width="${width}" height="54" viewBox="0 0 ${width} 54" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Container with rounded corners -->
+                                    <rect x="2" y="2" width="${width - 4}" height="40" rx="6" fill="${color}" stroke="white" stroke-width="3"/>
+                                    
+                                    <!-- Camera icon on left -->
+                                    <g transform="translate(8, 10)">
+                                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" 
+                                              fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="12" cy="13" r="4" fill="none" stroke="white" stroke-width="2"/>
+                                    </g>
+                                    
+                                    <!-- Count number on right -->
+                                    <text x="${width - 16}" y="28" text-anchor="middle" fill="white" font-size="18" font-weight="bold" font-family="Arial, sans-serif">
                                         ${count}
                                     </text>
+                                    
+                                    <!-- Pointer/Pin at bottom center -->
+                                    <path d="M ${width/2} 54 L ${width/2 - 6} 42 L ${width/2 + 6} 42 Z" fill="${color}"/>
                                 </svg>
                             `)}`,
-                            scaledSize: new google.maps.Size(60, 60),
-                            anchor: new google.maps.Point(30, 30),
+                            scaledSize: new google.maps.Size(width, 54),
+                            anchor: new google.maps.Point(width / 2, 54),
                         },
                         label: undefined,
                         zIndex: Number(google.maps.Marker.MAX_ZINDEX) + count,

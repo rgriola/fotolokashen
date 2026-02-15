@@ -78,6 +78,26 @@ function MapPageInner() {
         west: number;
     } | null>(null);
 
+    // Helper function to expand bounds for loading locations outside viewport
+    // Adds 25% padding on each side to pre-load nearby locations
+    const expandBounds = useCallback((bounds: google.maps.LatLngBounds) => {
+        const ne = bounds.getNorthEast();
+        const sw = bounds.getSouthWest();
+        
+        const latSpan = ne.lat() - sw.lat();
+        const lngSpan = ne.lng() - sw.lng();
+        
+        const latPadding = latSpan * 0.25; // 25% padding
+        const lngPadding = lngSpan * 0.25;
+        
+        return {
+            north: ne.lat() + latPadding,
+            south: sw.lat() - latPadding,
+            east: ne.lng() + lngPadding,
+            west: sw.lng() - lngPadding,
+        };
+    }, []);
+
 
     // GPS permission state
     const { user } = useAuth();
@@ -110,7 +130,6 @@ function MapPageInner() {
     // Hide welcome banner if user is not eligible (sync with user profile)
     useEffect(() => {
         if (user && user.gpsPermission !== 'not_asked') {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowWelcomeBanner(false);
         }
     }, [user]);
@@ -118,7 +137,6 @@ function MapPageInner() {
     // Update map center when home location changes (sync with user profile)
     useEffect(() => {
         if (user?.homeLocationLat && user?.homeLocationLng) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setCenter({
                 lat: user.homeLocationLat,
                 lng: user.homeLocationLng,
@@ -140,22 +158,17 @@ function MapPageInner() {
         if (showPublicLocations && map) {
             const bounds = map.getBounds();
             if (bounds) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
-                setMapBounds({
-                    north: bounds.getNorthEast().lat(),
-                    south: bounds.getSouthWest().lat(),
-                    east: bounds.getNorthEast().lng(),
-                    west: bounds.getSouthWest().lng(),
-                });
+                setMapBounds(expandBounds(bounds));
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showPublicLocations, map]);
 
     // Populate markers from saved locations
     useEffect(() => {
         if (locationsData?.locations) {
             const savedMarkers: MarkerData[] = locationsData.locations
-                .filter((userSave) => userSave.location) // Filter out any undefined locations
+                .filter((userSave) => userSave.location)
                 .map((userSave) => ({
                     id: `saved-${userSave.id}`,
                     position: {
@@ -175,13 +188,12 @@ function MapPageInner() {
                         state: userSave.location!.state || undefined,
                         zipcode: userSave.location!.zipcode || undefined,
                     },
-                    isTemporary: false, // Saved locations are NOT temporary
+                    isTemporary: false,
                     userSave: userSave,
-                    color: userSave.color || '#EF4444', // Use user's custom color or default red
+                    color: userSave.color || '#EF4444',
                     isPublic: false,
                 }));
 
-            // Add public location markers if enabled
             const publicMarkers: MarkerData[] = showPublicLocations && publicLocationsData?.locations
                 ? publicLocationsData.locations.map((publicLoc) => ({
                     id: `public-${publicLoc.id}`,
@@ -198,17 +210,28 @@ function MapPageInner() {
                         type: publicLoc.location.type || undefined,
                     },
                     isTemporary: false,
-                    color: '#A855F7', // Purple for public locations
+                    color: '#A855F7',
                     isPublic: true,
                     ownerUsername: publicLoc.user.username,
                 }))
                 : [];
 
-            // Update markers, preserving any temporary markers
-            // eslint-disable-next-line react-hooks/set-state-in-effect
+            // Deduplicate by placeId: prefer savedMarkers over publicMarkers
+            const markerMap = new Map<string, MarkerData>();
+            for (const marker of publicMarkers) {
+                if (marker.data?.placeId) {
+                    markerMap.set(marker.data.placeId, marker);
+                }
+            }
+            for (const marker of savedMarkers) {
+                if (marker.data?.placeId) {
+                    markerMap.set(marker.data.placeId, marker); // Overwrite public with saved
+                }
+            }
+            // Add any temporary markers
             setMarkers(prev => {
                 const tempMarkers = prev.filter(m => m.isTemporary);
-                return [...savedMarkers, ...publicMarkers, ...tempMarkers];
+                return [...Array.from(markerMap.values()), ...tempMarkers];
             });
         }
     }, [locationsData, publicLocationsData, showPublicLocations]);
@@ -328,15 +351,11 @@ function MapPageInner() {
             if (showPublicLocations) {
                 const bounds = mapInstance.getBounds();
                 if (bounds) {
-                    setMapBounds({
-                        north: bounds.getNorthEast().lat(),
-                        south: bounds.getSouthWest().lat(),
-                        east: bounds.getNorthEast().lng(),
-                        west: bounds.getSouthWest().lng(),
-                    });
+                    setMapBounds(expandBounds(bounds));
                 }
             }
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showPublicLocations]);
 
     const handleMapClick = useCallback(async (event: google.maps.MapMouseEvent) => {
