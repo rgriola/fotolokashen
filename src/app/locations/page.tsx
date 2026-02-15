@@ -18,7 +18,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
-import { List, LayoutGrid, X, Camera, Sun, Building, Heart, Plus } from "lucide-react";
+import { List, LayoutGrid, X, Plus } from "lucide-react";
 import type { Location, UserSave } from "@/types/location";
 
 function LocationsPageInner() {
@@ -149,7 +149,7 @@ function LocationsPageInner() {
     return (
         <div className="fixed inset-0 top-16 flex flex-col">
             {/* Fixed Controls Section - Compact Mobile Layout */}
-            <div className="flex-shrink-0 bg-background border-b">
+            <div className="shrink-0 bg-background border-b">
                 <div className="container mx-auto px-4 py-3 max-w-7xl">
                     {/* Single Row: Search (left) + Buttons (right) */}
                     <div className="flex items-center justify-between gap-4">

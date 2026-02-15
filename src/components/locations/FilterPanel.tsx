@@ -44,7 +44,7 @@ export function FilterPanel({
                     <SlidersHorizontal className="w-4 h-4" />
                 </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[320px] sm:w-[380px] flex flex-col">
+            <SheetContent side="right" className="w-[320px] sm:w-95 flex flex-col">
                 <SheetHeader className="pb-4">
                     <SheetTitle className="flex items-center gap-2">
                         <SlidersHorizontal className="w-5 h-5" />

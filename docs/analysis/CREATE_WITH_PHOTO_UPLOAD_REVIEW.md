@@ -440,11 +440,11 @@ sanitizedMetadata = {
 
 ### Priority 3: Testing
 
-- [ ] Test with various HEIC sources (iPhone, iPad, macOS)
-- [ ] Test TIFF conversion from different cameras
-- [ ] Test manual location selection flow end-to-end
-- [ ] Test edge cases (huge files, corrupted files)
-- [ ] Verify virus scanning with EICAR test file
+- [ X] Test with various HEIC sources (iPhone, iPad, macOS)
+- [ X ] Test TIFF conversion from different cameras
+- [X ] Test manual location selection flow end-to-end
+- [ X] Test edge cases (huge files, corrupted files)
+- [ X] Verify virus scanning with EICAR test file
 
 ---
 
