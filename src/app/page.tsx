@@ -25,10 +25,16 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative overflow-hidden h-screen flex flex-col">
         {/* Background Image Layer */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-90"
-          style={{ backgroundImage: 'url(/images/landing/hero/hero-background.jpg)' }}
-        />
+        <div className="absolute inset-0 opacity-90">
+          <Image
+            src="/images/landing/hero/hero-background.jpg"
+            alt="Hero background"
+            fill
+            className="object-cover"
+            priority
+            sizes="100vw"
+          />
+        </div>
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-linear-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
 
