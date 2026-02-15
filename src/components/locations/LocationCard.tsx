@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Carousel } from "@/components/ui/Carousel";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -42,7 +43,7 @@ export const LocationCard = memo(function LocationCard({
     isFirstCard = false,
     source = 'user',
 }: LocationCardProps) {
-    const [photoError, setPhotoError] = useState(false);
+    // Removed unused setPhotoError
     const [mapError, setMapError] = useState(false);
     const [showAllData, setShowAllData] = useState(false);
     const router = useRouter();
@@ -76,19 +77,31 @@ export const LocationCard = memo(function LocationCard({
         }
     };
 
-    // Get the first photo from photos array or photoUrls
-    const photoUrl = location.photos && location.photos.length > 0
-        ? `${IMAGEKIT_URL_ENDPOINT}${location.photos[0].imagekitFilePath}`
-        : location.photoUrls && location.photoUrls.length > 0
-            ? location.photoUrls[0]
-            : null;
+
+    // Gather all photo URLs for carousel
+    const photoUrls: string[] = [];
+    if (location.photos && location.photos.length > 0) {
+        for (const p of location.photos) {
+            if (p.imagekitFilePath) photoUrls.push(`${IMAGEKIT_URL_ENDPOINT}${p.imagekitFilePath}`);
+        }
+    }
+    if (location.photoUrls && location.photoUrls.length > 0) {
+        for (const url of location.photoUrls) {
+            if (url) photoUrls.push(url);
+        }
+    }
+    // Remove duplicates
+    const uniquePhotoUrls = Array.from(new Set(photoUrls));
+
+    // Fallback map image
+    const fallbackMapImage = `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${location.lat},${location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
 
     // Get type color for the marker
     const typeColor = userSave?.color || (location.type ? TYPE_COLOR_MAP[location.type] || "#64748B" : "#64748B");
 
     // Generate Google Maps Static API URL as fallback
     // Docs: https://developers.google.com/maps/documentation/maps-static
-    const mapImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${location.lat},${location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
+    // Removed unused mapImageUrl
 
     // Navigate to map view at this location or open modal
     const handleCardClick = (e: React.MouseEvent) => {
@@ -110,26 +123,21 @@ export const LocationCard = memo(function LocationCard({
             className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary/50 bg-white hover:bg-accent/50 p-0"
             onClick={handleCardClick}
         >
-            {/* Image Section */}
+            {/* Image/Carousel Section */}
             <div className="relative h-56 bg-linear-to-br from-muted to-muted/50 overflow-hidden">
-                {photoUrl && !photoError ? (
-                    <Image
-                        src={photoUrl}
+                {uniquePhotoUrls.length > 0 ? (
+                    <Carousel
+                        images={uniquePhotoUrls}
                         alt={location.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        onError={() => setPhotoError(true)}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="h-full w-full"
                     />
                 ) : !mapError ? (
                     <Image
-                        src={mapImageUrl}
+                        src={fallbackMapImage}
                         alt={`Map of ${location.name}`}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={() => {
-                            console.error('Google Maps Static API image failed to load:', mapImageUrl);
-                            console.error('Troubleshooting: 1) Verify Maps Static API is enabled in Google Cloud Console, 2) Check billing is set up, 3) Verify API key is correct');
                             setMapError(true);
                         }}
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -241,7 +249,7 @@ export const LocationCard = memo(function LocationCard({
 
                 {/* Photo Count & Status Badges - Bottom Right */}
                 <div className="absolute bottom-3 right-3 flex flex-col gap-2 items-end">
-                    {(!photoUrl || photoError) && !mapError && (
+                    {uniquePhotoUrls.length === 0 && !mapError && (
                         <div className="bg-blue-500/90 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
                             <MapPinned className="w-3 h-3" />
                             Map View

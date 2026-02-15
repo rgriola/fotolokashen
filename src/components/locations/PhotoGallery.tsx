@@ -6,16 +6,18 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
 import { PhotoLightbox } from "@/components/ui/PhotoLightbox";
+import Image from "next/image";
 import type { Photo } from "@/types/location";
 
 interface PhotoGalleryProps {
     photos: Photo[];
+    locationName?: string;
     className?: string;
 }
 
-export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
+export function PhotoGallery({ photos, locationName, className }: PhotoGalleryProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [showMetadata, setShowMetadata] = useState(false);
+    // Removed unused showMetadata and setShowMetadata
     const [showCaption, setShowCaption] = useState(true);
     const [showLightbox, setShowLightbox] = useState(false);
 
@@ -72,10 +74,15 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                         onClick={() => setShowLightbox(true)}
                         title="Click to view full size"
                     >
-                        <img
+                        <Image
                             src={photoUrl}
-                            alt={currentPhoto.caption || currentPhoto.originalFilename}
+                            alt={currentPhoto.caption || currentPhoto.originalFilename || "Photo"}
                             className="w-full h-full object-cover"
+                            width={1200}
+                            height={675}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority
+                            draggable={false}
                         />
 
                         {/* Expand icon on hover */}
@@ -213,10 +220,15 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
                                         : "border-border hover:border-primary/50"
                                 )}
                             >
-                                <img
+                                <Image
                                     src={`${IMAGEKIT_URL_ENDPOINT}${photo.imagekitFilePath}`}
-                                    alt={photo.caption || photo.originalFilename}
+                                    alt={photo.caption || photo.originalFilename || "Photo"}
                                     className="w-full h-full object-cover"
+                                    width={1200}
+                                    height={675}
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    priority
+                                    draggable={false}
                                 />
 
                                 {/* Primary star on thumbnail */}
@@ -233,10 +245,11 @@ export function PhotoGallery({ photos, className }: PhotoGalleryProps) {
 
             {/* Photo Lightbox with Zoom & Rotate */}
             <PhotoLightbox
-                photoUrl={photoUrl}
-                photoTitle={currentPhoto.caption || currentPhoto.originalFilename}
+                photos={photos.map(p => ({ ...p, caption: p.caption ?? undefined }))}
+                locationName={locationName || "Photo Gallery"}
                 open={showLightbox}
                 onOpenChange={setShowLightbox}
+                initialIndex={currentIndex}
             />
         </>
     );

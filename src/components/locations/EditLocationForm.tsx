@@ -601,6 +601,7 @@ export function EditLocationForm({
                         onRemovePhoto={handleRemovePhoto}
                         photosToDelete={photosToDelete}
                         maxPhotos={20}
+                        locationName={location.name}
                     />
                 ) : (
                     /* Static Map Preview when no photos */

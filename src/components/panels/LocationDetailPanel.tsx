@@ -240,7 +240,7 @@ export function LocationDetailPanel({
                             </Tooltip>
                         </div>
                     {location.photos && location.photos.length > 0 ? (
-                        <PhotoGallery photos={location.photos} />
+                        <PhotoGallery photos={location.photos} locationName={location.name} />
                     ) : (
                         <div className="relative h-64 bg-linear-to-br from-muted to-muted/50 overflow-hidden rounded-lg">
                             <Image

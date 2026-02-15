@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Star, Trash2, Info, Maximize2, Camera } from
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PhotoLightbox } from "@/components/ui/PhotoLightbox";
+import Image from "next/image";
 
 interface Photo {
     id?: number;
@@ -26,6 +27,7 @@ interface PhotoCarouselManagerProps {
     onRemovePhoto: (index: number) => void;
     maxPhotos?: number;
     photosToDelete?: number[]; // IDs of photos marked for deletion
+    locationName?: string;
 }
 
 export function PhotoCarouselManager({
@@ -33,6 +35,7 @@ export function PhotoCarouselManager({
     onPhotosChange,
     onRemovePhoto,
     photosToDelete = [],
+    locationName,
 }: PhotoCarouselManagerProps) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isDeleteHovered, setIsDeleteHovered] = useState(false);
@@ -65,13 +68,13 @@ export function PhotoCarouselManager({
     // Reset currentIndex if it's out of bounds after photo deletion
     useEffect(() => {
         if (currentIndex >= photos.length && photos.length > 0) {
-            setCurrentIndex(photos.length - 1);
+            Promise.resolve().then(() => setCurrentIndex(photos.length - 1));
         }
     }, [photos.length, currentIndex]);
 
     // Reset image load error when photo changes
     useEffect(() => {
-        setImageLoadError(false);
+        Promise.resolve().then(() => setImageLoadError(false));
     }, [currentIndex]);
 
     if (photos.length === 0) {
@@ -98,13 +101,18 @@ export function PhotoCarouselManager({
                     title="Click to view full size"
                 >
                     {!imageLoadError ? (
-                        <img
+                        <Image
                             src={currentPhoto.url}
-                            alt={currentPhoto.originalFilename}
+                            alt={currentPhoto.originalFilename || "Photo"}
                             className={cn(
                                 "w-full h-full object-cover transition-all",
                                 isCurrentPhotoMarkedForDeletion && "opacity-50"
                             )}
+                            width={1200}
+                            height={675}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority
+                            draggable={false}
                             onError={() => setImageLoadError(true)}
                         />
                     ) : (
@@ -284,13 +292,18 @@ export function PhotoCarouselManager({
                                         : "border-border hover:border-primary/50"
                                 )}
                             >
-                                <img
+                                <Image
                                     src={photo.url}
-                                    alt={photo.originalFilename}
+                                    alt={photo.originalFilename || "Photo"}
                                     className={cn(
                                         "w-full h-full object-cover transition-all",
                                         isMarkedForDeletion && "opacity-50"
                                     )}
+                                    width={1200}
+                                    height={675}
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    priority
+                                    draggable={false}
                                     onError={(e) => {
                                         // Hide broken thumbnail images
                                         e.currentTarget.style.display = 'none';
@@ -326,10 +339,11 @@ export function PhotoCarouselManager({
 
             {/* Photo Lightbox */}
             <PhotoLightbox
-                photoUrl={currentPhoto.url}
-                photoTitle={currentPhoto.originalFilename}
+                photos={photos.map(p => ({ imagekitFilePath: p.url, originalFilename: p.originalFilename, caption: p.caption ?? undefined }))}
+                locationName={locationName || currentPhoto.caption || currentPhoto.originalFilename || "Photo"}
                 open={lightboxOpen}
                 onOpenChange={setLightboxOpen}
+                initialIndex={currentIndex}
             />
         </div>
     );
