@@ -44,7 +44,6 @@ export const LocationCard = memo(function LocationCard({
     const [photoError, setPhotoError] = useState(false);
     const [mapError, setMapError] = useState(false);
     const [showAllData, setShowAllData] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const router = useRouter();
     const userSave = location.userSave;
 
@@ -162,42 +161,17 @@ export const LocationCard = memo(function LocationCard({
                         <Edit className="w-3.5 h-3.5" />
                     </Button>
                     
-                    {/* Quick-Save Button - Only for public/friend locations */}
+                    {/* Quick-Save Button - Only for public/friend locations (DISABLED - Future Feature) */}
                     {source !== 'user' && (
                         <Button
                             variant="secondary"
                             size="icon"
-                            onClick={async (e) => {
+                            onClick={(e) => {
                                 e.stopPropagation();
-                                setIsSaving(true);
-                                try {
-                                    const response = await fetch('/api/locations', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        credentials: 'include',
-                                        body: JSON.stringify({
-                                            locationId: location.id,
-                                        }),
-                                    });
-                                    
-                                    if (!response.ok) {
-                                        const error = await response.json();
-                                        alert(error.error || 'Failed to save location');
-                                        return;
-                                    }
-                                    
-                                    // Refresh the page to show saved location in user's list
-                                    window.location.reload();
-                                } catch (error) {
-                                    console.error('Error saving location:', error);
-                                    alert('Failed to save location');
-                                } finally {
-                                    setIsSaving(false);
-                                }
                             }}
                             className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                            title="Save to my locations"
-                            disabled={isSaving}
+                            title="Quick-save feature coming soon"
+                            disabled={true}
                         >
                             <Bookmark className="w-3.5 h-3.5" />
                         </Button>

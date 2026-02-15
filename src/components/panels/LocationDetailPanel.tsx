@@ -30,8 +30,6 @@ import {
 import { PhotoGallery } from "../locations/PhotoGallery";
 import type { Location } from "@/types/location";
 import { getOptimizedAvatarUrl } from "@/lib/imagekit";
-import { useState } from "react";
-import { toast } from "sonner";
 
 interface LocationDetailPanelProps {
     location: Location;
@@ -55,7 +53,6 @@ export function LocationDetailPanel({
     canEdit = true,
 }: LocationDetailPanelProps) {
     const router = useRouter();
-    const [isSaving, setIsSaving] = useState(false);
 
     const typeColor = location.userSave?.color || "#64748B";
 
@@ -144,41 +141,15 @@ export function LocationDetailPanel({
                                 <Edit className="w-3.5 h-3.5" />
                             </Button>
                             
-                            {/* Quick-Save Button - Only for public/friend locations */}
+                            {/* Quick-Save Button - Only for public/friend locations (DISABLED - Future Feature) */}
                             {source !== 'user' && (
                                 <Button
                                     variant="secondary"
                                     size="icon"
-                                    onClick={async () => {
-                                        setIsSaving(true);
-                                        try {
-                                            const response = await fetch('/api/locations', {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                credentials: 'include',
-                                                body: JSON.stringify({
-                                                    locationId: location.id,
-                                                }),
-                                            });
-                                            
-                                            if (!response.ok) {
-                                                const error = await response.json();
-                                                toast.error(error.error || 'Failed to save location');
-                                                return;
-                                            }
-                                            
-                                            toast.success('Location saved to your collection!');
-                                            setTimeout(() => window.location.reload(), 1000);
-                                        } catch (error) {
-                                            console.error('Error saving location:', error);
-                                            toast.error('Failed to save location');
-                                        } finally {
-                                            setIsSaving(false);
-                                        }
-                                    }}
-                                    title="Save to my locations"
+                                    onClick={() => {}}
+                                    title="Quick-save feature coming soon"
                                     className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                                    disabled={isSaving}
+                                    disabled={true}
                                 >
                                     <Bookmark className="w-3.5 h-3.5" />
                                 </Button>

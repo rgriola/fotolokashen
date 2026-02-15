@@ -134,7 +134,6 @@ function LocationListItem({
     const [photoError, setPhotoError] = useState(false);
     const [mapError, setMapError] = useState(false);
     const [copied, setCopied] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
     const { user } = useAuth();
 
     const handleCopyLink = async (e: React.MouseEvent) => {
@@ -159,31 +158,7 @@ function LocationListItem({
     
     const handleSave = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        setIsSaving(true);
-        try {
-            const response = await fetch('/api/locations', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    locationId: location.id,
-                }),
-            });
-            
-            if (!response.ok) {
-                const error = await response.json();
-                toast.error(error.error || 'Failed to save location');
-                return;
-            }
-            
-            toast.success('Location saved!');
-            window.location.reload();
-        } catch (error) {
-            console.error('Error saving location:', error);
-            toast.error('Failed to save location');
-        } finally {
-            setIsSaving(false);
-        }
+        // Feature paused for future implementation
     };
 
     return (
@@ -193,15 +168,15 @@ function LocationListItem({
         >
             {/* Left Side Actions */}
             <div className="flex flex-col gap-2 shrink-0">
-                {/* Quick-Save Button for Public/Friend Locations */}
+                {/* Quick-Save Button for Public/Friend Locations (DISABLED - Future Feature) */}
                 {source !== 'user' && (
                     <Button
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
                         onClick={handleSave}
-                        title="Save to my locations"
-                        disabled={isSaving}
+                        title="Quick-save feature coming soon"
+                        disabled={true}
                     >
                         <Bookmark className="w-4 h-4" />
                     </Button>
