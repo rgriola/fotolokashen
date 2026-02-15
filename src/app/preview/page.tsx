@@ -338,6 +338,8 @@ export default function PreviewPage() {
                             <div className="h-full">
                                 <LocationDetailPanel
                                     location={selectedLocation}
+                                    source="user"
+                                    canEdit={true}
                                     onEdit={(loc) => {
                                         setSelectedLocation(loc);
                                         setIsFavorite(loc.userSave?.isFavorite || false);

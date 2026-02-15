@@ -144,23 +144,26 @@ export const LocationCard = memo(function LocationCard({
 
                 {/* Action Buttons - Top Left */}
                 <div className="absolute top-2 left-2 flex gap-1.5 z-10">
-                    {source === 'user' && canEdit ? (
-                        <>
-                            <Button
-                                data-tour="location-edit"
-                                variant="secondary"
-                                size="icon"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onEdit?.(location);
-                                }}
-                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                                title="Edit location"
-                            >
-                                <Edit className="w-3.5 h-3.5" />
-                            </Button>
-                        </>
-                    ) : source !== 'user' ? (
+                    {/* Edit Button - Always visible, disabled for non-user locations */}
+                    <Button
+                        data-tour="location-edit"
+                        variant="secondary"
+                        size="icon"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (source === 'user' && canEdit) {
+                                onEdit?.(location);
+                            }
+                        }}
+                        className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                        title={source !== 'user' ? 'You cannot edit this location' : 'Edit location'}
+                        disabled={source !== 'user' || !canEdit}
+                    >
+                        <Edit className="w-3.5 h-3.5" />
+                    </Button>
+                    
+                    {/* Quick-Save Button - Only for public/friend locations */}
+                    {source !== 'user' && (
                         <Button
                             variant="secondary"
                             size="icon"
@@ -198,7 +201,7 @@ export const LocationCard = memo(function LocationCard({
                         >
                             <Bookmark className="w-3.5 h-3.5" />
                         </Button>
-                    ) : null}
+                    )}
 
                     <Button
                         {...(isFirstCard && { 'data-tour': 'location-share' })}
@@ -293,38 +296,8 @@ export const LocationCard = memo(function LocationCard({
             </div>
 
             <CardHeader className="pt-0 pb-3">
-                {/* Owner Info - For Public/Friend Locations */}
-                {source !== 'user' && location.userSave?.user && (
-                    <Link 
-                        href={`/@${location.userSave.user.username}`}
-                        className="flex items-center gap-2 mb-3 p-2 rounded-md hover:bg-accent/50 transition-colors border border-border/50"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <Avatar className="h-8 w-8">
-                            {location.userSave.user.avatar ? (
-                                <AvatarImage
-                                    src={getOptimizedAvatarUrl(location.userSave.user.avatar, 32) || location.userSave.user.avatar}
-                                    alt={location.userSave.user.username}
-                                />
-                            ) : null}
-                            <AvatarFallback>
-                                {location.userSave.user.username.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                            <span className="text-xs text-muted-foreground">Saved by</span>
-                            <span className="text-sm font-medium text-foreground">
-                                {location.userSave.user.firstName && location.userSave.user.lastName 
-                                    ? `${location.userSave.user.firstName} ${location.userSave.user.lastName}`
-                                    : `@${location.userSave.user.username}`
-                                }
-                            </span>
-                        </div>
-                    </Link>
-                )}
-                
                 {/* Main Address */}
-                <div className="text-sm text-black flex items-start gap-2">
+                <div className="text-sm text-black flex items-start gap-2 mb-3">
                     <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-black" />
                     <div className="flex-1">
                         {/* Street Address - Line 1 */}
@@ -346,6 +319,33 @@ export const LocationCard = memo(function LocationCard({
                         )}
                     </div>
                 </div>
+                
+                {/* Owner Info - For Public/Friend Locations */}
+                {source !== 'user' && location.userSave?.user && (
+                    <Link 
+                        href={`/@${location.userSave.user.username}`}
+                        className="flex items-center gap-1.5 p-2 rounded-md hover:bg-accent/50 transition-colors border border-border/50"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <Avatar className="h-4 w-4">
+                            {location.userSave.user.avatar ? (
+                                <AvatarImage
+                                    src={getOptimizedAvatarUrl(location.userSave.user.avatar, 32) || location.userSave.user.avatar}
+                                    alt={location.userSave.user.username}
+                                />
+                            ) : null}
+                            <AvatarFallback className="text-[8px]">
+                                {location.userSave.user.username.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-muted-foreground">
+                            {location.userSave.user.firstName && location.userSave.user.lastName 
+                                ? `${location.userSave.user.firstName} ${location.userSave.user.lastName}`
+                                : `@${location.userSave.user.username}`
+                            }
+                        </span>
+                    </Link>
+                )}
             </CardHeader>
 
             <CardContent className="space-y-3 pt-0 hidden">{/* Hidden content below coordinates */}
@@ -554,19 +554,21 @@ export const LocationCard = memo(function LocationCard({
                     Share
                 </Button>
 
-                {canEdit && (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (source === 'user' && canEdit) {
                             onDelete?.(userSave?.id || location.id);
-                        }}
-                        className="text-destructive hover:bg-destructive hover:text-white"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </Button>
-                )}
+                        }
+                    }}
+                    className="text-destructive hover:bg-destructive hover:text-white"
+                    disabled={source !== 'user' || !canEdit}
+                    title={source !== 'user' ? 'You cannot delete this location' : 'Delete location'}
+                >
+                    <Trash2 className="w-4 h-4" />
+                </Button>
             </CardFooter>
         </Card>
     );

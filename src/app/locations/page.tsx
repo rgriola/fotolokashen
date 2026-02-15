@@ -21,12 +21,13 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 import { List, LayoutGrid, X, Plus, Map, Users, MapPin } from "lucide-react";
-import type { Location, UserSave } from "@/types/location";
+import type { Location, UserSave, LocationWithSource } from "@/types/location";
 
 function LocationsPageInner() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const hasProcessedEdit = useRef(false);
+    const { user } = useAuth();
     const [search, setSearch] = useState("");
     const [typeFilter, setTypeFilter] = useState("all");
     const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -75,7 +76,7 @@ function LocationsPageInner() {
 
     // Merge locations from all sources (user's saves, public, friends)
     const mergedLocations = useMemo(() => {
-        const locationMap = new globalThis.Map<number, any>();
+        const locationMap = new globalThis.Map<number, Location & { source?: 'user' | 'friend' | 'public' }>();
 
         // Add user's own locations first (highest precedence)
         allLocations.forEach(loc => {
@@ -88,7 +89,7 @@ function LocationsPageInner() {
                 if (userSave.location && !locationMap.has(userSave.location.id)) {
                     const loc = {
                         ...(userSave.location as Location),
-                        userSave: userSave,
+                        userSave: userSave as any,
                         source: 'friend' as const,
                     };
                     locationMap.set(userSave.location.id, loc);
@@ -102,7 +103,7 @@ function LocationsPageInner() {
                 if (userSave.location && !locationMap.has(userSave.location.id)) {
                     const loc = {
                         ...(userSave.location as Location),
-                        userSave: userSave,
+                        userSave: userSave as any,
                         source: 'public' as const,
                     };
                     locationMap.set(userSave.location.id, loc);
@@ -174,7 +175,7 @@ function LocationsPageInner() {
     // Filter favorites (only applies to user's own locations)
     if (favoritesOnly) {
         filteredLocations = filteredLocations.filter(
-            (loc) => (loc as any).source === 'user' && loc.userSave?.isFavorite
+            (loc) => (loc as LocationWithSource).source === 'user' && loc.userSave?.isFavorite
         );
     }
 
@@ -432,6 +433,13 @@ function LocationsPageInner() {
                         {selectedLocation && (
                             <LocationDetailPanel
                                 location={selectedLocation}
+                                source={(selectedLocation as LocationWithSource).source || 'user'}
+                                canEdit={
+                                    user?.isAdmin ||
+                                    user?.role === 'staffer' ||
+                                    user?.role === 'super_admin' ||
+                                    selectedLocation.createdBy === user?.id
+                                }
                                 onEdit={(location) => {
                                     setEditLocation(location);
                                     setIsFavorite(location.userSave?.isFavorite || false);

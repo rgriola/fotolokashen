@@ -1259,6 +1259,13 @@ function MapPageInner() {
                                     photos: locationToEdit.userSave.location?.photos ?? [],
                                     userSave: locationToEdit.userSave,
                                 }}
+                                source="user"
+                                canEdit={
+                                    user?.isAdmin ||
+                                    user?.role === 'staffer' ||
+                                    user?.role === 'super_admin' ||
+                                    (locationToEdit.userSave.location?.createdBy === user?.id)
+                                }
                                 onEdit={() => {
                                     // Navigate to /locations with edit parameter
                                     const userSaveId = locationToEdit.userSave?.id;

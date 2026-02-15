@@ -1,8 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     MapPin,
     Edit,
@@ -23,9 +25,13 @@ import {
     Globe,
     Lock,
     Users,
+    Bookmark,
 } from "lucide-react";
 import { PhotoGallery } from "../locations/PhotoGallery";
 import type { Location } from "@/types/location";
+import { getOptimizedAvatarUrl } from "@/lib/imagekit";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface LocationDetailPanelProps {
     location: Location;
@@ -34,6 +40,8 @@ interface LocationDetailPanelProps {
     onShare?: (location: Location) => void;
     onViewOnMap?: (location: Location) => void;
     onClose?: () => void;
+    source?: 'user' | 'friend' | 'public';
+    canEdit?: boolean;
 }
 
 export function LocationDetailPanel({
@@ -43,8 +51,11 @@ export function LocationDetailPanel({
     onShare,
     onViewOnMap,
     onClose,
+    source = 'user',
+    canEdit = true,
 }: LocationDetailPanelProps) {
     const router = useRouter();
+    const [isSaving, setIsSaving] = useState(false);
 
     const typeColor = location.userSave?.color || "#64748B";
 
@@ -117,15 +128,59 @@ export function LocationDetailPanel({
                     <div className="my-4 relative">
                         {/* Action Buttons - Overlay top-left */}
                         <div className="absolute top-2 left-2 flex gap-1.5 z-10">
-                            {onEdit && (
+                            {/* Edit Button - Always visible, disabled for non-user locations */}
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                onClick={() => {
+                                    if (source === 'user' && canEdit && onEdit) {
+                                        onEdit(location);
+                                    }
+                                }}
+                                title={source !== 'user' ? 'You cannot edit this location' : 'Edit location'}
+                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                disabled={source !== 'user' || !canEdit}
+                            >
+                                <Edit className="w-3.5 h-3.5" />
+                            </Button>
+                            
+                            {/* Quick-Save Button - Only for public/friend locations */}
+                            {source !== 'user' && (
                                 <Button
                                     variant="secondary"
                                     size="icon"
-                                    onClick={() => onEdit(location)}
-                                    title="Edit location"
+                                    onClick={async () => {
+                                        setIsSaving(true);
+                                        try {
+                                            const response = await fetch('/api/locations', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                credentials: 'include',
+                                                body: JSON.stringify({
+                                                    locationId: location.id,
+                                                }),
+                                            });
+                                            
+                                            if (!response.ok) {
+                                                const error = await response.json();
+                                                toast.error(error.error || 'Failed to save location');
+                                                return;
+                                            }
+                                            
+                                            toast.success('Location saved to your collection!');
+                                            setTimeout(() => window.location.reload(), 1000);
+                                        } catch (error) {
+                                            console.error('Error saving location:', error);
+                                            toast.error('Failed to save location');
+                                        } finally {
+                                            setIsSaving(false);
+                                        }
+                                    }}
+                                    title="Save to my locations"
                                     className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                    disabled={isSaving}
                                 >
-                                    <Edit className="w-3.5 h-3.5" />
+                                    <Bookmark className="w-3.5 h-3.5" />
                                 </Button>
                             )}
                             {onShare && (
@@ -164,26 +219,27 @@ export function LocationDetailPanel({
 
                         {/* Delete button - Overlay top-right */}
                         <div className="absolute top-2 right-2 flex gap-1.5 z-10">
-                            {onDelete && (
-                                <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    onClick={() => {
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                onClick={() => {
+                                    if (source === 'user' && canEdit && onDelete) {
                                         if (confirm('Are you sure you want to delete this location?')) {
                                             onDelete(location.userSave?.id || location.id);
                                         }
-                                    }}
-                                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm text-destructive hover:text-destructive"
-                                    title="Delete location"
-                                >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                </Button>
-                            )}
+                                    }
+                                }}
+                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm text-destructive hover:text-destructive disabled:text-muted-foreground"
+                                title={source !== 'user' ? 'You cannot delete this location' : 'Delete location'}
+                                disabled={source !== 'user' || !canEdit}
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
                         </div>
                     {location.photos && location.photos.length > 0 ? (
                         <PhotoGallery photos={location.photos} />
                     ) : (
-                        <div className="relative h-64 bg-gradient-to-br from-muted to-muted/50 overflow-hidden rounded-lg">
+                        <div className="relative h-64 bg-linear-to-br from-muted to-muted/50 overflow-hidden rounded-lg">
                             <img
                                 src={`https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=16&size=800x400&scale=2&maptype=roadmap&markers=color:red%7C${location.lat},${location.lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}`}
                                 alt={`Map of ${location.name}`}
@@ -193,7 +249,7 @@ export function LocationDetailPanel({
                                     target.style.display = 'none';
                                     const parent = target.parentElement;
                                     if (parent) {
-                                        parent.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/5"><svg class="w-20 h-20 text-muted-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg></div>';
+                                        parent.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/10 to-primary/5"><svg class="w-20 h-20 text-muted-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg></div>';
                                     }
                                 }}
                             />
@@ -203,6 +259,42 @@ export function LocationDetailPanel({
 
                 {/* All Content - Single Scrollable Section */}
                 <div className="space-y-4 mt-4">
+                    {/* Owner Info - Always visible for consistency */}
+                    {location.userSave?.user && (
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm text-muted-foreground">Saved By</h3>
+                            <Link 
+                                href={`/@${location.userSave.user.username}`}
+                                className="flex items-center gap-2.5 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
+                            >
+                                <Avatar className="h-10 w-10">
+                                    {location.userSave.user.avatar ? (
+                                        <AvatarImage
+                                            src={getOptimizedAvatarUrl(location.userSave.user.avatar, 64) || location.userSave.user.avatar}
+                                            alt={location.userSave.user.username}
+                                        />
+                                    ) : null}
+                                    <AvatarFallback>
+                                        {location.userSave.user.username.substring(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">
+                                        {location.userSave.user.firstName && location.userSave.user.lastName 
+                                            ? `${location.userSave.user.firstName} ${location.userSave.user.lastName}`
+                                            : `@${location.userSave.user.username}`
+                                        }
+                                    </span>
+                                    {location.userSave.user.firstName && location.userSave.user.lastName && (
+                                        <span className="text-xs text-muted-foreground">
+                                            @{location.userSave.user.username}
+                                        </span>
+                                    )}
+                                </div>
+                            </Link>
+                        </div>
+                    )}
+                    
                     {/* Address & Coordinates Combined */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
