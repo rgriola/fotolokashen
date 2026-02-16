@@ -1,6 +1,6 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-02-15 3:30pm
+**Last Updated**: 2026-02-15 8:00pm
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
@@ -8,42 +8,53 @@
 
 ### 🎯 Recent Completions (February 2026)
 
-1. ✅ **Tooltip UX Enhancement** - Comprehensive tooltip coverage across the app
+1. ✅ **Map View UX Enhancements** - Auto-fit, GPS display, and navigation improvements
+   - Auto-fit bounds to show all user + public locations on initial load
+   - Zoom capped at 16 to prevent over-zooming on single/few locations
+   - Removed home location as default center for cleaner initial view
+   - Fixed multiple public location API calls during initial load
+   - Added GPS coordinates display (lat/lng) in top-right corner with 50% opacity background
+   - GPS toggle button now properly turns GPS on/off (clears marker and coordinates)
+   - Toast notifications moved to top-center for better visibility
+   - Reduced map controls top margin for tighter layout
+   - Comprehensive code documentation explaining map page architecture
+
+2. ✅ **Tooltip UX Enhancement** - Comprehensive tooltip coverage across the app
    - Added tooltips to all buttons and links in LocationDetailPanel
    - Added tooltips to Filter, Edit, and Share buttons on /locations page
    - Consistent dark theme styling and positioning
    - Enhanced accessibility and user guidance
 
-2. ✅ **Production Date Feature** - Track filming/production dates for locations
+3. ✅ **Production Date Feature** - Track filming/production dates for locations
    - Added `productionDate` field to Location model
    - Date picker in EditLocationForm and CreateLocationWithPhoto
    - UTC-based date handling
 
-3. ✅ **Unified Upload Security** - All 5 image upload entry points secured
+4. ✅ **Unified Upload Security** - All 5 image upload entry points secured
    - Avatar, Banner, Save Location, Edit Location, Create-with-Photo
    - Server-side virus scanning (ClamAV)
    - Server-side HEIC/TIFF → JPEG conversion (Sharp)
    - Browser-side format conversion for previews
 
-4. ✅ **Create-with-Photo UX Refactor** - Single-page layout
+5. ✅ **Create-with-Photo UX Refactor** - Single-page layout
    - Replaced 2-step wizard with unified single-page form
    - Photo upload + GPS extraction + manual location in one view
 
-5. ✅ **Avatar/Banner HEIC/TIFF Support**
+6. ✅ **Avatar/Banner HEIC/TIFF Support**
    - Browser-side conversion for iPhone HEIC photos
    - Progress indicator and toast feedback
 
-6. ✅ **Google Maps Performance Fix**
+7. ✅ **Google Maps Performance Fix**
    - Fixed "LoadScript has been reloaded unintentionally" warning
    - Module-level constants for libraries array
 
-7. ✅ **LocationDetailPanel UI/UX Refinements**
+8. ✅ **LocationDetailPanel UI/UX Refinements**
    - Cleaner presentation with consolidated content
    - Combined Address and GPS into single panel
    - Added copy address button
    - Comprehensive tooltips for all interactive elements
 
-8. ✅ **Support System**
+9. ✅ **Support System**
    - Public support form at `/support` with human verification
    - Member support form at `/member-support`
    - Rate limiting: 3/hour (public), 5/hour (members)
@@ -82,7 +93,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - **CDN**: ImageKit (photo storage)
 - **Image Processing**: Sharp 0.34.x (server-side conversion/compression)
 - **Security**: ClamAV (virus scanning)
-- **Authentication**: Custom JWT-based system
+- **Authentication**: Custom JWT-based system 
 - **Email**: Resend API with custom HTML templates
 - **State Management**: TanStack Query (React Query)
 - **Deployment**: Vercel
@@ -173,14 +184,18 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - EXIF data extraction and preservation (GPS, camera info)
 
 ✅ **Map Interface**
-- Interactive Google Maps display
+- Interactive Google Maps display with auto-fit to show all locations on load
 - Custom markers for saved locations with type-based colors
+- Public location markers (purple) with deduplication by placeId
+- GPS coordinates display (lat/lng) in top-right corner with toggle on/off
+- GPS location support with permission dialog and visual feedback
 - Saved locations panel with filtering and search
-- GPS location support with permission toggle
-- Home location setting and navigation
-- Marker clustering for performance
-- Location detail panels
+- Home location setting and navigation (optional default center)
+- Marker clustering for performance optimization
+- Location detail panels with comprehensive metadata
 - Quick save from map pins
+- Zoom capped at 16 to prevent over-zooming
+- Toast notifications centered at top of viewport
 
 ### Security Features
 
@@ -308,6 +323,17 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - 🔄 User guide and help system content
 
 ## Recent Deployments
+
+**2026-02-15**: Map View UX Enhancements
+- Implemented auto-fit bounds to show all user + public locations on initial load
+- Added GPS coordinates display (lat/lng) in top-right corner with 50% opacity background
+- GPS toggle button now properly controls GPS on/off state, marker visibility, and coordinate display
+- Fixed multiple public location API calls during initial load (prevented bounds updates during auto-fit)
+- Removed home location as default center to avoid conflicting with auto-fit
+- Zoom capped at 16 to prevent over-zooming on single/few locations
+- Moved toast notifications from top-right to top-center for better visibility
+- Reduced map controls top margin for tighter layout
+- Added comprehensive code documentation at top of map page explaining architecture
 
 **2026-02-13**: Unified Upload Security Implementation
 - Secured all 5 image upload entry points (Avatar, Banner, Save Location, Edit Location, Create-with-Photo)
