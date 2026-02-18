@@ -242,7 +242,7 @@ function MapPageInner() {
                         lng: publicLoc.lng,
                     },
                     data: {
-                        placeId: publicLoc.placeId,
+                        placeId: publicLoc.placeId ?? '',
                         name: publicLoc.name,
                         address: publicLoc.address || undefined,
                         latitude: publicLoc.lat,
