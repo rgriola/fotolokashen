@@ -81,14 +81,13 @@ export async function GET(
         address: save.location.address || null,
         city: save.location.city || null,
         state: save.location.state || null,
-        latitude: save.location.lat,
-        longitude: save.location.lng,
-        type: save.location.indoorOutdoor || null,
+        lat: save.location.lat,
+        lng: save.location.lng,
+        type: save.location.type || null,
         rating: save.location.rating || null,
         photos: save.location.photos.map((photo) => ({
           id: photo.id,
-          url: photo.imagekitFilePath,
-          thumbnailUrl: photo.imagekitFilePath, // ImageKit can add transformations via query params
+          imagekitFilePath: photo.imagekitFilePath,
           isPrimary: photo.isPrimary,
           caption: photo.caption,
         })),

@@ -123,6 +123,8 @@ export async function GET(request: NextRequest) {
                         placeId: true,
                         name: true,
                         address: true,
+                        city: true,
+                        state: true,
                         lat: true,
                         lng: true,
                         type: true,
@@ -157,9 +159,27 @@ export async function GET(request: NextRequest) {
         const hasMore = friendsLocations.length > limit;
         const locationsToReturn = hasMore ? friendsLocations.slice(0, limit) : friendsLocations;
 
+        // Flatten nested location structure to match iOS MapSocialLocation model
+        const flatLocations = locationsToReturn.map(save => ({
+            id: save.location.id,
+            placeId: save.location.placeId,
+            name: save.location.name,
+            address: save.location.address ?? null,
+            city: save.location.city ?? null,
+            state: save.location.state ?? null,
+            lat: save.location.lat,
+            lng: save.location.lng,
+            type: save.location.type ?? null,
+            rating: save.personalRating ?? null,
+            caption: save.caption ?? null,
+            savedAt: save.savedAt?.toISOString?.() ?? null,
+            photos: save.location.photos,
+            user: save.user,
+        }));
+
         return apiResponse({ 
-            locations: locationsToReturn,
-            total: locationsToReturn.length,
+            locations: flatLocations,
+            total: flatLocations.length,
             limit: limit,
             hasMore: hasMore,
         });

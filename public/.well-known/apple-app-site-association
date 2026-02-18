@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["LW5P4PVL96.com.rodczaro.fotolokashen"],
+        "paths": ["/shared/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["LW5P4PVL96.com.rodczaro.fotolokashen"]
+  }
+}

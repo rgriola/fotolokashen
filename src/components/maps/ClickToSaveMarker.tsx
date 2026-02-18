@@ -17,7 +17,7 @@ export function ClickToSaveMarker({
 }: ClickToSaveMarkerProps) {
     return (
         <InfoWindow position={position} onClose={onCancel}>
-            <div className="space-y-3 min-w-[200px]">
+            <div className="space-y-3 min-w-50">
                 <div className="flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-primary" />
                     <h3 className="font-semibold">Save this location?</h3>

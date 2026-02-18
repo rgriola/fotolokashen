@@ -125,7 +125,7 @@ export function HomeLocationSettings() {
                         <div>
                             <p className="text-sm font-medium mb-2">Currently set to:</p>
                             <div className="flex items-start gap-2">
-                                <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                <MapPin className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                                 <div className="flex-1">
                                     <p className="text-sm font-medium">
                                         {user.homeLocationName || 'Custom Location'}
@@ -145,7 +145,7 @@ export function HomeLocationSettings() {
                 ) : (
                     <div className="space-y-4">
                         {/* Map Placeholder */}
-                        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-950/20 dark:to-blue-900/10 border-2 border-dashed border-blue-300 dark:border-blue-700">
+                        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-linear-to-br from-blue-100 to-blue-50 dark:from-blue-950/20 dark:to-blue-900/10 border-2 border-dashed border-blue-300 dark:border-blue-700">
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                                 <Map className="w-12 h-12 text-blue-400 dark:text-blue-600" />
                                 <p className="text-sm font-medium text-blue-600 dark:text-blue-400">

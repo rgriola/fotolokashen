@@ -2,26 +2,20 @@ import { useQuery } from '@tanstack/react-query';
 
 interface PublicLocation {
     id: number;
-    locationId: number;
+    placeId: string | null;
+    name: string;
+    address: string | null;
+    city: string | null;
+    state: string | null;
+    lat: number;
+    lng: number;
+    type: string | null;
+    rating: number | null;
     caption: string | null;
-    isFavorite: boolean;
-    personalRating: number | null;
-    tags: string[] | null;
-    color: string | null;
-    savedAt: Date;
-    location: {
-        id: number;
-        placeId: string;
-        name: string;
-        address: string | null;
-        lat: number;
-        lng: number;
-        type: string | null;
-        indoorOutdoor: string | null;
-        photos: {
-            imagekitFilePath: string;
-        }[];
-    };
+    savedAt: string | null;
+    photos: {
+        imagekitFilePath: string;
+    }[];
     user: {
         id: number;
         username: string;

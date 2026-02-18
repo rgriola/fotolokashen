@@ -93,28 +93,26 @@ function LocationsPageInner() {
 
         // Add friends locations (skip if already in user's saves)
         if (showFriends && friendsLocationsData?.locations) {
-            friendsLocationsData.locations.forEach(userSave => {
-                if (userSave.location && !locationMap.has(userSave.location.id)) {
+            friendsLocationsData.locations.forEach(flatLoc => {
+                if (!locationMap.has(flatLoc.id)) {
                     const loc = {
-                        ...(userSave.location as Location),
-                        userSave: userSave as UserSave,
+                        ...(flatLoc as unknown as Location),
                         source: 'friend' as const,
                     };
-                    locationMap.set(userSave.location.id, loc);
+                    locationMap.set(flatLoc.id, loc);
                 }
             });
         }
 
         // Add public locations (skip if already exists)
         if (showPublic && publicLocationsData?.locations) {
-            publicLocationsData.locations.forEach(userSave => {
-                if (userSave.location && !locationMap.has(userSave.location.id)) {
+            publicLocationsData.locations.forEach(flatLoc => {
+                if (!locationMap.has(flatLoc.id)) {
                     const loc = {
-                        ...(userSave.location as Location),
-                        userSave: userSave as UserSave,
+                        ...(flatLoc as unknown as Location),
                         source: 'public' as const,
                     };
-                    locationMap.set(userSave.location.id, loc);
+                    locationMap.set(flatLoc.id, loc);
                 }
             });
         }

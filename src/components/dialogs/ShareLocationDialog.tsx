@@ -129,7 +129,7 @@ export function ShareLocationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>Share Location</DialogTitle>
           <DialogDescription>
@@ -164,12 +164,12 @@ export function ShareLocationDialog({
                       className={cn(
                         "flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 transition-colors text-center",
                         isSelected 
-                          ? "border-green-500 bg-green-50 dark:bg-green-950/20 flex-[2]" 
+                          ? "border-green-500 bg-green-50 dark:bg-green-950/20 flex-2" 
                           : "border-border hover:border-primary/50 flex-1"
                       )}
                     >
                       <Icon className={cn(
-                        "w-5 h-5 flex-shrink-0",
+                        "w-5 h-5 shrink-0",
                         isSelected ? "text-green-600 dark:text-green-500" : "text-muted-foreground"
                       )} />
                       <div>
@@ -201,7 +201,7 @@ export function ShareLocationDialog({
                   onClick={handleCopyLink}
                   variant="outline"
                   size="icon"
-                  className="flex-shrink-0"
+                  className="shrink-0"
                 >
                   {copied ? (
                     <Check className="w-4 h-4 text-green-600" />

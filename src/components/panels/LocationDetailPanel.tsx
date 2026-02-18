@@ -126,79 +126,59 @@ export function LocationDetailPanel({
                 </div>
             </div>
 
-            {/* Content - Scrollable */}
-            <div className="flex-1 overflow-y-auto">
-                <div className="px-4 pb-20">
-                    {/* Photo Gallery or Static Map */}
-                    <div className="my-4 relative">
-                        {/* Action Buttons - Overlay top-left */}
-                        <div className="absolute top-2 left-2 flex gap-1.5 z-10">
-                            {/* Edit Button - Always visible, disabled for non-user locations */}
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-4 pb-4">
+                {/* Photo + Overlays */}
+                <div className="relative">
+                    <div className="absolute top-2 left-2 flex flex-col gap-1.5 z-10">
+                        {source === 'user' && canEdit && (
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
                                         variant="secondary"
                                         size="icon"
-                                        onClick={() => {
-                                            if (source === 'user' && canEdit && onEdit) {
-                                                onEdit(location);
-                                            }
-                                        }}
+                                        onClick={() => onEdit?.(location)}
                                         className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                                        disabled={source !== 'user' || !canEdit}
                                     >
                                         <Edit className="w-3.5 h-3.5" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
-                                    <p>{source !== 'user' ? 'You cannot edit this location' : 'Edit location'}</p>
+                                    <p>Edit location</p>
                                 </TooltipContent>
                             </Tooltip>
-                            
-                            {/* Quick-Save Button - Only for public/friend locations (DISABLED - Future Feature) */}
-                            {source !== 'user' && (
-                                <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    onClick={() => {}}
-                                    title="Quick-save feature coming soon"
-                                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                                    disabled={true}
-                                >
-                                    <Bookmark className="w-3.5 h-3.5" />
-                                </Button>
-                            )}
-                            {onShare && (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="secondary"
-                                            size="icon"
-                                            onClick={() => onShare(location)}
-                                            className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                                        >
-                                            <Share2 className="w-3.5 h-3.5" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
-                                        <p>Share location</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            )}
+                        )}
+                        {onShare && (
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <Button
                                         variant="secondary"
                                         size="icon"
-                                        onClick={handleViewOnMap}
+                                        onClick={() => onShare(location)}
                                         className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
                                     >
-                                        <Map className="w-3.5 h-3.5" />
+                                        <Share2 className="w-3.5 h-3.5" />
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
-                                    <p>View on map</p>
+                                    <p>Share location</p>
                                 </TooltipContent>
+                            </Tooltip>
+                        )}
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    onClick={handleViewOnMap}
+                                    className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                                >
+                                    <Map className="w-3.5 h-3.5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                <p>View on map</p>
+                            </TooltipContent>
                             </Tooltip>
                             {location.type && (
                                 <Badge
@@ -572,7 +552,6 @@ export function LocationDetailPanel({
                             <p><span className="text-muted-foreground">Place ID:</span> {location.placeId}</p>
                         </div>
                     </div>
-                </div>
                 </div>
             </div>
         </div>

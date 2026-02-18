@@ -1,6 +1,6 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-02-15 8:00pm
+**Last Updated**: 2026-02-18 
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
@@ -8,7 +8,14 @@
 
 ### 🎯 Recent Completions (February 2026)
 
-1. ✅ **Map View UX Enhancements** - Auto-fit, GPS display, and navigation improvements
+1. ✅ **Friends/Public Locations API Flattening** - iOS compatibility fix
+   - Flattened `/api/v1/locations/friends` and `/api/v1/locations/public` response structure
+   - iOS `MapSocialLocation` model now receives flat `lat`, `lng`, `name`, etc. at top level
+   - Updated `useFriendsLocations.ts` and `usePublicLocations.ts` hooks for new flat structure
+   - Fixed `/locations` page `mergedLocations` logic for Friends toggle
+   - Fixed `/map` page `publicMarkers` to use flat structure
+
+2. ✅ **Map View UX Enhancements** - Auto-fit, GPS display, and navigation improvements
    - Auto-fit bounds to show all user + public locations on initial load
    - Zoom capped at 16 to prevent over-zooming on single/few locations
    - Removed home location as default center for cleaner initial view
@@ -323,6 +330,13 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - 🔄 User guide and help system content
 
 ## Recent Deployments
+
+**2026-02-18**: Friends/Public Locations API & iOS Compatibility
+- Flattened `/api/v1/locations/friends` and `/api/v1/locations/public` response structure for iOS
+- Updated `useFriendsLocations.ts`, `usePublicLocations.ts`, and locations page for flat structure
+- Fixed map page `publicMarkers` to use flat `publicLoc.lat/lng` instead of nested
+- Fixed LocationDetailPanel.tsx JSX nesting error (duplicate closing tag)
+- Applied Tailwind v4 canonical class names across 5 component files
 
 **2026-02-15**: Map View UX Enhancements
 - Implemented auto-fit bounds to show all user + public locations on initial load
