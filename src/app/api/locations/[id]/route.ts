@@ -165,7 +165,8 @@ export async function PATCH(
             body.isFavorite !== undefined ||
             body.personalRating !== undefined ||
             body.color !== undefined ||
-            body.visibility !== undefined;
+            body.visibility !== undefined ||
+            body.caption !== undefined;
 
         if (hasUserSaveUpdates) {
             // Find user's save for this location
@@ -174,6 +175,13 @@ export async function PATCH(
                     userId: user.id,
                     locationId: id,
                 },
+            });
+
+            console.log('[PATCH /api/locations] UserSave lookup:', {
+                userId: user.id,
+                locationId: id,
+                found: !!existingUserSave,
+                userSaveId: existingUserSave?.id,
             });
 
             if (existingUserSave) {
@@ -185,8 +193,15 @@ export async function PATCH(
                         ...(body.personalRating !== undefined && { personalRating: body.personalRating }),
                         ...(body.color !== undefined && { color: body.color }),
                         ...(body.visibility !== undefined && { visibility: body.visibility }),
+                        ...(body.caption !== undefined && { caption: body.caption }),
                     },
                 });
+                console.log('[PATCH /api/locations] UserSave updated:', {
+                    id: userSave.id,
+                    visibility: userSave.visibility,
+                });
+            } else {
+                console.error('[PATCH /api/locations] UserSave NOT FOUND for userId:', user.id, 'locationId:', id);
             }
         }
 
