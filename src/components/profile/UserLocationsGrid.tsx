@@ -8,8 +8,7 @@ import { getImageKitUrl } from "@/lib/imagekit";
 
 interface LocationPhoto {
   id: number;
-  url: string;
-  thumbnailUrl: string;
+  imagekitFilePath: string;
   isPrimary: boolean;
   caption?: string;
 }
@@ -129,7 +128,7 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
           const mapImageUrl = hasValidCoords 
             ? `https://maps.googleapis.com/maps/api/staticmap?center=${save.location.latitude},${save.location.longitude}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${save.location.latitude},${save.location.longitude}&key=${googleMapsApiKey}`
             : '';
-          const hasValidPhoto = save.location.photos[0]?.url;
+          const hasValidPhoto = save.location.photos[0]?.imagekitFilePath;
           
           return (
             <Link
@@ -141,7 +140,7 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
               {hasValidPhoto ? (
                 <div className="relative w-full h-48 bg-muted">
                   <Image
-                    src={getImageKitUrl(save.location.photos[0].url, 'w-400,h-300,c-at_max')}
+                    src={getImageKitUrl(save.location.photos[0].imagekitFilePath, 'w-400,h-300,c-at_max')}
                     alt={save.location.name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

@@ -164,7 +164,8 @@ export async function PATCH(
         const hasUserSaveUpdates = body.tags !== undefined ||
             body.isFavorite !== undefined ||
             body.personalRating !== undefined ||
-            body.color !== undefined;
+            body.color !== undefined ||
+            body.visibility !== undefined;
 
         if (hasUserSaveUpdates) {
             // Find user's save for this location
@@ -183,6 +184,7 @@ export async function PATCH(
                         ...(body.isFavorite !== undefined && { isFavorite: body.isFavorite }),
                         ...(body.personalRating !== undefined && { personalRating: body.personalRating }),
                         ...(body.color !== undefined && { color: body.color }),
+                        ...(body.visibility !== undefined && { visibility: body.visibility }),
                     },
                 });
             }
