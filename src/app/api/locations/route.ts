@@ -64,7 +64,18 @@ export async function GET(request: NextRequest) {
         const userSaves = await prisma.userSave.findMany({
             where,
             include: {
-                location: true,
+                location: {
+                    include: {
+                        creator: {
+                            select: {
+                                id: true,
+                                username: true,
+                                firstName: true,
+                                lastName: true,
+                            },
+                        },
+                    },
+                },
             },
             orderBy,
             take: 100, // Limit for performance
@@ -248,7 +259,18 @@ export async function POST(request: NextRequest) {
                 color: color || undefined,
             },
             include: {
-                location: true,
+                location: {
+                    include: {
+                        creator: {
+                            select: {
+                                id: true,
+                                username: true,
+                                firstName: true,
+                                lastName: true,
+                            },
+                        },
+                    },
+                },
             },
         });
 
