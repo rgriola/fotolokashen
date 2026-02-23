@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   // isomorphic-dompurify uses jsdom which has ES Module issues in serverless
   serverExternalPackages: ['exifr', 'jsdom', 'parse5', 'isomorphic-dompurify'],
 
+  // Turbopack is default in Next.js 16 - empty config silences webpack migration warning
+  turbopack: {},
+
   webpack: (config, { isServer }) => {
     // Externalize these packages to prevent bundling on the server
     if (isServer) {
