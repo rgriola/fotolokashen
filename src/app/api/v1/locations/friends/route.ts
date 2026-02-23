@@ -130,12 +130,14 @@ export async function GET(request: NextRequest) {
                         type: true,
                         indoorOutdoor: true,
                         photos: {
-                            where: {
-                                isPrimary: true,
-                            },
-                            take: 1,
+                            orderBy: [
+                                { isPrimary: 'desc' },
+                                { uploadedAt: 'asc' },
+                            ],
                             select: {
+                                id: true,
                                 imagekitFilePath: true,
+                                isPrimary: true,
                             },
                         },
                     },

@@ -1,6 +1,6 @@
 # Mobile API Response Schemas (v1)
 
-**Last Updated**: February 22, 2026  
+**Last Updated**: February 23, 2026  
 **Purpose**: Define canonical response structures for `/api/v1/*` endpoints consumed by iOS/Android apps
 
 ---
@@ -81,6 +81,7 @@ Used in: `/api/v1/users/{username}/locations`
   "id": number,           // UserSave.id (NOT Location.id)
   "caption": string | null,
   "savedAt": string,      // ISO 8601
+  "visibility": string,   // "public" (only public locations returned)
   "location": {
     // Location object structure above
   }
@@ -104,6 +105,11 @@ Used in: `/api/v1/locations/public`, `/api/v1/locations/friends`
   "rating": number | null,
   "caption": string | null,
   "savedAt": string | null,
+  "photos": [             // Primary photo only (for thumbnail)
+    {
+      "imagekitFilePath": string
+    }
+  ],
   "user": {
     "id": number,
     "username": string,
