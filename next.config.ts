@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
 
 // Validate environment variables at build/startup time
 import './src/lib/env';
@@ -83,7 +82,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net", // Google Fonts + Monaco CSS
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https://ik.imagekit.io https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org", // ImageKit, Google Maps, OSM
-              "connect-src 'self' https://maps.googleapis.com https://upload.imagekit.io https://ik.imagekit.io https://o4510596205838336.ingest.us.sentry.io https://cdn.jsdelivr.net https://va.vercel-scripts.com https://vitals.vercel-insights.com", // API, ImageKit, Sentry, Monaco source maps, Vercel Speed Insights
+              "connect-src 'self' https://maps.googleapis.com https://upload.imagekit.io https://ik.imagekit.io https://cdn.jsdelivr.net https://va.vercel-scripts.com https://vitals.vercel-insights.com", // API, ImageKit, Monaco source maps, Vercel Speed Insights
               "worker-src 'self' blob:", // Allow Monaco Editor web workers
               "frame-src 'none'",
               "object-src 'none'",
@@ -114,49 +113,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Wrap with Sentry config
-export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
-
-  org: "rod-griola",  // Must match Sentry auth token organization
-  project: "fotolokashen",
-
-  // Only print logs for uploading source maps in CI
-  silent: !process.env.CI,
-
-  // For all available options, see:
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
-
-  // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.
-  // This can increase your server load as well as your hosting bill.
-  // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
-  // side errors will fail.
-  tunnelRoute: "/monitoring",
-
-  // Configure source maps
-  sourcemaps: {
-    disable: false, // Enable source maps for better error tracking
-  },
-
-  // Webpack-specific options (fixes deprecation warnings)
-  webpack: {
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    treeshake: {
-      removeDebugLogging: true,  // Replaces deprecated disableLogger
-    },
-
-    // Automatically annotate React components to show their full name in breadcrumbs and session replay
-    reactComponentAnnotation: {
-      enabled: true,  // Moved from top level
-    },
-
-    // Enables automatic instrumentation of Vercel Cron Monitors
-    automaticVercelMonitors: true,  // Moved from top level
-  },
-});
+export default nextConfig;
 
 

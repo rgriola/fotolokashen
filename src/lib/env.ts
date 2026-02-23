@@ -115,14 +115,6 @@ const envSchema = z.object({
         .url('NEXT_PUBLIC_APP_URL must be a valid URL')
         .describe('Application base URL'),
 
-    // ============================================
-    // Sentry Error Tracking
-    // ============================================
-    NEXT_PUBLIC_SENTRY_DSN: z
-        .string()
-        .url('NEXT_PUBLIC_SENTRY_DSN must be a valid URL')
-        .describe('Sentry DSN for error tracking'),
-
 });
 
 /**

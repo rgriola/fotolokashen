@@ -11,7 +11,7 @@ You are assisting with the **fotolokashen** project, this platform allows profes
 - **Auth**: Custom JWT-based authentication
 - **Image Processing**: Sharp (server-side HEIC/TIFF conversion)
 - **Security**: ClamAV (virus scanning), DOMPurify (XSS protection)
-- **Monitoring**: Vercel Speed Insights, Sentry
+- **Monitoring**: Vercel Speed Insights
 - **lingo**: when the user or you are refering to iOS this is the /fotolokashen-ios directory.  The web app (/fotolokashen) is the source of truth and backbone for all features. The iOS app selectively integrates features from the web app, but all core functionality is built and tested on the web first. 
 
 ## Key Principles
@@ -426,7 +426,10 @@ npm run db:studio    # Open Prisma Studio (database GUI)
 2. Use `requireAuth` if protected
 3. Sanitize and validate inputs
 4. Return consistent response format
-5. **For mobile endpoints** (`/api/v1/*`): Verify response matches `/docs/api/MOBILE_API_SCHEMAS.md`
+5. **For mobile endpoints** (`/api/v1/*`):
+   - Verify response matches `/docs/api/MOBILE_API_SCHEMAS.md`
+   - **Use `lat`/`lng` for coordinates** (NEVER `latitude`/`longitude` — causes iOS silent failures)
+   - Use explicit `null` for optional fields (never omit)
 
 ### Add a New Database Model
 1. Add model to `prisma/schema.prisma`
@@ -545,5 +548,5 @@ ImageKit transformations for OpenGraph images:
 - **Photo Uploads**: All uploads go through secure server pipeline with virus scanning and format conversion
 - **Privacy**: Server-side enforcement, granular controls per feature
 - **Database**: Neon (PostgreSQL) with connection pooling for production
-- **Monitoring**: Vercel Speed Insights for Core Web Vitals, Sentry for error tracking
+- **Monitoring**: Vercel Speed Insights for Core Web Vitals
 - **Deployment**: See `.agent/workflows/deploy-to-production.md` for complete Vercel + Neon + Resend setup

@@ -70,29 +70,30 @@ export async function GET(
     });
 
     // Format response for mobile
-    const formattedLocations = locations.map((save) => ({
-      id: save.id,
-      caption: save.caption,
-      savedAt: save.savedAt.toISOString(),
-      location: {
-        id: save.location.id,
-        placeId: save.location.placeId,
-        name: save.location.name,
-        address: save.location.address || null,
-        city: save.location.city || null,
-        state: save.location.state || null,
-        lat: save.location.lat,
-        lng: save.location.lng,
-        type: save.location.type || null,
-        rating: save.location.rating || null,
-        photos: save.location.photos.map((photo) => ({
-          id: photo.id,
-          imagekitFilePath: photo.imagekitFilePath,
-          isPrimary: photo.isPrimary,
-          caption: photo.caption,
-        })),
-      },
-    }));
+      const formattedLocations = locations.map((save) => ({
+        id: save.id,
+        caption: save.caption,
+        savedAt: save.savedAt.toISOString(),
+        visibility: save.visibility, // Added visibility field
+        location: {
+          id: save.location.id,
+          placeId: save.location.placeId,
+          name: save.location.name,
+          address: save.location.address || null,
+          city: save.location.city || null,
+          state: save.location.state || null,
+          lat: save.location.lat,
+          lng: save.location.lng,
+          type: save.location.type || null,
+          rating: save.location.rating || null,
+          photos: save.location.photos.map((photo) => ({
+            id: photo.id,
+            imagekitFilePath: photo.imagekitFilePath,
+            isPrimary: photo.isPrimary,
+            caption: photo.caption,
+          })),
+        },
+      }));
 
     const responseData = {
       locations: formattedLocations,

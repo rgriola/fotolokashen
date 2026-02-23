@@ -7,7 +7,6 @@ import { Header } from "@/components/layout/Header";
 import { ConditionalFooter } from "@/components/layout/ConditionalFooter";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { GoogleMapsProvider } from "@/lib/GoogleMapsProvider";
-import { SentryInit } from "@/components/SentryInit";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 
@@ -96,7 +95,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SentryInit />
         <Providers>
           <GoogleMapsProvider>
             <LayoutWrapper>

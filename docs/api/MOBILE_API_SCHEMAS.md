@@ -3,9 +3,20 @@
 **Last Updated**: February 22, 2026  
 **Purpose**: Define canonical response structures for `/api/v1/*` endpoints consumed by iOS/Android apps
 
+---
+
+## ⚠️ CRITICAL: Coordinate Field Names
+
+> **NEVER use `latitude`/`longitude` in mobile API responses.**
+> **ALWAYS use `lat`/`lng`.**
+>
+> This is the #1 cause of iOS decoding failures. When locations don't appear in the iOS app, check the API response field names first.
+
+---
+
 ## 🎯 Core Principles
 
-1. **Field Names**: Use `lat`/`lng` (NOT `latitude`/`longitude`) for consistency with web API
+1. **Field Names**: Use `lat`/`lng` (NOT `latitude`/`longitude`) — matches Prisma schema and iOS models
 2. **Null Safety**: Always use explicit `null` instead of omitting fields
 3. **Date Format**: ISO 8601 strings (`toISOString()`)
 4. **Pagination**: Consistent structure across all paginated endpoints
