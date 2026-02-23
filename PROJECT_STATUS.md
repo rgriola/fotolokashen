@@ -4,12 +4,12 @@
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
-## Current Focus
+## Current Focus 
 
 ### 🎯 Recent Completions (February 2026)
 
 1. ✅ **Friends/Public Locations API Flattening** - iOS compatibility fix
-   - Flattened `/api/v1/locations/friends` and `/api/v1/locations/public` response structure
+   - Flattened `/api/v1/locations/friends` and `/api/v1/locations/public` response structure. 
    - iOS `MapSocialLocation` model now receives flat `lat`, `lng`, `name`, etc. at top level
    - Updated `useFriendsLocations.ts` and `usePublicLocations.ts` hooks for new flat structure
    - Fixed `/locations` page `mergedLocations` logic for Friends toggle
