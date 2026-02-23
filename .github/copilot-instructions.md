@@ -1,6 +1,6 @@
 # Copilot Instructions for fotolokashen
 
-You are assisting with the **fotolokashen** location discovery platform.
+You are assisting with the **fotolokashen** project, this platform allows professoinals in media production, photographers, producers, directors to share a locations and location features with other professionals. 
 
 ## Tech Stack
 - **Framework**: Next.js 16.1.6 (App Router), React 19.2.1, TypeScript 5
@@ -12,6 +12,7 @@ You are assisting with the **fotolokashen** location discovery platform.
 - **Image Processing**: Sharp (server-side HEIC/TIFF conversion)
 - **Security**: ClamAV (virus scanning), DOMPurify (XSS protection)
 - **Monitoring**: Vercel Speed Insights, Sentry
+- **lingo**: when the user or you are refering to iOS this is the /fotolokashen-ios directory.  The web app (/fotolokashen) is the source of truth and backbone for all features. The iOS app selectively integrates features from the web app, but all core functionality is built and tested on the web first. 
 
 ## Key Principles
 
@@ -45,6 +46,10 @@ You are assisting with the **fotolokashen** location discovery platform.
   - 500: Server error
 - **Error responses**: `{ error: "descriptive message" }`
 - **Success responses**: `{ data: {...} }` or direct object
+- **Mobile API v1**: See `/docs/api/MOBILE_API_SCHEMAS.md` for canonical response structures
+  - **CRITICAL**: Always use `lat`/`lng` (NOT `latitude`/`longitude`) for location coordinates
+  - All `/api/v1/*` endpoints MUST match documented schemas for iOS compatibility
+  - Use explicit `null` for missing optional fields, never omit fields
 
 ### 5. UI/UX Standards
 - **Mobile-first**: Design for mobile, enhance for desktop
@@ -397,6 +402,7 @@ When adding new features, always verify:
 3. Follow Tailwind utility-first approach
 
 ### Testing Locally
+- **Development Server**: Always check if dev server is running on `http://localhost:3000`, before attempting to start the server. 
 ```bash
 npm run dev          # Start dev server (http://localhost:3000)
 npm run db:studio    # Open Prisma Studio (database GUI)
@@ -411,6 +417,7 @@ npm run db:studio    # Open Prisma Studio (database GUI)
 - **Features**: `/docs/features/`
 - **Guides**: `/docs/guides/`
 - **API Docs**: `/docs/api/`
+  - **Mobile API Schemas**: `/docs/api/MOBILE_API_SCHEMAS.md` (CRITICAL for iOS compatibility)
 
 ## Common Tasks
 
@@ -419,6 +426,7 @@ npm run db:studio    # Open Prisma Studio (database GUI)
 2. Use `requireAuth` if protected
 3. Sanitize and validate inputs
 4. Return consistent response format
+5. **For mobile endpoints** (`/api/v1/*`): Verify response matches `/docs/api/MOBILE_API_SCHEMAS.md`
 
 ### Add a New Database Model
 1. Add model to `prisma/schema.prisma`
@@ -523,7 +531,7 @@ ImageKit transformations for OpenGraph images:
 - **Fit**: `c-at_max` (maintain aspect ratio, fit within bounds)
 - **Format**: Auto (`fo-auto` - WebP/AVIF where supported)
 
-### Debugging Tips
+### Debugging Tips  
 - **Test URL in browser**: View page source to verify meta tags
 - **iMessage cache**: Previews cached - append `?v=2` to test changes
 - **Fallback behavior**: If no photo, only title/description shown

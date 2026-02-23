@@ -81,8 +81,8 @@ export async function GET(
         address: save.location.address || null,
         city: save.location.city || null,
         state: save.location.state || null,
-        latitude: save.location.lat,
-        longitude: save.location.lng,
+        lat: save.location.lat,
+        lng: save.location.lng,
         type: save.location.type || null,
         rating: save.location.rating || null,
         photos: save.location.photos.map((photo) => ({
