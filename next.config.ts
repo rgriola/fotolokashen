@@ -52,9 +52,10 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: [
           // Prevent clickjacking attacks
+          // Allow framing from tweakcn.com
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN', // Changed from DENY to allow framing in some contexts, CSP will handle the rest
           },
           // Prevent MIME type sniffing
           {
@@ -81,17 +82,17 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net https://va.vercel-scripts.com", // Google Maps + Monaco Editor CDN + Vercel Speed Insights
-              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net", // Google Fonts + Monaco CSS
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net https://va.vercel-scripts.com https://tweakcn.com", // Added Tweakcn
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
               "font-src 'self' https://fonts.gstatic.com data:",
-              "img-src 'self' data: blob: https://ik.imagekit.io https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org", // ImageKit, Google Maps, OSM
-              "connect-src 'self' https://maps.googleapis.com https://upload.imagekit.io https://ik.imagekit.io https://cdn.jsdelivr.net https://va.vercel-scripts.com https://vitals.vercel-insights.com", // API, ImageKit, Monaco source maps, Vercel Speed Insights
-              "worker-src 'self' blob:", // Allow Monaco Editor web workers
-              "frame-src 'none'",
+              "img-src 'self' data: blob: https://ik.imagekit.io https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org",
+              "connect-src 'self' https://maps.googleapis.com https://upload.imagekit.io https://ik.imagekit.io https://cdn.jsdelivr.net https://va.vercel-scripts.com https://vitals.vercel-insights.com https://tweakcn.com", // Added Tweakcn
+              "worker-src 'self' blob:",
+              "frame-src 'self' https://tweakcn.com", // Allowed Tweakcn frame
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
-              "frame-ancestors 'none'",
+              "frame-ancestors 'self' https://tweakcn.com", // Allowed Tweakcn to frame us
               "upgrade-insecure-requests",
             ].join('; '),
           },

@@ -8,6 +8,7 @@ import { ConditionalFooter } from "@/components/layout/ConditionalFooter";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { GoogleMapsProvider } from "@/lib/GoogleMapsProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
 
 
 const tagline = "Locations & Purpose";
@@ -106,6 +107,7 @@ export default function RootLayout({
           </GoogleMapsProvider>
         </Providers>
         <SpeedInsights />
+        <Script src="https://tweakcn.com/live-preview.min.js" strategy="beforeInteractive" />
       </body>
     </html>
   );
