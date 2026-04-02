@@ -1475,7 +1475,7 @@ function MapPageInner() {
 
             {/* Public Location Details Sheet */}
             <Sheet open={showPublicDetailsSheet} onOpenChange={setShowPublicDetailsSheet}>
-                <SheetContent className="w-full sm:w-1/2 p-0" hideOverlay={true}>
+                <SheetContent className="w-full sm:w-1/2 p-0" hideOverlay={true} hideCloseButton={true}>
                     <SheetHeader>
                         <VisuallyHidden>
                             <SheetTitle>
