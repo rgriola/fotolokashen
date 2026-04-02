@@ -73,7 +73,7 @@ import { LocationData } from '@/lib/maps-utils';
 import { parseAddressComponents } from '@/lib/address-utils';
 import { useLocations } from '@/hooks/useLocations';
 import { usePublicLocations, type PublicLocation } from '@/hooks/usePublicLocations';
-import { UserSave, Location } from '@/types/location';
+import { UserSave, Location, Photo } from '@/types/location';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -129,6 +129,7 @@ function MapPageInner() {
     const [showPublicLocations, setShowPublicLocations] = useState(true);
     const [showPublicDetailsSheet, setShowPublicDetailsSheet] = useState(false);
     const [selectedPublicLocation, setSelectedPublicLocation] = useState<PublicLocation | null>(null);
+    const [publicLocationPhotos, setPublicLocationPhotos] = useState<Photo[]>([]);
     const [mapBounds, setMapBounds] = useState<{
         north: number;
         south: number;
@@ -1050,9 +1051,22 @@ function MapPageInner() {
                                     {/* View Details button for public locations */}
                                     {selectedMarker.isPublic && selectedMarker.publicLocationRaw && (
                                         <button
-                                            onClick={() => {
-                                                setSelectedPublicLocation(selectedMarker.publicLocationRaw!);
+                                            onClick={async () => {
+                                                const loc = selectedMarker.publicLocationRaw!;
+                                                setSelectedPublicLocation(loc);
+                                                setPublicLocationPhotos([]);
                                                 setShowPublicDetailsSheet(true);
+
+                                                // Fetch all photos in background
+                                                try {
+                                                    const res = await fetch(`/api/locations/${loc.id}/photos?limit=100`, { credentials: 'include' });
+                                                    if (res.ok) {
+                                                        const data = await res.json();
+                                                        setPublicLocationPhotos(data.photos || []);
+                                                    }
+                                                } catch {
+                                                    // Fall back to single primary photo already on the marker
+                                                }
 
                                                 if (map && typeof window !== 'undefined') {
                                                     const isDesktop = window.innerWidth >= 1024;
@@ -1469,7 +1483,7 @@ function MapPageInner() {
                             </SheetTitle>
                         </VisuallyHidden>
                     </SheetHeader>
-                    <div className="h-full">
+                    <div className="flex-1 min-h-0 overflow-hidden">
                         {selectedPublicLocation && (
                             <LocationDetailPanel
                                 location={{
@@ -1506,21 +1520,23 @@ function MapPageInner() {
                                     lastModifiedAt: null,
                                     createdAt: selectedPublicLocation.savedAt ? new Date(selectedPublicLocation.savedAt) : new Date(),
                                     updatedAt: new Date(),
-                                    photos: selectedPublicLocation.photos.map((p, i) => ({
-                                        id: i,
-                                        placeId: '',
-                                        userId: selectedPublicLocation.user.id,
-                                        imagekitFileId: '',
-                                        imagekitFilePath: p.imagekitFilePath,
-                                        originalFilename: '',
-                                        fileSize: null,
-                                        mimeType: null,
-                                        width: null,
-                                        height: null,
-                                        isPrimary: i === 0,
-                                        caption: null,
-                                        uploadedAt: new Date(),
-                                    })),
+                                    photos: publicLocationPhotos.length > 0
+                                        ? publicLocationPhotos
+                                        : selectedPublicLocation.photos.map((p, i) => ({
+                                            id: i,
+                                            placeId: '',
+                                            userId: selectedPublicLocation.user.id,
+                                            imagekitFileId: '',
+                                            imagekitFilePath: p.imagekitFilePath,
+                                            originalFilename: '',
+                                            fileSize: null,
+                                            mimeType: null,
+                                            width: null,
+                                            height: null,
+                                            isPrimary: i === 0,
+                                            caption: null,
+                                            uploadedAt: new Date(),
+                                        })),
                                     userSave: {
                                         id: selectedPublicLocation.id,
                                         userId: selectedPublicLocation.user.id,
