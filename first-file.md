@@ -37,3 +37,33 @@ Every upload is secured with server-side virus scanning, format conversion, and 
   **_ Instructions _**
 - Review how this button is displayed, after the user checks the accept box, in mobile browsers
 - Do not code show me the issue and a plan to correct
+
+...
+Apr 2 2026
+**_ Task _**
+
+- on the /search page > discover review how the search feature works
+  **_ Context _**
+- currently searching for users with Proper first and last names does not find all users. Search seems generally limited to only user names and is case sensitive
+  **_ Instructions _**
+- Review how search works.
+- Allow search to find first and last names and return them in the discover panel as well as the usernames.
+- When searching for a user do not return the logged in user under discover ie; A search of 'Rod' should return 3 accounts, but if @rodczaro is logged in, who is one of the 'Rod' users this account should not be returned. The other rod accounts should be returned.
+- After review show me a plan to fix this issue
+
+...
+**_ issue _**
+
+- on /map > info windows; When the user views other user public locations the info window is essentially static ie; @rodczaro is viewing the public locations owned by @allaccess on the map page the info window does not directly link to the details panel.
+  **_ Context _**
+- The only clickable item is the owners user name; a click on the owners username takes the user to the profile.
+  **_ Change _**
+- Add a direct link in the info window connected to the location details panel. This iOS works similar to this, but a click on the camera icon takes the user to the location details panel.
+- the info window should show @locationowner, Title, Address, GPS metadata.
+- There is a Directions Button - remove this - it takes the user out of the app and is confusing.
+- Review the info window issue above then show me a plan to fix the issue before coding.
+
+...
+CSS changes
+change any black hex colors: #000000 to #111111
+Change any full white hex colors :#FFFFFF to #F5F5F5

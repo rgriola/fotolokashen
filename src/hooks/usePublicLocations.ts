@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-interface PublicLocation {
+export interface PublicLocation {
     id: number;
     placeId: string | null;
     name: string;

@@ -72,7 +72,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LocationData } from '@/lib/maps-utils';
 import { parseAddressComponents } from '@/lib/address-utils';
 import { useLocations } from '@/hooks/useLocations';
-import { usePublicLocations } from '@/hooks/usePublicLocations';
+import { usePublicLocations, type PublicLocation } from '@/hooks/usePublicLocations';
 import { UserSave, Location } from '@/types/location';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
@@ -102,6 +102,7 @@ interface MarkerData {
     color?: string; // Marker color for saved locations
     isPublic?: boolean; // True for public locations from other users
     ownerUsername?: string; // Username of location owner for public locations
+    publicLocationRaw?: PublicLocation; // Full data for public locations (avoids extra fetch)
 }
 
 function MapPageInner() {
@@ -126,6 +127,8 @@ function MapPageInner() {
     
     // Public locations state
     const [showPublicLocations, setShowPublicLocations] = useState(true);
+    const [showPublicDetailsSheet, setShowPublicDetailsSheet] = useState(false);
+    const [selectedPublicLocation, setSelectedPublicLocation] = useState<PublicLocation | null>(null);
     const [mapBounds, setMapBounds] = useState<{
         north: number;
         south: number;
@@ -253,6 +256,7 @@ function MapPageInner() {
                     color: '#A855F7',
                     isPublic: true,
                     ownerUsername: publicLoc.user.username,
+                    publicLocationRaw: publicLoc,
                 }))
                 : [];
 
@@ -1043,6 +1047,30 @@ function MapPageInner() {
                                     </div>
                                 )}
                                 <div className="flex gap-2 mt-2">
+                                    {/* View Details button for public locations */}
+                                    {selectedMarker.isPublic && selectedMarker.publicLocationRaw && (
+                                        <button
+                                            onClick={() => {
+                                                setSelectedPublicLocation(selectedMarker.publicLocationRaw!);
+                                                setShowPublicDetailsSheet(true);
+
+                                                if (map && typeof window !== 'undefined') {
+                                                    const isDesktop = window.innerWidth >= 1024;
+                                                    map.panTo(selectedMarker.position);
+                                                    map.setZoom(18);
+                                                    if (isDesktop) {
+                                                        const PANEL_WIDTH = window.innerWidth / 2;
+                                                        setTimeout(() => {
+                                                            map.panBy(PANEL_WIDTH / 2, 0);
+                                                        }, 300);
+                                                    }
+                                                }
+                                            }}
+                                            className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700 transition-colors"
+                                        >
+                                            View Details
+                                        </button>
+                                    )}
                                     {/* View button for saved locations (not public) */}
                                     {selectedMarker.userSave && !selectedMarker.isPublic && (
                                         <button
@@ -1108,16 +1136,6 @@ function MapPageInner() {
                                             Quick Save
                                         </button>
                                     )}
-                                    {selectedMarker.data && (
-                                        <a
-                                            href={`https://www.google.com/maps/dir/?api=1&destination=${selectedMarker.position.lat},${selectedMarker.position.lng}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200 transition-colors"
-                                        >
-                                            Directions
-                                        </a>
-                                    )}
                                 </div>
                             </div>
                         </InfoWindow>
@@ -1130,7 +1148,7 @@ function MapPageInner() {
                         fixed top-20 z-10
                         bg-black/50 text-white px-3 py-2 rounded-lg text-sm font-medium shadow-lg
                         transition-all duration-300 ease-in-out
-                        ${(isSidebarOpen || showDetailsSheet || showLocationsPanel) ? 'right-[calc(50%+14rem)]' : 'right-56'}
+                        ${(isSidebarOpen || showDetailsSheet || showLocationsPanel || showPublicDetailsSheet) ? 'right-[calc(50%+14rem)]' : 'right-56'}
                     `}
                 >
                     {gpsEnabled && userLocation ? (
@@ -1146,7 +1164,7 @@ function MapPageInner() {
                 {/* Custom Map Controls - Top Right (Map type + Zoom) */}
                 <CustomMapControls 
                     map={map}
-                    rightPanelOpen={isSidebarOpen || showDetailsSheet || showLocationsPanel}
+                    rightPanelOpen={isSidebarOpen || showDetailsSheet || showLocationsPanel || showPublicDetailsSheet}
                 />
 
                 {/* Map Controls - Responsive (Desktop: left-side vertical buttons, Mobile: bottom floating menu) */}
@@ -1435,6 +1453,93 @@ function MapPageInner() {
                                     // Already on map, just close sheet
                                     setShowDetailsSheet(false);
                                 }}
+                            />
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
+
+            {/* Public Location Details Sheet */}
+            <Sheet open={showPublicDetailsSheet} onOpenChange={setShowPublicDetailsSheet}>
+                <SheetContent className="w-full sm:w-1/2 p-0" hideOverlay={true}>
+                    <SheetHeader>
+                        <VisuallyHidden>
+                            <SheetTitle>
+                                {selectedPublicLocation?.name || 'Location Details'}
+                            </SheetTitle>
+                        </VisuallyHidden>
+                    </SheetHeader>
+                    <div className="h-full">
+                        {selectedPublicLocation && (
+                            <LocationDetailPanel
+                                location={{
+                                    id: selectedPublicLocation.id,
+                                    placeId: selectedPublicLocation.placeId || '',
+                                    name: selectedPublicLocation.name,
+                                    address: selectedPublicLocation.address,
+                                    lat: selectedPublicLocation.lat,
+                                    lng: selectedPublicLocation.lng,
+                                    type: selectedPublicLocation.type || '',
+                                    rating: selectedPublicLocation.rating,
+                                    street: null,
+                                    number: null,
+                                    city: selectedPublicLocation.city,
+                                    state: selectedPublicLocation.state,
+                                    zipcode: null,
+                                    productionDate: null,
+                                    productionNotes: null,
+                                    entryPoint: null,
+                                    parking: null,
+                                    access: null,
+                                    indoorOutdoor: null,
+                                    isPermanent: false,
+                                    photoUrls: null,
+                                    permitRequired: false,
+                                    permitCost: null,
+                                    contactPerson: null,
+                                    contactPhone: null,
+                                    operatingHours: null,
+                                    restrictions: null,
+                                    bestTimeOfDay: null,
+                                    createdBy: selectedPublicLocation.user.id,
+                                    lastModifiedBy: null,
+                                    lastModifiedAt: null,
+                                    createdAt: selectedPublicLocation.savedAt ? new Date(selectedPublicLocation.savedAt) : new Date(),
+                                    updatedAt: new Date(),
+                                    photos: selectedPublicLocation.photos.map((p, i) => ({
+                                        id: i,
+                                        placeId: '',
+                                        userId: selectedPublicLocation.user.id,
+                                        imagekitFileId: '',
+                                        imagekitFilePath: p.imagekitFilePath,
+                                        originalFilename: '',
+                                        fileSize: null,
+                                        mimeType: null,
+                                        width: null,
+                                        height: null,
+                                        isPrimary: i === 0,
+                                        caption: null,
+                                        uploadedAt: new Date(),
+                                    })),
+                                    userSave: {
+                                        id: selectedPublicLocation.id,
+                                        userId: selectedPublicLocation.user.id,
+                                        locationId: selectedPublicLocation.id,
+                                        savedAt: selectedPublicLocation.savedAt ? new Date(selectedPublicLocation.savedAt) : new Date(),
+                                        caption: selectedPublicLocation.caption,
+                                        tags: null,
+                                        isFavorite: false,
+                                        personalRating: null,
+                                        visitedAt: null,
+                                        color: null,
+                                        visibility: 'public',
+                                        user: selectedPublicLocation.user,
+                                    },
+                                }}
+                                source="public"
+                                canEdit={false}
+                                onClose={() => setShowPublicDetailsSheet(false)}
+                                onViewOnMap={() => setShowPublicDetailsSheet(false)}
                             />
                         )}
                     </div>
