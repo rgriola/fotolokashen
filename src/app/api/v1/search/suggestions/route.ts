@@ -11,9 +11,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getUsernameSuggestions } from '@/lib/search-utils';
+import { requireAuth } from '@/lib/api-middleware';
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAuth(request);
+    if (!auth.authorized || !auth.user) {
+      return Response.json({ error: auth.error }, { status: 401 });
+    }
+
+    const currentUserId = auth.user.id;
     const { searchParams } = new URL(request.url);
     
     // Get query parameters
@@ -32,7 +39,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(limitParam || '10', 10), 20);
 
     // Get suggestions
-    const suggestions = await getUsernameSuggestions(query, limit);
+    const suggestions = await getUsernameSuggestions(query, limit, currentUserId);
 
     // Return simple response
     return NextResponse.json({

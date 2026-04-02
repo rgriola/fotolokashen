@@ -13,9 +13,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { searchUsers, searchByGeography, type SearchType } from '@/lib/search-utils';
+import { requireAuth } from '@/lib/api-middleware';
 
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAuth(request);
+    if (!auth.authorized || !auth.user) {
+      return Response.json({ error: auth.error }, { status: 401 });
+    }
+
+    const currentUserId = auth.user.id;
     const { searchParams } = new URL(request.url);
     
     // Get query parameters
@@ -52,10 +59,10 @@ export async function GET(request: NextRequest) {
     
     // If city or country specified, use geographic search
     if (city || country) {
-      results = await searchByGeography(city || undefined, country || undefined, limit);
+      results = await searchByGeography(city || undefined, country || undefined, limit, currentUserId);
     } else {
       // Regular search by query and type
-      results = await searchUsers(query, type, limit + offset + 1);
+      results = await searchUsers(query, type, limit + offset + 1, currentUserId);
       
       // Apply offset and check if there are more results
       results = results.slice(offset);

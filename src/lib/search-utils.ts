@@ -23,42 +23,71 @@ export interface SearchResult {
 export type SearchType = 'username' | 'bio' | 'location' | 'geo' | 'all';
 
 /**
- * Search users by username using fuzzy matching (PostgreSQL trigram similarity)
- * Requires pg_trgm extension to be enabled
+ * Search users by username, first name, or last name using fuzzy matching
+ * Requires pg_trgm extension to be enabled for trigram similarity on username
  */
 export async function searchByUsername(
   query: string,
-  limit: number = 20
+  limit: number = 20,
+  currentUserId?: number
 ): Promise<SearchResult[]> {
   if (!query || query.trim().length < 2) {
     return [];
   }
 
   const normalizedQuery = query.toLowerCase().trim();
+  const likePattern = `%${normalizedQuery}%`;
 
   try {
-    // Use raw SQL for trigram similarity search
-    const users = await prisma.$queryRaw<Array<SearchResult & { score: number }>>`
-      SELECT 
-        id,
-        username,
-        "firstName",
-        "lastName",
-        avatar,
-        bio,
-        city,
-        country,
-        similarity(username, ${normalizedQuery}) as score
-      FROM users
-      WHERE 
-        username ILIKE ${`%${normalizedQuery}%`}
-        AND "deletedAt" IS NULL
-        AND "showInSearch" = true
-      ORDER BY 
-        score DESC,
-        username ASC
-      LIMIT ${limit}
-    `;
+    // Use raw SQL for trigram similarity search on username + ILIKE on names
+    const users = currentUserId
+      ? await prisma.$queryRaw<Array<SearchResult & { score: number }>>`
+          SELECT 
+            id,
+            username,
+            "firstName",
+            "lastName",
+            avatar,
+            bio,
+            city,
+            country,
+            similarity(username, ${normalizedQuery}) as score
+          FROM users
+          WHERE 
+            (username ILIKE ${likePattern}
+             OR "firstName" ILIKE ${likePattern}
+             OR "lastName" ILIKE ${likePattern})
+            AND "deletedAt" IS NULL
+            AND "showInSearch" = true
+            AND id != ${currentUserId}
+          ORDER BY 
+            score DESC,
+            username ASC
+          LIMIT ${limit}
+        `
+      : await prisma.$queryRaw<Array<SearchResult & { score: number }>>`
+          SELECT 
+            id,
+            username,
+            "firstName",
+            "lastName",
+            avatar,
+            bio,
+            city,
+            country,
+            similarity(username, ${normalizedQuery}) as score
+          FROM users
+          WHERE 
+            (username ILIKE ${likePattern}
+             OR "firstName" ILIKE ${likePattern}
+             OR "lastName" ILIKE ${likePattern})
+            AND "deletedAt" IS NULL
+            AND "showInSearch" = true
+          ORDER BY 
+            score DESC,
+            username ASC
+          LIMIT ${limit}
+        `;
 
     return users.map(user => ({
       ...user,
@@ -68,15 +97,19 @@ export async function searchByUsername(
   } catch (error) {
     console.error('Username search error:', error);
     // Fallback to simple ILIKE search if trigram extension not available
+    const where: Prisma.UserWhereInput = {
+      OR: [
+        { username: { contains: normalizedQuery, mode: 'insensitive' } },
+        { firstName: { contains: normalizedQuery, mode: 'insensitive' } },
+        { lastName: { contains: normalizedQuery, mode: 'insensitive' } },
+      ],
+      deletedAt: null,
+      showInSearch: true,
+      ...(currentUserId ? { id: { not: currentUserId } } : {}),
+    };
+
     const users = await prisma.user.findMany({
-      where: {
-        username: {
-          contains: normalizedQuery,
-          mode: 'insensitive',
-        },
-        deletedAt: null,
-        showInSearch: true,
-      },
+      where,
       select: {
         id: true,
         username: true,
@@ -181,7 +214,8 @@ export async function searchByBio(
 export async function searchByGeography(
   city?: string,
   country?: string,
-  limit: number = 20
+  limit: number = 20,
+  currentUserId?: number
 ): Promise<SearchResult[]> {
   if (!city && !country) {
     return [];
@@ -211,6 +245,7 @@ export async function searchByGeography(
     deletedAt: null,
     showInSearch: true,
     OR: orConditions,
+    ...(currentUserId ? { id: { not: currentUserId } } : {}),
   };
 
   const users = await prisma.user.findMany({
@@ -307,7 +342,8 @@ export async function searchByLocation(
 export async function searchUsers(
   query: string,
   type: SearchType = 'all',
-  limit: number = 20
+  limit: number = 20,
+  currentUserId?: number
 ): Promise<SearchResult[]> {
   if (!query || query.trim().length < 2) {
     return [];
@@ -317,7 +353,7 @@ export async function searchUsers(
 
   // Search by type
   if (type === 'username' || type === 'all') {
-    const usernameResults = await searchByUsername(query, limit);
+    const usernameResults = await searchByUsername(query, limit, currentUserId);
     results = [...results, ...usernameResults];
   }
 
@@ -330,10 +366,10 @@ export async function searchUsers(
     // Try to parse city/country from query
     const parts = query.split(',').map(p => p.trim());
     if (parts.length === 2) {
-      const geoResults = await searchByGeography(parts[0], parts[1], limit);
+      const geoResults = await searchByGeography(parts[0], parts[1], limit, currentUserId);
       results = [...results, ...geoResults];
     } else if (parts.length === 1) {
-      const geoResults = await searchByGeography(undefined, parts[0], limit);
+      const geoResults = await searchByGeography(undefined, parts[0], limit, currentUserId);
       results = [...results, ...geoResults];
     }
   }
@@ -364,12 +400,13 @@ export async function searchUsers(
  */
 export async function getUsernameSuggestions(
   query: string,
-  limit: number = 10
+  limit: number = 10,
+  currentUserId?: number
 ): Promise<string[]> {
   if (!query || query.trim().length < 2) {
     return [];
   }
 
-  const users = await searchByUsername(query, limit);
+  const users = await searchByUsername(query, limit, currentUserId);
   return users.map(u => u.username);
 }
