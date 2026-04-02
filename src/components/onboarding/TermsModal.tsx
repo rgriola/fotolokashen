@@ -58,7 +58,7 @@ export function TermsModal() {
     return (
         <Dialog open={showTermsModal} modal>
             <DialogContent 
-                className="max-w-4xl max-h-[90vh] flex flex-col [&>button]:hidden"
+                className="max-w-4xl max-h-[90dvh] flex flex-col [&>button]:hidden"
                 onPointerDownOutside={(e) => e.preventDefault()}
                 onEscapeKeyDown={(e) => e.preventDefault()}
             >
@@ -72,7 +72,7 @@ export function TermsModal() {
                 <div
                     ref={scrollContainerRef}
                     onScroll={handleScroll}
-                    className="flex-1 overflow-y-auto p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-6"
+                    className="flex-1 min-h-0 overflow-y-auto p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-6"
                 >
                     {/* Terms of Service */}
                     <section>
@@ -227,7 +227,7 @@ export function TermsModal() {
                     </div>
                 )}
 
-                <div className="space-y-4 pt-4 border-t border-gray-200">
+                <div className="shrink-0 space-y-4 pt-4 border-t border-gray-200">
                     <div className="flex items-start space-x-3">
                         <Checkbox
                             id="terms-checkbox"

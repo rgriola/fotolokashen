@@ -10,90 +10,90 @@ datasource db {
 }
 
 model User {
-  id                      Int                      @id @default(autoincrement())
-  email                   String                   @unique
-  username                String                   @unique
-  passwordHash            String
-  firstName               String?
-  lastName                String?
-  dateOfBirth             DateTime?
-  emailVerified           Boolean                  @default(false)
-  verificationToken       String?
-  resetToken              String?
-  resetTokenExpiry        DateTime?
-  isActive                Boolean                  @default(true)
-  isAdmin                 Boolean                  @default(false)
-  role                    String                   @default("user") // user, staffer, super_admin
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
-  appleId                 String?                  @unique
-  avatar                  String?
-  avatarFileId            String?
-  bannerImage             String?
-  bannerFileId            String?
-  city                    String?
-  country                 String?
-  googleId                String?                  @unique
-  language                String?                  @default("en")
-  lastLoginAt             DateTime?
-  phoneNumber             String?
-  timezone                String?
-  gpsPermission           String?                  @default("not_asked")
-  gpsPermissionUpdated    DateTime?
-  homeLocationName        String?
-  homeLocationLat         Float?
-  homeLocationLng         Float?
-  homeLocationUpdated     DateTime?
-  verificationTokenExpiry DateTime?
-  lastVerificationEmailSent DateTime?
-  bio                     String?
-  deletedAt               DateTime?
-  emailNotifications      Boolean                  @default(true)
-  twoFactorEnabled        Boolean                  @default(false)
-  twoFactorSecret         String?
-  failedLoginAttempts     Int                      @default(0)
-  lockedUntil             DateTime?
+  id                           Int                      @id @default(autoincrement())
+  email                        String                   @unique
+  username                     String                   @unique
+  passwordHash                 String
+  firstName                    String?
+  lastName                     String?
+  dateOfBirth                  DateTime?
+  emailVerified                Boolean                  @default(false)
+  verificationToken            String?
+  resetToken                   String?
+  resetTokenExpiry             DateTime?
+  isActive                     Boolean                  @default(true)
+  isAdmin                      Boolean                  @default(false)
+  role                         String                   @default("user") // user, staffer, super_admin
+  createdAt                    DateTime                 @default(now())
+  updatedAt                    DateTime                 @updatedAt
+  appleId                      String?                  @unique
+  avatar                       String?
+  avatarFileId                 String?
+  bannerImage                  String?
+  bannerFileId                 String?
+  city                         String?
+  country                      String?
+  googleId                     String?                  @unique
+  language                     String?                  @default("en")
+  lastLoginAt                  DateTime?
+  phoneNumber                  String?
+  timezone                     String?
+  gpsPermission                String?                  @default("not_asked")
+  gpsPermissionUpdated         DateTime?
+  homeLocationName             String?
+  homeLocationLat              Float?
+  homeLocationLng              Float?
+  homeLocationUpdated          DateTime?
+  verificationTokenExpiry      DateTime?
+  lastVerificationEmailSent    DateTime?
+  bio                          String?
+  deletedAt                    DateTime?
+  emailNotifications           Boolean                  @default(true)
+  twoFactorEnabled             Boolean                  @default(false)
+  twoFactorSecret              String?
+  failedLoginAttempts          Int                      @default(0)
+  lockedUntil                  DateTime?
   // Privacy Settings
-  profileVisibility       String                   @default("public") // public, followers, private
-  showInSearch            Boolean                  @default(true)
-  showLocation            Boolean                  @default(true)
-  showSavedLocations      String                   @default("public") // public, followers, private
-  allowFollowRequests     Boolean                  @default(true)
+  profileVisibility            String                   @default("public") // public, followers, private
+  showInSearch                 Boolean                  @default(true)
+  showLocation                 Boolean                  @default(true)
+  showSavedLocations           String                   @default("public") // public, followers, private
+  allowFollowRequests          Boolean                  @default(true)
   // Onboarding Tracking
-  onboardingCompleted     Boolean                  @default(false) @map("onboarding_completed")
-  onboardingStep          Int?                     @map("onboarding_step")
-  onboardingSkipped       Boolean                  @default(false) @map("onboarding_skipped")
-  onboardingStartedAt     DateTime?                @map("onboarding_started_at")
-  onboardingCompletedAt   DateTime?                @map("onboarding_completed_at")
-  onboardingVersion       Int                      @default(1) @map("onboarding_version")
+  onboardingCompleted          Boolean                  @default(false) @map("onboarding_completed")
+  onboardingStep               Int?                     @map("onboarding_step")
+  onboardingSkipped            Boolean                  @default(false) @map("onboarding_skipped")
+  onboardingStartedAt          DateTime?                @map("onboarding_started_at")
+  onboardingCompletedAt        DateTime?                @map("onboarding_completed_at")
+  onboardingVersion            Int                      @default(1) @map("onboarding_version")
   // Terms Acceptance Tracking
-  termsAcceptedAt         DateTime?                @map("terms_accepted_at")
-  termsVersion            String?                  @map("terms_version")
-  privacyAcceptedAt       DateTime?                @map("privacy_accepted_at")
-  privacyVersion          String?                  @map("privacy_version")
+  termsAcceptedAt              DateTime?                @map("terms_accepted_at")
+  termsVersion                 String?                  @map("terms_version")
+  privacyAcceptedAt            DateTime?                @map("privacy_accepted_at")
+  privacyVersion               String?                  @map("privacy_version")
   // Page-specific Onboarding
-  locationsOnboardingCompleted Boolean             @default(false) @map("locations_onboarding_completed")
-  peopleOnboardingCompleted    Boolean             @default(false) @map("people_onboarding_completed")
-  phoneVerification       PhoneVerification[]
-  createdLocations        Location[]               @relation("LocationCreator")
-  modifiedLocations       Location[]               @relation("LocationModifier")
-  uploadedPhotos          Photo[]                  @relation("PhotoUploader")
-  projects                Project[]
-  projectMemberships      ProjectMember[]
-  securityLogs            SecurityLog[]
-  sessions                Session[]
-  invitedTeamMembers      TeamMember[]             @relation("TeamInviter")
-  teamMemberships         TeamMember[]             @relation("TeamMember")
-  savedLocations          UserSave[]
-  emailChangeRequests     EmailChangeRequest[]
-  usernameChangeRequests  UsernameChangeRequest[]
-  following               UserFollow[]             @relation("Following")
-  followers               UserFollow[]             @relation("Followers")
-  oauthAuthorizationCodes OAuthAuthorizationCode[]
-  oauthRefreshTokens      OAuthRefreshToken[]
-  createdTemplates        EmailTemplate[]          @relation("TemplateCreator")
-  updatedTemplates        EmailTemplate[]          @relation("TemplateUpdater")
-  createdTemplateVersions EmailTemplateVersion[]   @relation("VersionCreator")
+  locationsOnboardingCompleted Boolean                  @default(false) @map("locations_onboarding_completed")
+  peopleOnboardingCompleted    Boolean                  @default(false) @map("people_onboarding_completed")
+  phoneVerification            PhoneVerification[]
+  createdLocations             Location[]               @relation("LocationCreator")
+  modifiedLocations            Location[]               @relation("LocationModifier")
+  uploadedPhotos               Photo[]                  @relation("PhotoUploader")
+  projects                     Project[]
+  projectMemberships           ProjectMember[]
+  securityLogs                 SecurityLog[]
+  sessions                     Session[]
+  invitedTeamMembers           TeamMember[]             @relation("TeamInviter")
+  teamMemberships              TeamMember[]             @relation("TeamMember")
+  savedLocations               UserSave[]
+  emailChangeRequests          EmailChangeRequest[]
+  usernameChangeRequests       UsernameChangeRequest[]
+  following                    UserFollow[]             @relation("Following")
+  followers                    UserFollow[]             @relation("Followers")
+  oauthAuthorizationCodes      OAuthAuthorizationCode[]
+  oauthRefreshTokens           OAuthRefreshToken[]
+  createdTemplates             EmailTemplate[]          @relation("TemplateCreator")
+  updatedTemplates             EmailTemplate[]          @relation("TemplateUpdater")
+  createdTemplateVersions      EmailTemplateVersion[]   @relation("VersionCreator")
 
   @@index([city])
   @@index([country])
@@ -169,7 +169,7 @@ model UserSave {
   color          String?
   isFavorite     Boolean   @default(false)
   personalRating Float?
-  caption        String?   // User's personal caption/note for this location
+  caption        String? // User's personal caption/note for this location
   tags           Json?
   visitedAt      DateTime?
   visibility     String    @default("private") // 'public', 'unlisted', 'private'
@@ -347,19 +347,19 @@ model SecurityLog {
 }
 
 model EmailChangeRequest {
-  id           Int       @id @default(autoincrement())
-  userId       Int
-  oldEmail     String
-  newEmail     String
-  token        String    @unique
-  expiresAt    DateTime
-  cancelToken  String    @unique
-  ipAddress    String?
-  userAgent    String?
-  createdAt    DateTime  @default(now())
-  completedAt  DateTime?
-  cancelledAt  DateTime?
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  oldEmail    String
+  newEmail    String
+  token       String    @unique
+  expiresAt   DateTime
+  cancelToken String    @unique
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  cancelledAt DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
@@ -369,15 +369,15 @@ model EmailChangeRequest {
 }
 
 model UsernameChangeRequest {
-  id            Int       @id @default(autoincrement())
-  userId        Int
-  oldUsername   String
-  newUsername   String
-  ipAddress     String?
-  userAgent     String?
-  createdAt     DateTime  @default(now())
-  completedAt   DateTime?
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  oldUsername String
+  newUsername String
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([createdAt])
@@ -394,13 +394,13 @@ model ReservedUsername {
 
 model UserFollow {
   id          Int      @id @default(autoincrement())
-  followerId  Int      // User who is following
-  followingId Int      // User being followed
+  followerId  Int // User who is following
+  followingId Int // User being followed
   createdAt   DateTime @default(now())
-  
-  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
-  
+
+  follower  User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
   @@unique([followerId, followingId])
   @@index([followerId])
   @@index([followingId])
@@ -408,40 +408,40 @@ model UserFollow {
 }
 
 model OAuthClient {
-  id                     String                   @id @default(cuid())
-  clientId               String                   @unique
-  clientSecret           String?                  // Null for public clients (mobile apps)
-  name                   String
-  redirectUris           String[]                 // Array of allowed redirect URIs
-  scopes                 String[]                 // Array of allowed scopes
-  grantTypes             String[]                 // ['authorization_code', 'refresh_token']
-  isPublic               Boolean                  @default(true) // Public clients don't have secrets
-  createdAt              DateTime                 @default(now())
-  updatedAt              DateTime                 @updatedAt
-  
-  authorizationCodes     OAuthAuthorizationCode[]
-  refreshTokens          OAuthRefreshToken[]
-  
+  id           String   @id @default(cuid())
+  clientId     String   @unique
+  clientSecret String? // Null for public clients (mobile apps)
+  name         String
+  redirectUris String[] // Array of allowed redirect URIs
+  scopes       String[] // Array of allowed scopes
+  grantTypes   String[] // ['authorization_code', 'refresh_token']
+  isPublic     Boolean  @default(true) // Public clients don't have secrets
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  authorizationCodes OAuthAuthorizationCode[]
+  refreshTokens      OAuthRefreshToken[]
+
   @@map("oauth_clients")
 }
 
 model OAuthAuthorizationCode {
-  id                    String      @id @default(cuid())
-  code                  String      @unique
-  clientId              String
-  userId                Int
-  redirectUri           String
-  codeChallenge         String      // PKCE code challenge
-  codeChallengeMethod   String      // 'S256' or 'plain'
-  scopes                String[]
-  expiresAt             DateTime    // Short-lived: 10 minutes
-  used                  Boolean     @default(false)
-  usedAt                DateTime?
-  createdAt             DateTime    @default(now())
-  
-  client                OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id                  String    @id @default(cuid())
+  code                String    @unique
+  clientId            String
+  userId              Int
+  redirectUri         String
+  codeChallenge       String // PKCE code challenge
+  codeChallengeMethod String // 'S256' or 'plain'
+  scopes              String[]
+  expiresAt           DateTime // Short-lived: 10 minutes
+  used                Boolean   @default(false)
+  usedAt              DateTime?
+  createdAt           DateTime  @default(now())
+
+  client OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([code])
   @@index([userId])
   @@index([clientId])
@@ -450,26 +450,26 @@ model OAuthAuthorizationCode {
 }
 
 model OAuthRefreshToken {
-  id           String      @id @default(cuid())
-  token        String      @unique
-  clientId     String
-  userId       Int
-  scopes       String[]
-  expiresAt    DateTime    // Long-lived: 30 days
-  revoked      Boolean     @default(false)
-  revokedAt    DateTime?
-  createdAt    DateTime    @default(now())
-  lastUsedAt   DateTime    @default(now())
-  
+  id         String    @id @default(cuid())
+  token      String    @unique
+  clientId   String
+  userId     Int
+  scopes     String[]
+  expiresAt  DateTime // Long-lived: 30 days
+  revoked    Boolean   @default(false)
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime  @default(now())
+
   // Device tracking for security
-  deviceName   String?
-  deviceType   String?     // 'ios', 'android', 'web'
-  userAgent    String?
-  ipAddress    String?
-  
-  client       OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  deviceName String?
+  deviceType String? // 'ios', 'android', 'web'
+  userAgent  String?
+  ipAddress  String?
+
+  client OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([token])
   @@index([userId])
   @@index([clientId])
@@ -482,48 +482,48 @@ model OAuthRefreshToken {
 // ============================================================================
 
 model EmailTemplate {
-  id                  Int                    @id @default(autoincrement())
-  
+  id Int @id @default(autoincrement())
+
   // Template Identity
-  key                 String                 @unique // e.g., 'verification', 'password_reset', 'welcome'
-  name                String                 // Display name: "Email Verification Template"
-  description         String?                // Purpose of this template
-  category            String                 @default("system") // 'system', 'notification', 'campaign'
-  
+  key         String  @unique // e.g., 'verification', 'password_reset', 'welcome'
+  name        String // Display name: "Email Verification Template"
+  description String? // Purpose of this template
+  category    String  @default("system") // 'system', 'notification', 'campaign'
+
   // Email Content
-  subject             String                 // Email subject line
-  htmlBody            String                 @db.Text // Full HTML template
-  textBody            String?                @db.Text // Plain text fallback
-  previewText         String?                // Email preview text (first line in inbox)
-  
+  subject     String // Email subject line
+  htmlBody    String  @db.Text // Full HTML template
+  textBody    String? @db.Text // Plain text fallback
+  previewText String? // Email preview text (first line in inbox)
+
   // Customization
-  brandColor          String                 @default("#4285f4")
-  headerGradientStart String                 @default("#4285f4")
-  headerGradientEnd   String                 @default("#5a67d8")
-  buttonColor         String                 @default("#4285f4")
-  headerImageUrl      String?                // Optional header image URL
-  
+  brandColor          String  @default("#4285f4")
+  headerGradientStart String  @default("#4285f4")
+  headerGradientEnd   String  @default("#5a67d8")
+  buttonColor         String  @default("#4285f4")
+  headerImageUrl      String? // Optional header image URL
+
   // Template Variables (JSON array of required variables)
-  requiredVariables   Json                   @default("[]")
-  
+  requiredVariables Json @default("[]")
+
   // Status & Versioning
-  isActive            Boolean                @default(true)
-  version             Int                    @default(1)
-  isDefault           Boolean                @default(false) // System default templates
-  deletedAt           DateTime?              // Soft delete timestamp
-  
+  isActive  Boolean   @default(true)
+  version   Int       @default(1)
+  isDefault Boolean   @default(false) // System default templates
+  deletedAt DateTime? // Soft delete timestamp
+
   // Metadata
-  createdBy           Int?
-  updatedBy           Int?
-  createdAt           DateTime               @default(now())
-  updatedAt           DateTime               @updatedAt
-  
+  createdBy Int?
+  updatedBy Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  creator             User?                  @relation("TemplateCreator", fields: [createdBy], references: [id], onDelete: SetNull)
-  updater             User?                  @relation("TemplateUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
-  versions            EmailTemplateVersion[]
-  usageLogs           EmailLog[]
-  
+  creator   User?                  @relation("TemplateCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  updater   User?                  @relation("TemplateUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
+  versions  EmailTemplateVersion[]
+  usageLogs EmailLog[]
+
   @@index([key])
   @@index([category])
   @@index([isActive])
@@ -532,48 +532,48 @@ model EmailTemplate {
 }
 
 model EmailTemplateVersion {
-  id            Int           @id @default(autoincrement())
-  templateId    Int
-  
+  id         Int @id @default(autoincrement())
+  templateId Int
+
   // Version Info
-  version       Int
-  changeNote    String?       // What changed in this version
-  
+  version    Int
+  changeNote String? // What changed in this version
+
   // Snapshot of Content
   subject       String
-  htmlBody      String        @db.Text
-  textBody      String?       @db.Text
-  customization Json          // Store all color/style settings
-  
+  htmlBody      String  @db.Text
+  textBody      String? @db.Text
+  customization Json // Store all color/style settings
+
   // Metadata
-  createdBy     Int?
-  createdAt     DateTime      @default(now())
-  
+  createdBy Int?
+  createdAt DateTime @default(now())
+
   // Relations
-  template      EmailTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  creator       User?         @relation("VersionCreator", fields: [createdBy], references: [id], onDelete: SetNull)
-  
+  template EmailTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  creator  User?         @relation("VersionCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+
   @@index([templateId])
   @@index([version])
   @@map("email_template_versions")
 }
 
 model EmailLog {
-  id            Int            @id @default(autoincrement())
-  
+  id Int @id @default(autoincrement())
+
   // Email Details
-  templateId    Int?
-  to            String
-  subject       String
-  status        String         // 'sent', 'failed', 'queued'
-  
+  templateId Int?
+  to         String
+  subject    String
+  status     String // 'sent', 'failed', 'queued'
+
   // Metadata
-  sentAt        DateTime       @default(now())
-  errorMessage  String?        @db.Text
-  
+  sentAt       DateTime @default(now())
+  errorMessage String?  @db.Text
+
   // Relations
-  template      EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  
+  template EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+
   @@index([templateId])
   @@index([to])
   @@index([sentAt])

@@ -1,15 +1,15 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-02-18 
+**Last Updated**: 2026-02-18
 **Production URL**: https://fotolokashen.com  
 **Status**: ✅ Live in Production | 📱 iOS App in Active Development
 
-## Current Focus 
+## Current Focus
 
 ### 🎯 Recent Completions (February 2026)
 
 1. ✅ **Friends/Public Locations API Flattening** - iOS compatibility fix
-   - Flattened `/api/v1/locations/friends` and `/api/v1/locations/public` response structure. 
+   - Flattened `/api/v1/locations/friends` and `/api/v1/locations/public` response structure.
    - iOS `MapSocialLocation` model now receives flat `lat`, `lng`, `name`, etc. at top level
    - Updated `useFriendsLocations.ts` and `usePublicLocations.ts` hooks for new flat structure
    - Fixed `/locations` page `mergedLocations` logic for Friends toggle
@@ -26,51 +26,52 @@
    - Reduced map controls top margin for tighter layout
    - Comprehensive code documentation explaining map page architecture
 
-2. ✅ **Tooltip UX Enhancement** - Comprehensive tooltip coverage across the app
+3. ✅ **Tooltip UX Enhancement** - Comprehensive tooltip coverage across the app
    - Added tooltips to all buttons and links in LocationDetailPanel
    - Added tooltips to Filter, Edit, and Share buttons on /locations page
    - Consistent dark theme styling and positioning
    - Enhanced accessibility and user guidance
 
-3. ✅ **Production Date Feature** - Track filming/production dates for locations
+4. ✅ **Production Date Feature** - Track filming/production dates for locations
    - Added `productionDate` field to Location model
    - Date picker in EditLocationForm and CreateLocationWithPhoto
    - UTC-based date handling
 
-4. ✅ **Unified Upload Security** - All 5 image upload entry points secured
+5. ✅ **Unified Upload Security** - All 5 image upload entry points secured
    - Avatar, Banner, Save Location, Edit Location, Create-with-Photo
    - Server-side virus scanning (ClamAV)
    - Server-side HEIC/TIFF → JPEG conversion (Sharp)
    - Browser-side format conversion for previews
 
-5. ✅ **Create-with-Photo UX Refactor** - Single-page layout
+6. ✅ **Create-with-Photo UX Refactor** - Single-page layout
    - Replaced 2-step wizard with unified single-page form
    - Photo upload + GPS extraction + manual location in one view
 
-6. ✅ **Avatar/Banner HEIC/TIFF Support**
+7. ✅ **Avatar/Banner HEIC/TIFF Support**
    - Browser-side conversion for iPhone HEIC photos
    - Progress indicator and toast feedback
 
-7. ✅ **Google Maps Performance Fix**
+8. ✅ **Google Maps Performance Fix**
    - Fixed "LoadScript has been reloaded unintentionally" warning
    - Module-level constants for libraries array
 
-8. ✅ **LocationDetailPanel UI/UX Refinements**
+9. ✅ **LocationDetailPanel UI/UX Refinements**
    - Cleaner presentation with consolidated content
    - Combined Address and GPS into single panel
    - Added copy address button
    - Comprehensive tooltips for all interactive elements
 
-9. ✅ **Support System**
-   - Public support form at `/support` with human verification
-   - Member support form at `/member-support`
-   - Rate limiting: 3/hour (public), 5/hour (members)
+10. ✅ **Support System**
+    - Public support form at `/support` with human verification
+    - Member support form at `/member-support`
+    - Rate limiting: 3/hour (public), 5/hour (members)
 
-9. ✅ **Vercel Speed Insights** - Performance monitoring integration
+11. ✅ **Vercel Speed Insights** - Performance monitoring integration
 
-10. ✅ **Documentation Cleanup** - Reorganized /docs folder structure
+12. ✅ **Documentation Cleanup** - Reorganized /docs folder structure
 
 **Recent Completions (January 2026):**
+
 - ✅ **Onboarding Tours Bug Fixes** - Fixed repeating tour issue
 - ✅ **Enhanced Onboarding System** - Multi-page tours with terms acceptance
 - ✅ **Admin Email Template Editor** - Unified editing, preview, and duplication
@@ -79,6 +80,7 @@
 - ✅ **Privacy & Visibility System** - Granular privacy controls
 
 ### 📱 iOS Companion App
+
 **Status**: Active Development  
 **Location**: `/fotolokashen-ios/` workspace
 
@@ -100,7 +102,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - **CDN**: ImageKit (photo storage)
 - **Image Processing**: Sharp 0.34.x (server-side conversion/compression)
 - **Security**: ClamAV (virus scanning)
-- **Authentication**: Custom JWT-based system 
+- **Authentication**: Custom JWT-based system
 - **Email**: Resend API with custom HTML templates
 - **State Management**: TanStack Query (React Query)
 - **Deployment**: Vercel
@@ -109,6 +111,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 ### Core Features (Deployed)
 
 ✅ **User Authentication & Security**
+
 - Email/password registration and login
 - Email verification with 30-minute token expiration
 - Password reset with rate limiting
@@ -118,6 +121,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Session invalidation on password change
 
 ✅ **Onboarding System** (NEW - January 2026)
+
 - Mandatory Terms of Service and Privacy Policy acceptance
 - Main map tour (9 steps, required completion)
 - Locations page tour (5 steps, contextual)
@@ -128,6 +132,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Database fields: `termsAcceptedAt`, `termsVersion`, `privacyAcceptedAt`, `privacyVersion`, `locationsOnboardingCompleted`, `peopleOnboardingCompleted`
 
 ✅ **Email System**
+
 - Professional HTML email templates
 - Responsive design (mobile/tablet/desktop)
 - User timezone-aware timestamps
@@ -141,6 +146,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
   - Account Deletion Confirmation
 
 ✅ **Admin Features**
+
 - User management dashboard
 - Account deletion capability
 - User activity overview
@@ -150,6 +156,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Production-safe template seeding endpoint
 
 ✅ **Profile Management** (NEW - January 2026)
+
 - Username change with uniqueness validation
 - Email change with verification flow
 - Avatar upload, crop, and rotation
@@ -158,6 +165,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Bio and location information
 
 ✅ **Location Management**
+
 - Google Maps integration for search
 - User-specific saved locations (UserSave model)
 - Personal ratings, captions, and tags
@@ -171,6 +179,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - `/locations` page with grid/list views and filtering
 
 ✅ **Social Features** (NEW - January 2026)
+
 - Location sharing with visibility controls (public, private, followers-only)
 - Share via link, email, or direct to users
 - Follow/unfollow users
@@ -180,6 +189,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Privacy enforcement throughout the app
 
 ✅ **Photo Upload** (Enhanced February 2026)
+
 - Multiple photos per location
 - ImageKit CDN storage
 - Flat directory structure: `/{environment}/users/{userId}/photos/`
@@ -191,6 +201,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - EXIF data extraction and preservation (GPS, camera info)
 
 ✅ **Map Interface**
+
 - Interactive Google Maps display with auto-fit to show all locations on load
 - Custom markers for saved locations with type-based colors
 - Public location markers (purple) with deduplication by placeId
@@ -207,24 +218,28 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 ### Security Features
 
 **Rate Limiting**
+
 - Forgot Password: 2 per 15 min, 3 per hour
 - Reset Password: 2 per 15 min, 3 per hour
 - Change Password: 5 per hour
 - Login Attempts: Account lockout after multiple failures
 
 **Token Security**
+
 - Email Verification: 30-minute expiration
 - Password Reset: 15-minute expiration
 - JWT Sessions: 7-day default, 30-day with "remember me"
 - Cryptographically secure token generation (256-bit)
 
 **Email Verification**
+
 - Required for all login methods
 - Cannot be bypassed via password reset
 - Clear user feedback on verification status
 - Resend verification with rate limiting
 
 **Security Logging**
+
 - All authentication events logged
 - Failed login tracking
 - Password change tracking
@@ -234,11 +249,13 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 ### Environment Configuration
 
 **Local Development**: Uses `.env.local` only
+
 - Next.js automatically loads `.env.local`
 - Prisma scripts use `dotenv-cli` to load `.env.local`
 - See `ENV_TEMPLATE.md` for required variables
 
 **Production**: Vercel environment variables
+
 - Configured through Vercel dashboard
 - Auto-deployed on push to main branch
 
@@ -247,12 +264,14 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 ### High Priority
 
 **Onboarding Tours** ✅ COMPLETED (2026-02-06)
+
 - [x] Fixed repeating tour issue on /locations and /search
 - [x] Proper state management and database persistence
 - [x] Fixed positioning issues in fixed layouts
 - [x] Removed unreliable tour steps
 
 **Session Management Enhancements** ✅ COMPLETED (2026-01-16)
+
 - [x] Capture all session metadata (IP, user agent, device type, device name)
 - [x] Support multi-device sessions (web + iOS simultaneously)
 - [x] iOS logout isolation (doesn't affect web sessions)
@@ -262,6 +281,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - [ ] Add "active session" management UI
 
 **Email Verification Improvements** (Partially Complete)
+
 - [x] Add token expiration (30 minutes)
 - [x] Improve UX messaging
 - [ ] Add visual timer showing token expiration
@@ -273,24 +293,28 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 ### Medium Priority
 
 **Performance Optimization**
+
 - [ ] Optimize database query patterns and indexing
 - [ ] Implement query result caching where appropriate
 - [ ] Review and optimize image loading strategies
 - [ ] Monitor and improve Core Web Vitals
 
 **Feature Enhancements**
+
 - [ ] Add in-app help documentation system
 - [ ] Implement notification system for social interactions
 - [ ] Add location collections/albums feature
 - [ ] Expand AI features (auto-tagging, smart search)
 
 **Avatar System** ✅ RESOLVED
+
 - Avatars currently saved to `/development/` folder on ImageKit
 - Should use `/production/` in production
 - Files work correctly, just in wrong folder
 - See `AVATAR_UPLOAD_FLOW.md` for details
 
 **Email Enhancements**
+
 - [ ] Implement "Send Test Email" in admin preview
 - [ ] Add email template versioning system
 - [ ] Create email analytics dashboard
@@ -300,6 +324,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 ### Low Priority
 
 **UI/UX Polish**
+
 - [ ] Add loading skeletons for better perceived performance
 - [ ] Implement comprehensive toast notification system
 - [ ] Add keyboard shortcuts for power users
@@ -307,6 +332,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - [ ] Add dark mode support
 
 **Testing & Quality**
+
 - [ ] Expand automated test coverage
 - [ ] Implement E2E testing for critical flows
 - [ ] Add performance monitoring and alerting
@@ -315,6 +341,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 ### Documentation
 
 **Completed**:
+
 - ✅ Reorganized 46 historical docs to `/docs/` archive
 - ✅ Created `/docs/README.md` index
 - ✅ Updated environment setup documentation
@@ -326,12 +353,14 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - ✅ AI features (descriptions, tags) documented
 
 **In Progress**:
+
 - 🔄 API documentation for mobile app integration
 - 🔄 User guide and help system content
 
 ## Recent Deployments
 
 **2026-02-18**: Friends/Public Locations API & iOS Compatibility
+
 - Flattened `/api/v1/locations/friends` and `/api/v1/locations/public` response structure for iOS
 - Updated `useFriendsLocations.ts`, `usePublicLocations.ts`, and locations page for flat structure
 - Fixed map page `publicMarkers` to use flat `publicLoc.lat/lng` instead of nested
@@ -339,6 +368,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Applied Tailwind v4 canonical class names across 5 component files
 
 **2026-02-15**: Map View UX Enhancements
+
 - Implemented auto-fit bounds to show all user + public locations on initial load
 - Added GPS coordinates display (lat/lng) in top-right corner with 50% opacity background
 - GPS toggle button now properly controls GPS on/off state, marker visibility, and coordinate display
@@ -350,6 +380,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Added comprehensive code documentation at top of map page explaining architecture
 
 **2026-02-13**: Unified Upload Security Implementation
+
 - Secured all 5 image upload entry points (Avatar, Banner, Save Location, Edit Location, Create-with-Photo)
 - Implemented server-side virus scanning via ClamAV for all uploads
 - Added server-side HEIC/TIFF → JPEG conversion using Sharp
@@ -359,6 +390,7 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - All uploads now go through secure server pipeline with validation, scanning, and processing
 
 **2026-01-11/12**: Security & Email System Overhaul
+
 - Implemented comprehensive email template system
 - Fixed critical email verification bypass vulnerability
 - Added password reset rate limiting
@@ -368,22 +400,26 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - Enhanced verify-email page UX
 
 **2026-01-04**: Sentry DataCloneError Fix
+
 - Fixed Date serialization in API responses (Next.js/React 19 requirement)
 - Updated 7 API routes to return ISO strings instead of Date objects
 - Routes updated: login, register, reset-password, profile, admin users, and requireAuth middleware
 - Resolved production error: `DataCloneError: The object can not be cloned`
 
 **2026-01-03**: Documentation cleanup
+
 - Reorganized 46 historical .md files to `/docs/` archive
 - Created PROJECT_STATUS.md (this file)
 - Consolidated environment variable management
 
 **2026-01-02**: Photo upload fixes
+
 - Fixed `locationId` missing in photo save requests
 - Updated production database schema
 - Verified photo uploads working end-to-end
 
 **2025-12**: Environment consolidation
+
 - Consolidated to `.env.local` only for local development
 - Updated Prisma scripts with `dotenv-cli`
 - Removed duplicate `.env` files
@@ -429,6 +465,7 @@ npm run db:studio
 ### Deployment
 
 Manual deployment:
+
 ```bash
 vercel --prod
 ```
@@ -436,6 +473,7 @@ vercel --prod
 ## Architecture Notes
 
 ### Email System
+
 - **Templates**: Styled HTML with responsive design
 - **Development Mode**: Console logging only
 - **Production Mode**: Resend API
@@ -443,6 +481,7 @@ vercel --prod
 - **Timezone Handling**: User timezone preference or UTC fallback
 
 ### Photo Storage
+
 - Flat directory structure (no subdirectories by date)
 - Path format: `/{environment}/users/{userId}/photos/{filename}`
 - Files stored on ImageKit CDN
@@ -450,12 +489,14 @@ vercel --prod
 - EXIF data extraction for GPS coordinates
 
 ### User-Specific Locations
+
 - Each user has their own saved locations (UserSave)
 - Same Google Place can be saved by multiple users with different metadata
 - UserSave contains: personalRating, caption, isFavorite, locationId, userId
 - Location contains: Google Place data (name, address, coordinates, etc.)
 
 ### Security Architecture
+
 - **Authentication**: Custom JWT with secure token generation
 - **Rate Limiting**: Multiple time windows (15 min, 1 hour)
 - **Security Logging**: All events tracked in database
@@ -463,6 +504,7 @@ vercel --prod
 - **Email Verification**: Required, cannot be bypassed
 
 ### Type System
+
 - **UserSave**: User's personal save with metadata
 - **Location**: Actual location data from Google Places
 - **LocationData**: Client-side location representation
@@ -472,10 +514,12 @@ vercel --prod
 ## Quick References
 
 ### Essential Documentation (Root Level)
+
 - **PROJECT_STATUS.md** (this file) - Current project status and updates
 - **README.md** - Project overview, setup instructions, and technology stack
 
 ### Organized Documentation (`/docs/`)
+
 - **completed-features/** - Feature implementation summaries and completion reports
 - **deployment/** - Deployment guides, build fixes, and production checklists
 - **summaries/** - Implementation summaries, reviews, and technical updates
@@ -488,6 +532,7 @@ vercel --prod
 - **archive/** - Historical documentation
 
 ### iOS App Documentation (`/fotolokashen-ios/docs/`)
+
 - **API.md** - Mobile API specifications and endpoints
 - **IOS_APP_EVALUATION.md** - Backend gap analysis and implementation strategy
 - **IOS_DEVELOPMENT_STACK.md** - Tech stack and architecture decisions

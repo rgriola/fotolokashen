@@ -41,6 +41,7 @@ The Email Templates System allows super admins to create, edit, and manage email
 ### Viewing Templates
 
 The template list shows:
+
 - **Name** - Template display name with "Default" badge for system templates
 - **Key** - Unique identifier (e.g., `verification`, `welcome`)
 - **Subject** - Email subject line
@@ -87,6 +88,7 @@ The template list shows:
 4. Check your inbox to verify the template
 
 **Development Mode:**
+
 - In development, emails are logged to console instead of sent
 - You'll see the email details in terminal output
 
@@ -110,21 +112,25 @@ The template list shows:
 ### Template-Specific Variables
 
 **Verification Email (`verification`):**
+
 ```
 {{verificationUrl}} - URL to verify email
 ```
 
 **Welcome Email (`welcome`):**
+
 ```
 (Uses standard variables only)
 ```
 
 **Password Reset (`password_reset`):**
+
 ```
 {{resetUrl}}        - URL to reset password
 ```
 
 **Password Changed (`password_changed`):**
+
 ```
 {{timestamp}}       - When password was changed
 {{ipAddress}}       - IP address of change
@@ -132,6 +138,7 @@ The template list shows:
 ```
 
 **Account Deletion (`account_deletion`):**
+
 ```
 (Uses standard variables only)
 ```
@@ -141,6 +148,7 @@ The template list shows:
 Use double curly braces: `{{variableName}}`
 
 **Example:**
+
 ```html
 <p>Hi <strong>{{username}}</strong>,</p>
 <p>Welcome to {{appName}}!</p>
@@ -176,16 +184,19 @@ Use double curly braces: `{{variableName}}`
 ## 🗑️ Deleting Templates
 
 ### Custom Templates
+
 - Click the **Delete** icon (trash)
 - Confirm deletion
 - Template is soft-deleted (marked as inactive)
 
 ### Default Templates
+
 - Cannot be deleted
 - Delete button is hidden
 - These are system-critical templates
 
 **Default Templates:**
+
 - `verification` - Email Verification
 - `welcome` - Welcome Email
 - `password_reset` - Password Reset
@@ -197,6 +208,7 @@ Use double curly braces: `{{variableName}}`
 ## 🔍 Search & Filters
 
 ### Search
+
 - Type in search box to filter by:
   - Template name
   - Template key
@@ -204,6 +216,7 @@ Use double curly braces: `{{variableName}}`
 - Search is real-time (updates as you type)
 
 ### Category Filter
+
 - Select category from dropdown:
   - **All Categories** - Show everything
   - **System** - User authentication emails
@@ -234,18 +247,21 @@ Each template has 4 customizable colors:
 ## 💡 Best Practices
 
 ### Template Keys
+
 - Use lowercase letters only
 - Separate words with underscores: `team_invite`
 - Keep keys short and descriptive
 - Never change key after creation
 
 ### Subject Lines
+
 - Keep under 50 characters when possible
 - Use variables for personalization: `Welcome, {{username}}!`
 - Avoid ALL CAPS
 - Be descriptive and clear
 
 ### HTML Content
+
 - Test with multiple email clients
 - Use inline CSS (most email clients don't support `<style>` tags)
 - Keep width under 600px for better mobile display
@@ -254,12 +270,14 @@ Each template has 4 customizable colors:
 - Provide plain text fallback
 
 ### Colors
+
 - Ensure good contrast for accessibility
 - Test colors on light and dark backgrounds
 - Stick to brand guidelines
 - Use web-safe colors when possible
 
 ### Variables
+
 - Only use variables that are actually provided
 - Check required variables for each template type
 - Provide default values in template when possible
@@ -270,29 +288,34 @@ Each template has 4 customizable colors:
 ## ⚠️ Troubleshooting
 
 ### Template Not Sending
+
 - **Check:** Is template marked as Active?
 - **Check:** Are all required variables provided in code?
 - **Check:** Is email service configured (Resend API key)?
 - **Fix:** Review console logs for error messages
 
 ### Variables Not Rendering
+
 - **Check:** Correct syntax `{{variable}}` not `{variable}`
 - **Check:** Variable name matches exactly (case-sensitive)
 - **Check:** Variable is available for this template type
 - **Fix:** Review available variables list above
 
 ### Preview Not Showing
+
 - **Check:** HTML is valid (no unclosed tags)
 - **Check:** Browser console for errors
 - **Fix:** Use Monaco editor's format feature
 - **Fix:** Validate HTML in external tool
 
 ### Can't Delete Template
+
 - **Reason:** Default templates cannot be deleted
 - **Alternative:** Create custom version and deactivate default
 - **Note:** Deletion is soft delete (can be recovered by dev)
 
 ### Test Email Not Arriving
+
 - **Check:** Development mode logs to console, not email
 - **Check:** Production mode requires EMAIL_API_KEY
 - **Check:** Spam/junk folder
@@ -303,6 +326,7 @@ Each template has 4 customizable colors:
 ## 🔒 Permissions
 
 **Super Admin Only:**
+
 - ✅ View all templates
 - ✅ Create new templates
 - ✅ Edit existing templates
@@ -312,6 +336,7 @@ Each template has 4 customizable colors:
 - ✅ Send test emails
 
 **Staffers & Users:**
+
 - ❌ No access to template management
 - ❌ Cannot view admin panel
 
@@ -320,12 +345,14 @@ Each template has 4 customizable colors:
 ## 📊 Performance Tips
 
 ### For Best Performance:
+
 1. **Keep HTML concise** - Larger templates take longer to load
 2. **Use caching** - Templates are cached for 5 minutes automatically
 3. **Optimize images** - Use compressed images or external CDN
 4. **Test thoroughly** - Prevent frequent edits by testing first
 
 ### Cache Invalidation:
+
 - Cache is automatically cleared when template is updated
 - No manual action needed
 - New version is cached immediately
@@ -335,11 +362,13 @@ Each template has 4 customizable colors:
 ## 🆘 Getting Help
 
 ### Support Channels:
+
 - **Technical Issues:** Contact development team
 - **Template Design:** Contact design team
 - **Email Delivery:** Check email service status (Resend)
 
 ### Common Resources:
+
 - **HTML Email Guide:** [Really Good Emails](https://reallygoodemails.com/)
 - **Email Testing:** [Litmus](https://litmus.com/) or [Email on Acid](https://www.emailonacid.com/)
 - **Handlebars Docs:** [handlebarsjs.com](https://handlebarsjs.com/)
@@ -349,6 +378,7 @@ Each template has 4 customizable colors:
 ## 📈 Future Enhancements
 
 **Planned Features:**
+
 - 📋 Drag-and-drop email builder
 - 📋 Pre-built content blocks library
 - 📋 Image uploader for inline images
@@ -361,16 +391,16 @@ Each template has 4 customizable colors:
 
 ## ✅ Quick Reference
 
-| Task | Steps |
-|------|-------|
+| Task            | Steps                             |
+| --------------- | --------------------------------- |
 | Create Template | Click "Create" → Fill form → Save |
-| Edit Template | Click Edit icon → Modify → Save |
-| Send Test | Save first → Click "Send Test" |
-| View History | Click History icon → See versions |
-| Revert Version | History → Select version → Revert |
-| Delete Template | Click Delete icon → Confirm |
-| Search | Type in search box |
-| Filter | Select category dropdown |
+| Edit Template   | Click Edit icon → Modify → Save   |
+| Send Test       | Save first → Click "Send Test"    |
+| View History    | Click History icon → See versions |
+| Revert Version  | History → Select version → Revert |
+| Delete Template | Click Delete icon → Confirm       |
+| Search          | Type in search box                |
+| Filter          | Select category dropdown          |
 
 ---
 

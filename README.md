@@ -4,7 +4,33 @@
 **Production**: [fotolokashen.com](https://fotolokashen.com) ✅ Live  
 **Status**: Active Development - v2.0.0
 
-A modern location discovery and sharing platform where users can search, save, and organize places with photos, personal ratings, and notes. Built with Next.js 16, PostgreSQL, and ImageKit CDN.
+This project is a knowledgebase for production management and scouting. We pair specific data pulled from real active productions married to specific useful information about those locations. This dataset can be easily parsed, shared and put into practical use over and over. Locations with Purpose.
+
+USE CASES:
+
+- Micheal needs a space for an interview, it needs to attractive, accessable (for gear being brought in), quiet (zero to few people), inexpensive to free and for about 4 hours. Carrie had used a place for an interview, a resturant in DC. It was quiet between Lunch and dinner and the Owner was open to her crew using the space.
+- Bob usually works in the Boston area but is in Arizona. Bonnie from NY needs a live locatoin that says BOSTON but isn't in a busy downtown and had a place to Park a Truck for the Live Anchor Position.
+
+In these scenarios Had Bob and Carrie collected their location knowledge this can easily be shared with fotolokashen to colleauges in need. Searching and Details, including contact info is shared.
+
+You will find photos of the location, exact GPS and Address, Descriptions of the space, local contacts, info on parking. All in one location - Fotolokashen.
+
+- How did this project arise? Many years ago a photographer David Rust collected details about places he had been, and he had been about everywhere. Resturants, Hotels, Shops - shooting locations, productions, how to get in and out of specific spots.
+
+- Some years later a couple of Producers in Atlanta tried, and I think did, make an app to help our field teams, event planners collect their experiences in one place. However I know it was released but from there ...
+
+- In April of 2025 a Manager in DC sent an email to Field Production about the 50 State PJ Guide, this was built on MicroSoft Share Point. Essentially software designed "for document management, secure file storage, team collaboration, and building intranet portals. It enables users to create customizable sites to share information, automate workflows, and co-author documents in real-time, functioning as a centralized hub for organizational content. - Microsoft Support
+
+- The issue? No one uses it. It is not used for any of the above tasks in field production.
+- On a good day it takes 2 login's to get to sharepoint. Its great for people only working at desks.
+
+- So the Guide ? It was last updated 1 month prior to our Team email. When I tried to look through it I nearly deleted some of the pictures in a location.
+- issue > too many people are allowed to edit, but then updating becomes harder since fewer people can moderate content.
+- It was a good idea, with the wrong software and access to the people who needed to use it.
+
+- Fotolokashen can be used on the fly on your phone. It can place you on a map and show you the locations around you we have collected and what to exspect there. Go to a courthouse - here are the bathrooms and resturants in 2 blocks that have bathrooms. WE all need a bathroom at somepoint.
+
+- Future features: Assignments, Project Managment and Workspaces - Readable Useful Emails, Slack integration, Calendars. This will allow us better access and share team data, team planning, including budgeting, keeping hours and producing reports and sharing this across the company.
 
 ## 🚀 Technology Stack
 
@@ -59,18 +85,21 @@ npm install
 ClamAV provides virus scanning for all uploaded files. All 5 upload entry points (Avatar, Banner, Save Location, Edit Location, Create-with-Photo) use server-side virus scanning.
 
 **macOS:**
+
 ```bash
 brew install clamav
 brew services start clamav
 ```
 
 **Linux (Ubuntu/Debian):**
+
 ```bash
 sudo apt install clamav clamav-daemon
 sudo systemctl start clamav-daemon
 ```
 
 **To disable virus scanning** (local development only):
+
 ```bash
 # Add to .env.local - NOT for production
 DISABLE_VIRUS_SCAN="true"
@@ -163,6 +192,7 @@ fotolokashen/
 ## ✨ Key Features
 
 ### Authentication & Security
+
 - Email/password registration with email verification
 - Password reset with rate limiting
 - JWT-based session management (7-day default, 30-day with "remember me")
@@ -171,6 +201,7 @@ fotolokashen/
 - ClamAV virus scanning for all uploads
 
 ### Location Management
+
 - Google Maps integration with Places Autocomplete
 - User-specific saved locations with personal ratings, captions, and tags
 - Production date tracking for filming/shoots
@@ -180,6 +211,7 @@ fotolokashen/
 - AI tag suggestions
 
 ### Photo System
+
 - Multiple photos per location
 - ImageKit CDN storage with flat directory structure
 - Server-side HEIC/TIFF to JPEG conversion
@@ -187,22 +219,26 @@ fotolokashen/
 - Browser-side format conversion for previews
 
 ### Social Features
+
 - Follow/unfollow users
 - Public user profiles with saved locations
 - User search with autocomplete
 - Privacy controls (public, followers-only, private)
 
 ### Onboarding System
+
 - Mandatory Terms of Service acceptance
 - Guided tours for Map, Locations, and People pages
 - Per-page completion tracking
 
 ### Support System
+
 - Public support form with human verification
 - Member support form (authenticated)
 - Rate limiting and email notifications
 
 ### Admin Features
+
 - User management dashboard
 - Email template editor with live preview
 - Device size simulation (desktop/tablet/mobile)
@@ -248,10 +284,12 @@ npm run db:seed      # Seed database with templates
 The application is deployed to Vercel at [fotolokashen.com](https://fotolokashen.com).
 
 ### Automatic Deployment
+
 - Push to `main` branch triggers automatic deployment
 - Environment variables configured in Vercel dashboard
 
 ### Manual Deployment
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
