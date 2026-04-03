@@ -140,7 +140,7 @@ export function LocationsMapView({ locations }: LocationsMapViewProps) {
                     size="icon"
                     onClick={handleLocate}
                     title="Show my location"
-                    className="bg-white hover:bg-gray-100 shadow-lg"
+                    className="bg-white hover:bg-muted shadow-lg"
                 >
                     <Locate className="w-5 h-5" />
                 </Button>
@@ -192,7 +192,7 @@ export function LocationsMapView({ locations }: LocationsMapViewProps) {
                             <h3 className="font-semibold text-lg mb-2">
                                 {selectedMarker.location.name}
                             </h3>
-                            <p className="text-sm text-gray-600 mb-2">
+                            <p className="text-sm text-muted-foreground mb-2">
                                 {selectedMarker.location.address}
                             </p>
 
@@ -211,17 +211,17 @@ export function LocationsMapView({ locations }: LocationsMapViewProps) {
                             {/* Personal Rating */}
                             {selectedMarker.location.userSave?.personalRating ? (
                                 <div className="flex items-center gap-1 mb-2">
-                                    <span className="text-yellow-500">
+                                    <span className="text-warning">
                                         {'★'.repeat(selectedMarker.location.userSave.personalRating)}
                                     </span>
-                                    <span className="text-gray-400">
+                                    <span className="text-muted-foreground">
                                         {'★'.repeat(5 - selectedMarker.location.userSave.personalRating)}
                                     </span>
                                 </div>
                             ) : null}
 
                             {/* Coordinates */}
-                            <p className="text-xs text-gray-500 mb-3">
+                            <p className="text-xs text-muted-foreground mb-3">
                                 {selectedMarker.position.lat.toFixed(3)}, {selectedMarker.position.lng.toFixed(3)}
                             </p>
 
@@ -245,7 +245,7 @@ export function LocationsMapView({ locations }: LocationsMapViewProps) {
                     >
                         <div className="p-2">
                             <h3 className="font-semibold mb-1">Your Location</h3>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                                 {userLocation.lat.toFixed(6)}, {userLocation.lng.toFixed(6)}
                             </p>
                         </div>

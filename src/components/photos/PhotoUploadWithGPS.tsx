@@ -429,15 +429,15 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
         <div className="max-w-3xl mx-auto space-y-6">
             {/* Error Alert - Show at top */}
             {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                <div className="p-4 bg-destructive/10 dark:bg-destructive/10 border border-destructive/20 dark:border-destructive rounded-lg flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                     <div className="flex-1">
-                        <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">Upload Error</p>
-                        <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                        <p className="text-sm font-medium text-destructive dark:text-destructive-foreground mb-1">Upload Error</p>
+                        <p className="text-sm text-destructive dark:text-destructive">{error}</p>
                     </div>
                     <button
                         onClick={() => setError(null)}
-                        className="text-red-400 hover:text-red-600 transition-colors"
+                        className="text-destructive hover:text-destructive transition-colors"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -467,7 +467,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                         <div
                             onDrop={handleDrop}
                             onDragOver={handleDragOver}
-                            className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer"
+                            className="border-2 border-dashed border-border dark:border-border rounded-lg p-12 text-center hover:border-primary transition-colors cursor-pointer"
                         >
                             <input
                                 type="file"
@@ -477,7 +477,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                                 id="photo-upload"
                             />
                             <label htmlFor="photo-upload" className="cursor-pointer">
-                                <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                                <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                                 <p className="text-lg font-medium mb-2">
                                     Drag & Drop or Click to Choose.
                                 </p>
@@ -498,14 +498,14 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                     
                     {/* Converting Status */}
                     {isConverting && (
-                        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/50">
+                        <Card className="border-primary/20 dark:border-primary bg-primary/10 dark:bg-primary/10">
                             <CardContent className="pt-6">
                                 <div className="text-center">
-                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                                    <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                                    <p className="text-sm font-medium text-primary dark:text-primary-foreground mb-1">
                                         Converting to JPEG...
                                     </p>
-                                    <p className="text-xs text-blue-700 dark:text-blue-300">
+                                    <p className="text-xs text-primary dark:text-primary">
                                         {file?.name}
                                     </p>
                                 </div>
@@ -515,15 +515,15 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
 
                     {/* No GPS - Manual Location Selection */}
                     {!isConverting && !isProcessing && gpsData && isManualLocationMode && isMapsLoaded && (
-                        <Card className="border-blue-200 dark:border-blue-800">
+                        <Card className="border-primary/20 dark:border-primary">
                             <CardHeader>
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1">
-                                        <CardTitle className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                                        <CardTitle className="flex items-center gap-2 text-primary dark:text-primary">
                                             <MapPin className="w-5 h-5" />
                                             Select Location
                                         </CardTitle>
-                                        <CardDescription className="text-blue-600 dark:text-blue-500">
+                                        <CardDescription className="text-primary dark:text-primary">
                                             Search for a place, then click the map to fine-tune the exact spot
                                         </CardDescription>
                                     </div>
@@ -531,7 +531,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {/* Address Search */}
-                                <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border rounded-lg p-2">
+                                <div className="flex items-center gap-2 bg-white dark:bg-card border rounded-lg p-2">
                                     <Search className="w-4 h-4 text-muted-foreground ml-1" />
                                     <PlacesAutocomplete
                                         onPlaceSelected={handlePlaceSelected}
@@ -563,14 +563,14 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
 
                                 {/* Selected Location Info */}
                                 {manualLocation && addressData && (
-                                    <div className="p-3 bg-green-50 dark:bg-green-950/50 rounded-lg border border-green-200 dark:border-green-800">
-                                        <p className="text-sm font-semibold text-green-900 dark:text-green-100 mb-1">
+                                    <div className="p-3 bg-success/10 dark:bg-success/10 rounded-lg border border-success/20 dark:border-success">
+                                        <p className="text-sm font-semibold text-success dark:text-success-foreground mb-1">
                                             ✓ Location Selected
                                         </p>
-                                        <p className="text-xs text-green-700 dark:text-green-300">
+                                        <p className="text-xs text-success dark:text-success">
                                             {addressData.address}
                                         </p>
-                                        <p className="text-xs text-green-600 dark:text-green-400 mt-1 font-mono">
+                                        <p className="text-xs text-success dark:text-success mt-1 font-mono">
                                             {manualLocation.lat.toFixed(6)}, {manualLocation.lng.toFixed(6)}
                                         </p>
                                     </div>
@@ -595,11 +595,11 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
 
                     {/* GPS Data Found */}
                     {!isConverting && !isProcessing && gpsData && gpsData.hasGPS && (
-                        <Card className="border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/50">
+                        <Card className="border-success/20 dark:border-success bg-success/10/50 dark:bg-success/10">
                             <CardContent className="pt-6 space-y-4">
                                 {/* GPS Coordinates */}
                                 <div className="flex items-start gap-3">
-                                    <MapPin className="w-5 h-5 text-green-600 mt-0.5" />
+                                    <MapPin className="w-5 h-5 text-success mt-0.5" />
                                     <div className="flex-1">
                                         <p className="text-sm font-medium">GPS Coordinates</p>
                                         <p className="text-sm text-muted-foreground font-mono">
@@ -619,7 +619,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                                         {/* Date Taken */}
                                         {gpsData.dateTaken && (
                                             <div className="flex items-start gap-3 flex-1">
-                                                <Calendar className="w-5 h-5 text-green-600 mt-0.5" />
+                                                <Calendar className="w-5 h-5 text-success mt-0.5" />
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium">Photo Taken</p>
                                                     <p className="text-sm text-muted-foreground">
@@ -632,7 +632,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                                         {/* Camera Info */}
                                         {gpsData.camera?.make && (
                                             <div className="flex items-start gap-3 flex-1">
-                                                <Camera className="w-5 h-5 text-green-600 mt-0.5" />
+                                                <Camera className="w-5 h-5 text-success mt-0.5" />
                                                 <div className="flex-1">
                                                     <p className="text-sm font-medium">Camera</p>
                                                     <p className="text-sm text-muted-foreground">
@@ -655,7 +655,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                     {/* Photo Preview */}
                     <Card>
                         <CardContent className="pt-6">
-                            <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900">
+                            <div className="relative aspect-video rounded-lg overflow-hidden bg-muted dark:bg-card">
                                 {preview && !previewError ? (
                                     <Image
                                         src={preview}
@@ -682,7 +682,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                                         <p className="text-xs text-muted-foreground mb-2">
                                             Image could not be displayed
                                         </p>
-                                        <p className="text-xs text-green-600 dark:text-green-400">
+                                        <p className="text-xs text-success dark:text-success">
                                             ✓ File received successfully
                                         </p>
                                     </div>
@@ -777,7 +777,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                             {gpsData.hasGPS ? (
                                 <Button 
                                     onClick={handleCreateLocation} 
-                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    className="bg-success hover:bg-success/90 text-white"
                                 >
                                     <MapPin className="w-4 h-4 mr-2" />
                                     Submit
@@ -785,7 +785,7 @@ export function PhotoUploadWithGPS({ onPhotoProcessed, onCancel: _onCancel }: Ph
                             ) : (
                                 <Button 
                                     onClick={handleCreateLocation} 
-                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    className="bg-success hover:bg-success/90 text-white"
                                 >
                                     <Camera className="w-4 h-4 mr-2" />
                                     Photo (Manual Location)

@@ -196,34 +196,34 @@ export default function SupportPage() {
         style={{ backgroundImage: 'url(/images/landing/hero/login-hero-bg.jpg)' }}
       />
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-social/80 to-primary/80" />
 
       {/* Animated Gradient Blur Effects */}
-      <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl animate-pulse" />
-      <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl animate-pulse" />
+      <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
+      <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-social/20 blur-3xl animate-pulse" />
 
       {/* Content */}
       <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 flex-1 flex items-center justify-center py-4">
         <div className="w-full max-w-md">
 
           {/* Form Card */}
-          <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-2xl p-4 sm:p-5">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
+          <div className="bg-white/95 dark:bg-card/95 backdrop-blur-sm rounded-lg shadow-2xl p-4 sm:p-5">
+            <h1 className="text-xl font-bold text-foreground dark:text-white mb-1">
               Fotolokasen Support
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
             Questions or login issues? Members should login first for account-specific inquiries.
             </p>
 
             {/* Success Message */}
             {submitStatus === 'success' && (
-              <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+              <div className="mb-4 p-3 bg-success/10 dark:bg-success/10 border border-success/20 dark:border-success rounded-lg flex items-start gap-2">
+                <CheckCircle className="h-5 w-5 text-success dark:text-success flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-green-800 dark:text-green-200 font-medium">
+                  <p className="text-success dark:text-success font-medium">
                     Message Sent!
                   </p>
-                  <p className="text-green-700 dark:text-green-300 text-sm mt-1">
+                  <p className="text-success dark:text-success text-sm mt-1">
                     {submitMessage}
                   </p>
                 </div>
@@ -232,13 +232,13 @@ export default function SupportPage() {
 
             {/* Error Message */}
             {submitStatus === 'error' && (
-              <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
-                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <div className="mb-4 p-3 bg-destructive/10 dark:bg-destructive/10 border border-destructive/20 dark:border-destructive rounded-lg flex items-start gap-2">
+                <AlertCircle className="h-5 w-5 text-destructive dark:text-destructive flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-red-800 dark:text-red-200 font-medium">
+                  <p className="text-destructive dark:text-destructive font-medium">
                     Error
                   </p>
-                  <p className="text-red-700 dark:text-red-300 text-sm mt-1">
+                  <p className="text-destructive dark:text-destructive text-sm mt-1">
                     {submitMessage}
                   </p>
                 </div>
@@ -249,7 +249,7 @@ export default function SupportPage() {
               {/* Name Field */}
               <div className="space-y-1">
                 <Label htmlFor="name">
-                  Name <span className="text-red-500">*</span>
+                  Name <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="name"
@@ -259,18 +259,18 @@ export default function SupportPage() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Your name"
-                  className={errors.name ? 'border-red-500' : ''}
+                  className={errors.name ? 'border-destructive' : ''}
                   disabled={submitStatus === 'loading'}
                 />
                 {errors.name && (
-                  <p className="text-red-500 text-sm">{errors.name}</p>
+                  <p className="text-destructive text-sm">{errors.name}</p>
                 )}
               </div>
 
               {/* Email Field */}
               <div className="space-y-1">
                 <Label htmlFor="email">
-                  Email <span className="text-red-500">*</span>
+                  Email <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="email"
@@ -280,18 +280,18 @@ export default function SupportPage() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="your@email.com"
-                  className={errors.email ? 'border-red-500' : ''}
+                  className={errors.email ? 'border-destructive' : ''}
                   disabled={submitStatus === 'loading'}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-sm">{errors.email}</p>
+                  <p className="text-destructive text-sm">{errors.email}</p>
                 )}
               </div>
 
               {/* Subject Field */}
               <div className="space-y-1">
                 <Label htmlFor="subject">
-                  Subject <span className="text-red-500">*</span>
+                  Subject <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="subject"
@@ -301,18 +301,18 @@ export default function SupportPage() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="What's this about?"
-                  className={errors.subject ? 'border-red-500' : ''}
+                  className={errors.subject ? 'border-destructive' : ''}
                   disabled={submitStatus === 'loading'}
                 />
                 {errors.subject && (
-                  <p className="text-red-500 text-sm">{errors.subject}</p>
+                  <p className="text-destructive text-sm">{errors.subject}</p>
                 )}
               </div>
 
               {/* Message Field */}
               <div className="space-y-1">
                 <Label htmlFor="message">
-                  Message <span className="text-red-500">*</span>
+                  Message <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
                   id="message"
@@ -322,12 +322,12 @@ export default function SupportPage() {
                   onBlur={handleBlur}
                   placeholder="Describe your question or issue..."
                   rows={4}
-                  className={errors.message ? 'border-red-500' : ''}
+                  className={errors.message ? 'border-destructive' : ''}
                   disabled={submitStatus === 'loading'}
                 />
-                <div className="flex justify-between text-sm text-gray-500">
+                <div className="flex justify-between text-sm text-muted-foreground">
                   {errors.message ? (
-                    <p className="text-red-500">{errors.message}</p>
+                    <p className="text-destructive">{errors.message}</p>
                   ) : (
                     <span></span>
                   )}
@@ -365,7 +365,7 @@ export default function SupportPage() {
             </form>
 
             {/* Footer Note */}
-            <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
+            <p className="mt-4 text-center text-xs text-muted-foreground">
               We typically respond within 24-48 hours.
             </p>
           </div>

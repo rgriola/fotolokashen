@@ -101,11 +101,11 @@ export default function VerifyEmailPage() {
                 style={{ backgroundImage: 'url(/images/landing/hero/verify-email-bg.jpg)' }}
             />
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-social/80 to-primary/80" />
 
             {/* Animated Gradient Blur Effects */}
-            <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl animate-pulse" />
-            <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl animate-pulse" />
+            <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
+            <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-social/20 blur-3xl animate-pulse" />
 
             {/* Content */}
             <div className="relative z-10 max-w-md w-full mx-4">
@@ -125,8 +125,8 @@ export default function VerifyEmailPage() {
                 {/* Loading State */}
                 {status === 'loading' && (
                     <div className="text-center">
-                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-                        <h2 className="mt-4 text-xl font-semibold text-gray-800">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                        <h2 className="mt-4 text-xl font-semibold text-foreground">
                             Verifying your email...
                         </h2>
                     </div>
@@ -135,29 +135,29 @@ export default function VerifyEmailPage() {
                 {/* Success State */}
                 {status === 'success' && (
                     <div className="text-center">
-                        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
-                            <CheckCircle className="h-10 w-10 text-green-600" />
+                        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-success/10">
+                            <CheckCircle className="h-10 w-10 text-success" />
                         </div>
-                        <h2 className="mt-4 text-2xl font-bold text-gray-900">Email Verified!</h2>
-                        <p className="mt-2 text-gray-600">{message}</p>
-                        <p className="mt-3 text-sm text-gray-500">
+                        <h2 className="mt-4 text-2xl font-bold text-foreground">Email Verified!</h2>
+                        <p className="mt-2 text-muted-foreground">{message}</p>
+                        <p className="mt-3 text-sm text-muted-foreground">
                             You should receive a welcome email shortly.
                         </p>
                         {shouldRedirect && countdown > 0 && (
-                            <p className="mt-3 text-sm text-indigo-600 font-medium">
+                            <p className="mt-3 text-sm text-primary font-medium">
                                 Redirecting to login in {countdown} second{countdown !== 1 ? 's' : ''}...
                             </p>
                         )}
                         <div className="mt-6 space-y-3">
                             <Link
                                 href="/login"
-                                className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                                className="block w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors"
                             >
                                 Go to Login
                             </Link>
                             <Link
                                 href="/"
-                                className="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors"
+                                className="block w-full bg-muted hover:bg-muted text-foreground font-medium py-3 px-4 rounded-lg transition-colors"
                             >
                                 Go to Home
                             </Link>
@@ -168,60 +168,60 @@ export default function VerifyEmailPage() {
                 {/* No Token - Check Email */}
                 {status === 'no_token' && (
                     <div className="text-center">
-                        <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full ${message === 'New verification email sent' ? 'bg-green-100' : 'bg-amber-100'}`}>
+                        <div className={`mx-auto flex items-center justify-center h-16 w-16 rounded-full ${message === 'New verification email sent' ? 'bg-success/10' : 'bg-warning/10'}`}>
                             {message === 'New verification email sent' ? (
-                                <CheckCircle className="h-10 w-10 text-green-600" />
+                                <CheckCircle className="h-10 w-10 text-success" />
                             ) : (
-                                <Mail className="h-10 w-10 text-amber-600" />
+                                <Mail className="h-10 w-10 text-warning" />
                             )}
                         </div>
-                        <h2 className="mt-4 text-2xl font-bold text-gray-900">
+                        <h2 className="mt-4 text-2xl font-bold text-foreground">
                             {message === 'New verification email sent' ? 'Check Your Email' : 'Check Your Email'}
                         </h2>
-                        <div className={`mt-4 p-4 rounded-lg border ${message === 'New verification email sent' ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+                        <div className={`mt-4 p-4 rounded-lg border ${message === 'New verification email sent' ? 'bg-success/10 border-success/20' : 'bg-warning/10 border-warning/20'}`}>
                             {message === 'New verification email sent' ? (
                                 <>
-                                    <p className="text-sm text-green-800 font-semibold">
+                                    <p className="text-sm text-success font-semibold">
                                         ✅ New verification email sent!
                                     </p>
-                                    <p className="mt-2 text-sm text-green-700">
+                                    <p className="mt-2 text-sm text-success">
                                         We just sent a fresh verification link to <strong>{email}</strong>
                                     </p>
-                                    <p className="mt-2 text-sm text-green-600">
+                                    <p className="mt-2 text-sm text-success">
                                         The previous link has expired. Please use the new link.
                                     </p>
                                 </>
                             ) : (
                                 <>
-                                    <p className="text-sm text-amber-800">
+                                    <p className="text-sm text-warning">
                                         <strong>Email not verified yet.</strong>
                                     </p>
-                                    <p className="mt-2 text-sm text-amber-700">
+                                    <p className="mt-2 text-sm text-warning">
                                         Please check your email inbox for the confirmation link we sent you during registration.
                                     </p>
                                 </>
                             )}
                         </div>
                         {email && message !== 'New verification email sent' && (
-                            <p className="mt-3 text-sm text-gray-600">
+                            <p className="mt-3 text-sm text-muted-foreground">
                                 Confirmation email sent to: <strong>{email}</strong>
                             </p>
                         )}
                         <div className="mt-6 space-y-3">
                             <Link
                                 href="/login"
-                                className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                                className="block w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors"
                             >
                                 Back to Login
                             </Link>
                             <Link
                                 href="/"
-                                className="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors"
+                                className="block w-full bg-muted hover:bg-muted text-foreground font-medium py-3 px-4 rounded-lg transition-colors"
                             >
                                 Go to Home
                             </Link>
                         </div>
-                        <p className="mt-4 text-xs text-gray-500">
+                        <p className="mt-4 text-xs text-muted-foreground">
                             Didn't receive the email? Check your spam folder or contact support.
                         </p>
                     </div>
@@ -230,33 +230,33 @@ export default function VerifyEmailPage() {
                 {/* Expired Token */}
                 {status === 'expired' && (
                     <div className="text-center">
-                        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100">
-                            <Clock className="h-10 w-10 text-amber-600" />
+                        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-warning/10">
+                            <Clock className="h-10 w-10 text-warning" />
                         </div>
-                        <h2 className="mt-4 text-2xl font-bold text-gray-900">Link Expired</h2>
-                        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                            <p className="text-sm text-amber-800">
+                        <h2 className="mt-4 text-2xl font-bold text-foreground">Link Expired</h2>
+                        <div className="mt-4 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                            <p className="text-sm text-warning">
                                 <strong>Your verification link has expired.</strong>
                             </p>
-                            <p className="mt-2 text-sm text-amber-700">
+                            <p className="mt-2 text-sm text-warning">
                                 For security reasons, email verification links expire after 30 minutes.
                             </p>
                         </div>
                         <div className="mt-6 space-y-3">
                             <Link
                                 href="/forgot-password"
-                                className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                                className="block w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors"
                             >
                                 Request New Verification Link
                             </Link>
                             <Link
                                 href="/login"
-                                className="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors"
+                                className="block w-full bg-muted hover:bg-muted text-foreground font-medium py-3 px-4 rounded-lg transition-colors"
                             >
                                 Back to Login
                             </Link>
                         </div>
-                        <p className="mt-4 text-xs text-gray-500">
+                        <p className="mt-4 text-xs text-muted-foreground">
                             Use the "Forgot Password" flow to receive a new verification email.
                         </p>
                     </div>
@@ -265,33 +265,33 @@ export default function VerifyEmailPage() {
                 {/* Invalid Token or Other Error */}
                 {(status === 'invalid' || status === 'error') && (
                     <div className="text-center">
-                        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-amber-100">
-                            <AlertCircle className="h-10 w-10 text-amber-600" />
+                        <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-warning/10">
+                            <AlertCircle className="h-10 w-10 text-warning" />
                         </div>
-                        <h2 className="mt-4 text-2xl font-bold text-gray-900">Verification Issue</h2>
-                        <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                            <p className="text-sm text-amber-800">
+                        <h2 className="mt-4 text-2xl font-bold text-foreground">Verification Issue</h2>
+                        <div className="mt-4 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                            <p className="text-sm text-warning">
                                 <strong>{message}</strong>
                             </p>
-                            <p className="mt-2 text-sm text-amber-700">
+                            <p className="mt-2 text-sm text-warning">
                                 The verification link may have already been used or is no longer valid.
                             </p>
                         </div>
                         <div className="mt-6 space-y-3">
                             <Link
                                 href="/login"
-                                className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                                className="block w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors"
                             >
                                 Try Logging In
                             </Link>
                             <Link
                                 href="/forgot-password"
-                                className="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors"
+                                className="block w-full bg-muted hover:bg-muted text-foreground font-medium py-3 px-4 rounded-lg transition-colors"
                             >
                                 Request New Link
                             </Link>
                         </div>
-                        <p className="mt-4 text-xs text-gray-500">
+                        <p className="mt-4 text-xs text-muted-foreground">
                             If your email is already verified, you can log in directly.
                         </p>
                     </div>

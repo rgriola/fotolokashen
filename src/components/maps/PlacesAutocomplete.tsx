@@ -162,7 +162,7 @@ export function PlacesAutocomplete({
                 placeholder={placeholder}
                 onKeyDown={handleKeyDown}
                 disabled={isProcessingCoordinates}
-                className={`w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                className={`w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${
                     isProcessingCoordinates ? 'opacity-50 cursor-wait' : ''
                 } ${className}`}
             />

@@ -249,8 +249,8 @@ export function PreferencesForm() {
                                 disabled={isLoading}
                             />
                         </div>
-                        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                            <p className="text-xs text-blue-900 dark:text-blue-100">
+                        <div className="bg-primary/10 dark:bg-primary/10 border border-primary/20 dark:border-primary rounded-lg p-3">
+                            <p className="text-xs text-primary dark:text-primary-foreground">
                                 <span className="font-semibold">Privacy Note:</span> Device GPS data is only used while the app is actively running. We never track your location in the background.
                             </p>
                         </div>
@@ -355,17 +355,17 @@ export function PreferencesForm() {
 
             {/* Unsaved Changes Banner */}
             {hasChanges && (
-                <div className="fixed bottom-0 left-0 right-0 bg-amber-50 dark:bg-amber-950/20 border-t-2 border-amber-500 p-4 shadow-lg z-50 animate-in slide-in-from-bottom">
+                <div className="fixed bottom-0 left-0 right-0 bg-warning/10 dark:bg-warning/10 border-t-2 border-warning p-4 shadow-lg z-50 animate-in slide-in-from-bottom">
                     <div className="container max-w-6xl mx-auto">
                         <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-500" />
-                                    <p className="font-semibold text-amber-900 dark:text-amber-100">
+                                    <AlertCircle className="w-5 h-5 text-warning dark:text-warning" />
+                                    <p className="font-semibold text-warning dark:text-warning-foreground">
                                         You have unsaved changes
                                     </p>
                                 </div>
-                                <ul className="text-sm text-amber-800 dark:text-amber-200 space-y-1">
+                                <ul className="text-sm text-warning dark:text-warning space-y-1">
                                     {changes.map((change, i) => (
                                         <li key={i}>• {change}</li>
                                     ))}
@@ -377,7 +377,7 @@ export function PreferencesForm() {
                                     size="sm"
                                     onClick={handleDiscard}
                                     disabled={isLoading}
-                                    className="border-amber-300 dark:border-amber-700"
+                                    className="border-warning/30 dark:border-warning"
                                 >
                                     Discard
                                 </Button>
@@ -385,7 +385,7 @@ export function PreferencesForm() {
                                     size="sm"
                                     onClick={handleSave}
                                     disabled={isLoading}
-                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    className="bg-success hover:bg-success/90 text-white"
                                 >
                                     {isLoading ? 'Saving...' : 'Save Changes'}
                                 </Button>

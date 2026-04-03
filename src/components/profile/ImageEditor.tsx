@@ -277,12 +277,12 @@ export function ImageEditor({ open, onClose, imageFile, onSave }: ImageEditorPro
 
                 <div className="space-y-4">
                     {/* Canvas */}
-                    <div className="flex justify-center bg-gray-100 dark:bg-gray-800 rounded-lg p-4">
+                    <div className="flex justify-center bg-muted rounded-lg p-4">
                         <canvas
                             ref={canvasRef}
                             width={400}
                             height={400}
-                            className="border-2 border-gray-300 dark:border-gray-600 rounded-lg cursor-move max-w-full h-auto touch-none"
+                            className="border-2 border-border rounded-lg cursor-move max-w-full h-auto touch-none"
                             style={{ aspectRatio: '1 / 1' }}
                             onMouseDown={handleMouseDown}
                             onMouseMove={handleMouseMove}
@@ -301,10 +301,10 @@ export function ImageEditor({ open, onClose, imageFile, onSave }: ImageEditorPro
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label className="text-sm font-medium">Zoom</label>
-                                <span className="text-sm text-gray-500">{zoom.toFixed(1)}x</span>
+                                <span className="text-sm text-muted-foreground">{zoom.toFixed(1)}x</span>
                             </div>
                             <div className="flex items-center gap-4">
-                                <ZoomOut className="w-4 h-4 text-gray-500" />
+                                <ZoomOut className="w-4 h-4 text-muted-foreground" />
                                 <Slider
                                     value={[zoom]}
                                     onValueChange={handleZoomChange}
@@ -313,7 +313,7 @@ export function ImageEditor({ open, onClose, imageFile, onSave }: ImageEditorPro
                                     step={0.01}
                                     className="flex-1"
                                 />
-                                <ZoomIn className="w-4 h-4 text-gray-500" />
+                                <ZoomIn className="w-4 h-4 text-muted-foreground" />
                             </div>
                         </div>
 
@@ -331,7 +331,7 @@ export function ImageEditor({ open, onClose, imageFile, onSave }: ImageEditorPro
                             </Button>
                         </div>
 
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                             Drag the image to reposition • Use slider to zoom • Click rotate to turn
                         </p>
                     </div>

@@ -50,9 +50,9 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-background">
       {/* Header bar */}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3">
+      <header className="bg-white dark:bg-card border-b border-border dark:border-border px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Image
@@ -74,7 +74,7 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
       <main className="max-w-lg mx-auto px-4 py-6 space-y-4">
         {/* Photo carousel */}
         {hasPhotos && currentPhoto && (
-          <div className="relative rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800">
+          <div className="relative rounded-xl overflow-hidden bg-muted">
             <div className="relative h-64 sm:h-80">
               <Image
                 src={currentPhoto.url}
@@ -117,7 +117,7 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
 
         {/* No photos fallback — static map */}
         {!hasPhotos && (
-          <div className="relative rounded-xl overflow-hidden h-48 bg-gray-200 dark:bg-gray-800">
+          <div className="relative rounded-xl overflow-hidden h-48 bg-muted">
             <Image
               src={`https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=15&size=600x300&scale=2&markers=color:red%7C${location.lat},${location.lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}`}
               alt={`Map of ${location.name}`}
@@ -136,13 +136,13 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
         )}
 
         {/* Location info */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-800 space-y-3">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+        <div className="bg-white dark:bg-card rounded-xl p-4 shadow-sm border border-border dark:border-border space-y-3">
+          <h1 className="text-xl font-bold text-foreground">
             {location.name}
           </h1>
 
           {location.address && (
-            <div className="flex items-start gap-2 text-gray-600 dark:text-gray-400">
+            <div className="flex items-start gap-2 text-muted-foreground">
               <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
               <p className="text-sm">{location.address}</p>
             </div>
@@ -159,11 +159,11 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
         </div>
 
         {/* Open in app / download prompt */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-800 space-y-3">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+        <div className="bg-white dark:bg-card rounded-xl p-4 shadow-sm border border-border dark:border-border space-y-3">
+          <h2 className="text-base font-semibold text-foreground">
             View on fotolokashen
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             Save this location, add photos, and collaborate with your crew.
           </p>
 
@@ -174,11 +174,11 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
             </Button>
 
             {appOpenAttempted && (
-              <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-center text-muted-foreground">
                 Don&apos;t have the app?{' '}
                 <a
                   href={`${appUrl}/login`}
-                  className="text-blue-600 dark:text-blue-400 underline"
+                  className="text-primary dark:text-primary underline"
                 >
                   Continue in browser
                 </a>
@@ -195,7 +195,7 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
         </div>
 
         {/* Footer */}
-        <div className="text-center text-xs text-gray-400 dark:text-gray-600 py-4">
+        <div className="text-center text-xs text-muted-foreground dark:text-muted-foreground py-4">
           <p>Shared via fotolokashen</p>
           <p className="mt-1">Location Scouting Made Simple</p>
         </div>

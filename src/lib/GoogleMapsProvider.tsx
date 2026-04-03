@@ -35,9 +35,9 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
 
     if (loadError) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-red-50">
+            <div className="min-h-screen flex items-center justify-center bg-destructive/10">
                 <div className="max-w-md p-8 bg-white rounded-lg shadow-lg">
-                    <div className="flex items-center gap-3 text-red-600 mb-4">
+                    <div className="flex items-center gap-3 text-destructive mb-4">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 strokeLinecap="round"
@@ -48,10 +48,10 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
                         </svg>
                         <h2 className="text-xl font-bold">Google Maps Error</h2>
                     </div>
-                    <p className="text-gray-700 mb-4">
+                    <p className="text-foreground mb-4">
                         Failed to load Google Maps. Please check your API key configuration.
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                         Error: {loadError.message}
                     </p>
                 </div>
@@ -61,10 +61,10 @@ export function GoogleMapsProvider({ children }: GoogleMapsProviderProps) {
 
     if (!isLoaded) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 to-primary/20">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-                    <h2 className="text-xl font-semibold text-gray-800">
+                    <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                    <h2 className="text-xl font-semibold text-foreground">
                         Loading Google Maps...
                     </h2>
                 </div>

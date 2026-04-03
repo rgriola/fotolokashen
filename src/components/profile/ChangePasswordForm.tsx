@@ -127,13 +127,13 @@ export function ChangePasswordForm() {
                                 placeholder="••••••••"
                                 {...register('currentPassword')}
                                 disabled={isLoading}
-                                className={`pl-9 pr-10 ${errors.currentPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                className={`pl-9 pr-10 ${errors.currentPassword ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                                 aria-invalid={errors.currentPassword ? 'true' : 'false'}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                                 tabIndex={-1}
                             >
                                 {showCurrentPassword ? (
@@ -144,7 +144,7 @@ export function ChangePasswordForm() {
                             </button>
                         </div>
                         {errors.currentPassword && (
-                            <p className="text-sm text-red-500 font-medium">{errors.currentPassword.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.currentPassword.message}</p>
                         )}
                     </div>
 
@@ -159,13 +159,13 @@ export function ChangePasswordForm() {
                                 placeholder="••••••••"
                                 {...register('newPassword')}
                                 disabled={isLoading}
-                                className={`pl-9 pr-10 ${errors.newPassword ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                className={`pl-9 pr-10 ${errors.newPassword ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                                 aria-invalid={errors.newPassword ? 'true' : 'false'}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowNewPassword(!showNewPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                                 tabIndex={-1}
                             >
                                 {showNewPassword ? (
@@ -176,7 +176,7 @@ export function ChangePasswordForm() {
                             </button>
                         </div>
                         {errors.newPassword && (
-                            <p className="text-sm text-red-500 font-medium">{errors.newPassword.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.newPassword.message}</p>
                         )}
 
                         {/* Password Strength Indicator */}
@@ -188,16 +188,16 @@ export function ChangePasswordForm() {
                                             key={i}
                                             className={`h-1 flex-1 rounded ${i < passwordStrength
                                                 ? passwordStrength <= 2
-                                                    ? 'bg-red-500'
+                                                    ? 'bg-destructive'
                                                     : passwordStrength <= 3
-                                                        ? 'bg-yellow-500'
-                                                        : 'bg-green-500'
-                                                : 'bg-gray-200'
+                                                        ? 'bg-warning'
+                                                        : 'bg-success'
+                                                : 'bg-muted'
                                                 }`}
                                         />
                                     ))}
                                 </div>
-                                <p className="text-xs text-gray-600">
+                                <p className="text-xs text-muted-foreground">
                                     {passwordStrength <= 2 && 'Weak'}
                                     {passwordStrength === 3 && 'Fair'}
                                     {passwordStrength === 4 && 'Good'}
@@ -219,11 +219,11 @@ export function ChangePasswordForm() {
                                 {...register('confirmPassword')}
                                 disabled={isLoading}
                                 className={`pl-9 pr-20 ${errors.confirmPassword
-                                    ? 'border-red-500 focus-visible:ring-red-500'
+                                    ? 'border-destructive focus-visible:ring-destructive'
                                     : passwordsMatch
-                                        ? 'border-green-500 focus-visible:ring-green-500'
+                                        ? 'border-success focus-visible:ring-success'
                                         : passwordsDontMatch
-                                            ? 'border-red-500 focus-visible:ring-red-500'
+                                            ? 'border-destructive focus-visible:ring-destructive'
                                             : ''
                                     }`}
                                 aria-invalid={errors.confirmPassword ? 'true' : 'false'}
@@ -232,11 +232,11 @@ export function ChangePasswordForm() {
                             {confirmPassword && (
                                 <div className="absolute right-12 top-1/2 -translate-y-1/2">
                                     {passwordsMatch ? (
-                                        <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="h-5 w-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                     ) : passwordsDontMatch ? (
-                                        <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="h-5 w-5 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     ) : null}
@@ -245,7 +245,7 @@ export function ChangePasswordForm() {
                             <button
                                 type="button"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                                 tabIndex={-1}
                             >
                                 {showConfirmPassword ? (
@@ -257,20 +257,20 @@ export function ChangePasswordForm() {
                         </div>
                         {/* Real-time feedback message */}
                         {confirmPassword && !errors.confirmPassword && (
-                            <p className={`text-sm font-medium ${passwordsMatch ? 'text-green-600' : 'text-red-600'}`}>
+                            <p className={`text-sm font-medium ${passwordsMatch ? 'text-success' : 'text-destructive'}`}>
                                 {passwordsMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
                             </p>
                         )}
                         {/* Validation error message */}
                         {errors.confirmPassword && (
-                            <p className="text-sm text-red-500 font-medium">{errors.confirmPassword.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.confirmPassword.message}</p>
                         )}
                     </div>
 
                     {/* Requirements */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <p className="text-sm text-blue-800 font-medium">Password Requirements:</p>
-                        <ul className="text-xs text-blue-700 mt-1 space-y-0.5 list-disc list-inside">
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3">
+                        <p className="text-sm text-primary font-medium">Password Requirements:</p>
+                        <ul className="text-xs text-primary mt-1 space-y-0.5 list-disc list-inside">
                             <li>At least 8 characters long</li>
                             <li>One uppercase letter (A-Z)</li>
                             <li>One lowercase letter (a-z)</li>
@@ -279,8 +279,8 @@ export function ChangePasswordForm() {
                     </div>
 
                     {/* Warning */}
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <p className="text-sm text-yellow-800">
+                    <div className="bg-warning/10 border border-warning/20 rounded-lg p-3">
+                        <p className="text-sm text-warning">
                             <strong>⚠️ Important:</strong> Changing your password will log you out on all devices.
                         </p>
                     </div>

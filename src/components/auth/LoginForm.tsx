@@ -200,11 +200,11 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
               placeholder="you@example.com"
               {...register('email')}
               disabled={isLoading}
-              className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
               aria-invalid={errors.email ? 'true' : 'false'}
             />
             {errors.email && (
-              <p className="text-sm text-red-500 font-medium">{errors.email.message}</p>
+              <p className="text-sm text-destructive font-medium">{errors.email.message}</p>
             )}
           </div>
 
@@ -213,7 +213,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
               <Label htmlFor="password">Password</Label>
               <Link
                 href="/forgot-password"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-primary hover:underline"
               >
                 Forgot Password?
               </Link>
@@ -225,13 +225,13 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
                 placeholder="••••••••"
                 {...register('password')}
                 disabled={isLoading}
-                className={`pr-10 ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                className={`pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 aria-invalid={errors.password ? 'true' : 'false'}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                 tabIndex={-1}
               >
                 {showPassword ? (
@@ -242,7 +242,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-red-500 font-medium">{errors.password.message}</p>
+              <p className="text-sm text-destructive font-medium">{errors.password.message}</p>
             )}
           </div>
 
@@ -252,7 +252,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
               id="rememberMe"
               {...register('rememberMe')}
               disabled={isLoading}
-              className="h-4 w-4 rounded border-gray-300"
+              className="h-4 w-4 rounded border-border"
             />
             <Label htmlFor="rememberMe" className="text-sm font-normal">
               Remember me for 30 days
@@ -269,9 +269,9 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           No Account? We Got You.{' '}
-          <Link href="/register" className="text-blue-600 hover:underline font-medium">
+          <Link href="/register" className="text-primary hover:underline font-medium">
             Create Account
           </Link>
         </div>

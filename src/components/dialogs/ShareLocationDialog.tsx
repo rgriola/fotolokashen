@@ -164,18 +164,18 @@ export function ShareLocationDialog({
                       className={cn(
                         "flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 transition-colors text-center",
                         isSelected 
-                          ? "border-green-500 bg-green-50 dark:bg-green-950/20 flex-2" 
+                          ? "border-success bg-success/10 dark:bg-success/10 flex-2" 
                           : "border-border hover:border-primary/50 flex-1"
                       )}
                     >
                       <Icon className={cn(
                         "w-5 h-5 shrink-0",
-                        isSelected ? "text-green-600 dark:text-green-500" : "text-muted-foreground"
+                        isSelected ? "text-success dark:text-success" : "text-muted-foreground"
                       )} />
                       <div>
                         <div className={cn(
                           "font-medium",
-                          isSelected && "text-green-700 dark:text-green-400"
+                          isSelected && "text-success dark:text-success"
                         )}>
                           {option.label}
                         </div>
@@ -204,7 +204,7 @@ export function ShareLocationDialog({
                   className="shrink-0"
                 >
                   {copied ? (
-                    <Check className="w-4 h-4 text-green-600" />
+                    <Check className="w-4 h-4 text-success" />
                   ) : (
                     <Copy className="w-4 h-4" />
                   )}
@@ -236,7 +236,7 @@ export function ShareLocationDialog({
               onClick={handleUpdateVisibility}
               disabled={!hasChanged}
               className={cn(
-                hasChanged && "bg-green-600 hover:bg-green-700 text-white"
+                hasChanged && "bg-success hover:bg-success/90 text-white"
               )}
             >
               Update Visibility

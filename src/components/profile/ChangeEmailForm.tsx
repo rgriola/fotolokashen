@@ -135,11 +135,11 @@ export function ChangeEmailForm() {
                             placeholder="Enter new email address"
                             {...register('newEmail')}
                             disabled={isLoading}
-                            className={errors.newEmail ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                            className={errors.newEmail ? 'border-destructive focus-visible:ring-destructive' : ''}
                             aria-invalid={errors.newEmail ? 'true' : 'false'}
                         />
                         {errors.newEmail && (
-                            <p className="text-sm text-red-500 font-medium">{errors.newEmail.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.newEmail.message}</p>
                         )}
                     </div>
 
@@ -153,7 +153,7 @@ export function ChangeEmailForm() {
                                 placeholder="Enter your current password"
                                 {...register('currentPassword')}
                                 disabled={isLoading}
-                                className={errors.currentPassword ? 'border-red-500 focus-visible:ring-red-500 pr-10' : 'pr-10'}
+                                className={errors.currentPassword ? 'border-destructive focus-visible:ring-destructive pr-10' : 'pr-10'}
                                 aria-invalid={errors.currentPassword ? 'true' : 'false'}
                             />
                             <button
@@ -170,14 +170,14 @@ export function ChangeEmailForm() {
                             </button>
                         </div>
                         {errors.currentPassword && (
-                            <p className="text-sm text-red-500 font-medium">{errors.currentPassword.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.currentPassword.message}</p>
                         )}
                     </div>
 
                     {/* Warning Alert */}
-                    <div className="flex gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
-                        <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-amber-900 dark:text-amber-100">
+                    <div className="flex gap-3 p-4 rounded-lg border border-warning/20 bg-warning/10 dark:border-warning dark:bg-warning/10">
+                        <AlertTriangle className="h-5 w-5 text-warning dark:text-warning flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-warning dark:text-warning-foreground">
                             <strong>Important:</strong> After changing your email, you'll be logged out of all devices for security.
                             You'll need to verify your new email address before you can log in again.
                         </div>

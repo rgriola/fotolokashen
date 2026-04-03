@@ -118,7 +118,7 @@ export function LocationDetailPanel({
                                     <X className="w-4 h-4" />
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                            <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                                 <p>Close panel</p>
                             </TooltipContent>
                         </Tooltip>
@@ -143,7 +143,7 @@ export function LocationDetailPanel({
                                         <Edit className="w-3.5 h-3.5" />
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                                     <p>Edit location</p>
                                 </TooltipContent>
                             </Tooltip>
@@ -160,7 +160,7 @@ export function LocationDetailPanel({
                                         <Share2 className="w-3.5 h-3.5" />
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                                     <p>Share location</p>
                                 </TooltipContent>
                             </Tooltip>
@@ -176,7 +176,7 @@ export function LocationDetailPanel({
                                     <Map className="w-3.5 h-3.5" />
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                            <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                                 <p>View on map</p>
                             </TooltipContent>
                             </Tooltip>
@@ -214,7 +214,7 @@ export function LocationDetailPanel({
                                         <Trash2 className="w-3.5 h-3.5" />
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                                     <p>{source !== 'user' ? 'You cannot delete this location' : 'Delete location'}</p>
                                 </TooltipContent>
                             </Tooltip>
@@ -281,7 +281,7 @@ export function LocationDetailPanel({
                                 </div>
                                     </Link>
                                 </TooltipTrigger>
-                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                                     <p>View profile</p>
                                 </TooltipContent>
                             </Tooltip>
@@ -305,7 +305,7 @@ export function LocationDetailPanel({
                                         <Copy className="w-3.5 h-3.5" />
                                     </Button>
                                 </TooltipTrigger>
-                                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                                     <p>Copy address</p>
                                 </TooltipContent>
                             </Tooltip>
@@ -337,7 +337,7 @@ export function LocationDetailPanel({
                             </div>
                                 </button>
                             </TooltipTrigger>
-                            <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                            <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                                 <p>View on map</p>
                             </TooltipContent>
                         </Tooltip>
@@ -459,7 +459,7 @@ export function LocationDetailPanel({
                                             {location.contactPhone}
                                         </a>
                                     </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                                    <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                                         <p>Call {location.contactPhone}</p>
                                     </TooltipContent>
                                 </Tooltip>
@@ -494,7 +494,7 @@ export function LocationDetailPanel({
                         <div className="space-y-2">
                             <h3 className="font-semibold text-sm text-muted-foreground">Restrictions</h3>
                             <div className="flex items-start gap-2">
-                                <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5" />
+                                <AlertCircle className="w-4 h-4 text-warning mt-0.5" />
                                 <p className="text-sm">{location.restrictions}</p>
                             </div>
                         </div>

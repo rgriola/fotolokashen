@@ -171,7 +171,7 @@ export const LocationCard = memo(function LocationCard({
                                 <Edit className="w-3.5 h-3.5" />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                        <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                             <p>{source !== 'user' ? 'You cannot edit this location' : 'Edit location'}</p>
                         </TooltipContent>
                     </Tooltip>
@@ -207,7 +207,7 @@ export const LocationCard = memo(function LocationCard({
                                 <Share2 className="w-3.5 h-3.5" />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                        <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                             <p>Share location</p>
                         </TooltipContent>
                     </Tooltip>
@@ -220,8 +220,8 @@ export const LocationCard = memo(function LocationCard({
                         <Badge
                             className={`shadow-lg font-semibold ${
                                 source === 'public' 
-                                    ? 'bg-purple-600 hover:bg-purple-700' 
-                                    : 'bg-blue-600 hover:bg-blue-700'
+                                    ? 'bg-social hover:bg-social/90' 
+                                    : 'bg-primary hover:bg-primary/90'
                             } text-white border-none`}
                         >
                             {source === 'public' ? 'Public' : 'Friend'}
@@ -241,7 +241,7 @@ export const LocationCard = memo(function LocationCard({
                         </Badge>
                     )}
                     {userSave?.isFavorite && (
-                        <div className="bg-red-500 text-white p-2 rounded-full shadow-lg">
+                        <div className="bg-destructive text-white p-2 rounded-full shadow-lg">
                             <Heart className="w-4 h-4 fill-current" />
                         </div>
                     )}
@@ -250,7 +250,7 @@ export const LocationCard = memo(function LocationCard({
                 {/* Photo Count & Status Badges - Bottom Right */}
                 <div className="absolute bottom-3 right-3 flex flex-col gap-2 items-end">
                     {uniquePhotoUrls.length === 0 && !mapError && (
-                        <div className="bg-blue-500/90 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
+                        <div className="bg-primary/100/90 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
                             <MapPinned className="w-3 h-3" />
                             Map View
                         </div>
@@ -262,7 +262,7 @@ export const LocationCard = memo(function LocationCard({
                         </div>
                     )}
                     {location.isPermanent && (
-                        <Badge className="bg-green-500 text-white border-none shadow-lg">
+                        <Badge className="bg-success text-white border-none shadow-lg">
                             Permanent
                         </Badge>
                     )}
@@ -346,7 +346,7 @@ export const LocationCard = memo(function LocationCard({
             <CardContent className="space-y-3 pt-0 hidden">{/* Hidden content below coordinates */}
                 {/* Production Notes */}
                 {location.productionNotes && (
-                    <div className="text-xs bg-blue-50 border border-blue-200 p-2 rounded-md">
+                    <div className="text-xs bg-primary/10 border border-primary/20 p-2 rounded-md">
                         <p className="font-semibold text-black mb-1">📝 Production Notes:</p>
                         <p className="text-black">{location.productionNotes}</p>
                     </div>
@@ -427,7 +427,7 @@ export const LocationCard = memo(function LocationCard({
                                     )}
 
                                     {location.restrictions && (
-                                        <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 p-2 rounded">
+                                        <div className="flex items-start gap-2 bg-warning/10 border border-warning/20 p-2 rounded">
                                             <AlertCircle className="w-3 h-3 mt-0.5 shrink-0 text-black" />
                                             <div>
                                                 <p className="font-medium text-black">Restrictions:</p>
@@ -457,7 +457,7 @@ export const LocationCard = memo(function LocationCard({
                                     )}
 
                                     {location.permitCost !== null && location.permitCost !== undefined && (
-                                        <div className="flex items-start gap-2 bg-green-50 border border-green-200 p-2 rounded">
+                                        <div className="flex items-start gap-2 bg-success/10 border border-success/20 p-2 rounded">
                                             <DollarSign className="w-3 h-3 mt-0.5 shrink-0 text-black" />
                                             <div>
                                                 <p className="font-medium text-black">Permit Cost:</p>

@@ -144,11 +144,11 @@ export function ChangeUsernameForm() {
                             autoComplete="off"
                             {...register('newUsername')}
                             disabled={isLoading}
-                            className={errors.newUsername ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                            className={errors.newUsername ? 'border-destructive focus-visible:ring-destructive' : ''}
                             aria-invalid={errors.newUsername ? 'true' : 'false'}
                         />
                         {errors.newUsername && (
-                            <p className="text-sm text-red-500 font-medium">{errors.newUsername.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.newUsername.message}</p>
                         )}
                         <p className="text-xs text-muted-foreground">
                             3-50 characters. Letters, numbers, hyphens, and underscores only.
@@ -165,7 +165,7 @@ export function ChangeUsernameForm() {
                                 placeholder="Enter your current password"
                                 {...register('currentPassword')}
                                 disabled={isLoading}
-                                className={errors.currentPassword ? 'border-red-500 focus-visible:ring-red-500 pr-10' : 'pr-10'}
+                                className={errors.currentPassword ? 'border-destructive focus-visible:ring-destructive pr-10' : 'pr-10'}
                                 aria-invalid={errors.currentPassword ? 'true' : 'false'}
                             />
                             <button
@@ -182,14 +182,14 @@ export function ChangeUsernameForm() {
                             </button>
                         </div>
                         {errors.currentPassword && (
-                            <p className="text-sm text-red-500 font-medium">{errors.currentPassword.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.currentPassword.message}</p>
                         )}
                     </div>
 
                     {/* Warning Alert */}
-                    <div className="flex gap-3 p-4 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
-                        <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-amber-900 dark:text-amber-100">
+                    <div className="flex gap-3 p-4 rounded-lg border border-warning/20 bg-warning/10 dark:border-warning dark:bg-warning/10">
+                        <AlertTriangle className="h-5 w-5 text-warning dark:text-warning flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-warning dark:text-warning-foreground">
                             <strong>Important:</strong> You can only change your username once per 30 days (maximum 3 times per year).
                             Choose carefully!
                         </div>

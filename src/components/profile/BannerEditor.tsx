@@ -282,7 +282,7 @@ export default function BannerEditor({ isOpen, onClose, imageUrl, onSave }: Bann
                     {/* Canvas */}
                     <div
                         ref={containerRef}
-                        className="relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden mx-auto"
+                        className="relative bg-muted rounded-lg overflow-hidden mx-auto"
                         style={{ width: '100%', aspectRatio: '3 / 1', maxWidth: '1200px' }}
                     >
                         <canvas
@@ -299,7 +299,7 @@ export default function BannerEditor({ isOpen, onClose, imageUrl, onSave }: Bann
                             onTouchCancel={handleTouchEnd}
                             className="cursor-move w-full h-full touch-none"
                         />
-                        <div className="absolute bottom-2 left-2 text-xs text-gray-600 dark:text-gray-400 bg-white/80 dark:bg-black/80 px-2 py-1 rounded">
+                        <div className="absolute bottom-2 left-2 text-xs text-muted-foreground bg-white/80 dark:bg-black/80 px-2 py-1 rounded">
                             Drag to reposition
                         </div>
                     </div>

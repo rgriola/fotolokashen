@@ -201,7 +201,7 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
             <div className="p-4 bg-card border rounded-lg">
               <p className="text-sm text-muted-foreground mb-1">Rating</p>
               <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <Star className="w-4 h-4 fill-warning text-warning" />
                 <p className="font-medium">{save.location.rating.toFixed(1)}</p>
               </div>
             </div>

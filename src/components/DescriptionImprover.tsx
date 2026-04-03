@@ -69,7 +69,7 @@ export default function DescriptionImprover() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Type or paste your description here..."
-          className="w-full h-40 p-4 border rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full h-40 p-4 border rounded-lg resize-none focus:ring-2 focus:ring-primary focus:outline-none"
         />
       </div>
 
@@ -77,14 +77,14 @@ export default function DescriptionImprover() {
       <button
         onClick={handleImprove}
         disabled={isLoading || !description.trim()}
-        className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed transition-colors"
       >
         {isLoading ? 'Processing...' : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Description`}
       </button>
 
       {/* Error Display */}
       {error && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
           Error: {error}
         </div>
       )}
@@ -93,14 +93,14 @@ export default function DescriptionImprover() {
       {improvedText && (
         <div className="space-y-2">
           <label className="block text-sm font-medium">Result:</label>
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="p-4 bg-success/10 border border-success/20 rounded-lg">
             <p className="whitespace-pre-wrap">{improvedText}</p>
           </div>
           <button
             onClick={() => {
               navigator.clipboard.writeText(improvedText);
             }}
-            className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+            className="px-4 py-2 text-sm bg-muted hover:bg-muted rounded transition-colors"
           >
             Copy to Clipboard
           </button>

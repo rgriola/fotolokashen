@@ -145,21 +145,21 @@ export function HomeLocationSettings() {
                 ) : (
                     <div className="space-y-4">
                         {/* Map Placeholder */}
-                        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-linear-to-br from-blue-100 to-blue-50 dark:from-blue-950/20 dark:to-blue-900/10 border-2 border-dashed border-blue-300 dark:border-blue-700">
+                        <div className="relative w-full h-48 rounded-lg overflow-hidden bg-linear-to-br from-primary/20 to-primary/10 dark:from-primary/10 dark:to-primary/10 border-2 border-dashed border-primary/30 dark:border-primary">
                             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                                <Map className="w-12 h-12 text-blue-400 dark:text-blue-600" />
-                                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                <Map className="w-12 h-12 text-primary dark:text-primary" />
+                                <p className="text-sm font-medium text-primary dark:text-primary">
                                     No home location set
                                 </p>
-                                <p className="text-xs text-blue-500 dark:text-blue-500 text-center px-4">
+                                <p className="text-xs text-primary dark:text-primary text-center px-4">
                                     Choose a location below to see it here
                                 </p>
                             </div>
                         </div>
                         
                         {/* Info Message */}
-                        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                            <p className="text-sm text-blue-900 dark:text-blue-100">
+                        <div className="bg-primary/10 dark:bg-primary/10 border border-primary/20 dark:border-primary rounded-lg p-4">
+                            <p className="text-sm text-primary dark:text-primary-foreground">
                                 <span className="font-semibold">Default:</span> Your map will center on New York City until you set a home location.
                             </p>
                         </div>

@@ -145,7 +145,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                                 unoptimized={previewUrl.startsWith('data:')}
                             />
                         ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600" />
+                            <div className="w-full h-full bg-gradient-to-br from-primary to-social" />
                         )}
                         {/* Overlay for better text readability */}
                         <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/40 to-transparent" />
@@ -177,7 +177,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                             title="Change profile image"
                         >
                             {/* Avatar preview */}
-                            <div className="w-full h-full bg-linear-to-br from-blue-400 to-purple-600 relative">
+                            <div className="w-full h-full bg-linear-to-br from-primary/80 to-social relative">
                                 {previewUrl && !imageError ? (
                                     <Image
                                         src={getOptimizedAvatarUrl(previewUrl, 256) || previewUrl}

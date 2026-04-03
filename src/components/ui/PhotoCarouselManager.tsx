@@ -139,7 +139,7 @@ export function PhotoCarouselManager({
 
                     {/* Deletion Badge */}
                     {isCurrentPhotoMarkedForDeletion && (
-                        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-red-600 text-white px-3 py-1.5 rounded-md font-semibold text-xs shadow-lg z-20 pointer-events-none">
+                        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-destructive text-white px-3 py-1.5 rounded-md font-semibold text-xs shadow-lg z-20 pointer-events-none">
                             Pending Delete
                         </div>
                     )}
@@ -161,7 +161,7 @@ export function PhotoCarouselManager({
                             className={cn(
                                 "w-4 h-4 transition-all",
                                 currentPhoto.isPrimary
-                                    ? "fill-amber-500 text-amber-500"
+                                    ? "fill-warning text-warning"
                                     : "fill-none text-white stroke-2"
                             )}
                         />
@@ -177,7 +177,7 @@ export function PhotoCarouselManager({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="absolute top-2 left-2 w-8 h-8 bg-black/40 hover:bg-red-600/80 backdrop-blur-sm transition-all z-5"
+                        className="absolute top-2 left-2 w-8 h-8 bg-black/40 hover:bg-destructive/80 backdrop-blur-sm transition-all z-5"
                         onMouseEnter={() => setIsDeleteHovered(true)}
                         onMouseLeave={() => setIsDeleteHovered(false)}
                         onClick={(e) => {
@@ -320,14 +320,14 @@ export function PhotoCarouselManager({
                                 
                                 {/* Deletion badge for marked photos */}
                                 {isMarkedForDeletion && (
-                                    <div className="absolute top-0 left-0 right-0 bg-red-600 text-white text-[9px] font-semibold text-center py-0.5 pointer-events-none">
+                                    <div className="absolute top-0 left-0 right-0 bg-destructive text-white text-[9px] font-semibold text-center py-0.5 pointer-events-none">
                                         DELETE
                                     </div>
                                 )}
                                 
                                 {/* Primary star on thumbnail */}
                                 {photo.isPrimary && (
-                                    <div className="absolute top-0.5 right-0.5 bg-amber-500 text-white p-0.5 rounded-full">
+                                    <div className="absolute top-0.5 right-0.5 bg-warning text-white p-0.5 rounded-full">
                                         <Star className="w-2.5 h-2.5 fill-white" />
                                     </div>
                                 )}

@@ -285,7 +285,7 @@ export function SaveLocationForm({
             {showPhotoUpload && (
                 <div className="space-y-4 pb-4 border-b">
                     <div className="flex items-center gap-2">
-                        <Camera className="w-4 h-4 text-green-600" />
+                        <Camera className="w-4 h-4 text-success" />
                         <h3 className="text-sm font-semibold">Add Photos Here</h3>
                         {cachedPhotos.length > 0 && (
                             <p className="text-xs text-muted-foreground ml-auto">
@@ -315,7 +315,7 @@ export function SaveLocationForm({
                                 id="name"
                                 {...form.register("name")}
                                 placeholder="e.g., Central Park"
-                                className={`focus-visible:ring-green-500 focus-visible:ring-2 pr-8 ${
+                                className={`focus-visible:ring-success focus-visible:ring-2 pr-8 ${
                                     form.formState.errors.name 
                                         ? "border-destructive ring-destructive ring-2" 
                                         : ""
@@ -353,7 +353,7 @@ export function SaveLocationForm({
                             >
                                 <SelectTrigger
                                     id="type"
-                                    className={`focus:ring-green-500 focus:ring-2 w-full min-w-35 ${
+                                    className={`focus:ring-success focus:ring-2 w-full min-w-35 ${
                                         form.formState.errors.type 
                                             ? "border-destructive ring-destructive" 
                                             : ""
@@ -566,7 +566,7 @@ export function SaveLocationForm({
                     <div className="pt-4 border-t">
                         <Button
                             type="submit"
-                            className="bg-green-600 hover:bg-green-700 text-white"
+                            className="bg-success hover:bg-success/90 text-white"
                             disabled={isPending}
                         >
                             {isPending ? 'Saving Location...' : 'Save Location'}

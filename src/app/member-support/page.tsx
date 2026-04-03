@@ -237,7 +237,7 @@ function MemberSupportPageInner() {
             {/* Subject Field */}
             <div className="space-y-2">
               <Label htmlFor="subject">
-                Subject <span className="text-red-500">*</span>
+                Subject <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="subject"
@@ -247,18 +247,18 @@ function MemberSupportPageInner() {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="Brief description of your issue"
-                className={errors.subject ? 'border-red-500' : ''}
+                className={errors.subject ? 'border-destructive' : ''}
                 disabled={submitStatus === 'loading'}
               />
               {errors.subject && (
-                <p className="text-red-500 text-sm">{errors.subject}</p>
+                <p className="text-destructive text-sm">{errors.subject}</p>
               )}
             </div>
 
             {/* Message Field */}
             <div className="space-y-2">
               <Label htmlFor="message">
-                Message <span className="text-red-500">*</span>
+                Message <span className="text-destructive">*</span>
               </Label>
               <Textarea
                 id="message"
@@ -268,12 +268,12 @@ function MemberSupportPageInner() {
                 onBlur={handleBlur}
                 placeholder="Provide details about your issue or question..."
                 rows={6}
-                className={errors.message ? 'border-red-500' : ''}
+                className={errors.message ? 'border-destructive' : ''}
                 disabled={submitStatus === 'loading'}
               />
               <div className="flex justify-between text-sm text-muted-foreground">
                 {errors.message ? (
-                  <p className="text-red-500">{errors.message}</p>
+                  <p className="text-destructive">{errors.message}</p>
                 ) : (
                   <span></span>
                 )}
@@ -315,12 +315,12 @@ function MemberSupportPageInner() {
             <DialogTitle className="flex items-center gap-2">
               {submitStatus === 'success' ? (
                 <>
-                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <CheckCircle className="h-5 w-5 text-success" />
                   Message Sent Successfully
                 </>
               ) : (
                 <>
-                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  <AlertCircle className="h-5 w-5 text-destructive" />
                   Error Sending Message
                 </>
               )}

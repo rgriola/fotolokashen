@@ -41,7 +41,7 @@ export function WelcomeModal() {
           {[...Array(ONBOARDING_CONFIG.TOTAL_STEPS)].map((_, i) => (
             <div
               key={i}
-              className="w-2 h-2 rounded-full bg-indigo-200"
+              className="w-2 h-2 rounded-full bg-primary/20"
             />
           ))}
         </div>
@@ -49,7 +49,7 @@ export function WelcomeModal() {
         <DialogFooter className="flex justify-center">
           <Button
             onClick={handleStart}
-            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
+            className="w-full sm:w-auto bg-primary hover:bg-primary/90"
           >
             Start Tour →
           </Button>

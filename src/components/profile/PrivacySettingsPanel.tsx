@@ -384,22 +384,22 @@ export default function PrivacySettingsPanel() {
 
       {/* Unsaved Changes Banner */}
       {hasChanges && (
-        <div className="fixed bottom-0 left-0 right-0 bg-amber-50 dark:bg-amber-950/20 border-t-2 border-amber-500 p-3 sm:p-4 shadow-lg z-50 animate-in slide-in-from-bottom">
+        <div className="fixed bottom-0 left-0 right-0 bg-warning/10 dark:bg-warning/10 border-t-2 border-warning p-3 sm:p-4 shadow-lg z-50 animate-in slide-in-from-bottom">
           <div className="container max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-500 shrink-0" />
-                  <p className="font-semibold text-sm sm:text-base text-amber-900 dark:text-amber-100">
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-warning dark:text-warning shrink-0" />
+                  <p className="font-semibold text-sm sm:text-base text-warning dark:text-warning-foreground">
                     Unsaved privacy changes
                   </p>
                 </div>
-                <ul className="text-xs sm:text-sm text-amber-800 dark:text-amber-200 space-y-1 ml-6 sm:ml-0">
+                <ul className="text-xs sm:text-sm text-warning dark:text-warning space-y-1 ml-6 sm:ml-0">
                   {changes.slice(0, 3).map((change, i) => (
                     <li key={i} className="truncate">• {change}</li>
                   ))}
                   {changes.length > 3 && (
-                    <li className="text-amber-700 dark:text-amber-300">
+                    <li className="text-warning dark:text-warning">
                       +{changes.length - 3} more...
                     </li>
                   )}
@@ -411,7 +411,7 @@ export default function PrivacySettingsPanel() {
                   size="sm"
                   onClick={handleDiscard}
                   disabled={isSaving}
-                  className="flex-1 sm:flex-initial border-amber-300 dark:border-amber-700 text-xs sm:text-sm h-9"
+                  className="flex-1 sm:flex-initial border-warning/30 dark:border-warning text-xs sm:text-sm h-9"
                 >
                   Discard
                 </Button>
@@ -419,7 +419,7 @@ export default function PrivacySettingsPanel() {
                   size="sm"
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm h-9"
+                  className="flex-1 sm:flex-initial bg-success hover:bg-success/90 text-white text-xs sm:text-sm h-9"
                 >
                   {isSaving ? (
                     <>

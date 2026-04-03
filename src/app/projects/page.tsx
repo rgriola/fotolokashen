@@ -18,7 +18,7 @@ function ProjectsPageInner() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="text-center space-y-6 pb-8">
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-lg p-8">
+                    <div className="bg-gradient-to-r from-primary/10 to-social/10 dark:from-primary/10 dark:to-social/10 rounded-lg p-8">
                         <div className="flex items-center justify-center gap-2 mb-4">
                             <Sparkles className="w-5 h-5 text-primary animate-pulse" />
                             <h3 className="text-xl font-semibold">Feature Coming Soon</h3>

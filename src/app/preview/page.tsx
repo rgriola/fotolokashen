@@ -280,13 +280,13 @@ export default function PreviewPage() {
                         </Card>
 
                         {/* UX Patterns Info */}
-                        <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
+                        <Card className="border-primary/20 dark:border-primary bg-primary/10 dark:bg-primary/10">
                             <CardHeader>
-                                <CardTitle className="text-blue-900 dark:text-blue-100">
+                                <CardTitle className="text-primary dark:text-primary-foreground">
                                     Current UX Patterns
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="text-sm text-blue-800 dark:text-blue-200 space-y-3">
+                            <CardContent className="text-sm text-primary dark:text-primary space-y-3">
                                 <div>
                                     <strong className="block mb-1">✅ Panels (Sheet components):</strong>
                                     <ul className="list-disc list-inside space-y-1 ml-2">

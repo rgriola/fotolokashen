@@ -233,7 +233,7 @@ export function PhotoGallery({ photos, locationName, className }: PhotoGalleryPr
 
                                 {/* Primary star on thumbnail */}
                                 {photo.isPrimary && (
-                                    <div className="absolute top-0.5 right-0.5 bg-amber-500 text-white p-0.5 rounded-full">
+                                    <div className="absolute top-0.5 right-0.5 bg-warning text-white p-0.5 rounded-full">
                                         <Star className="w-2.5 h-2.5 fill-white" />
                                     </div>
                                 )}

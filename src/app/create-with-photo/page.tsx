@@ -24,12 +24,12 @@ function CreateWithPhotoPageInner() {
                         >
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
-                        <div className="w-10 h-10 bg-linear-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
+                        <div className="w-10 h-10 bg-linear-to-br from-success to-emerald-600 rounded-xl flex items-center justify-center shadow-md">
                             <Camera className="w-5 h-5 text-white" />
                         </div>
                        
                         <div className="flex-1">
-                            <h1 className="text-xl sm:text-2xl font-bold bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                            <h1 className="text-xl sm:text-2xl font-bold bg-linear-to-r from-success to-emerald-600 bg-clip-text text-transparent">
                                 Snap & Save
                             </h1>
                             <p className="text-xs sm:text-sm text-muted-foreground">
@@ -45,7 +45,7 @@ function CreateWithPhotoPageInner() {
                             <DialogContent className="max-w-md">
                                 <DialogHeader>
                                     <DialogTitle className="flex items-center gap-2">
-                                        <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                        <div className="w-8 h-8 bg-primary/10 dark:bg-primary/20 rounded-lg flex items-center justify-center">
                                             <span className="text-lg">💡</span>
                                         </div>
                                         How it works
@@ -61,8 +61,8 @@ function CreateWithPhotoPageInner() {
                                         <li>Add location details (name, type, notes)</li>
                                         <li>Save to create your location with the photo</li>
                                     </ol>
-                                    <div className="p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                                        <p className="text-xs text-blue-700 dark:text-blue-300">
+                                    <div className="p-3 bg-primary/10 dark:bg-primary/10 rounded-lg border border-primary/20 dark:border-primary">
+                                        <p className="text-xs text-primary dark:text-primary">
                                             <strong>Note:</strong> Photos with GPS metadata make location creation faster. If your photo doesn't have GPS, you can easily select the location manually.
                                         </p>
                                     </div>

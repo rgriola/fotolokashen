@@ -116,7 +116,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
                     unoptimized={previewUrl.startsWith('data:')}
                 />
             ) : (
-                <div className="w-full h-full bg-linear-to-br from-blue-500 via-purple-500 to-pink-500" />
+                <div className="w-full h-full bg-linear-to-br from-primary via-social to-pink-500" />
             )}
 
             {/* Overlay for better visibility */}
@@ -126,7 +126,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
             <div className="absolute bottom-4 right-4 z-10">
                 <label
                     htmlFor="banner-upload"
-                    className={`flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-gray-900 rounded-lg shadow-lg transition-all cursor-pointer ${
+                    className={`flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-foreground rounded-lg shadow-lg transition-all cursor-pointer ${
                         isUploading || isConverting ? 'opacity-50 cursor-not-allowed' : ''
                     }`}
                     title="Change banner image"

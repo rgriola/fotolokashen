@@ -114,7 +114,7 @@ export function PeopleOnboardingProvider({
         callback={handleJoyrideCallback}
         styles={{
           options: {
-            primaryColor: '#4f46e5', // indigo-600
+            primaryColor: '#4f46e5', // primary
             zIndex: 10000,
           },
         }}

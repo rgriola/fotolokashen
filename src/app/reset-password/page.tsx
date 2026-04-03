@@ -29,8 +29,8 @@ function ResetPasswordContent() {
                 </div>
                 <Card className="w-full bg-white/95 backdrop-blur-sm">
                     <CardHeader className="space-y-1 text-center">
-                        <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                            <AlertCircle className="w-6 h-6 text-red-600" />
+                        <div className="mx-auto w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+                            <AlertCircle className="w-6 h-6 text-destructive" />
                         </div>
                         <CardTitle className="text-2xl font-bold">Invalid Reset Link</CardTitle>
                         <CardDescription>
@@ -38,7 +38,7 @@ function ResetPasswordContent() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <p className="text-sm text-gray-600 text-center">
+                        <p className="text-sm text-muted-foreground text-center">
                             Please request a new password reset link.
                         </p>
                         <Link href="/forgot-password" className="block">
@@ -79,11 +79,11 @@ export default function ResetPasswordPage() {
                 style={{ backgroundImage: 'url(/images/landing/hero/forgot-hero-bg.jpg)' }}
             />
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-social/80 to-primary/80" />
 
             {/* Animated Gradient Blur Effects */}
-            <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl animate-pulse" />
-            <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl animate-pulse" />
+            <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
+            <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-social/20 blur-3xl animate-pulse" />
 
             {/* Content */}
             <div className="relative z-10 px-4 w-full">

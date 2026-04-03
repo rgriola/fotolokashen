@@ -65,8 +65,8 @@ export function ForgotPasswordForm() {
         return (
             <Card className="w-full max-w-md mx-auto">
                 <CardHeader className="space-y-1 text-center">
-                    <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                        <CheckCircle className="w-6 h-6 text-green-600" />
+                    <div className="mx-auto w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mb-4">
+                        <CheckCircle className="w-6 h-6 text-success" />
                     </div>
                     <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
                     <CardDescription>
@@ -75,18 +75,18 @@ export function ForgotPasswordForm() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p className="text-sm text-blue-800">
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                        <p className="text-sm text-primary">
                             <strong>Make Sure To:</strong>
                         </p>
-                        <ul className="text-sm text-blue-700 mt-2 space-y-1 list-disc list-inside">
+                        <ul className="text-sm text-primary mt-2 space-y-1 list-disc list-inside">
                             <li>Check your spam or junk folder</li>
                             <li>This is the correct email</li>
                             <li>Wait a few minutes and check again</li>
                         </ul>
                     </div>
 
-                    <div className="text-center text-sm text-gray-600">
+                    <div className="text-center text-sm text-muted-foreground">
                         <p>The reset link will expire in <strong>15 minutes</strong>.</p>
                     </div>
                 </CardContent>
@@ -122,12 +122,12 @@ export function ForgotPasswordForm() {
                                 placeholder="you@example.com"
                                 {...register('email')}
                                 disabled={isLoading}
-                                className={`pl-9 ${errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                className={`pl-9 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                                 aria-invalid={errors.email ? 'true' : 'false'}
                             />
                         </div>
                         {errors.email && (
-                            <p className="text-sm text-red-500 font-medium">{errors.email.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.email.message}</p>
                         )}
                     </div>
 
@@ -137,9 +137,9 @@ export function ForgotPasswordForm() {
                 </form>
             </CardContent>
             <CardFooter className="flex flex-col space-y-2">
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                     Remember your password?{' '}
-                    <Link href="/login" className="text-blue-600 hover:underline font-medium">
+                    <Link href="/login" className="text-primary hover:underline font-medium">
                         Back to Login
                     </Link>
                 </div>

@@ -178,7 +178,7 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
               )}
               {save.isFavorite && (
                 <div className="absolute top-4 right-4">
-                  <Badge variant="secondary" className="bg-yellow-500/90 text-white border-0">
+                  <Badge variant="secondary" className="bg-warning/90 text-white border-0">
                     <Star className="w-3 h-3 fill-white mr-1" />
                     Favorite
                   </Badge>
@@ -241,7 +241,7 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
                           key={i} 
                           className={`w-4 h-4 ${
                             i < save.personalRating! 
-                              ? 'fill-yellow-400 text-yellow-400' 
+                              ? 'fill-warning text-warning' 
                               : 'text-muted-foreground/30'
                           }`} 
                         />

@@ -71,13 +71,13 @@ export function MapControls({
                             <Button
                                 data-tour="search-button"
                                 onClick={onSearchClick}
-                                className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
+                                className="bg-white hover:bg-muted text-foreground shadow-lg border border-border h-12 w-12 p-0"
                             >
                                 <Search className="w-5 h-5" />
                             </Button>
                         </TooltipTrigger>
                         {showTooltips && (
-                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                            <TooltipContent side="right" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                 <p>Google Maps Search</p>
                             </TooltipContent>
                         )}
@@ -89,16 +89,16 @@ export function MapControls({
                             <Button
                                 data-tour="gps-toggle"
                                 onClick={onGpsToggle}
-                                className={`shadow-lg border border-gray-200 transition-colors h-12 w-12 p-0 ${userLocation
+                                className={`shadow-lg border border-border transition-colors h-12 w-12 p-0 ${userLocation
                                     ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
-                                    : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
+                                    : 'bg-muted-foreground hover:bg-foreground text-white border-transparent'
                                     }`}
                             >
                                 <Navigation className={`w-5 h-5 ${userLocation ? 'fill-current' : ''}`} />
                             </Button>
                         </TooltipTrigger>
                         {showTooltips && (
-                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                            <TooltipContent side="right" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                 <p>{userLocation ? 'Location Off' : 'Location On'}</p>
                             </TooltipContent>
                         )}
@@ -110,13 +110,13 @@ export function MapControls({
                             <Button
                                 data-tour="friends-button"
                                 onClick={onFriendsClick}
-                                className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
+                                className="bg-white hover:bg-muted text-foreground shadow-lg border border-border h-12 w-12 p-0"
                             >
                                 <Users className="w-5 h-5" />
                             </Button>
                         </TooltipTrigger>
                         {showTooltips && (
-                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                            <TooltipContent side="right" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                 <p>Friends&apos; Locations</p>
                             </TooltipContent>
                         )}
@@ -128,13 +128,13 @@ export function MapControls({
                             <Button
                                 data-tour="view-all-button"
                                 onClick={onViewAllClick}
-                                className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 h-12 w-12 p-0"
+                                className="bg-white hover:bg-muted text-foreground shadow-lg border border-border h-12 w-12 p-0"
                             >
                                 <Globe className="w-5 h-5" />
                             </Button>
                         </TooltipTrigger>
                         {showTooltips && (
-                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                            <TooltipContent side="right" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                 <p>Global View of Your Locations</p>
                             </TooltipContent>
                         )}
@@ -147,15 +147,15 @@ export function MapControls({
                                 data-tour="public-toggle"
                                 onClick={() => onPublicToggle(!showPublicLocations)}
                                 className={`shadow-lg border transition-colors h-12 w-12 p-0 ${showPublicLocations
-                                    ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
-                                    : 'bg-white hover:bg-gray-50 text-gray-900 border-gray-200'
+                                    ? 'bg-social hover:bg-social/90 text-white border-social'
+                                    : 'bg-white hover:bg-muted text-foreground border-border'
                                     }`}
                             >
                                 <Map className={`w-5 h-5 ${showPublicLocations ? 'fill-current' : ''}`} />
                             </Button>
                         </TooltipTrigger>
                         {showTooltips && (
-                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                            <TooltipContent side="right" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                 <p>{showPublicLocations ? 'Hide Public Locations' : 'View Public Locations'}</p>
                             </TooltipContent>
                         )}
@@ -167,18 +167,18 @@ export function MapControls({
                             <Button
                                 data-tour="my-locations-button"
                                 onClick={onMyLocationsClick}
-                                className="bg-white hover:bg-gray-50 text-gray-900 shadow-lg border border-gray-200 relative h-12 w-12 p-0"
+                                className="bg-white hover:bg-muted text-foreground shadow-lg border border-border relative h-12 w-12 p-0"
                             >
                                 <MapPinIcon className="w-5 h-5" />
                                 {savedLocationsCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 bg-indigo-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                    <span className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                                         {savedLocationsCount > 9 ? '9+' : savedLocationsCount}
                                     </span>
                                 )}
                             </Button>
                         </TooltipTrigger>
                         {showTooltips && (
-                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                            <TooltipContent side="right" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                 <p>Saved Locations ({savedLocationsCount})</p>
                             </TooltipContent>
                         )}
@@ -190,13 +190,13 @@ export function MapControls({
                             <Link
                                 data-tour="create-with-photo"
                                 href="/create-with-photo"
-                                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-12 w-12 bg-green-600 hover:bg-green-700 text-white shadow-lg border border-green-700"
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-12 w-12 bg-success hover:bg-success/90 text-white shadow-lg border border-success"
                             >
                                 <Plus className="w-5 h-5" />
                             </Link>
                         </TooltipTrigger>
                         {showTooltips && (
-                            <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                            <TooltipContent side="right" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                 <p>Snap & Save Location</p>
                             </TooltipContent>
                         )}
@@ -209,15 +209,15 @@ export function MapControls({
                                 onClick={() => setShowTooltips(!showTooltips)}
                                 className={`shadow-lg border transition-colors h-7 w-7 p-0 mt-2 rounded-full ${
                                     showTooltips
-                                        ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700'
-                                        : 'bg-gray-300 hover:bg-gray-400 text-gray-700 border-gray-400'
+                                        ? 'bg-primary hover:bg-primary/90 text-white border-primary'
+                                        : 'bg-muted hover:bg-accent text-foreground border-border'
                                 }`}
                                 title={showTooltips ? 'Disable tooltips' : 'Enable tooltips'}
                             >
                                 <Info className="w-3.5 h-3.5" />
                             </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="right" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                        <TooltipContent side="right" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                             <p>{showTooltips ? 'Disable tooltips' : 'Enable tooltips'}</p>
                         </TooltipContent>
                     </Tooltip>
@@ -230,7 +230,7 @@ export function MapControls({
                 {!hideMobileButton && (
                     <button
                         onClick={() => setIsOpen(true)}
-                        className="fixed right-6 z-90 h-14 w-14 rounded-full shadow-2xl bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white flex items-center justify-center transition-all active:scale-95"
+                        className="fixed right-6 z-90 h-14 w-14 rounded-full shadow-2xl bg-linear-to-r from-primary to-social hover:from-primary/90 hover:to-social text-white flex items-center justify-center transition-all active:scale-95"
                         style={{ bottom: '7.75rem' }}
                         aria-label="Map controls menu"
                     >
@@ -251,12 +251,12 @@ export function MapControls({
                             {/* Search */}
                             <button
                                 onClick={() => handleActionClick(onSearchClick)}
-                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
+                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-muted text-foreground border-border transition-all"
                             >
                                 <Search className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">Search</div>
-                                    <div className="text-xs text-gray-600">
+                                    <div className="text-xs text-muted-foreground">
                                         Find locations on the map
                                     </div>
                                 </div>
@@ -267,7 +267,7 @@ export function MapControls({
                                 onClick={() => handleActionClick(onGpsToggle)}
                                 className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all ${userLocation
                                     ? 'bg-[#4285F4] hover:bg-[#3367D6] text-white border-transparent'
-                                    : 'bg-slate-800 hover:bg-slate-900 text-white border-transparent'
+                                    : 'bg-muted-foreground hover:bg-foreground text-white border-transparent'
                                     }`}
                             >
                                 <Navigation
@@ -287,16 +287,16 @@ export function MapControls({
                             {/* My Locations */}
                             <button
                                 onClick={() => handleActionClick(onMyLocationsClick)}
-                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
+                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-muted text-foreground border-border transition-all"
                             >
                                 <MapPinIcon className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">My Locations</div>
-                                    <div className="text-xs text-gray-600">
+                                    <div className="text-xs text-muted-foreground">
                                         View your saved places
                                     </div>
                                 </div>
-                                <div className="text-sm font-medium bg-gray-100 px-2 py-1 rounded">
+                                <div className="text-sm font-medium bg-muted px-2 py-1 rounded">
                                     {savedLocationsCount}
                                 </div>
                             </button>
@@ -304,12 +304,12 @@ export function MapControls({
                             {/* View All */}
                             <button
                                 onClick={() => handleActionClick(onViewAllClick)}
-                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
+                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-muted text-foreground border-border transition-all"
                             >
                                 <Globe className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">View All</div>
-                                    <div className="text-xs text-gray-600">
+                                    <div className="text-xs text-muted-foreground">
                                         Fit all locations in view
                                     </div>
                                 </div>
@@ -321,14 +321,14 @@ export function MapControls({
                                     handleActionClick(() => onPublicToggle(!showPublicLocations));
                                 }}
                                 className={`w-full flex items-center gap-3 p-4 rounded-lg border transition-all ${showPublicLocations
-                                    ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
-                                    : 'bg-white hover:bg-gray-50 text-gray-900 border-gray-200'
+                                    ? 'bg-social hover:bg-social/90 text-white border-social'
+                                    : 'bg-white hover:bg-muted text-foreground border-border'
                                     }`}
                             >
                                 <Map className={`w-5 h-5 shrink-0 ${showPublicLocations ? 'fill-current' : ''}`} />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">Explore Public</div>
-                                    <div className={`text-xs ${showPublicLocations ? 'opacity-90' : 'text-gray-600'}`}>
+                                    <div className={`text-xs ${showPublicLocations ? 'opacity-90' : 'text-muted-foreground'}`}>
                                         {showPublicLocations ? 'Showing locations from all users' : 'Discover public locations'}
                                     </div>
                                 </div>
@@ -341,7 +341,7 @@ export function MapControls({
                             <Link
                                 href="/create-with-photo"
                                 onClick={() => setIsOpen(false)}
-                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-green-600 hover:bg-green-700 text-white border-green-700 transition-all"
+                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-success hover:bg-success/90 text-white border-success transition-all"
                             >
                                 <Plus className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
@@ -355,12 +355,12 @@ export function MapControls({
                             {/* Friends */}
                             <button
                                 onClick={() => handleActionClick(onFriendsClick)}
-                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-gray-50 text-gray-900 border-gray-200 transition-all"
+                                className="w-full flex items-center gap-3 p-4 rounded-lg border bg-white hover:bg-muted text-foreground border-border transition-all"
                             >
                                 <Users className="w-5 h-5 shrink-0" />
                                 <div className="flex-1 text-left">
                                     <div className="font-medium">Friends</div>
-                                    <div className="text-xs text-gray-600">
+                                    <div className="text-xs text-muted-foreground">
                                         Friends&apos; Locations
                                     </div>
                                 </div>

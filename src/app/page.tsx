@@ -36,10 +36,10 @@ export default function Home() {
           />
         </div>
         {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-linear-to-br from-indigo-900/80 via-purple-900/80 to-indigo-900/80" />
+        <div className="absolute inset-0 bg-linear-to-br from-primary/80 via-social/80 to-primary/80" />
 
         {/* Content - 100px from top */}
-        <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 pt-25">
+        <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 pt-24">
           <div className="mx-auto max-w-3xl text-center w-full">
             {/* Logo */}
             <div className="mb-6 flex justify-center">
@@ -55,12 +55,12 @@ export default function Home() {
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl text-white">
               Coordinate with Purpose{" "}
             </h1>
-            <p className="mb-8 text-lg sm:text-xl text-gray-200 text-center">
+            <p className="mb-8 text-lg sm:text-xl text-muted-foreground text-center">
               Use Fotolokashen with Google Maps to organize your Photos, Locations, Projects, and Teams.</p>
             {/* Buttons - Reduced width by ~50% */}
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center items-center">
               {user ? (
-                <Button size="lg" asChild className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/50 max-w-50 w-full">
+                <Button size="lg" asChild className="bg-linear-to-r from-primary to-social hover:from-primary/90 hover:to-social text-white shadow-lg shadow-primary/50 max-w-50 w-full">
                   <Link href="/map">
                     <MapPin className="mr-2 h-5 w-5" />
                     Open Map
@@ -68,7 +68,7 @@ export default function Home() {
                 </Button>
               ) : (
                 <>
-                  <Button size="lg" asChild className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/50 max-w-45 w-full">
+                  <Button size="lg" asChild className="bg-linear-to-r from-primary to-social hover:from-primary/90 hover:to-social text-white shadow-lg shadow-primary/50 max-w-45 w-full">
                     <Link href="/register">Get Started</Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild className="bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20 max-w-45 w-full">
@@ -81,8 +81,8 @@ export default function Home() {
         </div>
 
         {/* Animated Gradient Blur Effects */}
-        <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-blue-400/20 blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-purple-400/20 blur-3xl animate-pulse" />
+        <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-social/20 blur-3xl animate-pulse" />
       </section>
 
       {/* Features Section */}
@@ -99,7 +99,7 @@ export default function Home() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader>
-                <MapPin className="mb-2 h-10 w-10 text-blue-600" />
+                <MapPin className="mb-2 h-10 w-10 text-primary" />
                 <CardTitle>Google Maps Integration</CardTitle>
                 <CardDescription>
                   Search and discover locations using Google Maps Places API
@@ -108,7 +108,7 @@ export default function Home() {
             </Card>
             <Card>
               <CardHeader>
-                <Save className="mb-2 h-10 w-10 text-green-600" />
+                <Save className="mb-2 h-10 w-10 text-success" />
                 <CardTitle>Save Locations</CardTitle>
                 <CardDescription>
                   Save your favorite places with custom captions and notes
@@ -117,7 +117,7 @@ export default function Home() {
             </Card>
             <Card>
               <CardHeader>
-                <ImageIcon className="mb-2 h-10 w-10 text-purple-600" />
+                <ImageIcon className="mb-2 h-10 w-10 text-social" />
                 <CardTitle>Photo Uploads</CardTitle>
                 <CardDescription>
                   Add photos to your saved locations using ImageKit

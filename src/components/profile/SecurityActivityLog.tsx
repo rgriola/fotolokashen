@@ -46,20 +46,20 @@ export function SecurityActivityLog() {
 
     const getEventIcon = (eventType: string, success: boolean) => {
         if (!success) {
-            return <XCircle className="w-4 h-4 text-red-500" />;
+            return <XCircle className="w-4 h-4 text-destructive" />;
         }
 
         switch (eventType) {
             case 'login':
-                return <CheckCircle className="w-4 h-4 text-green-500" />;
+                return <CheckCircle className="w-4 h-4 text-success" />;
             case 'password_change':
             case 'password_reset_success':
-                return <Shield className="w-4 h-4 text-blue-500" />;
+                return <Shield className="w-4 h-4 text-primary" />;
             case 'failed_login':
             case 'account_locked':
-                return <AlertCircle className="w-4 h-4 text-red-500" />;
+                return <AlertCircle className="w-4 h-4 text-destructive" />;
             default:
-                return <Info className="w-4 h-4 text-gray-500" />;
+                return <Info className="w-4 h-4 text-muted-foreground" />;
         }
     };
 
@@ -147,7 +147,7 @@ export function SecurityActivityLog() {
                                             <p className="font-medium text-sm">
                                                 {getEventLabel(log.eventType)}
                                                 {!log.success && (
-                                                    <span className="ml-2 text-xs text-red-500">(Failed)</span>
+                                                    <span className="ml-2 text-xs text-destructive">(Failed)</span>
                                                 )}
                                             </p>
                                             <p className="text-xs text-muted-foreground mt-0.5">

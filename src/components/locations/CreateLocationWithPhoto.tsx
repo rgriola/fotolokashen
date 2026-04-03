@@ -517,13 +517,13 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
         <div className="space-y-6">
             {/* Error Alert */}
             {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                <div className="p-4 bg-destructive/10 dark:bg-destructive/10 border border-destructive/20 dark:border-destructive rounded-lg flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
                     <div className="flex-1">
-                        <p className="text-sm font-medium text-red-900 dark:text-red-100 mb-1">Error</p>
-                        <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                        <p className="text-sm font-medium text-destructive dark:text-destructive-foreground mb-1">Error</p>
+                        <p className="text-sm text-destructive dark:text-destructive">{error}</p>
                     </div>
-                    <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600">
+                    <button onClick={() => setError(null)} className="text-destructive hover:text-destructive">
                         <X className="w-4 h-4" />
                     </button>
                 </div>
@@ -533,7 +533,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
             <Card>
                 <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
-                        <Camera className="w-5 h-5 text-green-600" />
+                        <Camera className="w-5 h-5 text-success" />
                         <CardTitle className="text-lg">Photo</CardTitle>
                         {isConverting && (
                             <Badge variant="secondary" className="ml-auto">
@@ -553,7 +553,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
                     {!photoFile ? (
                         /* Upload Drop Zone */
                         <label
-                            className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors"
+                            className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:border-success hover:bg-success/10/50 dark:hover:bg-success/10 transition-colors"
                             onDrop={handleDrop}
                             onDragOver={(e) => e.preventDefault()}
                         >
@@ -614,19 +614,19 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
                                 {/* GPS Status Badge */}
                                 <div className="absolute bottom-2 left-2">
                                     {gpsSource === 'exif' && (
-                                        <Badge className="bg-green-600">
+                                        <Badge className="bg-success">
                                             <MapPin className="w-3 h-3 mr-1" />
                                             GPS from photo
                                         </Badge>
                                     )}
                                     {gpsSource === 'manual' && (
-                                        <Badge className="bg-blue-600">
+                                        <Badge className="bg-primary">
                                             <MapPin className="w-3 h-3 mr-1" />
                                             Location selected
                                         </Badge>
                                     )}
                                     {!gpsSource && !isProcessing && (
-                                        <Badge variant="secondary" className="bg-yellow-600 text-white">
+                                        <Badge variant="secondary" className="bg-warning text-white">
                                             <AlertCircle className="w-3 h-3 mr-1" />
                                             No GPS - select below
                                         </Badge>
@@ -668,7 +668,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
                 <Card>
                     <CardHeader className="pb-3">
                         <div className="flex items-center gap-2">
-                            <MapPin className="w-5 h-5 text-blue-600" />
+                            <MapPin className="w-5 h-5 text-primary" />
                             <CardTitle className="text-lg">Select Location</CardTitle>
                         </div>
                         <CardDescription>
@@ -703,12 +703,12 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
 
                         {/* Location Selected Confirmation */}
                         {manualLocation && addressData && (
-                            <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                                <p className="text-sm font-medium text-green-800 dark:text-green-200 flex items-center gap-2">
+                            <div className="p-3 bg-success/10 dark:bg-success/10 rounded-lg border border-success/20 dark:border-success">
+                                <p className="text-sm font-medium text-success dark:text-success flex items-center gap-2">
                                     <CheckCircle className="w-4 h-4" />
                                     Location Selected
                                 </p>
-                                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                                <p className="text-sm text-success dark:text-success mt-1">
                                     {addressData.address}
                                 </p>
                             </div>
@@ -722,7 +722,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
                 <Card>
                     <CardHeader className="pb-3">
                         <div className="flex items-center gap-2">
-                            <MapPin className="w-5 h-5 text-green-600" />
+                            <MapPin className="w-5 h-5 text-success" />
                             <CardTitle className="text-lg">Location Preview</CardTitle>
                         </div>
                     </CardHeader>
@@ -748,7 +748,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
             <Card className={!photoFile ? 'opacity-50 pointer-events-none' : ''}>
                 <CardHeader className="pb-3">
                     <div className="flex items-center gap-2">
-                        <Tag className="w-5 h-5 text-green-600" />
+                        <Tag className="w-5 h-5 text-success" />
                         <CardTitle className="text-lg">Location Details</CardTitle>
                     </div>
                 </CardHeader>
@@ -885,7 +885,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
                         {/* Submit Button */}
                         <Button
                             type="submit"
-                            className="w-full bg-green-600 hover:bg-green-700"
+                            className="w-full bg-success hover:bg-success/90"
                             disabled={!canSave || isSaving}
                         >
                             {isSaving ? (

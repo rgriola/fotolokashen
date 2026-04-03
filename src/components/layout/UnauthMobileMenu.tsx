@@ -31,7 +31,7 @@ export function UnauthMobileMenu() {
                     <Button
                         variant="default"
                         size="icon"
-                        className="h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                        className="h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-primary to-social hover:from-primary/90 hover:to-social"
                         aria-label="Open menu"
                     >
                         <Menu className="h-6 w-6 text-white" />
@@ -87,7 +87,7 @@ export function UnauthMobileMenu() {
                             href="/register"
                             prefetch={false}
                             onClick={handleLinkClick}
-                            className="flex items-center gap-3 px-3 py-2.5 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-colors"
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-md bg-gradient-to-r from-primary to-social text-white hover:from-primary/90 hover:to-social transition-colors"
                         >
                             <UserPlus className="h-4 w-4" />
                             <span className="text-sm font-medium">Register</span>

@@ -183,7 +183,7 @@ export function ProfileHeader() {
                             unoptimized={bannerPreview.startsWith('data:')}
                         />
                     ) : (
-                        <div className="w-full h-full bg-linear-to-br from-blue-500 via-purple-500 to-pink-500" />
+                        <div className="w-full h-full bg-linear-to-br from-primary via-social to-pink-500" />
                     )}
 
                     {/* Banner Overlay - shows on hover */}
@@ -229,7 +229,7 @@ export function ProfileHeader() {
                                         unoptimized={avatarPreview.startsWith('data:')}
                                     />
                                 ) : (
-                                    <div className="w-full h-full bg-linear-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+                                    <div className="w-full h-full bg-linear-to-br from-primary/80 to-social flex items-center justify-center">
                                         <span className="text-5xl font-bold text-white">
                                             {user?.username?.charAt(0).toUpperCase() || '?'}
                                         </span>

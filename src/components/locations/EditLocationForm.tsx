@@ -559,7 +559,7 @@ export function EditLocationForm({
                         type="button"
                         size="sm"
                         onClick={onPhotoUploadToggle}
-                        className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+                        className="bg-success hover:bg-success/90 text-white flex items-center gap-2"
                     >
                         <Camera className="w-3.5 h-3.5" />
                         {showPhotoUpload ? 'Photo Upload' : 'Add Photos'}
@@ -619,7 +619,7 @@ export function EditLocationForm({
                                 id="name"
                                 {...form.register("name")}
                                 placeholder="e.g., Central Park"
-                                className={`focus-visible:ring-green-500 focus-visible:ring-2 pr-8 ${
+                                className={`focus-visible:ring-success focus-visible:ring-2 pr-8 ${
                                     form.formState.errors.name 
                                         ? "border-destructive ring-destructive ring-2" 
                                         : ""
@@ -657,7 +657,7 @@ export function EditLocationForm({
                             >
                                 <SelectTrigger
                                     id="type"
-                                    className={`focus:ring-green-500 focus:ring-2 w-full min-w-35 ${
+                                    className={`focus:ring-success focus:ring-2 w-full min-w-35 ${
                                         form.formState.errors.type 
                                             ? "border-destructive ring-destructive" 
                                             : ""
@@ -763,7 +763,7 @@ export function EditLocationForm({
                                 {isAiLoading ? "Improving..." : "AI Rewrite"}
                             </Button>
                             {aiError && (
-                                <span className="text-xs text-red-500">{aiError}</span>
+                                <span className="text-xs text-destructive">{aiError}</span>
                             )}
                         </div>
                     </div>
@@ -818,16 +818,16 @@ export function EditLocationForm({
 
                         {/* Suggested Tags */}
                         {suggestedTags.length > 0 && (
-                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+                            <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-lg space-y-2">
                                 <div className="flex items-center justify-between">
-                                    <p className="text-xs font-semibold text-blue-900">AI Suggested Tags:</p>
+                                    <p className="text-xs font-semibold text-primary">AI Suggested Tags:</p>
                                     <div className="flex gap-1">
                                         <Button
                                             type="button"
                                             variant="ghost"
                                             size="sm"
                                             onClick={handleAddAllSuggestedTags}
-                                            className="text-xs h-6 px-2 text-blue-700 hover:text-blue-900"
+                                            className="text-xs h-6 px-2 text-primary hover:text-primary"
                                         >
                                             Add All
                                         </Button>
@@ -836,7 +836,7 @@ export function EditLocationForm({
                                             variant="ghost"
                                             size="sm"
                                             onClick={handleDismissSuggestedTags}
-                                            className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
+                                            className="text-xs h-6 px-2 text-muted-foreground hover:text-foreground"
                                         >
                                             Dismiss
                                         </Button>
@@ -847,14 +847,14 @@ export function EditLocationForm({
                                         <Badge
                                             key={tag}
                                             variant="outline"
-                                            className="gap-1 cursor-pointer hover:bg-blue-100 border-blue-300 text-blue-800"
+                                            className="gap-1 cursor-pointer hover:bg-primary/10 border-primary/30 text-primary"
                                             onClick={() => handleAddSuggestedTag(tag)}
                                         >
                                             + {tag}
                                         </Badge>
                                     ))}
                                 </div>
-                                <p className="text-xs text-blue-700 italic">Click a tag to add it to your location</p>
+                                <p className="text-xs text-primary italic">Click a tag to add it to your location</p>
                             </div>
                         )}
 
@@ -926,21 +926,21 @@ export function EditLocationForm({
 
             {/* Unsaved Changes Banner */}
             {hasChanges && (
-                <div className="sticky bottom-0 mt-6 bg-amber-50 dark:bg-amber-950/20 border-t-2 border-amber-500 p-3 sm:p-4 shadow-lg z-10 animate-in slide-in-from-bottom">
+                <div className="sticky bottom-0 mt-6 bg-warning/10 dark:bg-warning/10 border-t-2 border-warning p-3 sm:p-4 shadow-lg z-10 animate-in slide-in-from-bottom">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-500 shrink-0" />
-                                <p className="font-semibold text-sm sm:text-base text-amber-900 dark:text-amber-100">
+                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-warning dark:text-warning shrink-0" />
+                                <p className="font-semibold text-sm sm:text-base text-warning dark:text-warning-foreground">
                                     Unsaved changes
                                 </p>
                             </div>
-                            <ul className="text-xs sm:text-sm text-amber-800 dark:text-amber-200 space-y-1 ml-6 sm:ml-0">
+                            <ul className="text-xs sm:text-sm text-warning dark:text-warning space-y-1 ml-6 sm:ml-0">
                                 {changes.slice(0, 3).map((change, i) => (
                                     <li key={i} className="truncate">• {change}</li>
                                 ))}
                                 {changes.length > 3 && (
-                                    <li className="text-amber-700 dark:text-amber-300">
+                                    <li className="text-warning dark:text-warning">
                                         +{changes.length - 3} more...
                                     </li>
                                 )}
@@ -952,14 +952,14 @@ export function EditLocationForm({
                                 size="sm"
                                 type="button"
                                 onClick={handleDiscard}
-                                className="flex-1 sm:flex-initial border-amber-300 dark:border-amber-700 text-xs sm:text-sm h-9"
+                                className="flex-1 sm:flex-initial border-warning/30 dark:border-warning text-xs sm:text-sm h-9"
                             >
                                 Discard
                             </Button>
                             <Button
                                 size="sm"
                                 type="submit"
-                                className="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm h-9"
+                                className="flex-1 sm:flex-initial bg-success hover:bg-success/90 text-white text-xs sm:text-sm h-9"
                             >
                                 Save Changes
                             </Button>
@@ -991,13 +991,13 @@ function StaticMapPreview({ location }: { location: Location }) {
                 />
             ) : (
                 /* Placeholder when map fails to load */
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-950/20 dark:to-blue-900/10 border-2 border-dashed border-blue-300 dark:border-blue-700">
-                    <Map className="w-12 h-12 text-blue-400 dark:text-blue-600" />
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/10 dark:to-primary/10 border-2 border-dashed border-primary/30 dark:border-primary">
+                    <Map className="w-12 h-12 text-primary dark:text-primary" />
                     <div className="text-center px-4">
-                        <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                        <p className="text-sm font-medium text-primary dark:text-primary">
                             {location.name}
                         </p>
-                        <p className="text-xs text-blue-500 dark:text-blue-500 mt-1">
+                        <p className="text-xs text-primary dark:text-primary mt-1">
                             {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
                         </p>
                     </div>

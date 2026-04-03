@@ -67,18 +67,18 @@ function VerifyEmailChangeContent() {
     }, [token, router]);
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 to-primary/20 dark:from-background dark:to-muted">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
                     <div className="mx-auto mb-4">
                         {status === 'loading' && (
-                            <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
+                            <Loader2 className="h-16 w-16 text-primary animate-spin" />
                         )}
                         {status === 'success' && (
-                            <CheckCircle2 className="h-16 w-16 text-green-600" />
+                            <CheckCircle2 className="h-16 w-16 text-success" />
                         )}
                         {status === 'error' && (
-                            <XCircle className="h-16 w-16 text-red-600" />
+                            <XCircle className="h-16 w-16 text-destructive" />
                         )}
                     </div>
                     <CardTitle className="text-2xl">
@@ -91,9 +91,9 @@ function VerifyEmailChangeContent() {
                 <CardContent className="space-y-4">
                     {status === 'success' && (
                         <div className="text-center space-y-4">
-                            <div className="flex gap-3 p-4 rounded-lg border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
-                                <Mail className="h-5 w-5 text-green-600 dark:text-green-500 flex-shrink-0 mt-0.5" />
-                                <div className="text-sm text-green-900 dark:text-green-100">
+                            <div className="flex gap-3 p-4 rounded-lg border border-success/20 bg-success/10 dark:border-success dark:bg-success/10">
+                                <Mail className="h-5 w-5 text-success dark:text-success flex-shrink-0 mt-0.5" />
+                                <div className="text-sm text-success dark:text-success-foreground">
                                     <strong>All sessions logged out:</strong> For security, you've been logged out of all devices.
                                     You'll be redirected to the login page in a few seconds.
                                 </div>
@@ -120,7 +120,7 @@ export default function VerifyEmailChangePage() {
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />
+                <Loader2 className="h-16 w-16 text-primary animate-spin" />
             </div>
         }>
             <VerifyEmailChangeContent />

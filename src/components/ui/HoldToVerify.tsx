@@ -102,7 +102,7 @@ export function HoldToVerify({
 
   return (
     <div className={cn('w-full space-y-3', className)}>
-      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="text-sm font-medium text-foreground">
         Human Verification
       </div>
       
@@ -120,12 +120,12 @@ export function HoldToVerify({
           'flex items-center justify-center gap-3',
           'select-none touch-none',
           verified
-            ? 'bg-green-600 cursor-default'
+            ? 'bg-success cursor-default'
             : isHolding
-            ? 'bg-blue-600 scale-[0.98]'
-            : 'bg-gray-600 hover:bg-gray-700 active:scale-[0.98]',
+            ? 'bg-primary scale-[0.98]'
+            : 'bg-secondary hover:bg-muted-foreground active:scale-[0.98]',
           'focus:outline-none focus:ring-2 focus:ring-offset-2',
-          verified ? 'focus:ring-green-500' : 'focus:ring-blue-500'
+          verified ? 'focus:ring-success' : 'focus:ring-primary'
         )}
       >
         {verified ? (
@@ -142,17 +142,17 @@ export function HoldToVerify({
       </button>
 
       {/* Progress Bar */}
-      <div className="relative h-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+      <div className="relative h-3 w-full bg-muted rounded-full overflow-hidden">
         <div
           className={cn(
             'h-full transition-all duration-75 rounded-full',
             verified
-              ? 'bg-green-500'
+              ? 'bg-success'
               : progress > 66
-              ? 'bg-green-500'
+              ? 'bg-success'
               : progress > 33
-              ? 'bg-yellow-500'
-              : 'bg-blue-500'
+              ? 'bg-warning'
+              : 'bg-primary/100'
           )}
           style={{ width: `${verified ? 100 : progress}%` }}
         />
@@ -161,19 +161,19 @@ export function HoldToVerify({
       {/* Timer / Status Text */}
       <div className="text-center text-sm">
         {verified ? (
-          <span className="text-green-600 dark:text-green-400 font-medium">
+          <span className="text-success dark:text-success font-medium">
             ✓ Verification complete
           </span>
         ) : showRetry ? (
-          <span className="text-amber-600 dark:text-amber-400">
+          <span className="text-warning dark:text-warning">
             Released too early! Try again.
           </span>
         ) : isHolding ? (
-          <span className="text-blue-600 dark:text-blue-400 font-mono">
+          <span className="text-primary dark:text-primary font-mono">
             {displayTime} / {(duration / 1000).toFixed(1)} seconds
           </span>
         ) : (
-          <span className="text-gray-500 dark:text-gray-400">
+          <span className="text-muted-foreground">
             Hold the button for {(duration / 1000).toFixed(0)} seconds
           </span>
         )}

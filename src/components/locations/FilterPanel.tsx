@@ -48,7 +48,7 @@ export function FilterPanel({
                         </Button>
                     </SheetTrigger>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700">
+                <TooltipContent side="bottom" className="bg-foreground text-background border-border">
                     <p>Filter and sort locations</p>
                 </TooltipContent>
             </Tooltip>

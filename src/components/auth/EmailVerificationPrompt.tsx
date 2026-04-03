@@ -42,20 +42,20 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
   };
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 space-y-4">
+    <div className="bg-warning/10 border border-warning/20 rounded-lg p-6 space-y-4">
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0">
-          <Mail className="h-6 w-6 text-amber-600" />
+          <Mail className="h-6 w-6 text-warning" />
         </div>
         <div className="flex-1">
-          <h3 className="text-lg font-semibold text-amber-900">
+          <h3 className="text-lg font-semibold text-warning">
             Email Verification Required
           </h3>
-          <p className="mt-2 text-sm text-amber-800">
+          <p className="mt-2 text-sm text-warning">
             Please verify your email address before accessing the application. 
             We sent a verification link to <strong>{email}</strong>
           </p>
-          <p className="mt-2 text-sm text-amber-700">
+          <p className="mt-2 text-sm text-warning">
             Check your inbox and spam folder for the verification email.
           </p>
         </div>
@@ -73,13 +73,13 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
         </Button>
 
         {resentCount > 0 && (
-          <span className="text-sm text-amber-700">
+          <span className="text-sm text-warning">
             ✓ Sent {resentCount} time{resentCount > 1 ? 's' : ''}
           </span>
         )}
       </div>
 
-      <p className="text-xs text-amber-600 pt-2">
+      <p className="text-xs text-warning pt-2">
         Didn't receive the email? Check your spam folder or click "Resend" above. 
         (Limit: 3 emails per hour)
       </p>

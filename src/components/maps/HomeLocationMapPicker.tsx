@@ -92,20 +92,20 @@ export function HomeLocationMapPicker({
 
                 {/* Selected Location Info */}
                 {selectedPosition && (
-                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                    <div className="bg-primary/10 dark:bg-primary/10 border border-primary/20 dark:border-primary rounded-lg p-3">
                         <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                             <div className="flex-1">
                                 {isGeocoding ? (
-                                    <p className="text-sm text-blue-900 dark:text-blue-100">
+                                    <p className="text-sm text-primary dark:text-primary-foreground">
                                         Getting address...
                                     </p>
                                 ) : (
                                     <>
-                                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                                        <p className="text-sm font-medium text-primary dark:text-primary-foreground">
                                             {locationName}
                                         </p>
-                                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                        <p className="text-xs text-primary dark:text-primary mt-1">
                                             {selectedPosition.lat.toFixed(6)}°, {selectedPosition.lng.toFixed(6)}°
                                         </p>
                                     </>

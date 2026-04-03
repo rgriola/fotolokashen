@@ -27,17 +27,17 @@ export function GpsWelcomeBanner({ onEnable, onDismiss }: GpsWelcomeBannerProps)
 
     return (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 max-w-md w-full px-4 animate-in slide-in-from-top">
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/40 border-blue-300 dark:border-blue-700 shadow-lg">
+            <Card className="bg-gradient-to-r from-primary/10 to-primary/10 dark:from-primary/10 dark:to-primary/10 border-primary/30 dark:border-primary shadow-lg">
                 <CardContent className="pt-4 pb-4">
                     <div className="flex items-start gap-3">
-                        <div className="bg-blue-600 rounded-full p-2">
+                        <div className="bg-primary rounded-full p-2">
                             <MapPin className="w-4 h-4 text-white" />
                         </div>
                         <div className="flex-1">
-                            <p className="font-semibold text-sm text-blue-900 dark:text-blue-100">
+                            <p className="font-semibold text-sm text-primary dark:text-primary-foreground">
                                 Enable GPS to find your location
                             </p>
-                            <p className="text-xs text-blue-800 dark:text-blue-200 mt-1">
+                            <p className="text-xs text-primary dark:text-primary mt-1">
                                 Quickly navigate to your current position on the map
                             </p>
                         </div>
@@ -45,7 +45,7 @@ export function GpsWelcomeBanner({ onEnable, onDismiss }: GpsWelcomeBannerProps)
                             variant="ghost"
                             size="sm"
                             onClick={handleDismiss}
-                            className="h-auto p-1 hover:bg-blue-100 dark:hover:bg-blue-900"
+                            className="h-auto p-1 hover:bg-primary/10 dark:hover:bg-primary/20"
                         >
                             <X className="w-4 h-4" />
                         </Button>
@@ -55,14 +55,14 @@ export function GpsWelcomeBanner({ onEnable, onDismiss }: GpsWelcomeBannerProps)
                             size="sm"
                             variant="outline"
                             onClick={handleDismiss}
-                            className="text-xs border-blue-300 dark:border-blue-700"
+                            className="text-xs border-primary/30 dark:border-primary"
                         >
                             Maybe Later
                         </Button>
                         <Button
                             size="sm"
                             onClick={handleEnable}
-                            className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                            className="text-xs bg-primary hover:bg-primary/90 text-white"
                         >
                             Enable GPS
                         </Button>

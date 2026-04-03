@@ -206,7 +206,7 @@ function LocationListItem({
                         title="Copy link to clipboard"
                     >
                         {copied ? (
-                            <Check className="w-4 h-4 text-green-600" />
+                            <Check className="w-4 h-4 text-success" />
                         ) : (
                             <Copy className="w-4 h-4" />
                         )}
@@ -249,8 +249,8 @@ function LocationListItem({
                         <Badge
                             className={`text-xs ${
                                 source === 'public' 
-                                    ? 'bg-purple-600 hover:bg-purple-700' 
-                                    : 'bg-blue-600 hover:bg-blue-700'
+                                    ? 'bg-social hover:bg-social/90' 
+                                    : 'bg-primary hover:bg-primary/90'
                             } text-white border-none`}
                         >
                             {source === 'public' ? 'Public' : 'Friend'}
@@ -260,11 +260,11 @@ function LocationListItem({
                         {location.name}
                     </h3>
                     {location.userSave?.isFavorite && (
-                        <Heart className="w-4 h-4 fill-red-500 text-red-500 shrink-0" />
+                        <Heart className="w-4 h-4 fill-destructive text-destructive shrink-0" />
                     )}
                     {personalRating > 0 && (
                         <div className="flex items-center gap-1 shrink-0">
-                            <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                            <Star className="w-3.5 h-3.5 fill-warning text-warning" />
                             <span className="text-xs text-muted-foreground">
                                 {personalRating}
                             </span>

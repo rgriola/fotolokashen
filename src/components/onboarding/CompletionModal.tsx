@@ -35,11 +35,11 @@ export function CompletionModal() {
             </p>
             
             {/* Info box about additional tours */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
-              <p className="text-sm font-medium text-blue-900 mb-2">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-left">
+              <p className="text-sm font-medium text-primary mb-2">
                 ℹ️ More Tours Available
               </p>
-              <p className="text-xs text-blue-700">
+              <p className="text-xs text-primary">
                 When you visit the <strong>Locations</strong> or <strong>People</strong> pages for the first time, 
                 you&apos;ll see additional guided tours to help you explore those features.
               </p>
@@ -54,7 +54,7 @@ export function CompletionModal() {
         <DialogFooter className="justify-center">
           <Button
             onClick={handleClose}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-primary hover:bg-primary/90"
           >
             Start Exploring →
           </Button>

@@ -81,10 +81,10 @@ export function RightSidebar({
                                 className={cn(
                                     "shrink-0 hover:text-white disabled:cursor-not-allowed transition-all",
                                     isSaving 
-                                        ? "bg-indigo-400 disabled:opacity-70" 
+                                        ? "bg-primary/80 disabled:opacity-70" 
                                         : isFormDirty
-                                        ? "bg-green-600 hover:bg-green-700"
-                                        : "bg-gray-400 disabled:opacity-50"
+                                        ? "bg-success hover:bg-success/90"
+                                        : "bg-muted disabled:opacity-50"
                                 )}
                                 title={isSaving ? "Saving..." : isFormDirty ? "Save location" : "No changes to save"}
                             >
@@ -101,7 +101,7 @@ export function RightSidebar({
                                 variant="ghost"
                                 size="icon"
                                 onClick={onPhotoUploadToggle}
-                                className="shrink-0 bg-green-600 hover:bg-green-700 text-white hover:text-white"
+                                className="shrink-0 bg-success hover:bg-success/90 text-white hover:text-white"
                                 title="Toggle photo upload"
                             >
                                 <Camera className="w-4 h-4 text-white" />
@@ -119,7 +119,7 @@ export function RightSidebar({
                                 >
                                     <Sun
                                         className={`w-5 h-5 transition-colors ${indoorOutdoor === "outdoor"
-                                            ? "text-amber-500 fill-amber-500"
+                                            ? "text-warning fill-warning"
                                             : "text-muted-foreground"
                                             }`}
                                     />
@@ -133,7 +133,7 @@ export function RightSidebar({
                                 >
                                     <Building
                                         className={`w-5 h-5 transition-colors ${indoorOutdoor === "indoor"
-                                            ? "text-blue-600 stroke-[2.5]"
+                                            ? "text-primary stroke-[2.5]"
                                             : "text-muted-foreground"
                                             }`}
                                         fill={indoorOutdoor === "indoor" ? "#fbbf24" : "none"}
@@ -153,8 +153,8 @@ export function RightSidebar({
                             >
                                 <Heart
                                     className={`w-5 h-5 transition-colors ${isFavorite
-                                        ? "fill-red-500 text-red-500"
-                                        : "text-muted-foreground hover:text-red-500"
+                                        ? "fill-destructive text-destructive"
+                                        : "text-muted-foreground hover:text-destructive"
                                         }`}
                                 />
                             </Button>

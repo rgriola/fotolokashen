@@ -252,11 +252,11 @@ export function AccountSettingsForm() {
                                 placeholder="John"
                                 {...register('firstName')}
                                 disabled={isLoading}
-                                className={errors.firstName ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                                className={errors.firstName ? 'border-destructive focus-visible:ring-destructive' : ''}
                                 aria-invalid={errors.firstName ? 'true' : 'false'}
                             />
                             {errors.firstName && (
-                                <p className="text-sm text-red-500 font-medium">{errors.firstName.message}</p>
+                                <p className="text-sm text-destructive font-medium">{errors.firstName.message}</p>
                             )}
                         </div>
 
@@ -269,11 +269,11 @@ export function AccountSettingsForm() {
                                 placeholder="Doe"
                                 {...register('lastName')}
                                 disabled={isLoading}
-                                className={errors.lastName ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                                className={errors.lastName ? 'border-destructive focus-visible:ring-destructive' : ''}
                                 aria-invalid={errors.lastName ? 'true' : 'false'}
                             />
                             {errors.lastName && (
-                                <p className="text-sm text-red-500 font-medium">{errors.lastName.message}</p>
+                                <p className="text-sm text-destructive font-medium">{errors.lastName.message}</p>
                             )}
                         </div>
                     </div>
@@ -287,11 +287,11 @@ export function AccountSettingsForm() {
                             rows={3}
                             {...register('bio')}
                             disabled={isLoading}
-                            className={`resize-none ${errors.bio ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                            className={`resize-none ${errors.bio ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                             aria-invalid={errors.bio ? 'true' : 'false'}
                         />
                         {errors.bio && (
-                            <p className="text-sm text-red-500 font-medium">{errors.bio.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.bio.message}</p>
                         )}
                         <p className="text-xs text-mutedforeground">
                             Maximum 500 characters
@@ -309,12 +309,12 @@ export function AccountSettingsForm() {
                                 placeholder="+1 (555) 123-4567"
                                 {...register('phoneNumber')}
                                 disabled={isLoading}
-                                className={`pl-9 ${errors.phoneNumber ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                className={`pl-9 ${errors.phoneNumber ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                                 aria-invalid={errors.phoneNumber ? 'true' : 'false'}
                             />
                         </div>
                         {errors.phoneNumber && (
-                            <p className="text-sm text-red-500 font-medium">{errors.phoneNumber.message}</p>
+                            <p className="text-sm text-destructive font-medium">{errors.phoneNumber.message}</p>
                         )}
                     </div>
 
@@ -330,12 +330,12 @@ export function AccountSettingsForm() {
                                     placeholder="New York"
                                     {...register('city')}
                                     disabled={isLoading}
-                                    className={`pl-9 ${errors.city ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                                    className={`pl-9 ${errors.city ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                                     aria-invalid={errors.city ? 'true' : 'false'}
                                 />
                             </div>
                             {errors.city && (
-                                <p className="text-sm text-red-500 font-medium">{errors.city.message}</p>
+                                <p className="text-sm text-destructive font-medium">{errors.city.message}</p>
                             )}
                         </div>
 
@@ -347,11 +347,11 @@ export function AccountSettingsForm() {
                                 placeholder="United States"
                                 {...register('country')}
                                 disabled={isLoading}
-                                className={errors.country ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                                className={errors.country ? 'border-destructive focus-visible:ring-destructive' : ''}
                                 aria-invalid={errors.country ? 'true' : 'false'}
                             />
                             {errors.country && (
-                                <p className="text-sm text-red-500 font-medium">{errors.country.message}</p>
+                                <p className="text-sm text-destructive font-medium">{errors.country.message}</p>
                             )}
                         </div>
                     </div>
@@ -361,22 +361,22 @@ export function AccountSettingsForm() {
 
         {/* Unsaved Changes Banner */}
         {hasChanges && (
-            <div className="fixed bottom-0 left-0 right-0 bg-amber-50 dark:bg-amber-950/20 border-t-2 border-amber-500 p-3 sm:p-4 shadow-lg z-50 animate-in slide-in-from-bottom">
+            <div className="fixed bottom-0 left-0 right-0 bg-warning/10 dark:bg-warning/10 border-t-2 border-warning p-3 sm:p-4 shadow-lg z-50 animate-in slide-in-from-bottom">
                 <div className="container max-w-6xl mx-auto">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-500 flex-shrink-0" />
-                                <p className="font-semibold text-sm sm:text-base text-amber-900 dark:text-amber-100">
+                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-warning dark:text-warning flex-shrink-0" />
+                                <p className="font-semibold text-sm sm:text-base text-warning dark:text-warning-foreground">
                                     Unsaved changes
                                 </p>
                             </div>
-                            <ul className="text-xs sm:text-sm text-amber-800 dark:text-amber-200 space-y-1 ml-6 sm:ml-0">
+                            <ul className="text-xs sm:text-sm text-warning dark:text-warning space-y-1 ml-6 sm:ml-0">
                                 {changes.slice(0, 3).map((change, i) => (
                                     <li key={i} className="truncate">• {change}</li>
                                 ))}
                                 {changes.length > 3 && (
-                                    <li className="text-amber-700 dark:text-amber-300">
+                                    <li className="text-warning dark:text-warning">
                                         +{changes.length - 3} more...
                                     </li>
                                 )}
@@ -388,7 +388,7 @@ export function AccountSettingsForm() {
                                 size="sm"
                                 onClick={handleDiscard}
                                 disabled={isLoading}
-                                className="flex-1 sm:flex-initial border-amber-300 dark:border-amber-700 text-xs sm:text-sm h-9"
+                                className="flex-1 sm:flex-initial border-warning/30 dark:border-warning text-xs sm:text-sm h-9"
                             >
                                 Discard
                             </Button>
@@ -396,7 +396,7 @@ export function AccountSettingsForm() {
                                 size="sm"
                                 onClick={handleSubmit(onSubmit)}
                                 disabled={isLoading}
-                                className="flex-1 sm:flex-initial bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm h-9"
+                                className="flex-1 sm:flex-initial bg-success hover:bg-success/90 text-white text-xs sm:text-sm h-9"
                             >
                                 {isLoading ? 'Saving...' : 'Save Changes'}
                             </Button>

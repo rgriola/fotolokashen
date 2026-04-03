@@ -72,19 +72,19 @@ export function TermsModal() {
                 <div
                     ref={scrollContainerRef}
                     onScroll={handleScroll}
-                    className="flex-1 min-h-0 overflow-y-auto p-6 bg-gray-50 rounded-lg border border-gray-200 space-y-6"
+                    className="flex-1 min-h-0 overflow-y-auto p-6 bg-muted rounded-lg border border-border space-y-6"
                 >
                     {/* Terms of Service */}
                     <section>
                         <h2 className="text-xl font-semibold mb-4">Terms of Service</h2>
-                        <div className="space-y-4 text-sm text-gray-700">
+                        <div className="space-y-4 text-sm text-foreground">
                             <p>
                                 Welcome to Fotolokashen, a professoinal film production managment and location sharing service.  
                         
                             </p>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">1. Acceptance of Terms</h3>
+                                <h3 className="font-semibold text-foreground mb-2">1. Acceptance of Terms</h3>
                                 <p>
                                 By using this app you must agree to the full terms of service outlined here. 
                                 These terms of service may be reviewed from the home page at any time and may periodically be updated. 
@@ -92,14 +92,14 @@ export function TermsModal() {
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">2. Age </h3>
+                                <h3 className="font-semibold text-foreground mb-2">2. Age </h3>
                                 <p>
                                 Any person must be at least 18 at the time of regiristy to use this service. There are no exceptions to this. 
                                  </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">3. Your Member Account</h3>
+                                <h3 className="font-semibold text-foreground mb-2">3. Your Member Account</h3>
                                 <p>
                                     You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. 
                                     You agree to notify us immediately of any unauthorized access at security@fotolokashen.com. Do not share your account with anyone.
@@ -107,7 +107,7 @@ export function TermsModal() {
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">4. Content</h3>
+                                <h3 className="font-semibold text-foreground mb-2">4. Content</h3>
                                 <p>
                                     You retain ownership of your uploaded images but you agree and grant fotolokashen license to use, display, and distribute your content as part of the service. 
                                     By agreeing to these terms you acknowledge ownership or permission to use all images you upload. 
@@ -116,7 +116,7 @@ export function TermsModal() {
                             </div>
 
                              <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">5.Your Images</h3>
+                                <h3 className="font-semibold text-foreground mb-2">5.Your Images</h3>
                                 <p>
                                     Your images are sent to ImageKit a CDN. Your images are compressed to optimize data transfers. 
                                     This means when you upload an image the orginal quaility is permenently changed.
@@ -125,7 +125,7 @@ export function TermsModal() {
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">6. Prohibited Conduct</h3>
+                                <h3 className="font-semibold text-foreground mb-2">6. Prohibited Conduct</h3>
                                 <p>
                                     You may not use fotolokashen to: violate any laws, infringe on others&apos; rights, distribute malware, spam users, pitch products or engage in any harmful activity.
                                     We do monitor images for inappropriate content, while fairly liberal Fotolokashen admins are the final arbitors for content issues.  
@@ -133,7 +133,7 @@ export function TermsModal() {
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">7. Termination</h3>
+                                <h3 className="font-semibold text-foreground mb-2">7. Termination</h3>
                                 <p>
                                     We reserve the right to suspend or terminate your account at any time for violations of these terms or for any other reason at our discretion.
                                 </p>
@@ -142,29 +142,29 @@ export function TermsModal() {
                     </section>
 
                     {/* Privacy Policy */}
-                    <section className="pt-6 border-t border-gray-300">
+                    <section className="pt-6 border-t border-border">
                         <h2 className="text-xl font-semibold mb-4">Privacy Policy</h2>
-                        <div className="space-y-4 text-sm text-gray-700">
+                        <div className="space-y-4 text-sm text-foreground">
                             <p>
                                 Your privacy is important to us. This policy explains how we collect, use, and protect your personal information.
                             </p>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">1. Information We Collect</h3>
+                                <h3 className="font-semibold text-foreground mb-2">1. Information We Collect</h3>
                                 <p>
                                     We collect information you provide directly (Your real name, email, birthday, specific locations data), automatically (usage data, device information, GPS location when permitted), and from third parties (OAuth providers like Google and Apple).
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">2. How We Use Your Information</h3>
+                                <h3 className="font-semibold text-foreground mb-2">2. How We Use Your Information</h3>
                                 <p>
                                     We use your information to provide and improve our services, personalize your experience, communicate with you, ensure security, and comply with legal obligations.
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">3. Information Sharing</h3>
+                                <h3 className="font-semibold text-foreground mb-2">3. Information Sharing</h3>
                                 <p>
                                     We do not sell your personal information. We may share data with service providers, when required by law, or with your consent. 
                                     Your saved locations are only visible according to your privacy settings; by default your locations are all private.
@@ -172,7 +172,7 @@ export function TermsModal() {
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">4. Data Security</h3>
+                                <h3 className="font-semibold text-foreground mb-2">4. Data Security</h3>
                                 <p>
                                     We implement industry-standard security measures to protect your data, including encryption, secure authentication, and regular security audits. 
                                     We do not know your password, it encrypted to protect your data. Do not share this with anyone. We will never ask for your password. 
@@ -180,7 +180,7 @@ export function TermsModal() {
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">5. Your Account Rights</h3>
+                                <h3 className="font-semibold text-foreground mb-2">5. Your Account Rights</h3>
                                 <p>
                                     You have the right to access, modify, or delete your personal information. 
                                     Under Account Profile You can manage your privacy settings or auto delete your account at any time.
@@ -188,21 +188,21 @@ export function TermsModal() {
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">6. Cookies and Tracking</h3>
+                                <h3 className="font-semibold text-foreground mb-2">6. Cookies and Tracking</h3>
                                 <p>
                                     We use cookies and similar technologies to maintain your session, remember your preferences, and analyze usage patterns. You can manage cookie preferences in your browser settings.
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">7. Changes to This Policy</h3>
+                                <h3 className="font-semibold text-foreground mb-2">7. Changes to This Policy</h3>
                                 <p>
                                     We may update this policy from time to time. We will notify you of significant changes via email or in-app notification.
                                 </p>
                             </div>
 
                             <div>
-                                <h3 className="font-semibold text-gray-900 mb-2">8. Contact Us</h3>
+                                <h3 className="font-semibold text-foreground mb-2">8. Contact Us</h3>
                                 <p>
                                     If you have questions about these terms or our privacy practices, please contact us at support@fotolokashen.com.
                                 </p>
@@ -214,20 +214,20 @@ export function TermsModal() {
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
+                    <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">
                         {error}
                         <Button
                             onClick={() => setError(null)}
                             variant="ghost"
                             size="sm"
-                            className="ml-2 text-red-800 hover:text-red-900"
+                            className="ml-2 text-destructive hover:text-destructive"
                         >
                             Dismiss
                         </Button>
                     </div>
                 )}
 
-                <div className="shrink-0 space-y-4 pt-4 border-t border-gray-200">
+                <div className="shrink-0 space-y-4 pt-4 border-t border-border">
                     <div className="flex items-start space-x-3">
                         <Checkbox
                             id="terms-checkbox"
@@ -239,12 +239,12 @@ export function TermsModal() {
                         <label
                             htmlFor="terms-checkbox"
                             className={`text-sm leading-relaxed ${
-                                hasScrolledToBottom ? 'text-gray-900' : 'text-gray-400'
+                                hasScrolledToBottom ? 'text-foreground' : 'text-muted-foreground'
                             }`}
                         >
                             I have read and accept the Terms of Service and Privacy Policy
                             {!hasScrolledToBottom && (
-                                <span className="block text-xs text-gray-500 mt-1">
+                                <span className="block text-xs text-muted-foreground mt-1">
                                     Please scroll to the bottom to enable this checkbox
                                 </span>
                             )}

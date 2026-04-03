@@ -25,6 +25,15 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-social: var(--social);
+  --color-social-foreground: var(--social-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -63,6 +72,15 @@
   --accent: oklch(0.968 0.007 247.896);
   --accent-foreground: oklch(0.208 0.042 265.755);
   --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --success: oklch(0.527 0.185 145.47);
+  --success-foreground: oklch(0.984 0.003 247.858);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.25 0.05 60);
+  --info: oklch(0.546 0.245 262.881);
+  --info-foreground: oklch(0.984 0.003 247.858);
+  --social: oklch(0.558 0.288 302.321);
+  --social-foreground: oklch(0.984 0.003 247.858);
   --border: oklch(0.929 0.013 255.508);
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.704 0.04 256.788);
@@ -97,6 +115,15 @@
   --accent: oklch(0.279 0.041 260.031);
   --accent-foreground: oklch(0.984 0.003 247.858);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --success: oklch(0.627 0.194 145.47);
+  --success-foreground: oklch(0.984 0.003 247.858);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.984 0.003 247.858);
+  --info: oklch(0.623 0.214 259.815);
+  --info-foreground: oklch(0.984 0.003 247.858);
+  --social: oklch(0.649 0.27 302.321);
+  --social-foreground: oklch(0.984 0.003 247.858);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.551 0.027 264.364);
@@ -122,6 +149,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  h1 { @apply text-2xl font-bold tracking-tight; }
+  h2 { @apply text-xl font-semibold; }
+  h3 { @apply text-lg font-semibold; }
+  h4 { @apply text-base font-semibold; }
+  p  { @apply text-sm; }
+  small, .caption { @apply text-xs text-muted-foreground; }
 }
 
 /* Safe area insets for mobile browsers */

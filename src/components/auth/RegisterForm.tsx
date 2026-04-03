@@ -164,11 +164,11 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 autoComplete="off"
                 {...register('firstName')}
                 disabled={isLoading}
-                className={errors.firstName ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={errors.firstName ? 'border-destructive focus-visible:ring-destructive' : ''}
                 aria-invalid={errors.firstName ? 'true' : 'false'}
               />
               {errors.firstName && (
-                <p className="text-sm text-red-500 font-medium">{errors.firstName.message}</p>
+                <p className="text-sm text-destructive font-medium">{errors.firstName.message}</p>
               )}
             </div>
 
@@ -181,11 +181,11 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 autoComplete="off"
                 {...register('lastName')}
                 disabled={isLoading}
-                className={errors.lastName ? 'border-red-500 focus-visible:ring-red-500' : ''}
+                className={errors.lastName ? 'border-destructive focus-visible:ring-destructive' : ''}
                 aria-invalid={errors.lastName ? 'true' : 'false'}
               />
               {errors.lastName && (
-                <p className="text-sm text-red-500 font-medium">{errors.lastName.message}</p>
+                <p className="text-sm text-destructive font-medium">{errors.lastName.message}</p>
               )}
             </div>
           </div>
@@ -199,11 +199,11 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               autoComplete="off"
               {...register('email')}
               disabled={isLoading}
-              className={errors.email ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
               aria-invalid={errors.email ? 'true' : 'false'}
             />
             {errors.email && (
-              <p className="text-sm text-red-500 font-medium">{errors.email.message}</p>
+              <p className="text-sm text-destructive font-medium">{errors.email.message}</p>
             )}
           </div>
 
@@ -216,11 +216,11 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               autoComplete="off"
               {...register('username')}
               disabled={isLoading}
-              className={errors.username ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.username ? 'border-destructive focus-visible:ring-destructive' : ''}
               aria-invalid={errors.username ? 'true' : 'false'}
             />
             {errors.username && (
-              <p className="text-sm text-red-500 font-medium">{errors.username.message}</p>
+              <p className="text-sm text-destructive font-medium">{errors.username.message}</p>
             )}
           </div>
 
@@ -233,12 +233,12 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               max={new Date().toISOString().split('T')[0]}
               {...register('dateOfBirth')}
               disabled={isLoading}
-              className={errors.dateOfBirth ? 'border-red-500 focus-visible:ring-red-500' : ''}
+              className={errors.dateOfBirth ? 'border-destructive focus-visible:ring-destructive' : ''}
               aria-invalid={errors.dateOfBirth ? 'true' : 'false'}
             />
             <p className="text-xs text-muted-foreground">You must be at least 18 years old to register.</p>
             {errors.dateOfBirth && (
-              <p className="text-sm text-red-500 font-medium">{errors.dateOfBirth.message}</p>
+              <p className="text-sm text-destructive font-medium">{errors.dateOfBirth.message}</p>
             )}
           </div>
 
@@ -252,13 +252,13 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 autoComplete="new-password"
                 {...register('password')}
                 disabled={isLoading}
-                className={`pr-10 ${errors.password ? 'border-red-500 focus-visible:ring-red-500' : ''}`}
+                className={`pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 aria-invalid={errors.password ? 'true' : 'false'}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                 tabIndex={-1}
               >
                 {showPassword ? (
@@ -269,7 +269,7 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-red-500 font-medium">{errors.password.message}</p>
+              <p className="text-sm text-destructive font-medium">{errors.password.message}</p>
             )}
 
             {/* Password Strength Indicator */}
@@ -281,16 +281,16 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                       key={i}
                       className={`h-1 flex-1 rounded ${i < passwordStrength
                         ? passwordStrength <= 2
-                          ? 'bg-red-500'
+                          ? 'bg-destructive'
                           : passwordStrength <= 3
-                            ? 'bg-yellow-500'
-                            : 'bg-green-500'
-                        : 'bg-gray-200'
+                            ? 'bg-warning'
+                            : 'bg-success'
+                        : 'bg-muted'
                         }`}
                     />
                   ))}
                 </div>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-muted-foreground">
                   {passwordStrength <= 2 && 'Weak'}
                   {passwordStrength === 3 && 'Fair'}
                   {passwordStrength === 4 && 'Good'}
@@ -311,11 +311,11 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 {...register('confirmPassword')}
                 disabled={isLoading}
                 className={`pr-20 ${errors.confirmPassword
-                  ? 'border-red-500 focus-visible:ring-red-500'
+                  ? 'border-destructive focus-visible:ring-destructive'
                   : passwordsMatch
-                    ? 'border-green-500 focus-visible:ring-green-500'
+                    ? 'border-success focus-visible:ring-success'
                     : passwordsDontMatch
-                      ? 'border-red-500 focus-visible:ring-red-500'
+                      ? 'border-destructive focus-visible:ring-destructive'
                       : ''
                   }`}
                 aria-invalid={errors.confirmPassword ? 'true' : 'false'}
@@ -324,11 +324,11 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               {confirmPassword && (
                 <div className="absolute right-12 top-1/2 -translate-y-1/2">
                   {passwordsMatch ? (
-                    <svg className="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : passwordsDontMatch ? (
-                    <svg className="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   ) : null}
@@ -337,7 +337,7 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                 tabIndex={-1}
               >
                 {showConfirmPassword ? (
@@ -349,13 +349,13 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
             </div>
             {/* Real-time feedback message */}
             {confirmPassword && !errors.confirmPassword && (
-              <p className={`text-sm font-medium ${passwordsMatch ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-sm font-medium ${passwordsMatch ? 'text-success' : 'text-destructive'}`}>
                 {passwordsMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
               </p>
             )}
             {/* Validation error message */}
             {errors.confirmPassword && (
-              <p className="text-sm text-red-500 font-medium">{errors.confirmPassword.message}</p>
+              <p className="text-sm text-destructive font-medium">{errors.confirmPassword.message}</p>
             )}
           </div>
 
@@ -365,9 +365,9 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-2">
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-muted-foreground">
           Have An Account?{' '}
-          <Link href="/login" className="text-blue-600 hover:underline font-medium">
+          <Link href="/login" className="text-primary hover:underline font-medium">
             Log in
           </Link>
         </div>

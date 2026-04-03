@@ -83,7 +83,7 @@ export function CustomMapControls({ map, rightPanelOpen }: CustomMapControlsProp
                     <Button
                         variant="secondary"
                         size="icon"
-                        className="h-10 w-10 bg-white hover:bg-gray-50 shadow-lg border border-gray-200"
+                        className="h-10 w-10 bg-white hover:bg-muted shadow-lg border border-border"
                         title="Change map type"
                     >
                         <Map className="h-5 w-5" />
@@ -106,12 +106,12 @@ export function CustomMapControls({ map, rightPanelOpen }: CustomMapControlsProp
             </DropdownMenu>
 
             {/* Zoom Controls */}
-            <div className="flex flex-col gap-0 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+            <div className="flex flex-col gap-0 bg-white rounded-md shadow-lg border border-border overflow-hidden">
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={handleZoomIn}
-                    className="h-10 w-10 rounded-none hover:bg-gray-50 border-b border-gray-200"
+                    className="h-10 w-10 rounded-none hover:bg-muted border-b border-border"
                     title="Zoom in"
                 >
                     <Plus className="h-5 w-5" />
@@ -120,7 +120,7 @@ export function CustomMapControls({ map, rightPanelOpen }: CustomMapControlsProp
                     variant="ghost"
                     size="icon"
                     onClick={handleZoomOut}
-                    className="h-10 w-10 rounded-none hover:bg-gray-50"
+                    className="h-10 w-10 rounded-none hover:bg-muted"
                     title="Zoom out"
                 >
                     <Minus className="h-5 w-5" />

@@ -232,14 +232,14 @@ function LocationsPageInner() {
                                         <Button
                                             variant="default"
                                             size="sm"
-                                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                                            className="bg-primary hover:bg-primary/90 text-white"
                                             disabled
                                         >
                                             <MapPin className="w-4 h-4 mr-1.5" />
                                             <span className="text-xs">Mine</span>
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                    <TooltipContent side="bottom" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                         Show my saved locations
                                     </TooltipContent>
                                 </Tooltip>
@@ -251,13 +251,13 @@ function LocationsPageInner() {
                                             variant={showPublic ? "default" : "outline"}
                                             size="sm"
                                             onClick={() => setShowPublic(!showPublic)}
-                                            className={showPublic ? "bg-purple-600 hover:bg-purple-700 text-white" : ""}
+                                            className={showPublic ? "bg-social hover:bg-social/90 text-white" : ""}
                                         >
                                             <Map className="w-4 h-4 mr-1.5" />
                                             <span className="text-xs">Public</span>
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                    <TooltipContent side="bottom" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                         Discover public locations from the community
                                     </TooltipContent>
                                 </Tooltip>
@@ -269,13 +269,13 @@ function LocationsPageInner() {
                                             variant={showFriends ? "default" : "outline"}
                                             size="sm"
                                             onClick={() => setShowFriends(!showFriends)}
-                                            className={showFriends ? "bg-blue-600 hover:bg-blue-700 text-white" : ""}
+                                            className={showFriends ? "bg-primary hover:bg-primary/90 text-white" : ""}
                                         >
                                             <Users className="w-4 h-4 mr-1.5" />
                                             <span className="text-xs">Friends</span>
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                    <TooltipContent side="bottom" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                         View locations saved by people you follow
                                     </TooltipContent>
                                 </Tooltip>
@@ -292,14 +292,14 @@ function LocationsPageInner() {
                                             asChild
                                             variant="default"
                                             size="icon"
-                                            className="shrink-0 bg-green-600 hover:bg-green-700"
+                                            className="shrink-0 bg-success hover:bg-success/90"
                                         >
                                             <Link href="/create-with-photo">
                                                 <Plus className="w-4 h-4" />
                                             </Link>
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                    <TooltipContent side="bottom" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                         Add location with photo
                                     </TooltipContent>
                                 </Tooltip>
@@ -333,7 +333,7 @@ function LocationsPageInner() {
                                             )}
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent side="bottom" className="bg-slate-900 text-white border-slate-700 px-3 py-2 text-sm font-medium shadow-xl">
+                                    <TooltipContent side="bottom" className="bg-foreground text-background border-border px-3 py-2 text-sm font-medium shadow-xl">
                                         {viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
                                     </TooltipContent>
                                 </Tooltip>
@@ -356,9 +356,9 @@ function LocationsPageInner() {
                 <div className="container mx-auto px-4 py-6 max-w-7xl">
                     {/* Empty state for public locations toggle */}
                     {showPublic && !isLoadingPublic && publicLocationsData?.locations.length === 0 && (
-                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-4">
-                            <h3 className="font-semibold text-purple-900 mb-2">No public locations found</h3>
-                            <p className="text-sm text-purple-700">
+                        <div className="bg-social/10 border border-social/20 rounded-lg p-6 mb-4">
+                            <h3 className="font-semibold text-social mb-2">No public locations found</h3>
+                            <p className="text-sm text-social">
                                 Try adjusting your filters or check back later for new public locations.
                             </p>
                         </div>
@@ -366,14 +366,14 @@ function LocationsPageInner() {
 
                     {/* Empty state for friends locations toggle */}
                     {showFriends && !isLoadingFriends && friendsLocationsData?.locations.length === 0 && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-4">
-                            <h3 className="font-semibold text-blue-900 mb-2">No friends&apos; locations found</h3>
-                            <p className="text-sm text-blue-700 mb-3">
+                        <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 mb-4">
+                            <h3 className="font-semibold text-primary mb-2">No friends&apos; locations found</h3>
+                            <p className="text-sm text-primary mb-3">
                                 You&apos;re not following anyone yet, or your friends haven&apos;t shared any locations.
                             </p>
                             <Link 
                                 href="/search" 
-                                className="text-sm font-medium text-blue-600 hover:text-blue-800 underline"
+                                className="text-sm font-medium text-primary hover:text-primary underline"
                             >
                                 Find people to follow →
                             </Link>

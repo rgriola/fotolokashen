@@ -412,7 +412,7 @@ transition-colors duration-200
                     </div>
                 ) : (
                     <div className="flex flex-col items-center gap-2">
-                        <Camera className="w-10 h-10 text-green-600" />
+                        <Camera className="w-10 h-10 text-success" />
                         <div className="text-center">
                             <p className="text-sm font-medium">{PLACEHOLDER_TEXT.UPLOAD_PROMPT}</p>
                             <p className="text-xs text-muted-foreground mt-1">
