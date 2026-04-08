@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
+import { apiResponse, apiError, requireAuth, parseBoundsFilter } from '@/lib/api-middleware';
 import { VALIDATION_CONFIG } from '@/lib/validation-config';
 import { sanitizeText } from '@/lib/sanitize';
 
@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
         const sort = searchParams.get('sort') || 'createdAt';
         const order = searchParams.get('order') || 'desc';
         const type = searchParams.get('type');
-        const bounds = searchParams.get('bounds');
 
         // Build where clause
         const where: any = {
@@ -41,15 +40,16 @@ export async function GET(request: NextRequest) {
         }
 
         // Add bounds filter for viewport loading
-        if (bounds) {
-            const [lat1, lng1, lat2, lng2] = bounds.split(',').map(Number);
-            if (lat1 && lng1 && lat2 && lng2) {
+        try {
+            const boundsFilter = parseBoundsFilter(searchParams);
+            if (boundsFilter) {
                 where.location = {
                     ...where.location,
-                    lat: { gte: Math.min(lat1, lat2), lte: Math.max(lat1, lat2) },
-                    lng: { gte: Math.min(lng1, lng2), lte: Math.max(lng1, lng2) },
+                    ...boundsFilter,
                 };
             }
+        } catch (e) {
+            return apiError(e as string, 400, 'INVALID_BOUNDS');
         }
 
         // Build orderBy clause

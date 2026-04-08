@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { canAccessAdminPanel } from '@/lib/permissions';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -24,11 +25,11 @@ export function AdminRoute({ children }: AdminRouteProps) {
     if (!isLoading) {
       if (!user) {
         console.log('[AdminRoute] No authenticated user, redirecting to login');
-        toast.error('Please login to access this page');
+        toast.error(TOAST.AUTH.LOGIN_REQUIRED);
         router.push('/login');
       } else if (!canAccessAdminPanel(user)) {
         console.log('[AdminRoute] User does not have admin access, redirecting to home');
-        toast.error('Admin access required');
+        toast.error(TOAST.AUTH.ADMIN_ACCESS_DENIED);
         router.push('/');
       }
     }

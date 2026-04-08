@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import type { Location } from '@/types/location';
 
 interface UpdateCaptionData {
@@ -56,7 +57,7 @@ export function useUpdateCaption() {
             if (context?.previousLocations) {
                 queryClient.setQueryData(['locations'], context.previousLocations);
             }
-            toast.error(error.message || 'Failed to update caption');
+            toast.error(error.message || TOAST.LOCATION.CAPTION_FAILED);
         },
         onSuccess: () => {
             // Don't show toast for caption updates (inline editing)

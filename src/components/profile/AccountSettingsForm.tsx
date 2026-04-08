@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { User, Mail, Phone, MapPin, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
@@ -158,7 +159,7 @@ export function AccountSettingsForm() {
                 city: userCity,
                 country: userCountry,
             });
-            toast.info('Changes discarded');
+            toast.info(TOAST.PROFILE.CHANGES_DISCARDED);
         }
     };
 
@@ -175,17 +176,17 @@ export function AccountSettingsForm() {
             const result = await response.json();
 
             if (!response.ok) {
-                toast.error(result.error || 'Failed to update profile');
+                toast.error(result.error || TOAST.PROFILE.UPDATE_FAILED);
                 return;
             }
 
-            toast.success('Profile updated successfully');
+            toast.success(TOAST.PROFILE.UPDATED);
 
             // Refresh user data
             await refetchUser();
         } catch (error) {
             console.error('Update profile error:', error);
-            toast.error('An unexpected error occurred');
+            toast.error(TOAST.GENERIC.UNEXPECTED);
         } finally {
             setIsLoading(false);
         }
@@ -366,7 +367,7 @@ export function AccountSettingsForm() {
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-warning dark:text-warning flex-shrink-0" />
+                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-warning dark:text-warning shrink-0" />
                                 <p className="font-semibold text-sm sm:text-base text-warning dark:text-warning-foreground">
                                     Unsaved changes
                                 </p>
@@ -382,7 +383,7 @@ export function AccountSettingsForm() {
                                 )}
                             </ul>
                         </div>
-                        <div className="flex gap-2 sm:gap-2 sm:flex-shrink-0">
+                        <div className="flex gap-2 sm:gap-2 sm:shrink-0">
                             <Button
                                 variant="outline"
                                 size="sm"

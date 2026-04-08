@@ -47,6 +47,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 
 /**
  * Email Template Interface
@@ -105,7 +106,7 @@ export default function EmailTemplatesPage() {
       setTemplates(data.templates || []);
     } catch (error) {
       console.error('Error fetching templates:', error);
-      toast.error('Failed to load email templates');
+      toast.error(TOAST.ADMIN.TEMPLATES_LOAD_FAILED);
     } finally {
       setLoading(false);
     }
@@ -131,7 +132,7 @@ export default function EmailTemplatesPage() {
   const handleDelete = async (id: number, isDefault: boolean) => {
     // Prevent deletion of default templates
     if (isDefault) {
-      toast.error('Default templates cannot be deleted');
+      toast.error(TOAST.ADMIN.TEMPLATE_DEFAULT_DELETE);
       return;
     }
 
@@ -147,11 +148,11 @@ export default function EmailTemplatesPage() {
 
       if (!response.ok) throw new Error('Failed to delete template');
 
-      toast.success('Template deleted successfully');
+      toast.success(TOAST.ADMIN.TEMPLATE_DELETED);
       fetchTemplates(); // Refresh the list
     } catch (error) {
       console.error('Error deleting template:', error);
-      toast.error('Failed to delete template');
+      toast.error(TOAST.ADMIN.TEMPLATE_DELETE_FAILED);
     }
   };
 
@@ -188,11 +189,11 @@ export default function EmailTemplatesPage() {
       }
 
       const data = await response.json();
-      toast.success(data.summary || 'Templates seeded successfully');
+      toast.success(data.summary || TOAST.ADMIN.TEMPLATE_SEEDED);
       fetchTemplates(); // Refresh the list to show new templates
     } catch (error) {
       console.error('Error seeding templates:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to seed templates');
+      toast.error(error instanceof Error ? error.message : TOAST.ADMIN.TEMPLATE_SEED_FAILED);
     } finally {
       setSeeding(false);
     }
@@ -267,7 +268,7 @@ export default function EmailTemplatesPage() {
           
           {/* Category Filter Dropdown */}
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[180px] h-9">
+            <SelectTrigger className="w-45 h-9">
               <Filter className="w-4 h-4 mr-2" />
               <SelectValue placeholder="Category" />
             </SelectTrigger>

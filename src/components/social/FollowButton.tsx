@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Loader2 } from 'lucide-react';
 
 interface FollowButtonProps {
@@ -63,7 +64,7 @@ export function FollowButton({
       if (!response.ok) {
         // Handle errors
         if (response.status === 401) {
-          toast.error('Please log in to follow users');
+          toast.error(TOAST.SOCIAL.LOGIN_REQUIRED);
           router.push('/login');
           return;
         }
@@ -77,8 +78,8 @@ export function FollowButton({
       // Show success message
       toast.success(
         isFollowing 
-          ? `Unfollowed @${username}` 
-          : `Following @${username}`
+          ? TOAST.SOCIAL.UNFOLLOWED(username) 
+          : TOAST.SOCIAL.FOLLOWED(username)
       );
 
       // Refresh the page to update follower counts
@@ -86,7 +87,7 @@ export function FollowButton({
 
     } catch (error) {
       console.error('Error updating follow status:', error);
-      toast.error(error instanceof Error ? error.message : 'Something went wrong');
+      toast.error(error instanceof Error ? error.message : TOAST.SOCIAL.FOLLOW_FAILED);
     } finally {
       setIsLoading(false);
     }

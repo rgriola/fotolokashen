@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { X, Loader2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
 import { useAuth } from "@/lib/auth-context";
 import { FOLDER_PATHS } from "@/lib/constants/upload";
 import { usePhotoCacheManager } from "@/hooks/usePhotoCacheManager";
@@ -119,7 +120,7 @@ export function ImageKitUploader({
             return await response.json();
         } catch (error) {
             console.error('Error getting ImageKit auth:', error);
-            toast.error('Failed to authenticate for photo upload');
+            toast.error(TOAST.PHOTO.UPLOAD_AUTH_FAILED);
             throw error;
         }
     };
@@ -249,7 +250,7 @@ export function ImageKitUploader({
 
         // Check max photos limit
         if (currentCount + fileArray.length > maxPhotos) {
-            toast.error(`Maximum ${maxPhotos} photos allowed`);
+            toast.error(TOAST.PHOTO.MAX_PHOTOS(maxPhotos));
             return;
         }
 
@@ -297,9 +298,9 @@ export function ImageKitUploader({
             setPhotos(newPhotos);
             onPhotosChange?.(newPhotos);
 
-            toast.success(`${uploadedPhotos.length} photo(s) uploaded successfully`);
+            toast.success(TOAST.PHOTO.UPLOAD_SUCCESS(uploadedPhotos.length));
         } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to upload photos';
+            const message = error instanceof Error ? error.message : TOAST.PHOTO.UPLOAD_FAILED;
             toast.error(message);
         } finally {
             setUploading(false);
@@ -353,7 +354,7 @@ export function ImageKitUploader({
                     throw new Error(error.error || 'Failed to delete photo');
                 }
 
-                toast.success('Photo deleted successfully');
+                toast.success(TOAST.PHOTO.DELETED);
             } catch (error) {
                 const message = error instanceof Error ? error.message : 'Failed to delete photo';
                 console.error('Error deleting photo:', error);

@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminRoute } from '@/components/auth/AdminRoute';
 import { ArrowLeft, Save, Copy, Eye, Settings, Palette, ImageIcon, Monitor, Tablet, Smartphone, Info, Code } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { HexColorPicker } from 'react-colorful';
 import {
   Select,
@@ -41,7 +42,7 @@ type DeviceSize = keyof typeof DEVICE_SIZES;
 const Editor = dynamic(() => import('@monaco-editor/react'), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-[500px] border rounded-md bg-gray-900">
+    <div className="flex items-center justify-center h-125 border rounded-md bg-gray-900">
       <p className="text-gray-400">Loading editor...</p>
     </div>
   ),
@@ -181,7 +182,7 @@ export default function DuplicateEmailTemplatePage({
       });
     } catch (error) {
       console.error('Error fetching template:', error);
-      toast.error('Failed to load source template');
+      toast.error(TOAST.ADMIN.TEMPLATE_SOURCE_FAILED);
       router.push('/admin/email-templates');
     } finally {
       setLoading(false);
@@ -214,9 +215,9 @@ export default function DuplicateEmailTemplatePage({
 
     if (missingFields.length > 0) {
       if (missingFields.length === 1) {
-        toast.error(`${missingFields[0]} is required`);
+        toast.error(TOAST.ADMIN.FIELD_REQUIRED(missingFields[0]));
       } else {
-        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+        toast.error(TOAST.ADMIN.FIELDS_MISSING(missingFields));
       }
       
       if (!template.htmlBody?.trim()) {
@@ -231,19 +232,19 @@ export default function DuplicateEmailTemplatePage({
     const subjectValidationError = validateSubject(template.subject);
 
     if (keyValidationError) {
-      toast.error(`Template Key: ${keyValidationError}`);
+      toast.error(TOAST.ADMIN.FIELD_VALIDATION('Template Key', keyValidationError));
       setKeyError(keyValidationError);
       return;
     }
 
     if (nameValidationError) {
-      toast.error(`Template Name: ${nameValidationError}`);
+      toast.error(TOAST.ADMIN.FIELD_VALIDATION('Template Name', nameValidationError));
       setNameError(nameValidationError);
       return;
     }
 
     if (subjectValidationError) {
-      toast.error(`Subject Line: ${subjectValidationError}`);
+      toast.error(TOAST.ADMIN.FIELD_VALIDATION('Subject Line', subjectValidationError));
       setSubjectError(subjectValidationError);
       return;
     }
@@ -263,11 +264,11 @@ export default function DuplicateEmailTemplatePage({
         throw new Error(error.error || 'Failed to create duplicate template');
       }
 
-      toast.success('Template duplicated successfully');
+      toast.success(TOAST.ADMIN.TEMPLATE_DUPLICATED);
       router.push('/admin/email-templates');
     } catch (error) {
       console.error('Error saving template:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save template');
+      toast.error(error instanceof Error ? error.message : TOAST.ADMIN.TEMPLATE_SAVE_FAILED);
     } finally {
       setSaving(false);
     }
@@ -275,7 +276,7 @@ export default function DuplicateEmailTemplatePage({
 
   const handleCopyHTML = () => {
     navigator.clipboard.writeText(template.htmlBody);
-    toast.success('HTML copied to clipboard');
+    toast.success(TOAST.ADMIN.HTML_COPIED);
   };
 
   // Device icons mapping
@@ -565,7 +566,7 @@ export default function DuplicateEmailTemplatePage({
                           <button
                             type="button"
                             onClick={() => setShowColorPicker(showColorPicker === 'gradientStart' ? null : 'gradientStart')}
-                            className="w-6 h-6 rounded border cursor-pointer flex-shrink-0"
+                            className="w-6 h-6 rounded border cursor-pointer shrink-0"
                             style={{ backgroundColor: template.headerGradientStart }}
                           />
                           <Input
@@ -581,7 +582,7 @@ export default function DuplicateEmailTemplatePage({
                           <button
                             type="button"
                             onClick={() => setShowColorPicker(showColorPicker === 'gradientEnd' ? null : 'gradientEnd')}
-                            className="w-6 h-6 rounded border cursor-pointer flex-shrink-0"
+                            className="w-6 h-6 rounded border cursor-pointer shrink-0"
                             style={{ backgroundColor: template.headerGradientEnd }}
                           />
                           <Input

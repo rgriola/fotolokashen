@@ -9,49 +9,21 @@
  * Returns a simple array of username suggestions for typeahead/autocomplete
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { getUsernameSuggestions } from '@/lib/search-utils';
-import { requireAuth } from '@/lib/api-middleware';
+import { withAuth, apiResponse, apiError } from '@/lib/api-middleware';
 
-export async function GET(request: NextRequest) {
-  try {
-    const auth = await requireAuth(request);
-    if (!auth.authorized || !auth.user) {
-      return Response.json({ error: auth.error }, { status: 401 });
-    }
+export const GET = withAuth(async (request, user) => {
+  const { searchParams } = new URL(request.url);
 
-    const currentUserId = auth.user.id;
-    const { searchParams } = new URL(request.url);
-    
-    // Get query parameters
-    const query = searchParams.get('q');
-    const limitParam = searchParams.get('limit');
+  const query = searchParams.get('q');
+  const limitParam = searchParams.get('limit');
 
-    // Validate query
-    if (!query || query.trim().length < 2) {
-      return NextResponse.json(
-        { error: 'Query must be at least 2 characters' },
-        { status: 400 }
-      );
-    }
-
-    // Parse limit (default 10, max 20)
-    const limit = Math.min(parseInt(limitParam || '10', 10), 20);
-
-    // Get suggestions
-    const suggestions = await getUsernameSuggestions(query, limit, currentUserId);
-
-    // Return simple response
-    return NextResponse.json({
-      suggestions,
-      query,
-    });
-
-  } catch (error) {
-    console.error('Suggestions API error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  if (!query || query.trim().length < 2) {
+    return apiError('Query must be at least 2 characters', 400);
   }
-}
+
+  const limit = Math.min(parseInt(limitParam || '10', 10), 20);
+  const suggestions = await getUsernameSuggestions(query, limit, user.id);
+
+  return apiResponse({ suggestions, query });
+});

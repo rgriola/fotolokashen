@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, ChevronLeft, ChevronRight, Trash2, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { DeleteUserModal } from '@/components/admin/DeleteUserModal';
 import { useAuth } from '@/lib/auth-context';
 
@@ -88,7 +89,7 @@ export function UserManagementTable() {
             setTotalPages(data.totalPages);
         } catch (error) {
             console.error('Error fetching users:', error);
-            toast.error('Failed to load users');
+            toast.error(TOAST.ADMIN.USERS_LOAD_FAILED);
         } finally {
             setLoading(false);
         }
@@ -146,13 +147,13 @@ export function UserManagementTable() {
                 throw new Error(errorMessage);
             }
 
-            toast.success(`User ${userToDelete.email} deleted successfully`);
+            toast.success(TOAST.ADMIN.USER_DELETED(userToDelete.email));
             setDeleteModalOpen(false);
             setUserToDelete(null);
             fetchUsers(); // Refresh the list
         } catch (error) {
             console.error('Error deleting user:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to delete user');
+            toast.error(error instanceof Error ? error.message : TOAST.ADMIN.USER_DELETE_FAILED);
         }
     };
 

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 
 //Validation schema (same as registration)
@@ -84,20 +85,20 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             const result = await response.json();
 
             if (!response.ok) {
-                toast.error(result.error || 'Failed to reset password');
+                toast.error(result.error || TOAST.AUTH.RESET_FAILED);
                 setIsLoading(false);
                 return;
             }
 
             // Check if email verification is required
             if (result.requiresVerification) {
-                toast.success('Password reset successful!');
+                toast.success(TOAST.AUTH.RESET_SUCCESS);
 
                 // Wait a moment for user to see the message
                 await new Promise(resolve => setTimeout(resolve, 1500));
 
                 // Show verification required message
-                toast.info('Please verify your email before logging in.');
+                toast.info(TOAST.AUTH.VERIFY_BEFORE_LOGIN);
 
                 // Wait another moment
                 await new Promise(resolve => setTimeout(resolve, 1500));
@@ -108,7 +109,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             }
 
             // Email is verified - auto-login successful
-            toast.success('Password reset successful! Logging you in...');
+            toast.success(TOAST.AUTH.RESET_SUCCESS_LOGIN);
 
             // Wait for server to process and set cookies
             await new Promise(resolve => setTimeout(resolve, 1500));
@@ -117,7 +118,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             router.push('/map');
         } catch (error) {
             console.error('Reset password error:', error);
-            toast.error('An unexpected error occurred');
+            toast.error(TOAST.GENERIC.UNEXPECTED);
             setIsLoading(false);
         }
     };

@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { IMAGEKIT_URL_ENDPOINT, getOptimizedAvatarUrl } from "@/lib/imagekit";
 import { useState } from "react";
 import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
 
 // Get Google Maps API key for static images
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -145,10 +146,10 @@ function LocationListItem({
         try {
             await navigator.clipboard.writeText(link);
             setCopied(true);
-            toast.success('Link copied to clipboard!');
+            toast.success(TOAST.SHARING.LINK_COPIED);
             setTimeout(() => setCopied(false), 2000);
         } catch {
-            toast.error('Failed to copy link');
+            toast.error(TOAST.SHARING.COPY_FAILED);
         }
     };
 

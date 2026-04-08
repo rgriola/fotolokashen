@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { User, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
@@ -61,38 +62,38 @@ export function ChangeUsernameForm() {
             if (!response.ok) {
                 // SPECIFIC ERROR MESSAGES
                 if (result.code === 'USERNAME_TAKEN') {
-                    toast.error('Username Taken', {
+                    toast.error(TOAST.PROFILE.USERNAME_TAKEN, {
                         description: 'This username is already taken. Please choose a different username.',
                     });
                 } else if (result.code === 'USERNAME_RESERVED') {
-                    toast.error('Username Reserved', {
+                    toast.error(TOAST.PROFILE.USERNAME_RESERVED, {
                         description: 'This username is reserved and cannot be used.',
                     });
                 } else if (result.code === 'SAME_USERNAME') {
-                    toast.error('Same Username', {
+                    toast.error(TOAST.PROFILE.USERNAME_SAME, {
                         description: 'New username is the same as your current username.',
                     });
                 } else if (result.code === 'RATE_LIMITED_MONTHLY') {
-                    toast.error('Too Many Changes', {
+                    toast.error(TOAST.PROFILE.TOO_MANY_REQUESTS, {
                         description: 'You can only change your username once per 30 days. Please try again later.',
                     });
                 } else if (result.code === 'RATE_LIMITED_YEARLY') {
-                    toast.error('Annual Limit Reached', {
+                    toast.error(TOAST.PROFILE.ANNUAL_LIMIT, {
                         description: 'You have reached the maximum of 3 username changes per year. Please contact support if you need assistance.',
                     });
                 } else if (result.code === 'INVALID_PASSWORD') {
-                    toast.error('Incorrect Password', {
+                    toast.error(TOAST.PROFILE.INCORRECT_PASSWORD, {
                         description: 'The password you entered is incorrect.',
                     });
                 } else {
-                    toast.error(result.error || 'Failed to change username');
+                    toast.error(result.error || TOAST.PROFILE.USERNAME_FAILED);
                 }
                 setIsLoading(false);
                 return;
             }
 
             // Success
-            toast.success('Username Changed!', {
+            toast.success(TOAST.PROFILE.USERNAME_CHANGED, {
                 description: `Your username has been changed to @${result.username}`,
                 duration: 5000,
             });
@@ -103,7 +104,7 @@ export function ChangeUsernameForm() {
             await refetchUser();
         } catch (error) {
             console.error('Username change error:', error);
-            toast.error('An unexpected error occurred');
+            toast.error(TOAST.GENERIC.UNEXPECTED);
         } finally {
             setIsLoading(false);
         }
@@ -188,7 +189,7 @@ export function ChangeUsernameForm() {
 
                     {/* Warning Alert */}
                     <div className="flex gap-3 p-4 rounded-lg border border-warning/20 bg-warning/10 dark:border-warning dark:bg-warning/10">
-                        <AlertTriangle className="h-5 w-5 text-warning dark:text-warning flex-shrink-0 mt-0.5" />
+                        <AlertTriangle className="h-5 w-5 text-warning dark:text-warning shrink-0 mt-0.5" />
                         <div className="text-sm text-warning dark:text-warning-foreground">
                             <strong>Important:</strong> You can only change your username once per 30 days (maximum 3 times per year).
                             Choose carefully!

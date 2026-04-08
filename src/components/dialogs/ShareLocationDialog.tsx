@@ -23,6 +23,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import type { Location } from '@/types/location';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-context';
@@ -72,10 +73,10 @@ export function ShareLocationDialog({
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
-      toast.success('Link copied to clipboard!');
+      toast.success(TOAST.SHARING.LINK_COPIED);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy link');
+      toast.error(TOAST.SHARING.COPY_FAILED);
     }
   };
 
@@ -91,7 +92,7 @@ export function ShareLocationDialog({
       });
 
       if (response.ok) {
-        toast.success(`Location visibility updated to ${visibility}`);
+        toast.success(TOAST.SHARING.VISIBILITY_UPDATED(visibility));
         // Reload the page to reflect changes
         window.location.reload();
         onOpenChange(false);
@@ -100,7 +101,7 @@ export function ShareLocationDialog({
         throw new Error(errorData.error || 'Failed to update visibility');
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update visibility';
+      const errorMessage = error instanceof Error ? error.message : TOAST.SHARING.VISIBILITY_FAILED;
       toast.error(errorMessage);
       console.error('Visibility update error:', error);
     }

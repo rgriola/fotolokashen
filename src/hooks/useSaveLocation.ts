@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import type { Location } from '@/types/location';
 
 interface SaveLocationData {
@@ -105,14 +106,14 @@ export function useSaveLocation() {
         onSuccess: (data) => {
             // Invalidate and refetch locations
             queryClient.invalidateQueries({ queryKey: ['locations'] });
-            toast.success('Location saved successfully!');
+            toast.success(TOAST.LOCATION.CREATED);
         },
         onError: (error: any) => {
             // Show different message for "already saved" vs other errors
             if (error.code === 'ALREADY_SAVED') {
-                toast.warning(error.message || 'This location is already in your saved locations');
+                toast.warning(error.message || TOAST.LOCATION.ALREADY_SAVED);
             } else {
-                toast.error(error.message || 'Failed to save location');
+                toast.error(error.message || TOAST.LOCATION.SAVE_FAILED);
             }
         },
     });

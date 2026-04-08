@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Mail, RefreshCw } from 'lucide-react';
 
 interface EmailVerificationPromptProps {
@@ -29,13 +30,13 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
       const data = await response.json();
 
       if (response.ok) {
-        toast.success(data.message || 'Verification email sent! Please check your inbox.');
+        toast.success(data.message || TOAST.AUTH.VERIFICATION_SENT);
         setResentCount(prev => prev + 1);
       } else {
-        toast.error(data.error || 'Failed to resend verification email');
+        toast.error(data.error || TOAST.AUTH.VERIFICATION_FAILED);
       }
     } catch (error) {
-      toast.error('Failed to resend verification email. Please try again.');
+      toast.error(TOAST.AUTH.VERIFICATION_FAILED);
     } finally {
       setIsResending(false);
     }
@@ -44,7 +45,7 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
   return (
     <div className="bg-warning/10 border border-warning/20 rounded-lg p-6 space-y-4">
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <Mail className="h-6 w-6 text-warning" />
         </div>
         <div className="flex-1">

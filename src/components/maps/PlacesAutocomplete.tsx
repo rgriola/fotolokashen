@@ -4,6 +4,7 @@ import { Autocomplete } from '@react-google-maps/api';
 import { useState, useRef } from 'react';
 import { extractPlaceData, LocationData } from '@/lib/maps-utils';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 
 interface PlacesAutocompleteProps {
     onPlaceSelected: (place: LocationData) => void;
@@ -107,7 +108,7 @@ export function PlacesAutocomplete({
             
             if (coords) {
                 setIsProcessingCoordinates(true);
-                toast.info('Processing coordinates...');
+                toast.info(TOAST.GEOCODING.PROCESSING);
                 
                 try {
                     // Use Google Geocoding API to get place details from coordinates
@@ -130,16 +131,16 @@ export function PlacesAutocomplete({
                         };
 
                         onPlaceSelected(locationData);
-                        toast.success('Coordinates found!');
+                        toast.success(TOAST.GEOCODING.FOUND);
                         
                         // Clear input
                         inputRef.current.value = '';
                     } else {
-                        toast.error('Could not find location for these coordinates');
+                        toast.error(TOAST.GEOCODING.NOT_FOUND);
                     }
                 } catch (error) {
                     console.error('Geocoding error:', error);
-                    toast.error('Failed to geocode coordinates');
+                    toast.error(TOAST.GEOCODING.FAILED);
                 } finally {
                     setIsProcessingCoordinates(false);
                 }

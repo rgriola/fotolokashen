@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Tag, X, Map, AlertCircle, Sparkles, Camera, Navigation } from "lucide-react";
+import { MapPin, X, Map, Sparkles, Camera, Navigation } from "lucide-react";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
 import { PhotoCarouselManager } from "@/components/ui/PhotoCarouselManager";
+import { TagInput } from "@/components/locations/TagInput";
+import { UnsavedChangesBanner } from "@/components/locations/UnsavedChangesBanner";
 import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/location-constants";
 import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR } from "@/lib/form-constants";
 import { Location, UserSave } from "@/types/location";
@@ -21,6 +22,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useImproveDescription } from "@/hooks/useImproveDescription";
 import Image from "next/image";
 import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
 
 // Security: Regex to prevent XSS and SQL injection in text fields
 const safeTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()]+$/;
@@ -84,7 +86,6 @@ export function EditLocationForm({
     const availableTypes = getAvailableTypes(isAdmin);
     
     const [tags, setTags] = useState<string[]>(userSave.tags || []);
-    const [tagInput, setTagInput] = useState("");
     const [photos, setPhotos] = useState<any[]>([]);
     const [photosToDelete, setPhotosToDelete] = useState<number[]>([]);
     const [hasChanges, setHasChanges] = useState(false);
@@ -335,15 +336,15 @@ export function EditLocationForm({
             console.log('[EditLocationForm] Starting photo upload for', cachedPhotos.length, 'photos');
             try {
                 setIsUploadingPhotos(true);
-                toast.info(`Uploading ${cachedPhotos.length} photo(s)...`);
+                toast.info(TOAST.PHOTO.UPLOADING(cachedPhotos.length));
                 
                 // Upload all cached photos to ImageKit using the function from ImageKitUploader
                 uploadedPhotos = await uploadPhotosRef.current();
                 
                 console.log('[EditLocationForm] Photos uploaded successfully:', uploadedPhotos);
-                toast.success(`${uploadedPhotos.length} photo(s) uploaded successfully!`);
+                toast.success(TOAST.PHOTO.UPLOAD_SUCCESS(uploadedPhotos.length));
             } catch (error) {
-                const message = error instanceof Error ? error.message : 'Failed to upload photos';
+                const message = error instanceof Error ? error.message : TOAST.PHOTO.UPLOAD_FAILED;
                 toast.error(message);
                 setIsUploadingPhotos(false);
                 return; // Don't proceed with location save if photo upload fails
@@ -419,44 +420,6 @@ export function EditLocationForm({
         }
     };
 
-    const handleAddTag = () => {
-        const trimmedTag = tagInput.trim();
-        
-        // Validate tag: alphanumeric, spaces, hyphens only (max 25 chars)
-        const tagRegex = /^[a-zA-Z0-9\s\-]+$/;
-        
-        if (!trimmedTag) {
-            return;
-        }
-        
-        if (tags.includes(trimmedTag)) {
-            toast.error('This tag already exists');
-            return;
-        }
-        
-        if (tags.length >= 20) {
-            toast.error('Maximum 20 tags allowed');
-            return;
-        }
-        
-        if (trimmedTag.length > 25) {
-            toast.error('Tag must be 25 characters or less');
-            return;
-        }
-        
-        if (!tagRegex.test(trimmedTag)) {
-            toast.error('Invalid characters in tag. Only letters, numbers, spaces, and hyphens are allowed. @ symbol is not allowed.');
-            return;
-        }
-        
-        setTags([...tags, trimmedTag]);
-        setTagInput("");
-    };
-
-    const handleRemoveTag = (tagToRemove: string) => {
-        setTags(tags.filter((tag) => tag !== tagToRemove));
-    };
-
     const handleImproveProductionNotes = async () => {
         const currentNotes = form.getValues("productionNotes");
         if (!currentNotes || currentNotes.trim().length === 0) return;
@@ -481,26 +444,6 @@ export function EditLocationForm({
                 .slice(0, 10); // Limit to 10 suggestions
             
             setSuggestedTags(newTags);
-        }
-    };
-
-    const handleAddSuggestedTag = (tag: string) => {
-        if (!tags.includes(tag) && tags.length < 20) {
-            setTags([...tags, tag]);
-        }
-        // Remove from suggestions after adding
-        setSuggestedTags(suggestedTags.filter(t => t !== tag));
-    };
-
-    const handleAddAllSuggestedTags = () => {
-        const availableSlots = 20 - tags.length;
-        const tagsToAdd = suggestedTags
-            .filter(tag => !tags.includes(tag))
-            .slice(0, availableSlots);
-        
-        if (tagsToAdd.length > 0) {
-            setTags([...tags, ...tagsToAdd]);
-            setSuggestedTags([]);
         }
     };
 
@@ -768,114 +711,17 @@ export function EditLocationForm({
                         </div>
                     </div>
 
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            <Label htmlFor="tags">Tags</Label>
-                            <span className="text-xs text-muted-foreground">
-                                {tags.length}/20 • each tag 25 chars max
-                            </span>
-                        </div>
-                        <div className="relative">
-                            <Input
-                                id="tags"
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                        handleAddTag();
-                                    }
-                                }}
-                                placeholder="Add tags..."
-                                maxLength={25}
-                                className="pr-10"
-                            />
-                            <Button
-                                type="button"
-                                onClick={handleAddTag}
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                            >
-                                <Tag className="w-4 h-4" />
-                            </Button>
-                        </div>
-                        
-                        {/* AI Suggest Tags Button */}
-                        <div className="mt-2">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={handleSuggestTags}
-                                disabled={isAiLoading || !watchedProductionNotes || watchedProductionNotes.trim().length === 0 || suggestedTags.length > 0}
-                                className="text-xs gap-1.5"
-                            >
-                                <Sparkles className="w-3.5 h-3.5" />
-                                {isAiLoading ? "Generating..." : "AI Tag Suggestions"}
-                            </Button>
-                        </div>
-
-                        {/* Suggested Tags */}
-                        {suggestedTags.length > 0 && (
-                            <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-lg space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-xs font-semibold text-primary">AI Suggested Tags:</p>
-                                    <div className="flex gap-1">
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={handleAddAllSuggestedTags}
-                                            className="text-xs h-6 px-2 text-primary hover:text-primary"
-                                        >
-                                            Add All
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={handleDismissSuggestedTags}
-                                            className="text-xs h-6 px-2 text-muted-foreground hover:text-foreground"
-                                        >
-                                            Dismiss
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {suggestedTags.map((tag) => (
-                                        <Badge
-                                            key={tag}
-                                            variant="outline"
-                                            className="gap-1 cursor-pointer hover:bg-primary/10 border-primary/30 text-primary"
-                                            onClick={() => handleAddSuggestedTag(tag)}
-                                        >
-                                            + {tag}
-                                        </Badge>
-                                    ))}
-                                </div>
-                                <p className="text-xs text-primary italic">Click a tag to add it to your location</p>
-                            </div>
-                        )}
-
-                        {/* Current Tags */}
-                        {tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {tags.map((tag) => (
-                                    <Badge key={tag} variant="secondary" className="gap-1">
-                                        {tag}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveTag(tag)}
-                                            className="ml-1 hover:text-destructive"
-                                >
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </Badge>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <TagInput
+                        tags={tags}
+                        onTagsChange={setTags}
+                        ai={{
+                            suggestedTags,
+                            onSuggestTags: handleSuggestTags,
+                            onDismissSuggested: handleDismissSuggestedTags,
+                            isLoading: isAiLoading,
+                            disabled: !watchedProductionNotes || watchedProductionNotes.trim().length === 0,
+                        }}
+                    />
 
                     <div>
                         <Label htmlFor="parking" className="pb-2">Parking</Label>
@@ -925,48 +771,10 @@ export function EditLocationForm({
             </div>
 
             {/* Unsaved Changes Banner */}
-            {hasChanges && (
-                <div className="sticky bottom-0 mt-6 bg-warning/10 dark:bg-warning/10 border-t-2 border-warning p-3 sm:p-4 shadow-lg z-10 animate-in slide-in-from-bottom">
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-warning dark:text-warning shrink-0" />
-                                <p className="font-semibold text-sm sm:text-base text-warning dark:text-warning-foreground">
-                                    Unsaved changes
-                                </p>
-                            </div>
-                            <ul className="text-xs sm:text-sm text-warning dark:text-warning space-y-1 ml-6 sm:ml-0">
-                                {changes.slice(0, 3).map((change, i) => (
-                                    <li key={i} className="truncate">• {change}</li>
-                                ))}
-                                {changes.length > 3 && (
-                                    <li className="text-warning dark:text-warning">
-                                        +{changes.length - 3} more...
-                                    </li>
-                                )}
-                            </ul>
-                        </div>
-                        <div className="flex gap-2 sm:gap-2 sm:shrink-0">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                type="button"
-                                onClick={handleDiscard}
-                                className="flex-1 sm:flex-initial border-warning/30 dark:border-warning text-xs sm:text-sm h-9"
-                            >
-                                Discard
-                            </Button>
-                            <Button
-                                size="sm"
-                                type="submit"
-                                className="flex-1 sm:flex-initial bg-success hover:bg-success/90 text-white text-xs sm:text-sm h-9"
-                            >
-                                Save Changes
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <UnsavedChangesBanner
+                changes={hasChanges ? changes : []}
+                onDiscard={handleDiscard}
+            />
         </form>
     );
 }
@@ -991,7 +799,7 @@ function StaticMapPreview({ location }: { location: Location }) {
                 />
             ) : (
                 /* Placeholder when map fails to load */
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/10 dark:to-primary/10 border-2 border-dashed border-primary/30 dark:border-primary">
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-linear-to-br from-primary/20 to-primary/10 dark:from-primary/10 dark:to-primary/10 border-2 border-dashed border-primary/30 dark:border-primary">
                     <Map className="w-12 h-12 text-primary dark:text-primary" />
                     <div className="text-center px-4">
                         <p className="text-sm font-medium text-primary dark:text-primary">

@@ -62,8 +62,19 @@ Apr 2 2026
 - the info window should show @locationowner, Title, Address, GPS metadata.
 - There is a Directions Button - remove this - it takes the user out of the app and is confusing.
 - Review the info window issue above then show me a plan to fix the issue before coding.
+  ...
 
-...
-CSS changes
-change any black hex colors: #000000 to #111111
-Change any full white hex colors :#FFFFFF to #F5F5F5
+**_ Task _**
+
+- Review the codebase for fotolokashen
+  **_ Context _**
+- The codebase has not had a review in many months
+- I am looking for files where the code could be: improved, simplified, broken up logically ie 1500 lines is too long
+- Also looking for places where there may be repetitve code.
+- keep in mind iOS and Web Apps share some API endpoints.
+- I am open to looking at large files first ie; /app/map/page.tsx is 1600 lines.
+- The code is working as intended right now and I don't want to introduce new issues.
+- Review and come up with suggestions for improvements.
+- If at any time you have questions please ask.
+
+- One issue I see is the Toast-Alerts-Success system is the messages are inconsistent and in some cases do not communicate effectively to the user. An example is the photo uploads, it does not show the stages of photo upload. It becomes confusing when adding the

@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdminRoute } from '@/components/auth/AdminRoute';
 import { ArrowLeft, Save, Send, Eye, Settings, Palette, ImageIcon, Monitor, Tablet, Smartphone, Copy, Info, Code } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { HexColorPicker } from 'react-colorful';
 import {
   Select,
@@ -230,7 +231,7 @@ export default function EmailTemplateEditPage({
       setTemplate(data.template);
     } catch (error) {
       console.error('Error fetching template:', error);
-      toast.error('Failed to load template');
+      toast.error(TOAST.ADMIN.TEMPLATE_LOAD_FAILED);
     } finally {
       setLoading(false);
     }
@@ -266,9 +267,9 @@ export default function EmailTemplateEditPage({
 
     if (missingFields.length > 0) {
       if (missingFields.length === 1) {
-        toast.error(`${missingFields[0]} is required`);
+        toast.error(TOAST.ADMIN.FIELD_REQUIRED(missingFields[0]));
       } else {
-        toast.error(`Missing required fields: ${missingFields.join(', ')}`);
+        toast.error(TOAST.ADMIN.FIELDS_MISSING(missingFields));
       }
       
       // Switch to editor tab if HTML body is missing
@@ -284,19 +285,19 @@ export default function EmailTemplateEditPage({
     const subjectValidationError = validateSubject(template.subject);
 
     if (keyValidationError) {
-      toast.error(`Template Key: ${keyValidationError}`);
+      toast.error(TOAST.ADMIN.FIELD_VALIDATION('Template Key', keyValidationError));
       setKeyError(keyValidationError);
       return;
     }
 
     if (nameValidationError) {
-      toast.error(`Template Name: ${nameValidationError}`);
+      toast.error(TOAST.ADMIN.FIELD_VALIDATION('Template Name', nameValidationError));
       setNameError(nameValidationError);
       return;
     }
 
     if (subjectValidationError) {
-      toast.error(`Subject Line: ${subjectValidationError}`);
+      toast.error(TOAST.ADMIN.FIELD_VALIDATION('Subject Line', subjectValidationError));
       setSubjectError(subjectValidationError);
       return;
     }
@@ -320,11 +321,11 @@ export default function EmailTemplateEditPage({
         throw new Error(error.error || 'Failed to save template');
       }
 
-      toast.success(isNew ? 'Template created successfully' : 'Template updated successfully');
+      toast.success(TOAST.ADMIN.TEMPLATE_SAVED(isNew));
       router.push('/admin/email-templates');
     } catch (error) {
       console.error('Error saving template:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save template');
+      toast.error(error instanceof Error ? error.message : TOAST.ADMIN.TEMPLATE_SAVE_FAILED);
     } finally {
       setSaving(false);
     }
@@ -332,7 +333,7 @@ export default function EmailTemplateEditPage({
 
   const handleSendTest = async () => {
     if (!template.id) {
-      toast.error('Please save the template first');
+      toast.error(TOAST.ADMIN.TEMPLATE_SAVE_FIRST);
       return;
     }
 
@@ -352,10 +353,10 @@ export default function EmailTemplateEditPage({
 
       if (!response.ok) throw new Error('Failed to send test email');
 
-      toast.success('Test email sent to your account');
+      toast.success(TOAST.ADMIN.TEST_EMAIL_SENT);
     } catch (error) {
       console.error('Error sending test email:', error);
-      toast.error('Failed to send test email');
+      toast.error(TOAST.ADMIN.TEST_EMAIL_FAILED);
     } finally {
       setSendingTest(false);
     }
@@ -363,7 +364,7 @@ export default function EmailTemplateEditPage({
 
   const handleCopyHTML = () => {
     navigator.clipboard.writeText(template.htmlBody);
-    toast.success('HTML copied to clipboard');
+    toast.success(TOAST.ADMIN.HTML_COPIED);
   };
 
   // Device icons mapping

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import type { Location } from '@/types/location';
 
 interface UpdateLocationData {
@@ -73,11 +74,11 @@ export function useUpdateLocation() {
             if (context?.previousLocations) {
                 queryClient.setQueryData(['locations'], context.previousLocations);
             }
-            toast.error(error.message || 'Failed to update location');
+            toast.error(error.message || TOAST.LOCATION.UPDATE_FAILED);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['locations'] });
-            toast.success('Location updated successfully!');
+            toast.success(TOAST.LOCATION.UPDATED);
         },
     });
 }

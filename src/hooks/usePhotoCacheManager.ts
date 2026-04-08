@@ -7,6 +7,7 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { useAuth } from '@/lib/auth-context';
 import type { CachedPhoto, UploadedPhotoData, PhotoCacheManagerResult } from '@/types/photo-cache';
 import { FILE_SIZE_LIMITS, PHOTO_LIMITS } from '@/lib/constants/upload';
@@ -106,7 +107,7 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
         // Validate file type
         if (!file.type.startsWith('image/')) {
             console.log('[PhotoCache] REJECTED: Not an image');
-            toast.error('File must be an image');
+            toast.error(TOAST.PHOTO.NOT_IMAGE);
             return;
         }
 
@@ -115,7 +116,7 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
         console.log('[PhotoCache] Max bytes:', maxBytes);
         if (file.size > maxBytes) {
             console.log('[PhotoCache] REJECTED: File too large');
-            toast.error(`File size must be less than ${maxFileSize}MB`);
+            toast.error(TOAST.PHOTO.SIZE_EXCEEDED(maxFileSize));
             return;
         }
         
@@ -128,7 +129,7 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
             
             if (needsConversion(file)) {
                 console.log('[PhotoCache] 🔄 Converting', file.type, 'to JPEG for preview...');
-                toast.info(`Converting ${file.name} to JPEG...`);
+                toast.info(TOAST.PHOTO.CONVERTING(file.name));
                 
                 try {
                     const convertedBlob = await convertToJpeg(file);
@@ -142,7 +143,7 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
                     console.log('[PhotoCache] Converted size:', (fileToCache.size / 1024 / 1024).toFixed(2), 'MB');
                 } catch (conversionError) {
                     console.error('[PhotoCache] ❌ Conversion failed:', conversionError);
-                    toast.error('Failed to convert image format');
+                    toast.error(TOAST.PHOTO.CONVERSION_FAILED);
                     return;
                 }
             }
@@ -184,7 +185,7 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
             console.log('[PhotoCache] setCachedPhotos called, photo added:', cachedPhoto.id);
         } catch (error) {
             console.error('[PhotoCache] Failed to add photo:', error);
-            toast.error('Failed to process image');
+            toast.error(TOAST.PHOTO.PROCESS_FAILED);
         }
     }, [maxFileSize, getImageDimensions]);
 
@@ -355,7 +356,7 @@ export function usePhotoCacheManager(options: UsePhotoCacheManagerOptions = {}):
             return uploadedPhotos;
         } catch (error) {
             console.error('[PhotoCache] Upload failed:', error);
-            toast.error('Failed to upload photos');
+            toast.error(TOAST.PHOTO.UPLOAD_FAILED);
             throw error;
         } finally {
             setIsUploading(false);

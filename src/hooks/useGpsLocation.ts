@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { useAuth } from '@/lib/auth-context';
 
 interface UseGpsLocationReturn {
@@ -32,7 +33,7 @@ export function useGpsLocation(): UseGpsLocationReturn {
 
     const requestLocation = useCallback(async (): Promise<GeolocationPosition | null> => {
         if (!navigator.geolocation) {
-            toast.error('Geolocation is not supported by your browser');
+            toast.error(TOAST.GPS.NOT_SUPPORTED);
             return null;
         }
 
@@ -42,28 +43,28 @@ export function useGpsLocation(): UseGpsLocationReturn {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     setIsRequesting(false);
-                    toast.success('Location found!');
+                    toast.success(TOAST.GPS.FOUND);
                     resolve(position);
                 },
                 (error) => {
                     setIsRequesting(false);
 
                     if (error.code === 1) { // PERMISSION_DENIED
-                        toast.error('GPS permission denied by browser', {
+                        toast.error(TOAST.GPS.PERMISSION_DENIED, {
                             description: 'You can enable it in your browser settings',
                         });
                         // Update DB to reflect browser denial
                         updateUserPermission('denied');
                     } else if (error.code === 2) { // POSITION_UNAVAILABLE
-                        toast.error('Location unavailable', {
+                        toast.error(TOAST.GPS.UNAVAILABLE, {
                             description: 'Unable to determine your position',
                         });
                     } else if (error.code === 3) { // TIMEOUT
-                        toast.error('Location request timed out', {
+                        toast.error(TOAST.GPS.TIMEOUT, {
                             description: 'Please try again',
                         });
                     } else {
-                        toast.error('Unable to get location');
+                        toast.error(TOAST.GPS.GENERIC_ERROR);
                     }
 
                     resolve(null);

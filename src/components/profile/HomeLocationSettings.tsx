@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Home, MapPin, Navigation, Search, Map } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { useAuth } from '@/lib/auth-context';
 import { useGpsLocation } from '@/hooks/useGpsLocation';
 import { PlacesAutocomplete } from '@/components/maps/PlacesAutocomplete';
@@ -35,16 +36,16 @@ export function HomeLocationSettings() {
             const result = await response.json();
 
             if (!response.ok) {
-                toast.error(result.error || 'Failed to update home location');
+                toast.error(result.error || TOAST.PROFILE.HOME_LOCATION_FAILED);
                 return false;
             }
 
-            toast.success('Home location updated successfully');
+            toast.success(TOAST.PROFILE.HOME_LOCATION_UPDATED);
             await refetchUser();
             return true;
         } catch (error) {
             console.error('Update home location error:', error);
-            toast.error('An unexpected error occurred');
+            toast.error(TOAST.GENERIC.UNEXPECTED);
             return false;
         } finally {
             setIsUpdating(false);

@@ -4,6 +4,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
 import type { PublicUser, AuthResponse } from "@/types/user";
 
 interface AuthContextType {
@@ -76,11 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             queryClient.setQueryData(["currentUser"], null);
             queryClient.clear(); // Clear all cached data
             queryClient.clear(); // Clear all cached data
-            toast.success("Logged out successfully");
+            toast.success(TOAST.AUTH.LOGOUT_SUCCESS);
             router.push("/logout");
         },
         onError: () => {
-            toast.error("Failed to logout");
+            toast.error(TOAST.AUTH.LOGOUT_FAILED);
         },
     });
 

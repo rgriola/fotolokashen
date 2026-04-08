@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AlertTriangle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { useAuth } from '@/lib/auth-context';
 
 export function DeleteAccountSection() {
@@ -32,7 +33,7 @@ export function DeleteAccountSection() {
 
     const handleDeleteConfirm = async () => {
         if (confirmText !== 'DELETE') {
-            toast.error('Please type DELETE to confirm');
+            toast.error(TOAST.PROFILE.DELETE_CONFIRM_REQUIRED);
             return;
         }
 
@@ -56,13 +57,13 @@ export function DeleteAccountSection() {
                 throw new Error(errorMessage);
             }
 
-            toast.success('Your account has been deleted');
+toast.success(TOAST.PROFILE.ACCOUNT_DELETED);
             
             // Redirect to logout page (no need to call logout API, user is already deleted)
             router.push('/logout');
         } catch (error) {
             console.error('Error deleting account:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to delete account');
+                toast.error(error instanceof Error ? error.message : TOAST.PROFILE.ACCOUNT_DELETE_FAILED);
             setIsDeleting(false);
         }
     };

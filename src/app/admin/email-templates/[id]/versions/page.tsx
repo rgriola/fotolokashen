@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { AdminRoute } from '@/components/auth/AdminRoute';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import {
   Table,
   TableBody,
@@ -49,7 +50,7 @@ export default function EmailTemplateVersionsPage({
       setTemplateName(data.templateName || 'Template');
     } catch (error) {
       console.error('Error fetching versions:', error);
-      toast.error('Failed to load version history');
+      toast.error(TOAST.ADMIN.VERSIONS_LOAD_FAILED);
     } finally {
       setLoading(false);
     }
@@ -73,11 +74,11 @@ export default function EmailTemplateVersionsPage({
 
       if (!response.ok) throw new Error('Failed to revert version');
 
-      toast.success(`Reverted to version ${version} successfully`);
+      toast.success(TOAST.ADMIN.VERSION_REVERTED(version));
       router.push('/admin/email-templates');
     } catch (error) {
       console.error('Error reverting version:', error);
-      toast.error('Failed to revert version');
+      toast.error(TOAST.ADMIN.VERSION_REVERT_FAILED);
     }
   };
 

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Mail, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 
@@ -60,34 +61,34 @@ export function ChangeEmailForm() {
             if (!response.ok) {
                 // SPECIFIC ERROR MESSAGES
                 if (result.code === 'EMAIL_ALREADY_EXISTS') {
-                    toast.error('Email Already Registered', {
+                    toast.error(TOAST.PROFILE.EMAIL_ALREADY_REGISTERED, {
                         description: 'This email address is already registered to another account. Please use a different email.',
                     });
                 } else if (result.code === 'SAME_EMAIL') {
-                    toast.error('Same Email', {
+                    toast.error(TOAST.PROFILE.EMAIL_SAME, {
                         description: 'New email address is the same as your current email.',
                     });
                 } else if (result.code === 'RATE_LIMITED_DAILY') {
-                    toast.error('Too Many Requests', {
+                    toast.error(TOAST.PROFILE.TOO_MANY_REQUESTS, {
                         description: 'You can only change your email once per 24 hours. Please try again tomorrow.',
                     });
                 } else if (result.code === 'RATE_LIMITED_YEARLY') {
-                    toast.error('Annual Limit Reached', {
+                    toast.error(TOAST.PROFILE.ANNUAL_LIMIT, {
                         description: 'You have reached the maximum of 5 email changes per year. Please contact support if you need assistance.',
                     });
                 } else if (result.code === 'INVALID_PASSWORD') {
-                    toast.error('Incorrect Password', {
+                    toast.error(TOAST.PROFILE.INCORRECT_PASSWORD, {
                         description: 'The password you entered is incorrect.',
                     });
                 } else {
-                    toast.error(result.error || 'Failed to change email');
+                    toast.error(result.error || TOAST.PROFILE.EMAIL_FAILED);
                 }
                 setIsLoading(false);
                 return;
             }
 
             // Success
-            toast.success('Verification Email Sent', {
+            toast.success(TOAST.PROFILE.EMAIL_VERIFICATION_SENT, {
                 description: 'Please check your new email address to confirm the change. We also sent an alert to your current email.',
                 duration: 6000,
             });
@@ -95,7 +96,7 @@ export function ChangeEmailForm() {
             reset();
         } catch (error) {
             console.error('Email change error:', error);
-            toast.error('An unexpected error occurred');
+            toast.error(TOAST.GENERIC.UNEXPECTED);
         } finally {
             setIsLoading(false);
         }
@@ -176,7 +177,7 @@ export function ChangeEmailForm() {
 
                     {/* Warning Alert */}
                     <div className="flex gap-3 p-4 rounded-lg border border-warning/20 bg-warning/10 dark:border-warning dark:bg-warning/10">
-                        <AlertTriangle className="h-5 w-5 text-warning dark:text-warning flex-shrink-0 mt-0.5" />
+                        <AlertTriangle className="h-5 w-5 text-warning dark:text-warning shrink-0 mt-0.5" />
                         <div className="text-sm text-warning dark:text-warning-foreground">
                             <strong>Important:</strong> After changing your email, you'll be logged out of all devices for security.
                             You'll need to verify your new email address before you can log in again.

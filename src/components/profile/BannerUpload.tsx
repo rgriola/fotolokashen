@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Camera, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import Image from 'next/image';
@@ -25,7 +26,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
      */
     const uploadBanner = async (file: File): Promise<void> => {
         setIsUploading(true);
-        toast.info('Uploading banner...');
+        toast.info(TOAST.BANNER.UPLOADING);
 
         try {
             const formData = new FormData();
@@ -43,12 +44,12 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
                 throw new Error(result.error || 'Failed to upload banner');
             }
 
-            toast.success('Banner updated successfully');
+            toast.success(TOAST.BANNER.UPDATED);
             setPreviewUrl(result.bannerUrl);
             await refetchUser();
         } catch (error) {
             console.error('Banner upload error:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to upload banner');
+            toast.error(error instanceof Error ? error.message : TOAST.BANNER.UPLOAD_FAILED);
         } finally {
             setIsUploading(false);
         }
@@ -60,14 +61,14 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            toast.error('Please select an image file');
+            toast.error(TOAST.PHOTO.SELECT_IMAGE);
             return;
         }
 
         // Validate file size using global constant
         const maxSizeMB = FILE_SIZE_LIMITS.BANNER;
         if (file.size > maxSizeMB * 1024 * 1024) {
-            toast.error(`Banner must be less than ${maxSizeMB}MB`);
+            toast.error(TOAST.PHOTO.SIZE_EXCEEDED(maxSizeMB));
             return;
         }
 
@@ -77,7 +78,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
             // Convert HEIC/TIFF to JPEG if needed
             if (needsConversion(file)) {
                 setIsConverting(true);
-                toast.info(`Converting ${file.name} to JPEG...`);
+                toast.info(TOAST.PHOTO.CONVERTING(file.name));
 
                 try {
                     const convertedBlob = await convertToJpeg(file);
@@ -86,7 +87,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
                     console.log('✅ Banner conversion complete:', newFilename);
                 } catch (conversionError) {
                     console.error('❌ Banner conversion failed:', conversionError);
-                    toast.error('Failed to convert image format');
+                    toast.error(TOAST.PHOTO.CONVERSION_FAILED);
                     setIsConverting(false);
                     return;
                 } finally {
@@ -98,7 +99,7 @@ export function BannerUpload({ currentBanner }: BannerUploadProps) {
             uploadBanner(fileToUpload);
         } catch (error) {
             console.error('Error processing banner file:', error);
-            toast.error('Failed to process image');
+            toast.error(TOAST.PHOTO.PROCESS_FAILED);
         }
     };
 

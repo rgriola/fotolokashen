@@ -1,27 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { withAuth, apiResponse, apiError } from '@/lib/api-middleware';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function POST(request: NextRequest) {
-  try {
+export const POST = withAuth(async (request, _user) => {
     const { description, mode = 'improve' } = await request.json();
 
     if (!description || typeof description !== 'string') {
-      return NextResponse.json(
-        { error: 'Description is required and must be a string' },
-        { status: 400 }
-      );
+      return apiError('Description is required and must be a string', 400);
     }
 
     if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'OpenAI API key is not configured' },
-        { status: 500 }
-      );
+      return apiError('OpenAI API key is not configured', 500);
     }
 
     // Different prompts based on mode
@@ -60,7 +53,7 @@ Do not include any explanation, just the comma-separated tags.`,
       : 'You are a helpful assistant that improves written descriptions.';
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Using the more cost-effective model
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -78,13 +71,10 @@ Do not include any explanation, just the comma-separated tags.`,
     const improvedDescription = completion.choices[0]?.message?.content?.trim();
 
     if (!improvedDescription) {
-      return NextResponse.json(
-        { error: 'Failed to generate improved description' },
-        { status: 500 }
-      );
+      return apiError('Failed to generate improved description', 500);
     }
 
-    return NextResponse.json({
+    return apiResponse({
       original: description,
       improved: improvedDescription,
       mode,
@@ -94,11 +84,4 @@ Do not include any explanation, just the comma-separated tags.`,
         totalTokens: completion.usage?.total_tokens,
       },
     });
-  } catch (error) {
-    console.error('Error improving description:', error);
-    return NextResponse.json(
-      { error: 'Failed to process description' },
-      { status: 500 }
-    );
-  }
-}
+});

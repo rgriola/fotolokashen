@@ -34,7 +34,7 @@ import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR } from "@/lib/form-constant
 import { useAuth } from "@/lib/auth-context";
 import { usePhotoCacheManager } from "@/hooks/usePhotoCacheManager";
 import { FILE_SIZE_LIMITS, UPLOAD_SOURCES } from "@/lib/constants/upload";
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/lib/constants/messages";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES, TOAST } from "@/lib/constants/messages";
 import type { UploadedPhotoData } from "@/types/photo-cache";
 
 // Security: Regex to prevent XSS and SQL injection in text fields
@@ -231,7 +231,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
             if (needsConversion(file)) {
                 console.log('🔄 Converting', file.type, 'to JPEG...');
                 setIsConverting(true);
-                toast.info(`Converting ${file.name} to JPEG...`);
+                toast.info(TOAST.PHOTO.CONVERTING(file.name));
                 
                 try {
                     const convertedBlob = await convertToJpeg(file);
@@ -240,7 +240,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
                     console.log('✅ Conversion complete:', newFilename);
                 } catch (conversionError) {
                     console.error('❌ Conversion failed:', conversionError);
-                    toast.error('Failed to convert image format');
+                    toast.error(TOAST.PHOTO.CONVERSION_FAILED);
                     setIsProcessing(false);
                     setIsConverting(false);
                     return;
@@ -414,17 +414,17 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
      */
     const handleSubmit = async (data: CreateLocationFormData) => {
         if (!user) {
-            toast.error(ERROR_MESSAGES.AUTH.NOT_AUTHENTICATED);
+            toast.error(TOAST.AUTH.NOT_AUTHENTICATED);
             return;
         }
 
         if (!hasLocation) {
-            toast.error('Please select a location on the map');
+            toast.error(TOAST.LOCATION.SELECT_ON_MAP);
             return;
         }
 
         if (!photoFile) {
-            toast.error('Please upload a photo');
+            toast.error(TOAST.PHOTO.UPLOAD_REQUIRED);
             return;
         }
 
@@ -433,7 +433,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
         try {
             // Step 1: Upload photo via deferred upload (secure endpoint)
             console.log('[CreateLocationWithPhoto] Uploading photo via secure endpoint...');
-            toast.info('Uploading photo...');
+            toast.info(TOAST.UPLOAD_STAGE.UPLOADING);
 
             let uploadedPhotos: UploadedPhotoData[] = [];
             if (uploadPhotosRef.current) {
@@ -495,7 +495,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
                 throw new Error(errorData.error || ERROR_MESSAGES.LOCATION.SAVE_FAILED);
             }
 
-            toast.success(SUCCESS_MESSAGES.LOCATION.CREATED_FROM_PHOTO);
+            toast.success(TOAST.LOCATION.CREATED_FROM_PHOTO);
             
             if (onSuccess) {
                 onSuccess();
@@ -505,7 +505,7 @@ export function CreateLocationWithPhoto({ onSuccess }: CreateLocationWithPhotoPr
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error';
             console.error('Failed to save location:', err);
-            toast.error(`${ERROR_MESSAGES.LOCATION.SAVE_FAILED}: ${errorMessage}`);
+            toast.error(`${TOAST.LOCATION.SAVE_FAILED}: ${errorMessage}`);
         } finally {
             setIsSaving(false);
         }

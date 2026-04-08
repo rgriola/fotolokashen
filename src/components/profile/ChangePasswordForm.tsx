@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Eye, EyeOff, Lock, Shield } from 'lucide-react';
 
 // Validation schema
@@ -82,11 +83,11 @@ export function ChangePasswordForm() {
             const result = await response.json();
 
             if (!response.ok) {
-                toast.error(result.error || 'Failed to change password');
+                toast.error(result.error || TOAST.PROFILE.PASSWORD_FAILED);
                 return;
             }
 
-            toast.success('Password changed successfully! Logging you out...');
+toast.success(TOAST.PROFILE.PASSWORD_CHANGED);
 
             // Clear form
             reset();
@@ -97,7 +98,7 @@ export function ChangePasswordForm() {
             }, 2000);
         } catch (error) {
             console.error('Change password error:', error);
-            toast.error('An unexpected error occurred');
+            toast.error(TOAST.GENERIC.UNEXPECTED);
         } finally {
             setIsLoading(false);
         }

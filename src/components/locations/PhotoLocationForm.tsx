@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { SaveLocationForm } from "./SaveLocationForm";
 import { toast } from "sonner";
+import { TOAST, ERROR_MESSAGES } from "@/lib/constants/messages";
 import { useAuth } from "@/lib/auth-context";
 import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
 import type { PhotoMetadata, ImageKitAuthData, ImageKitUploadResponse, PhotoUploadData, LocationFormData, LocationSubmitData } from "@/types/photo";
@@ -10,7 +11,6 @@ import { FOLDER_PATHS, UPLOAD_SOURCES } from "@/lib/constants/upload";
 
 // IMPORTANT: Keep libraries array outside component to prevent Google Maps reload warning
 const GOOGLE_MAPS_LIBRARIES: ("places" | "maps")[] = ["places", "maps"];
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/lib/constants/messages";
 
 interface PhotoLocationFormProps {
     initialData: {
@@ -54,7 +54,7 @@ export function PhotoLocationForm({
 
     const handleSubmit = useCallback(async (data: LocationFormData): Promise<void> => {
         if (!user) {
-            toast.error(ERROR_MESSAGES.AUTH.NOT_AUTHENTICATED);
+            toast.error(TOAST.AUTH.NOT_AUTHENTICATED);
             return;
         }
 
@@ -161,11 +161,11 @@ export function PhotoLocationForm({
 
             const result = await response.json();
 
-            toast.success(SUCCESS_MESSAGES.LOCATION.CREATED_FROM_PHOTO);
+            toast.success(TOAST.LOCATION.CREATED_FROM_PHOTO);
             onSuccess();
         } catch (error: any) {
             console.error('Failed to save location:', error);
-            toast.error(`${ERROR_MESSAGES.LOCATION.SAVE_FAILED}: ${error.message}`);
+            toast.error(`${TOAST.LOCATION.SAVE_FAILED}: ${error.message}`);
         } finally {
             setIsSaving(false);
         }

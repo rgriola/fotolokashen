@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Camera, User, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { getOptimizedAvatarUrl } from '@/lib/imagekit';
@@ -35,7 +36,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
      */
     const uploadAvatar = async (file: File): Promise<void> => {
         setIsUploading(true);
-        toast.info('Uploading image...');
+        toast.info(TOAST.AVATAR.UPLOADING);
 
         try {
             const formData = new FormData();
@@ -53,14 +54,14 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                 throw new Error(result.error || 'Failed to upload avatar');
             }
 
-            toast.success('Avatar updated successfully');
+            toast.success(TOAST.AVATAR.UPDATED);
             setPreviewUrl(result.avatarUrl);
 
             // Refresh user data
             await refetchUser();
         } catch (error) {
             console.error('Avatar upload error:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to upload avatar');
+            toast.error(error instanceof Error ? error.message : TOAST.AVATAR.UPLOAD_FAILED);
         } finally {
             setIsUploading(false);
         }
@@ -72,14 +73,14 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            toast.error('Please select an image file');
+            toast.error(TOAST.PHOTO.SELECT_IMAGE);
             return;
         }
 
         // Validate file size using global constant
         const maxSizeMB = FILE_SIZE_LIMITS.AVATAR;
         if (file.size > maxSizeMB * 1024 * 1024) {
-            toast.error(`Image must be less than ${maxSizeMB}MB`);
+            toast.error(TOAST.PHOTO.SIZE_EXCEEDED(maxSizeMB));
             return;
         }
 
@@ -89,7 +90,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
             // Convert HEIC/TIFF to JPEG if needed (for proper preview/editing)
             if (needsConversion(file)) {
                 setIsConverting(true);
-                toast.info(`Converting ${file.name} to JPEG...`);
+                toast.info(TOAST.PHOTO.CONVERTING(file.name));
 
                 try {
                     const convertedBlob = await convertToJpeg(file);
@@ -98,7 +99,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                     console.log('✅ Avatar conversion complete:', newFilename);
                 } catch (conversionError) {
                     console.error('❌ Avatar conversion failed:', conversionError);
-                    toast.error('Failed to convert image format');
+                    toast.error(TOAST.PHOTO.CONVERSION_FAILED);
                     setIsConverting(false);
                     return;
                 } finally {
@@ -110,7 +111,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
             setEditorOpen(true);
         } catch (error) {
             console.error('Error processing avatar file:', error);
-            toast.error('Failed to process image');
+            toast.error(TOAST.PHOTO.PROCESS_FAILED);
         }
     };
 
@@ -121,7 +122,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
             await uploadAvatar(file);
         } catch (error) {
             console.error('Error uploading edited image:', error);
-            toast.error('Failed to upload edited image');
+            toast.error(TOAST.AVATAR.EDIT_UPLOAD_FAILED);
         }
     };
 
@@ -145,7 +146,7 @@ export function AvatarUpload({ currentAvatar }: AvatarUploadProps) {
                                 unoptimized={previewUrl.startsWith('data:')}
                             />
                         ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-primary to-social" />
+                            <div className="w-full h-full bg-linear-to-br from-primary to-social" />
                         )}
                         {/* Overlay for better text readability */}
                         <div className="absolute inset-0 bg-linear-to-r from-black/60 via-black/40 to-transparent" />

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 
 // Validation schema
@@ -45,17 +46,17 @@ export function ForgotPasswordForm() {
             const result = await response.json();
 
             if (!response.ok) {
-                toast.error(result.error || 'Failed to send reset email');
+                toast.error(result.error || TOAST.AUTH.RESET_REQUEST_FAILED);
                 return;
             }
 
             // Show success state
             setEmailSent(true);
             setSubmittedEmail(data.email);
-            toast.success('Check your email for reset instructions');
+            toast.success(TOAST.AUTH.RESET_EMAIL_CHECK);
         } catch (error) {
             console.error('Forgot password error:', error);
-            toast.error('An unexpected error occurred');
+            toast.error(TOAST.GENERIC.UNEXPECTED);
         } finally {
             setIsLoading(false);
         }

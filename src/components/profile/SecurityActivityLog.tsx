@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Shield, AlertCircle, CheckCircle, XCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 
 interface SecurityLog {
     id: number;
@@ -31,14 +32,14 @@ export function SecurityActivityLog() {
             const result = await response.json();
 
             if (!response.ok) {
-                toast.error('Failed to load security activity');
+                toast.error(TOAST.PROFILE.SECURITY_LOAD_FAILED);
                 return;
             }
 
             setLogs(result.logs || []);
         } catch (error) {
             console.error('Security logs error:', error);
-            toast.error('Failed to load security activity');
+            toast.error(TOAST.PROFILE.SECURITY_LOAD_FAILED);
         } finally {
             setIsLoading(false);
         }

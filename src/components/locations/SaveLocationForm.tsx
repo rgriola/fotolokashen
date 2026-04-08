@@ -9,18 +9,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { MapPin, Tag, X, Navigation, Camera } from "lucide-react";
+import { MapPin, X, Navigation, Camera } from "lucide-react";
 import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
+import { TagInput } from "@/components/locations/TagInput";
 import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/location-constants";
-import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR, INDOOR_OUTDOOR_OPTIONS } from "@/lib/form-constants";
+import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR } from "@/lib/form-constants";
 import { useAuth } from "@/lib/auth-context";
 import type { CachedPhoto, UploadedPhotoData } from "@/types/photo-cache";
 
 // Security: Regex to prevent XSS and SQL injection in text fields
 const safeTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()]+$/;
-const safeLongTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()\n\r]+$/; // Allows newlines
 const productionNotesRegex = /^[a-zA-Z0-9\s\-.,!?&'"();:@\n\r]+$/; // Allows @, commas, semicolons, colons for emails and phone numbers
 
 const saveLocationSchema = z.object({
@@ -85,7 +85,6 @@ export function SaveLocationForm({
     const availableTypes = getAvailableTypes(isAdmin);
     
     const [tags, setTags] = useState<string[]>([]);
-    const [tagInput, setTagInput] = useState("");
     const [cachedPhotos, setCachedPhotos] = useState<CachedPhoto[]>([]);
     const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
     
@@ -174,15 +173,15 @@ export function SaveLocationForm({
             try {
                 setIsUploadingPhotos(true);
                 onUploadingStateChange?.(true);
-                toast.info(`Uploading ${cachedPhotos.length} photo(s)...`);
+                toast.info(TOAST.PHOTO.UPLOADING(cachedPhotos.length));
                 
                 // Upload all cached photos to ImageKit using the function from ImageKitUploader
                 uploadedPhotos = await uploadPhotosRef.current();
                 
                 console.log('[SaveLocationForm] Photos uploaded successfully:', uploadedPhotos);
-                toast.success(`${uploadedPhotos.length} photo(s) uploaded successfully!`);
+                toast.success(TOAST.PHOTO.UPLOAD_SUCCESS(uploadedPhotos.length));
             } catch (error) {
-                const message = error instanceof Error ? error.message : 'Failed to upload photos';
+                const message = error instanceof Error ? error.message : TOAST.PHOTO.UPLOAD_FAILED;
                 toast.error(message);
                 setIsUploadingPhotos(false);
                 onUploadingStateChange?.(false);
@@ -212,44 +211,6 @@ export function SaveLocationForm({
             // Error handling is done by parent, but we keep photos cached
             console.error('Save location error:', error);
         }
-    };
-
-    const handleAddTag = () => {
-        const trimmedTag = tagInput.trim();
-
-        // Validate tag: alphanumeric, spaces, hyphens only (max 25 chars)
-        const tagRegex = /^[a-zA-Z0-9\s\-]+$/;
-
-        if (!trimmedTag) {
-            return;
-        }
-
-        if (tags.includes(trimmedTag)) {
-            toast.error('This tag already exists');
-            return;
-        }
-
-        if (tags.length >= 20) {
-            toast.error('Maximum 20 tags allowed');
-            return;
-        }
-
-        if (trimmedTag.length > 25) {
-            toast.error('Tag must be 25 characters or less');
-            return;
-        }
-
-        if (!tagRegex.test(trimmedTag)) {
-            toast.error('Invalid characters in tag. Only letters, numbers, spaces, and hyphens are allowed. @ symbol is not allowed.');
-            return;
-        }
-
-        setTags([...tags, trimmedTag]);
-        setTagInput("");
-    };
-
-    const handleRemoveTag = (tagToRemove: string) => {
-        setTags(tags.filter((tag) => tag !== tagToRemove));
     };
 
     // Character count helpers
@@ -459,55 +420,7 @@ export function SaveLocationForm({
                         )}
                     </div>
 
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            <Label htmlFor="tags">Tags</Label>
-                            <span className="text-xs text-muted-foreground">
-                                {tags.length}/20 • each tag 25 chars max
-                            </span>
-                        </div>
-                        <div className="relative">
-                            <Input
-                                id="tags"
-                                value={tagInput}
-                                onChange={(e) => setTagInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                        handleAddTag();
-                                    }
-                                }}
-                                placeholder="Add tags..."
-                                maxLength={25}
-                                className="pr-10"
-                            />
-                            <Button
-                                type="button"
-                                onClick={handleAddTag}
-                                variant="ghost"
-                                size="icon"
-                                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
-                            >
-                                <Tag className="w-4 h-4" />
-                            </Button>
-                        </div>
-                        {tags.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                                {tags.map((tag) => (
-                                    <Badge key={tag} variant="secondary" className="gap-1">
-                                        {tag}
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveTag(tag)}
-                                            className="ml-1 hover:text-destructive"
-                                        >
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </Badge>
-                                ))}
-                            </div>
-                        )}
-                    </div>
+                    <TagInput tags={tags} onTagsChange={setTags} />
 
                     <div>
                         <Label htmlFor="parking" className="pb-2">Parking</Label>

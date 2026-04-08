@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Camera, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import Image from 'next/image';
@@ -40,7 +41,7 @@ export function ProfileHeader() {
      */
     const uploadAvatar = async (file: File): Promise<void> => {
         setIsUploadingAvatar(true);
-        toast.info('Uploading avatar...');
+        toast.info(TOAST.AVATAR.UPLOADING);
 
         try {
             const formData = new FormData();
@@ -58,12 +59,12 @@ export function ProfileHeader() {
                 throw new Error(result.error || 'Failed to upload avatar');
             }
 
-            toast.success('Avatar updated successfully');
+            toast.success(TOAST.AVATAR.UPDATED);
             setAvatarPreview(result.avatarUrl);
             await refetchUser();
         } catch (error) {
             console.error('Avatar upload error:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to upload avatar');
+            toast.error(error instanceof Error ? error.message : TOAST.AVATAR.UPLOAD_FAILED);
         } finally {
             setIsUploadingAvatar(false);
         }
@@ -73,12 +74,12 @@ export function ProfileHeader() {
         const file = e.target.files?.[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
-                toast.error('Please select an image file');
+                toast.error(TOAST.PHOTO.SELECT_IMAGE);
                 return;
             }
             const maxSizeMB = FILE_SIZE_LIMITS.AVATAR;
             if (file.size > maxSizeMB * 1024 * 1024) {
-                toast.error(`Image must be less than ${maxSizeMB}MB`);
+                toast.error(TOAST.PHOTO.SIZE_EXCEEDED(maxSizeMB));
                 return;
             }
             setSelectedFile(file);
@@ -92,7 +93,7 @@ export function ProfileHeader() {
             await uploadAvatar(file);
         } catch (error) {
             console.error('Error uploading edited image:', error);
-            toast.error('Failed to upload edited image');
+            toast.error(TOAST.AVATAR.EDIT_UPLOAD_FAILED);
         }
     };
 
@@ -101,12 +102,12 @@ export function ProfileHeader() {
         const file = e.target.files?.[0];
         if (file) {
             if (!file.type.startsWith('image/')) {
-                toast.error('Please select an image file');
+                toast.error(TOAST.PHOTO.SELECT_IMAGE);
                 return;
             }
             const maxSizeMB = FILE_SIZE_LIMITS.BANNER;
             if (file.size > maxSizeMB * 1024 * 1024) {
-                toast.error(`Image must be less than ${maxSizeMB}MB`);
+                toast.error(TOAST.PHOTO.SIZE_EXCEEDED(maxSizeMB));
                 return;
             }
             setSelectedBannerFile(file);
@@ -119,7 +120,7 @@ export function ProfileHeader() {
      */
     const uploadBanner = async (file: File): Promise<void> => {
         setIsUploadingBanner(true);
-        toast.info('Uploading banner...');
+        toast.info(TOAST.BANNER.UPLOADING);
 
         try {
             const formData = new FormData();
@@ -137,12 +138,12 @@ export function ProfileHeader() {
                 throw new Error(result.error || 'Failed to upload banner');
             }
 
-            toast.success('Banner updated successfully');
+            toast.success(TOAST.BANNER.UPDATED);
             setBannerPreview(result.bannerUrl);
             await refetchUser();
         } catch (error) {
             console.error('Banner upload error:', error);
-            toast.error(error instanceof Error ? error.message : 'Failed to upload banner');
+            toast.error(error instanceof Error ? error.message : TOAST.BANNER.UPLOAD_FAILED);
         } finally {
             setIsUploadingBanner(false);
         }
@@ -159,7 +160,7 @@ export function ProfileHeader() {
             setSelectedBannerFile(null);
         } catch (error) {
             console.error('Error uploading edited banner:', error);
-            toast.error('Failed to upload edited banner');
+            toast.error(TOAST.BANNER.EDIT_UPLOAD_FAILED);
         }
     };
 

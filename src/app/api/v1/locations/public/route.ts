@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
+import { apiResponse, apiError, requireAuth, parseBoundsFilter, USER_SUMMARY_SELECT } from '@/lib/api-middleware';
 
 /**
  * GET /api/v1/locations/public
@@ -40,20 +40,14 @@ export async function GET(request: NextRequest) {
         }
 
         // Add bounds filtering if provided
-        if (boundsParam) {
-            try {
-                const bounds = JSON.parse(boundsParam);
-                locationFilter.lat = {
-                    gte: bounds.south,
-                    lte: bounds.north,
-                };
-                locationFilter.lng = {
-                    gte: bounds.west,
-                    lte: bounds.east,
-                };
-            } catch {
-                return apiError('Invalid bounds parameter', 400, 'INVALID_BOUNDS');
+        try {
+            const boundsFilter = parseBoundsFilter(searchParams);
+            if (boundsFilter) {
+                locationFilter.lat = boundsFilter.lat;
+                locationFilter.lng = boundsFilter.lng;
             }
+        } catch (e) {
+            return apiError(e as string, 400, 'INVALID_BOUNDS');
         }
 
         const whereClause = {
@@ -99,13 +93,7 @@ export async function GET(request: NextRequest) {
                     },
                 },
                 user: {
-                    select: {
-                        id: true,
-                        username: true,
-                        firstName: true,
-                        lastName: true,
-                        avatar: true,
-                    },
+                    select: USER_SUMMARY_SELECT,
                 },
             },
             orderBy: {

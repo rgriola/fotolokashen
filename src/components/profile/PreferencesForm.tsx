@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Settings, Bell, Globe, Clock, MapPin, AlertCircle, Sparkles, Map, User } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { HomeLocationSettings } from '@/components/profile/HomeLocationSettings';
@@ -92,11 +93,11 @@ export function PreferencesForm() {
             const result = await response.json();
 
             if (!response.ok) {
-                toast.error(result.error || 'Failed to update preferences');
+                toast.error(result.error || TOAST.PROFILE.PREFERENCES_FAILED);
                 return;
             }
 
-            toast.success('Preferences saved successfully');
+            toast.success(TOAST.PROFILE.PREFERENCES_SAVED);
 
             // Update original values to current
             setOriginalValues({
@@ -110,7 +111,7 @@ export function PreferencesForm() {
             await refetchUser();
         } catch (error) {
             console.error('Update preferences error:', error);
-            toast.error('An unexpected error occurred');
+            toast.error(TOAST.GENERIC.UNEXPECTED);
         } finally {
             setIsLoading(false);
         }
@@ -122,7 +123,7 @@ export function PreferencesForm() {
         setGpsPermission(originalValues.gpsPermission);
         setLanguage(originalValues.language);
         setTimezone(originalValues.timezone);
-        toast.info('Changes discarded');
+        toast.info(TOAST.PROFILE.CHANGES_DISCARDED);
     };
 
     return (
@@ -288,7 +289,7 @@ export function PreferencesForm() {
                                     setTimeout(() => window.location.reload(), 100);
                                 } catch (error) {
                                     console.error('Failed to restart tour:', error);
-                                    toast.error('Failed to restart tour');
+                                    toast.error(TOAST.PROFILE.TOUR_RESTART_FAILED);
                                 }
                             }}
                         >
@@ -315,7 +316,7 @@ export function PreferencesForm() {
                                     setTimeout(() => window.location.reload(), 100);
                                 } catch (error) {
                                     console.error('Failed to restart locations tour:', error);
-                                    toast.error('Failed to restart tour');
+                                    toast.error(TOAST.PROFILE.TOUR_RESTART_FAILED);
                                 }
                             }}
                         >
@@ -342,7 +343,7 @@ export function PreferencesForm() {
                                     setTimeout(() => window.location.reload(), 100);
                                 } catch (error) {
                                     console.error('Failed to restart people tour:', error);
-                                    toast.error('Failed to restart tour');
+                                    toast.error(TOAST.PROFILE.TOUR_RESTART_FAILED);
                                 }
                             }}
                         >

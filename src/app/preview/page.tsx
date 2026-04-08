@@ -19,6 +19,7 @@ import { LocationDetailPanel } from '@/components/panels/LocationDetailPanel';
 import { Share2, Edit, Eye, MapPin, Loader2, Info, PanelLeft, X, Save } from 'lucide-react';
 import type { Location } from '@/types/location';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Sheet, SheetContent, SheetTitle, SheetHeader } from '@/components/ui/sheet';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { SaveLocationPanel } from '@/components/panels/SaveLocationPanel';
@@ -89,11 +90,11 @@ export default function PreviewPage() {
                 } else {
                     const errorData = await response.json().catch(() => ({}));
                     console.error('Failed to fetch locations:', response.status, errorData);
-                    toast.error('Failed to load locations');
+                    toast.error(TOAST.PREVIEW.LOCATIONS_LOAD_FAILED);
                 }
             } catch (error) {
                 console.error('Error fetching locations:', error);
-                toast.error('Error loading locations');
+                toast.error(TOAST.PREVIEW.LOCATIONS_LOAD_FAILED);
             } finally {
                 setIsLoading(false);
             }
@@ -187,7 +188,7 @@ export default function PreviewPage() {
                                                 setSelectedLocation(locations[0]);
                                                 setDetailPanelOpen(true);
                                             } else {
-                                                toast.error('No locations available');
+                                                toast.error(TOAST.PREVIEW.NONE_AVAILABLE);
                                             }
                                         }}
                                         variant="outline"
@@ -209,7 +210,7 @@ export default function PreviewPage() {
                                                 setShowPhotoUpload(false);
                                                 setEditPanelOpen(true);
                                             } else {
-                                                toast.error('No locations available');
+                                                toast.error(TOAST.PREVIEW.NONE_AVAILABLE);
                                             }
                                         }}
                                         variant="outline"
@@ -258,7 +259,7 @@ export default function PreviewPage() {
                                                 setSelectedLocation(locations[0]);
                                                 setShareDialogOpen(true);
                                             } else {
-                                                toast.error('No locations available');
+                                                toast.error(TOAST.PREVIEW.NONE_AVAILABLE);
                                             }
                                         }}
                                         variant="outline"
@@ -353,7 +354,7 @@ export default function PreviewPage() {
                                         setShareDialogOpen(true);
                                     }}
                                     onDelete={(id) => {
-                                        toast.info(`Delete disabled in preview mode (location ID: ${id})`);
+                                        toast.info(TOAST.PREVIEW.DELETE_DISABLED(id));
                                         setDetailPanelOpen(false);
                                     }}
                                     onViewOnMap={(loc) => {
@@ -397,7 +398,7 @@ export default function PreviewPage() {
                                         onPhotoUploadToggle={() => setShowPhotoUpload(!showPhotoUpload)}
                                         onSuccess={() => {
                                             setEditPanelOpen(false);
-                                            toast.info("Changes saved (preview mode)");
+                                            toast.info(TOAST.PREVIEW.CHANGES_SAVED);
                                         }}
                                         onCancel={() => {
                                             setEditPanelOpen(false);
@@ -441,7 +442,7 @@ export default function PreviewPage() {
                             }}
                             onSuccess={() => {
                                 setSavePanelOpen(false);
-                                toast.info("Changes saved (preview mode)");
+                                toast.info(TOAST.PREVIEW.CHANGES_SAVED);
                             }}
                             onCancel={() => setSavePanelOpen(false)}
                             showPhotoUpload={showPhotoUpload}

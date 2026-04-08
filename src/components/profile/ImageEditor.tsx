@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { RotateCw, ZoomIn, ZoomOut, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 
 interface ImageEditorProps {
     open: boolean;
@@ -198,7 +199,7 @@ export function ImageEditor({ open, onClose, imageFile, onSave }: ImageEditorPro
 
     const handleSave = async () => {
         if (!imageRef.current) {
-            toast.error('No image to save');
+            toast.error(TOAST.PHOTO.NO_IMAGE_TO_SAVE);
             return;
         }
 
@@ -257,7 +258,7 @@ export function ImageEditor({ open, onClose, imageFile, onSave }: ImageEditorPro
             }, 'image/jpeg', 0.9);
         } catch (error) {
             console.error('Error saving image:', error);
-            toast.error('Failed to save image');
+            toast.error(TOAST.PHOTO.SAVE_FAILED);
         }
     };
 

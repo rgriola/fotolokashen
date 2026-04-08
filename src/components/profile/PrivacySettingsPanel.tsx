@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Eye, Users, Lock, Globe, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import {
   Select,
   SelectContent,
@@ -65,7 +66,7 @@ export default function PrivacySettingsPanel() {
       }
     } catch (error) {
       console.error('Failed to fetch privacy settings:', error);
-      toast.error('Failed to load privacy settings');
+      toast.error(TOAST.PROFILE.PRIVACY_LOAD_FAILED);
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +117,7 @@ export default function PrivacySettingsPanel() {
       });
 
       if (response.ok) {
-        toast.success('Privacy settings updated');
+        toast.success(TOAST.PROFILE.PRIVACY_UPDATED);
         setOriginalSettings(settings);
       } else {
         const error = await response.json();
@@ -124,7 +125,7 @@ export default function PrivacySettingsPanel() {
       }
     } catch (error) {
       console.error('Failed to save privacy settings:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to save settings');
+      toast.error(error instanceof Error ? error.message : TOAST.PROFILE.PRIVACY_SAVE_FAILED);
     } finally {
       setIsSaving(false);
     }
@@ -132,7 +133,7 @@ export default function PrivacySettingsPanel() {
 
   const handleDiscard = () => {
     setSettings(originalSettings);
-    toast.info('Changes discarded');
+    toast.info(TOAST.PROFILE.CHANGES_DISCARDED);
   };
 
   const getVisibilityIcon = (visibility: string) => {

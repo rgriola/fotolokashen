@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import { Eye, EyeOff } from 'lucide-react';
 
 // Validation schema
@@ -83,14 +84,14 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
         if (result.requiresVerification && result.email) {
           // Check if a new verification email was sent
           if (result.code === 'EMAIL_NOT_VERIFIED_RESENT' || result.tokenResent) {
-            toast.success('New verification email sent! Check your inbox.');
+            toast.success(TOAST.AUTH.VERIFICATION_RESENT);
             // Redirect to verify-email page with resent=true
             setTimeout(() => {
               router.push(`/verify-email?email=${encodeURIComponent(result.email)}&resent=true`);
             }, 1000);
             return;
           } else if (result.code === 'EMAIL_RATE_LIMITED') {
-            toast.error(result.error || 'Verification email was sent recently. Please check your inbox.');
+            toast.error(result.error || TOAST.AUTH.VERIFICATION_RATE_LIMITED);
             // Still redirect to verify-email page
             setTimeout(() => {
               router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
@@ -98,7 +99,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
             return;
           } else {
             // Original verification link still valid
-            toast.error(result.error || 'Email verification required');
+            toast.error(result.error || TOAST.AUTH.VERIFICATION_REQUIRED);
             // Redirect to verify-email page
             setTimeout(() => {
               router.push(`/verify-email?email=${encodeURIComponent(result.email)}`);
@@ -107,11 +108,11 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
           }
         }
         
-        toast.error(result.error || 'Login failed');
+        toast.error(result.error || TOAST.AUTH.LOGIN_FAILED);
         return;
       }
 
-      toast.success('Login successful!');
+      toast.success(TOAST.AUTH.LOGIN_SUCCESS);
 
       // Check if this is an OAuth login (mobile app)
       if (oauthParams.clientId && oauthParams.redirectUri && oauthParams.codeChallenge) {
@@ -136,7 +137,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
 
           if (!oauthResponse.ok) {
             console.error('[OAuth] Authorization failed:', oauthResult);
-            toast.error('OAuth authorization failed');
+            toast.error(TOAST.AUTH.OAUTH_FAILED);
             return;
           }
 
@@ -148,7 +149,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
           return;
         } catch (oauthError) {
           console.error('[OAuth] Error during OAuth flow:', oauthError);
-          toast.error('Failed to complete OAuth flow');
+          toast.error(TOAST.AUTH.OAUTH_FLOW_FAILED);
           return;
         }
       }
@@ -163,7 +164,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
       }, 200);
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('An unexpected error occurred');
+      toast.error(TOAST.GENERIC.UNEXPECTED);
     } finally {
       setIsLoading(false);
     }

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { GoogleMap } from '@/components/maps/GoogleMap';
 import { MapPin, Home } from 'lucide-react';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 
 interface HomeLocationMapPickerProps {
     open: boolean;
@@ -63,7 +64,7 @@ export function HomeLocationMapPicker({
 
     const handleConfirm = () => {
         if (!selectedPosition) {
-            toast.error('Please select a location on the map');
+            toast.error(TOAST.LOCATION.SELECT_ON_MAP);
             return;
         }
 
@@ -94,7 +95,7 @@ export function HomeLocationMapPicker({
                 {selectedPosition && (
                     <div className="bg-primary/10 dark:bg-primary/10 border border-primary/20 dark:border-primary rounded-lg p-3">
                         <div className="flex items-start gap-2">
-                            <MapPin className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                            <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                             <div className="flex-1">
                                 {isGeocoding ? (
                                     <p className="text-sm text-primary dark:text-primary-foreground">

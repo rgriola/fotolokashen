@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { TOAST } from '@/lib/constants/messages';
 import type { Location } from '@/types/location';
 
 export function useDeleteLocation() {
@@ -44,11 +45,11 @@ export function useDeleteLocation() {
             if (context?.previousLocations) {
                 queryClient.setQueryData(['locations'], context.previousLocations);
             }
-            toast.error(error.message || 'Failed to delete location');
+            toast.error(error.message || TOAST.LOCATION.DELETE_FAILED);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['locations'] });
-            toast.success('Location deleted successfully!');
+            toast.success(TOAST.LOCATION.DELETED);
         },
     });
 }

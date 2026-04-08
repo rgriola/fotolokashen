@@ -4,6 +4,48 @@ import prisma from './prisma';
 import type { PublicUser } from '@/types/user';
 
 /**
+ * Prisma select object for fetching public user fields.
+ * Use this anywhere you need to select user data without exposing sensitive fields.
+ */
+export const USER_PUBLIC_SELECT = {
+    id: true,
+    email: true,
+    username: true,
+    firstName: true,
+    lastName: true,
+    emailVerified: true,
+    isActive: true,
+    isAdmin: true,
+    role: true,
+    avatar: true,
+    bannerImage: true,
+    city: true,
+    country: true,
+    language: true,
+    timezone: true,
+    emailNotifications: true,
+    gpsPermission: true,
+    gpsPermissionUpdated: true,
+    homeLocationName: true,
+    homeLocationLat: true,
+    homeLocationLng: true,
+    homeLocationUpdated: true,
+    createdAt: true,
+} as const;
+
+/**
+ * Minimal user select for related entities (e.g., location creator, photo uploader).
+ * Use when you only need display fields, not the full profile.
+ */
+export const USER_SUMMARY_SELECT = {
+    id: true,
+    username: true,
+    firstName: true,
+    lastName: true,
+    avatar: true,
+} as const;
+
+/**
  * Standardized API response format
  */
 export function apiResponse(data: any, status: number = 200) {
@@ -108,31 +150,7 @@ export async function requireAuth(request: NextRequest): Promise<{
     try {
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
-            select: {
-                id: true,
-                email: true,
-                username: true,
-                firstName: true,
-                lastName: true,
-                emailVerified: true,
-                isActive: true,
-                isAdmin: true,
-                role: true,
-                avatar: true,
-                bannerImage: true,
-                city: true,
-                country: true,
-                language: true,
-                timezone: true,
-                emailNotifications: true,
-                gpsPermission: true,
-                gpsPermissionUpdated: true,
-                homeLocationName: true,
-                homeLocationLat: true,
-                homeLocationLng: true,
-                homeLocationUpdated: true,
-                createdAt: true,
-            },
+            select: USER_PUBLIC_SELECT,
         });
 
         if (!user) {
@@ -229,4 +247,142 @@ export function clearAuthCookie(response: NextResponse) {
         path: '/',
     });
     return response;
+}
+
+// ──────────────────────────────────────────────
+// Route handler wrappers
+// ──────────────────────────────────────────────
+
+type RouteContext = { params: Promise<Record<string, string>> };
+
+/**
+ * Wraps a route handler with authentication + try/catch.
+ * Eliminates repetitive auth check + error handling boilerplate.
+ *
+ * Usage:
+ *   export const GET = withAuth(async (request, user) => {
+ *       const data = await doSomething(user.id);
+ *       return apiResponse(data);
+ *   });
+ */
+export function withAuth(
+    handler: (request: NextRequest, user: PublicUser, context?: RouteContext) => Promise<NextResponse>
+) {
+    return async (request: NextRequest, context?: RouteContext): Promise<NextResponse> => {
+        try {
+            const authResult = await requireAuth(request);
+            if (!authResult.authorized || !authResult.user) {
+                return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
+            }
+            return await handler(request, authResult.user, context);
+        } catch (error) {
+            console.error(`[withAuth] Unhandled error on ${request.method} ${request.nextUrl.pathname}:`, error);
+            return apiError('Internal server error', 500);
+        }
+    };
+}
+
+/**
+ * Wraps a route handler with optional authentication + try/catch.
+ * `user` will be null if no valid token is present.
+ *
+ * Usage:
+ *   export const GET = withOptionalAuth(async (request, user) => {
+ *       if (user) { // authenticated path }
+ *       return apiResponse(publicData);
+ *   });
+ */
+export function withOptionalAuth(
+    handler: (request: NextRequest, user: PublicUser | null, context?: RouteContext) => Promise<NextResponse>
+) {
+    return async (request: NextRequest, context?: RouteContext): Promise<NextResponse> => {
+        try {
+            const user = await getAuthUser(request);
+            return await handler(request, user, context);
+        } catch (error) {
+            console.error(`[withOptionalAuth] Unhandled error on ${request.method} ${request.nextUrl.pathname}:`, error);
+            return apiError('Internal server error', 500);
+        }
+    };
+}
+
+/**
+ * Wraps a route handler with admin authentication + try/catch.
+ *
+ * Usage:
+ *   export const GET = withAdmin(async (request, user) => {
+ *       return apiResponse(adminData);
+ *   });
+ */
+export function withAdmin(
+    handler: (request: NextRequest, user: PublicUser, context?: RouteContext) => Promise<NextResponse>
+) {
+    return async (request: NextRequest, context?: RouteContext): Promise<NextResponse> => {
+        try {
+            const authResult = await requireAdmin(request);
+            if (!authResult.authorized || !authResult.user) {
+                return apiError(authResult.error || 'Admin access required', 403, 'FORBIDDEN');
+            }
+            return await handler(request, authResult.user, context);
+        } catch (error) {
+            console.error(`[withAdmin] Unhandled error on ${request.method} ${request.nextUrl.pathname}:`, error);
+            return apiError('Internal server error', 500);
+        }
+    };
+}
+
+// ──────────────────────────────────────────────
+// Shared query helpers
+// ──────────────────────────────────────────────
+
+export interface BoundsFilter {
+    lat: { gte: number; lte: number };
+    lng: { gte: number; lte: number };
+}
+
+/**
+ * Parse viewport bounds from search params.
+ *
+ * Supports two formats:
+ *   - JSON object: `bounds={"south":40,"north":41,"west":-74,"east":-73}`
+ *   - CSV string:  `bounds=40,-74,41,-73` (lat1,lng1,lat2,lng2)
+ *
+ * Returns null when no bounds param is present.
+ * Throws a descriptive string on malformed input (caller should return apiError).
+ */
+export function parseBoundsFilter(searchParams: URLSearchParams): BoundsFilter | null {
+    const boundsParam = searchParams.get('bounds');
+    if (!boundsParam) return null;
+
+    // Try JSON format first
+    if (boundsParam.startsWith('{')) {
+        try {
+            const bounds = JSON.parse(boundsParam);
+            if (
+                typeof bounds.south !== 'number' ||
+                typeof bounds.north !== 'number' ||
+                typeof bounds.west !== 'number' ||
+                typeof bounds.east !== 'number'
+            ) {
+                throw new Error('Missing required bounds fields');
+            }
+            return {
+                lat: { gte: bounds.south, lte: bounds.north },
+                lng: { gte: bounds.west, lte: bounds.east },
+            };
+        } catch {
+            throw 'Invalid bounds JSON — expected {"south","north","west","east"}';
+        }
+    }
+
+    // CSV format: lat1,lng1,lat2,lng2
+    const parts = boundsParam.split(',').map(Number);
+    if (parts.length !== 4 || parts.some(isNaN)) {
+        throw 'Invalid bounds — expected lat1,lng1,lat2,lng2';
+    }
+    const [lat1, lng1, lat2, lng2] = parts;
+    return {
+        lat: { gte: Math.min(lat1, lat2), lte: Math.max(lat1, lat2) },
+        lng: { gte: Math.min(lng1, lng2), lte: Math.max(lng1, lng2) },
+    };
 }
