@@ -115,6 +115,23 @@ const envSchema = z.object({
         .url('NEXT_PUBLIC_APP_URL must be a valid URL')
         .describe('Application base URL'),
 
+});
+
+/**
+ * Additional runtime environment schema
+ * These are optional or have defaults
+ */
+const runtimeEnvSchema = envSchema.extend({
+    // Optional: Slack Integration
+    SLACK_WEBHOOK_URL: z.string().url().optional(),
+    SLACK_BOT_TOKEN: z.string().optional(),
+    SLACK_SIGNING_SECRET: z.string().optional(),
+
+    // Optional: Redis (for distributed rate limiting)
+    REDIS_URL: z.string().url().optional(),
+
+    // Optional: Analytics
+    GOOGLE_ANALYTICS_ID: z.string().optional(),
 }).superRefine((data, ctx) => {
     // Prevent EMAIL_MODE=development in production — this silently swallows all emails
     if (data.NODE_ENV === 'production' && data.EMAIL_MODE === 'development') {
@@ -136,30 +153,13 @@ const envSchema = z.object({
 });
 
 /**
- * Additional runtime environment schema
- * These are optional or have defaults
- */
-const runtimeEnvSchema = envSchema.extend({
-    // Optional: Slack Integration
-    SLACK_WEBHOOK_URL: z.string().url().optional(),
-    SLACK_BOT_TOKEN: z.string().optional(),
-    SLACK_SIGNING_SECRET: z.string().optional(),
-
-    // Optional: Redis (for distributed rate limiting)
-    REDIS_URL: z.string().url().optional(),
-
-    // Optional: Analytics
-    GOOGLE_ANALYTICS_ID: z.string().optional(),
-});
-
-/**
  * Validate environment variables
  * 
  * @throws {Error} If validation fails
  */
 function validateEnv() {
     try {
-        const parsed = envSchema.parse(process.env);
+        const parsed = runtimeEnvSchema.parse(process.env);
         return parsed;
     } catch (error) {
         if (error instanceof z.ZodError) {
