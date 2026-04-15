@@ -146,9 +146,7 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               </Link>
               .
             </span>
-          ) : (
-            'Enter your information to get access.'
-          )}
+          ) : null}
         </CardDescription>
       </CardHeader>
 
