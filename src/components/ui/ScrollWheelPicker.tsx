@@ -19,18 +19,15 @@ interface ScrollWheelPickerProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ITEM_HEIGHT = 36; // px per row
+const SCROLL_DEBOUNCE_MS = 120; // ms to wait after last scroll event
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 /**
  * ScrollWheelPicker
  *
- * A mobile-friendly scroll-wheel selector. Shows `visibleCount` items at
- * a time with the selected item centered and highlighted. The user scrolls
- * or clicks to navigate.
- *
- * Works inside a Popover: the trigger shows the currently-selected label (or placeholder).
- * The wheel dropdown appears on click.
+ * A mobile-friendly scroll-wheel selector. Uses debounced scroll-end detection
+ * and ref-based state to avoid the render-loop that causes "jumping" values.
  */
 export function ScrollWheelPicker({
   items,
@@ -45,22 +42,51 @@ export function ScrollWheelPicker({
   const scrollRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // The number of "buffer" rows above/below the center slot
+  // ── Refs to break the re-render cycle ──
+  // Track whether the user is actively scrolling so we don't fight them
+  const isUserScrolling = useRef(false);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track the last value we committed to avoid redundant onChange calls
+  const committedValue = useRef(value);
+
   const halfVisible = Math.floor(visibleCount / 2);
   const listHeight = visibleCount * ITEM_HEIGHT;
 
-  // Find current index
   const selectedIndex = items.findIndex((item) => item.value === value);
 
-  // On open, scroll to selected item (or middle-ish)
-  useEffect(() => {
-    if (open && scrollRef.current) {
-      const targetIndex = selectedIndex >= 0 ? selectedIndex : 0;
-      scrollRef.current.scrollTop = targetIndex * ITEM_HEIGHT;
+  // ── Scroll to a specific index (no onChange, just visual) ──
+  const scrollToIndex = useCallback((index: number, smooth = false) => {
+    if (!scrollRef.current) return;
+    const top = index * ITEM_HEIGHT;
+    if (smooth) {
+      scrollRef.current.scrollTo({ top, behavior: 'smooth' });
+    } else {
+      scrollRef.current.scrollTop = top;
     }
-  }, [open, selectedIndex]);
+  }, []);
 
-  // Close on click outside
+  // ── On open: jump to the selected item instantly ──
+  useEffect(() => {
+    if (open) {
+      // Use rAF to ensure the DOM is painted before we scroll
+      requestAnimationFrame(() => {
+        const idx = selectedIndex >= 0 ? selectedIndex : 0;
+        scrollToIndex(idx, false);
+      });
+    }
+  }, [open, selectedIndex, scrollToIndex]);
+
+  // ── When value changes externally (and we're not scrolling), sync scroll ──
+  useEffect(() => {
+    if (!open || isUserScrolling.current) return;
+    committedValue.current = value;
+    const idx = items.findIndex((item) => item.value === value);
+    if (idx >= 0) {
+      scrollToIndex(idx, false);
+    }
+  }, [value, open, items, scrollToIndex]);
+
+  // ── Close on click outside ──
   useEffect(() => {
     if (!open) return;
     function handleClick(e: MouseEvent) {
@@ -72,27 +98,61 @@ export function ScrollWheelPicker({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
-  // Determine which item is centered based on scroll position
+  // ── Debounced scroll-end handler ──
+  // Only commits the value AFTER scrolling stops for SCROLL_DEBOUNCE_MS.
+  // This prevents the re-render loop that causes jumping.
   const handleScroll = useCallback(() => {
-    if (!scrollRef.current) return;
-    const scrollTop = scrollRef.current.scrollTop;
-    const centeredIndex = Math.round(scrollTop / ITEM_HEIGHT);
-    const clampedIndex = Math.max(0, Math.min(items.length - 1, centeredIndex));
-    if (items[clampedIndex] && items[clampedIndex].value !== value) {
-      onChange(items[clampedIndex].value);
-    }
-  }, [items, onChange, value]);
+    isUserScrolling.current = true;
 
-  // On item click, scroll to it and select
-  const handleItemClick = useCallback((index: number) => {
-    if (scrollRef.current) {
+    // Clear any pending commit
+    if (scrollTimer.current) {
+      clearTimeout(scrollTimer.current);
+    }
+
+    // Schedule a commit after scrolling stops
+    scrollTimer.current = setTimeout(() => {
+      isUserScrolling.current = false;
+
+      if (!scrollRef.current) return;
+      const scrollTop = scrollRef.current.scrollTop;
+      const centeredIndex = Math.round(scrollTop / ITEM_HEIGHT);
+      const clampedIndex = Math.max(0, Math.min(items.length - 1, centeredIndex));
+
+      // Snap to the nearest item center
       scrollRef.current.scrollTo({
-        top: index * ITEM_HEIGHT,
+        top: clampedIndex * ITEM_HEIGHT,
         behavior: 'smooth',
       });
-    }
-    onChange(items[index].value);
+
+      // Only fire onChange if the value actually changed
+      const newValue = items[clampedIndex]?.value;
+      if (newValue && newValue !== committedValue.current) {
+        committedValue.current = newValue;
+        onChange(newValue);
+      }
+    }, SCROLL_DEBOUNCE_MS);
   }, [items, onChange]);
+
+  // ── Cleanup timer on unmount ──
+  useEffect(() => {
+    return () => {
+      if (scrollTimer.current) clearTimeout(scrollTimer.current);
+    };
+  }, []);
+
+  // ── Click on an item: scroll to it and commit ──
+  const handleItemClick = useCallback((index: number) => {
+    isUserScrolling.current = false;
+    if (scrollTimer.current) clearTimeout(scrollTimer.current);
+
+    scrollToIndex(index, true);
+
+    const newValue = items[index]?.value;
+    if (newValue && newValue !== committedValue.current) {
+      committedValue.current = newValue;
+      onChange(newValue);
+    }
+  }, [items, onChange, scrollToIndex]);
 
   const selectedLabel = selectedIndex >= 0 ? items[selectedIndex].label : placeholder;
 
@@ -140,16 +200,17 @@ export function ScrollWheelPicker({
           <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-popover to-transparent z-10" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-popover to-transparent z-10" />
 
-          {/* Scrollable list */}
+          {/* Scrollable list — NO scroll-snap to avoid fighting with JS */}
           <div
             ref={scrollRef}
-            className="h-full overflow-y-auto scroll-smooth snap-y snap-mandatory"
+            className="h-full overflow-y-auto"
             onScroll={handleScroll}
             style={{
-              scrollSnapType: 'y mandatory',
-              // Pad top/bottom so first/last items can center
+              // Pad top/bottom so first/last items can reach the center
               paddingTop: halfVisible * ITEM_HEIGHT,
               paddingBottom: halfVisible * ITEM_HEIGHT,
+              // Smooth momentum scrolling on iOS
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             {items.map((item, index) => (
@@ -157,11 +218,11 @@ export function ScrollWheelPicker({
                 key={item.value}
                 onClick={() => handleItemClick(index)}
                 className={cn(
-                  'flex items-center justify-center cursor-pointer select-none transition-all snap-start',
-                  'text-sm hover:text-foreground',
+                  'flex items-center justify-center cursor-pointer select-none transition-colors',
+                  'text-sm',
                   item.value === value
                     ? 'text-foreground font-semibold'
-                    : 'text-muted-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
                 style={{ height: ITEM_HEIGHT }}
               >
