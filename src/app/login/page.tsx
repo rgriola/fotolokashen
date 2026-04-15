@@ -11,7 +11,7 @@ interface LoginPageProps {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
   const { returnUrl, message } = params;
-  
+
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       {/* Background Image Layer */}
@@ -26,11 +26,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
       <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-social/20 blur-3xl animate-pulse" />
 
-      {/* Content - 25px from header with consistent padding */}
-      <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 mt-[25px] flex-1 flex items-start md:items-center">
-        <div className="w-full">
-          {/* Logo */}
-          <div className="mb-6 flex justify-center">
+      {/* Content — full height on mobile, centered on sm+ */}
+      <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 flex-1 flex items-center justify-center py-4 sm:py-8">
+        <div className="w-full max-w-md">
+          {/* Logo — hidden on mobile, visible on sm+ */}
+          <div className="hidden sm:flex mb-6 justify-center">
             <Image
               src="/logo.png"
               alt="fotolokashen"

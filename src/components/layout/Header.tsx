@@ -5,20 +5,32 @@ import { MapPin } from "lucide-react";
 import { Navigation } from "./Navigation";
 import { AuthButton } from "./AuthButton";
 import { useAuth } from "@/lib/auth-context";
+import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 
 interface HeaderProps {
     centerContent?: ReactNode;
 }
 
+// Routes where the header is hidden on mobile so auth forms get full focus
+const AUTH_ROUTES = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
+
 export function Header({ centerContent }: HeaderProps = {}) {
     const { user } = useAuth();
+    const pathname = usePathname();
 
     // Authenticated users go to map, unauthenticated to home
     const homeLink = user ? "/map" : "/";
 
+    // On mobile, hide the header on auth pages so it doesn't overlap the form
+    const isAuthRoute = AUTH_ROUTES.some((route) => pathname?.startsWith(route));
+
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header
+            className={`sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${
+                isAuthRoute ? 'hidden sm:block' : ''
+            }`}
+        >
             <div className="flex h-16 items-center px-4 md:px-6 lg:px-8 max-w-7xl mx-auto justify-between gap-4">
                 {/* Left side - Logo */}
                 <div className="flex items-center gap-3 flex-shrink-0">

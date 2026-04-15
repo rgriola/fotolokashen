@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Link from 'next/link';
@@ -13,8 +13,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from 'sonner';
 import { TOAST } from '@/lib/constants/messages';
 import { Eye, EyeOff } from 'lucide-react';
+import { DateOfBirthPicker } from './DateOfBirthPicker';
 
-// Validation schema (matches backend)
+// ─── Validation Schema ────────────────────────────────────────────────────────
+
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   username: z
@@ -38,19 +40,16 @@ const registerSchema = z.object({
   message: "Passwords don't match",
   path: ['confirmPassword'],
 }).refine((data) => {
-  // Check if user is at least 18 years old
+  if (!data.dateOfBirth || data.dateOfBirth.length !== 10) return false;
   const birthDate = new Date(data.dateOfBirth);
   const today = new Date();
   const age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
   const dayDiff = today.getDate() - birthDate.getDate();
-  
-  // Adjust age if birthday hasn't occurred this year
   const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-  
   return actualAge >= 18;
 }, {
-  message: "You must be at least 18 years old to create an account. This service is not available to users under 18.",
+  message: 'You must be at least 18 years old to create an account.',
   path: ['dateOfBirth'],
 });
 
@@ -61,6 +60,21 @@ interface RegisterFormProps {
   message?: string;
 }
 
+// ─── Password Strength ────────────────────────────────────────────────────────
+
+function getPasswordStrength(pass: string): number {
+  if (!pass) return 0;
+  let strength = 0;
+  if (pass.length >= 8) strength++;
+  if (/[A-Z]/.test(pass)) strength++;
+  if (/[a-z]/.test(pass)) strength++;
+  if (/[0-9]/.test(pass)) strength++;
+  if (/[^A-Za-z0-9]/.test(pass)) strength++;
+  return strength;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -70,55 +84,38 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     watch,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      dateOfBirth: '', // Intentionally blank — never default to today
+    },
   });
 
   const password = watch('password');
   const confirmPassword = watch('confirmPassword');
 
-  // Check if passwords match in real-time
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
   const passwordsDontMatch = password && confirmPassword && password !== confirmPassword;
-
-  // Password strength indicator
-  const getPasswordStrength = (pass: string): number => {
-    if (!pass) return 0;
-    let strength = 0;
-    if (pass.length >= 8) strength++;
-    if (/[A-Z]/.test(pass)) strength++;
-    if (/[a-z]/.test(pass)) strength++;
-    if (/[0-9]/.test(pass)) strength++;
-    if (/[^A-Za-z0-9]/.test(pass)) strength++;
-    return strength;
-  };
-
   const passwordStrength = getPasswordStrength(password);
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const onSubmit = useCallback(async (data: RegisterFormData) => {
     setIsLoading(true);
-
     try {
-      const { confirmPassword, ...registerData } = data;
-
+      const { confirmPassword: _confirm, ...registerData } = data;
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(registerData),
       });
-
       const result = await response.json();
-
       if (!response.ok) {
         toast.error(result.error || TOAST.AUTH.REGISTER_FAILED);
         return;
       }
-
       toast.success(TOAST.AUTH.REGISTER_SUCCESS);
-
-      // Redirect to login with returnUrl so they can access the location after verifying and logging in
       if (returnUrl) {
         router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}&message=${message || ''}`);
       } else {
@@ -130,17 +127,18 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router, returnUrl, message]);
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Register - Create Account</CardTitle>
-        <CardDescription>
+    <Card className="w-full">
+      {/* Compact header on mobile */}
+      <CardHeader className="space-y-0.5 pb-3 sm:space-y-1 sm:pb-4">
+        <CardTitle className="text-xl sm:text-2xl font-bold">Create Account</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">
           {message === 'location' ? (
             <span className="text-primary font-medium">
               To view this location please create an account or{' '}
-              <Link 
+              <Link
                 href={`/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
                 className="underline hover:text-primary-foreground"
               >
@@ -149,15 +147,18 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               .
             </span>
           ) : (
-            'Enter Your Information To Get Access.'
+            'Enter your information to get access.'
           )}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" autoComplete="off">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+
+      <CardContent className="pb-3 sm:pb-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4" autoComplete="off">
+
+          {/* First + Last Name row */}
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="firstName" className="text-xs sm:text-sm">First Name</Label>
               <Input
                 id="firstName"
                 type="text"
@@ -165,16 +166,14 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 autoComplete="off"
                 {...register('firstName')}
                 disabled={isLoading}
-                className={errors.firstName ? 'border-destructive focus-visible:ring-destructive' : ''}
-                aria-invalid={errors.firstName ? 'true' : 'false'}
+                className={`h-9 sm:h-10 text-sm ${errors.firstName ? 'border-destructive focus-visible:ring-destructive' : ''}`}
               />
               {errors.firstName && (
-                <p className="text-sm text-destructive font-medium">{errors.firstName.message}</p>
+                <p className="text-xs text-destructive font-medium">{errors.firstName.message}</p>
               )}
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
+            <div className="space-y-1">
+              <Label htmlFor="lastName" className="text-xs sm:text-sm">Last Name</Label>
               <Input
                 id="lastName"
                 type="text"
@@ -182,17 +181,17 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 autoComplete="off"
                 {...register('lastName')}
                 disabled={isLoading}
-                className={errors.lastName ? 'border-destructive focus-visible:ring-destructive' : ''}
-                aria-invalid={errors.lastName ? 'true' : 'false'}
+                className={`h-9 sm:h-10 text-sm ${errors.lastName ? 'border-destructive focus-visible:ring-destructive' : ''}`}
               />
               {errors.lastName && (
-                <p className="text-sm text-destructive font-medium">{errors.lastName.message}</p>
+                <p className="text-xs text-destructive font-medium">{errors.lastName.message}</p>
               )}
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+          {/* Email */}
+          <div className="space-y-1">
+            <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
             <Input
               id="email"
               type="email"
@@ -200,16 +199,16 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               autoComplete="off"
               {...register('email')}
               disabled={isLoading}
-              className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
-              aria-invalid={errors.email ? 'true' : 'false'}
+              className={`h-9 sm:h-10 text-sm ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             />
             {errors.email && (
-              <p className="text-sm text-destructive font-medium">{errors.email.message}</p>
+              <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+          {/* Username */}
+          <div className="space-y-1">
+            <Label htmlFor="username" className="text-xs sm:text-sm">Username</Label>
             <Input
               id="username"
               type="text"
@@ -217,44 +216,42 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               autoComplete="off"
               {...register('username')}
               disabled={isLoading}
-              className={errors.username ? 'border-destructive focus-visible:ring-destructive' : ''}
-              aria-invalid={errors.username ? 'true' : 'false'}
+              className={`h-9 sm:h-10 text-sm ${errors.username ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             />
             {errors.username && (
-              <p className="text-sm text-destructive font-medium">{errors.username.message}</p>
+              <p className="text-xs text-destructive font-medium">{errors.username.message}</p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dateOfBirth">Date of Birth</Label>
-            <Input
-              id="dateOfBirth"
-              type="date"
-              autoComplete="bday"
-              max={new Date().toISOString().split('T')[0]}
-              {...register('dateOfBirth')}
-              disabled={isLoading}
-              className={errors.dateOfBirth ? 'border-destructive focus-visible:ring-destructive' : ''}
-              aria-invalid={errors.dateOfBirth ? 'true' : 'false'}
-            />
-            <p className="text-xs text-muted-foreground">You must be at least 18 years old to register.</p>
-            {errors.dateOfBirth && (
-              <p className="text-sm text-destructive font-medium">{errors.dateOfBirth.message}</p>
+          {/* ── Date of Birth — custom 3-dropdown picker ── */}
+          <Controller
+            name="dateOfBirth"
+            control={control}
+            render={({ field }) => (
+              <DateOfBirthPicker
+                value={field.value}
+                onChange={field.onChange}
+                disabled={isLoading}
+                hasError={!!errors.dateOfBirth}
+              />
             )}
-          </div>
+          />
+          {errors.dateOfBirth && (
+            <p className="text-xs text-destructive font-medium -mt-1">{errors.dateOfBirth.message}</p>
+          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+          {/* Password */}
+          <div className="space-y-1">
+            <Label htmlFor="password" className="text-xs sm:text-sm">Password</Label>
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 autoComplete="new-password"
                 {...register('password')}
                 disabled={isLoading}
-                className={`pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
-                aria-invalid={errors.password ? 'true' : 'false'}
+                className={`h-9 sm:h-10 text-sm pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
               />
               <button
                 type="button"
@@ -262,32 +259,28 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                 tabIndex={-1}
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-destructive font-medium">{errors.password.message}</p>
+              <p className="text-xs text-destructive font-medium">{errors.password.message}</p>
             )}
-
-            {/* Password Strength Indicator */}
+            {/* Password strength bar */}
             {password && (
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
-                      className={`h-1 flex-1 rounded ${i < passwordStrength
-                        ? passwordStrength <= 2
-                          ? 'bg-destructive'
-                          : passwordStrength <= 3
-                            ? 'bg-warning'
-                            : 'bg-success'
-                        : 'bg-muted'
-                        }`}
+                      className={`h-1 flex-1 rounded ${
+                        i < passwordStrength
+                          ? passwordStrength <= 2
+                            ? 'bg-destructive'
+                            : passwordStrength <= 3
+                              ? 'bg-warning'
+                              : 'bg-success'
+                          : 'bg-muted'
+                      }`}
                     />
                   ))}
                 </div>
@@ -301,35 +294,36 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+          {/* Confirm Password */}
+          <div className="space-y-1">
+            <Label htmlFor="confirmPassword" className="text-xs sm:text-sm">Confirm Password</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
-                type={showConfirmPassword ? "text" : "password"}
+                type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 autoComplete="new-password"
                 {...register('confirmPassword')}
                 disabled={isLoading}
-                className={`pr-20 ${errors.confirmPassword
-                  ? 'border-destructive focus-visible:ring-destructive'
-                  : passwordsMatch
-                    ? 'border-success focus-visible:ring-success'
-                    : passwordsDontMatch
-                      ? 'border-destructive focus-visible:ring-destructive'
-                      : ''
-                  }`}
-                aria-invalid={errors.confirmPassword ? 'true' : 'false'}
+                className={`h-9 sm:h-10 text-sm pr-20 ${
+                  errors.confirmPassword
+                    ? 'border-destructive focus-visible:ring-destructive'
+                    : passwordsMatch
+                      ? 'border-success focus-visible:ring-success'
+                      : passwordsDontMatch
+                        ? 'border-destructive focus-visible:ring-destructive'
+                        : ''
+                }`}
               />
-              {/* Password Match Indicator */}
+              {/* Match indicator icon */}
               {confirmPassword && (
-                <div className="absolute right-12 top-1/2 -translate-y-1/2">
+                <div className="absolute right-10 top-1/2 -translate-y-1/2">
                   {passwordsMatch ? (
-                    <svg className="h-5 w-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   ) : passwordsDontMatch ? (
-                    <svg className="h-5 w-5 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   ) : null}
@@ -341,37 +335,32 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                 tabIndex={-1}
               >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {/* Real-time feedback message */}
             {confirmPassword && !errors.confirmPassword && (
-              <p className={`text-sm font-medium ${passwordsMatch ? 'text-success' : 'text-destructive'}`}>
+              <p className={`text-xs font-medium ${passwordsMatch ? 'text-success' : 'text-destructive'}`}>
                 {passwordsMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
               </p>
             )}
-            {/* Validation error message */}
             {errors.confirmPassword && (
-              <p className="text-sm text-destructive font-medium">{errors.confirmPassword.message}</p>
+              <p className="text-xs text-destructive font-medium">{errors.confirmPassword.message}</p>
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full h-9 sm:h-10" disabled={isLoading}>
             {isLoading ? 'Setting You Up...' : 'Create Account'}
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col space-y-2">
-        <div className="text-sm text-muted-foreground">
-          Have An Account?{' '}
+
+      <CardFooter className="pt-0 pb-4">
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          Have an account?{' '}
           <Link href="/login" className="text-primary hover:underline font-medium">
             Log in
           </Link>
-        </div>
+        </p>
       </CardFooter>
     </Card>
   );

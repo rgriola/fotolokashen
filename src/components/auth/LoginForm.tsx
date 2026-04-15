@@ -172,9 +172,9 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Login - Welcome Back</CardTitle>
-        <CardDescription>
+      <CardHeader className="space-y-0.5 pb-3 sm:space-y-1 sm:pb-4">
+        <CardTitle className="text-xl sm:text-2xl font-bold">Welcome Back</CardTitle>
+        <CardDescription className="text-xs sm:text-sm">
           {message === 'location' ? (
             <span className="text-primary font-medium">
               To view this location please login or{' '}
@@ -192,30 +192,27 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4">
+          <div className="space-y-1">
+            <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
               {...register('email')}
               disabled={isLoading}
-              className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
+              className={`h-9 sm:h-10 text-sm ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
               aria-invalid={errors.email ? 'true' : 'false'}
             />
             {errors.email && (
-              <p className="text-sm text-destructive font-medium">{errors.email.message}</p>
+              <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                href="/forgot-password"
-                className="text-sm text-primary hover:underline"
-              >
+              <Label htmlFor="password" className="text-xs sm:text-sm">Password</Label>
+              <Link href="/forgot-password" className="text-xs sm:text-sm text-primary hover:underline">
                 Forgot Password?
               </Link>
             </div>
@@ -226,7 +223,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
                 placeholder="••••••••"
                 {...register('password')}
                 disabled={isLoading}
-                className={`pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                className={`h-9 sm:h-10 text-sm pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 aria-invalid={errors.password ? 'true' : 'false'}
               />
               <button
@@ -243,7 +240,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-destructive font-medium">{errors.password.message}</p>
+              <p className="text-xs text-destructive font-medium">{errors.password.message}</p>
             )}
           </div>
 
@@ -260,22 +257,18 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
             </Label>
           </div>
 
-          <Button 
-            type="submit" 
-            className="w-full" 
-            disabled={isLoading}
-          >
+          <Button type="submit" className="w-full h-9 sm:h-10" disabled={isLoading}>
             {isLoading ? 'Logging in...' : 'Login'}
           </Button>
         </form>
       </CardContent>
-      <CardFooter className="flex flex-col space-y-2">
-        <div className="text-sm text-muted-foreground">
-          No Account? We Got You.{' '}
+      <CardFooter className="pt-0 pb-4">
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          No account?{' '}
           <Link href="/register" className="text-primary hover:underline font-medium">
             Create Account
           </Link>
-        </div>
+        </p>
       </CardFooter>
     </Card>
   );
