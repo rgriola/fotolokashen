@@ -8,12 +8,22 @@ import {
 } from './email-templates';
 import { getRenderedEmail } from './email-template-service';
 import { prisma } from './prisma';
+import { env } from './env';
 
-// Environment variables
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-const EMAIL_MODE = process.env.EMAIL_MODE || 'development';
-const EMAIL_API_KEY = process.env.EMAIL_API_KEY;
+// Environment variables — using validated env to prevent silent defaults
+const APP_URL = env.NEXT_PUBLIC_APP_URL;
+const EMAIL_MODE = env.EMAIL_MODE;
+const EMAIL_API_KEY = env.EMAIL_API_KEY;
 const USE_DB_TEMPLATES = process.env.USE_DB_TEMPLATES !== 'false'; // Default: true
+
+// Production safety guard: catch misconfigured EMAIL_MODE before any emails are attempted
+if (process.env.NODE_ENV === 'production' && EMAIL_MODE !== 'production') {
+  console.error(
+    '\n🚨🚨🚨 CRITICAL: EMAIL_MODE is set to "' + EMAIL_MODE + '" in a production environment!\n' +
+    '   All emails will be silently logged to console instead of sent.\n' +
+    '   Set EMAIL_MODE="production" in Vercel environment variables to fix.\n'
+  );
+}
 
 // Initialize Resend client (lazy initialization)
 let resendClient: Resend | null = null;
@@ -42,19 +52,20 @@ async function sendEmail(
   html: string,
   templateId?: number
 ): Promise<boolean> {
-  const fromName = process.env.EMAIL_FROM_NAME || 'Fotolokashen';
-  const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'noreply@fotolokashen.com';
+  const fromName = env.EMAIL_FROM_NAME;
+  const fromAddress = env.EMAIL_FROM_ADDRESS;
 
   try {
+    console.log(`[Email] Attempting send — mode: ${EMAIL_MODE}, to: ${to}, subject: "${subject}"`);
     const resend = getResendClient();
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: `${fromName} <${fromAddress}>`,
       to,
       subject,
       html,
     });
     
-    console.log(`✅ Email sent to ${to}: ${subject}`);
+    console.log(`✅ Email sent to ${to}: ${subject} (Resend ID: ${result?.data?.id || 'unknown'})`);
     
     // Log to database if template ID provided
     if (templateId) {
@@ -76,7 +87,8 @@ async function sendEmail(
     
     return true;
   } catch (error) {
-    console.error('❌ Email send error:', error);
+    console.error(`❌ Email send FAILED — mode: ${EMAIL_MODE}, to: ${to}, subject: "${subject}"`);
+    console.error('   Error details:', error);
     
     // Log failure to database if template ID provided
     if (templateId) {

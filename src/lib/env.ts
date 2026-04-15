@@ -115,6 +115,24 @@ const envSchema = z.object({
         .url('NEXT_PUBLIC_APP_URL must be a valid URL')
         .describe('Application base URL'),
 
+}).superRefine((data, ctx) => {
+    // Prevent EMAIL_MODE=development in production — this silently swallows all emails
+    if (data.NODE_ENV === 'production' && data.EMAIL_MODE === 'development') {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'EMAIL_MODE must be "production" when NODE_ENV is "production". Emails will NOT be sent otherwise!',
+            path: ['EMAIL_MODE'],
+        });
+    }
+
+    // Require EMAIL_API_KEY when EMAIL_MODE=production (Resend needs it to send)
+    if (data.EMAIL_MODE === 'production' && !data.EMAIL_API_KEY) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'EMAIL_API_KEY is required when EMAIL_MODE is "production". Set your Resend API key.',
+            path: ['EMAIL_API_KEY'],
+        });
+    }
 });
 
 /**
