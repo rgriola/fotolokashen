@@ -1,3 +1,5 @@
+## purpose
+
 The Problem: CNN produces hundreds of shoots a year. Preplanning is essentially. But our institutional knowledge resides in two places 1) Our brains 2) Xytech.
 
 Fotolokasen is developed for production crews to easily share planning information. Think of it as a repository for the work we have done. Teams can collect and share details about producitons, quickly and easily and accesabile via iOS.
@@ -151,3 +153,12 @@ Resources
 - Learn more about In-App Controls in Age ratings values and definitions.
 - Learn more about age rating requirements in guideline 2.3.6.
   Support
+
+###
+
+- Please review our Fotolokashen web app file by file and comment into files as needed where business logic may be missing.
+- In the review evaluate the coding Architecture, the Swift.view Architecture and styling Architecture. Point out the parts that work and need improvement.
+- I want to make feature changes and I believe we need a comprehensive assesment how this app can be better and be ready for more dynamic features;
+- A feature update is iOS location creation; iOS needs a photo upload UI Pipeline using iOS Photo Library images + also allowing adding Camera Photos directly. this feature will need a separate implimentation plan as I will use this going forward for another app.
+- Any suggestions to make this app stronger.
+  -- And place this into a markdown file.
