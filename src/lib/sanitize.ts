@@ -2,12 +2,28 @@
  * Input Sanitization Utilities
  * 
  * Provides XSS protection by sanitizing user input before storage and display.
- * Uses DOMPurify for robust HTML sanitization.
+ * Strategy: blocklist dangerous content (HTML tags, control chars) rather than
+ * allowlist specific characters — lets users keep context like %, @, #, $, etc.
  */
 
 /**
+ * Sanitize user text input — strips HTML tags and control characters.
+ * Safe for all free-text fields (names, notes, captions, etc.).
+ * Does NOT restrict which printable characters are allowed.
+ */
+export function sanitizeUserInput(input: string | null | undefined): string {
+    if (!input) return '';
+
+    return input
+        .replace(/<\/?[^>]+(>|$)/g, "")   // Strip all HTML tags
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // Strip control chars (keep \t \n \r)
+        .replace(/[\u200B-\u200F\u2028-\u202F\uFEFF]/g, "") // Strip zero-width/invisible chars
+        .trim();
+}
+
+/**
  * Sanitize plain text - strips ALL HTML tags
- * Use for fields that should never contain HTML (names, addresses, etc.)
+ * @deprecated Use sanitizeUserInput() instead — this is kept for backward compatibility
  */
 export function sanitizeText(input: string | null | undefined): string {
     if (!input) return '';

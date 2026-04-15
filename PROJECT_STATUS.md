@@ -1,12 +1,25 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-02-18
+**Last Updated**: 2026-04-09
 **Production URL**: https://fotolokashen.com  
-**Status**: ✅ Live in Production | 📱 iOS App in Active Development
+**Status**: ✅ Live in Production | 📱 iOS App v1.4.1
 
 ## Current Focus
 
-### 🎯 Recent Completions (February 2026)
+### 🎯 Recent Completions (April 2026)
+
+1. ✅ **Codebase Review — 6-Phase Refactor** (Web + iOS)
+   - **Phase A: API Route Standardization** — Unified error/success response patterns across 67 API routes; extracted shared helpers (`apiError`, `apiSuccess`, `parseBoundsFilter`); added unit tests (vitest)
+   - **Phase B: Toast Standardization** — Centralized toast message catalog in `lib/constants/messages.ts`; consistent messaging across all user-facing toasts
+   - **Phase C: Map Page Decomposition** — `map/page.tsx` reduced from ~1,650 → ~800 lines; extracted `useMapMarkers`, `useMapNavigation`, `useGpsHandlers`, `MapInfoWindowContent`, and `types.ts`
+   - **Phase D: iOS Critical File Decomposition** — Extracted `GeocodingService.swift` (288 lines) from `LocationService` (602→335); extracted `LocationDetailSubviews.swift` (350 lines) from `LocationDetailView` (1,164→773)
+   - **Phase E: Shared Web Components** — Extracted `TagInput.tsx` and `UnsavedChangesBanner.tsx`; `EditLocationForm` 1,052→817 (-22%); `SaveLocationForm` 545→493 (-10%)
+   - **Phase F: iOS Medium File Cleanup** — Extracted `ProfileHeaderComponents.swift` (253 lines) with `ProfileBannerView`, `ProfileAvatarView`, `ProfileStatItem`, `FormField`, `ImagePicker`; `ProfileView` 665→454 (-32%); `PublicProfileView` 517→456 (-12%)
+   - Full plan: [docs/CODEBASE_REVIEW_PLAN.md](./docs/CODEBASE_REVIEW_PLAN.md)
+
+2. ✅ **Tailwind v4 Canonical Class Cleanup** — Replaced legacy classes (`flex-shrink-0`→`shrink-0`, `bg-gradient-to-br`→`bg-linear-to-br`, arbitrary values→standard utilities) across 9 files
+
+### Previous Completions (February 2026)
 
 1. ✅ **Friends/Public Locations API Flattening** - iOS compatibility fix
    - Flattened `/api/v1/locations/friends` and `/api/v1/locations/public` response structure.
@@ -79,14 +92,16 @@
 - ✅ **Profile Management Enhancements** - Username/email change, avatar/banner editing
 - ✅ **Privacy & Visibility System** - Granular privacy controls
 
-### 📱 iOS Companion App
+### 📱 iOS Companion App (v1.4.1)
 
 **Status**: Active Development  
 **Location**: `/fotolokashen-ios/` workspace
 
-- **Tech Stack**: SwiftUI, MVVM Architecture, Swift Concurrency
-- **Core Features**: Camera-first workflow, GPS tagging, offline support
-- **Backend Integration**: OAuth2 + PKCE authentication
+- **Tech Stack**: SwiftUI (iOS 16+), MVVM + Shared Store, Swift Concurrency
+- **Core Features**: Camera-first workflow, GPS tagging, offline support (iOS 17+)
+- **Social Features**: Follow/unfollow, public profiles, friends' locations on map, people search
+- **Backend Integration**: OAuth2 + PKCE authentication, secure server-mediated uploads
+- **Recent Refactors**: Extracted `GeocodingService`, `LocationDetailSubviews`, `ProfileHeaderComponents` — all files under 500-line SwiftLint threshold
 
 ---
 
@@ -358,6 +373,15 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - 🔄 User guide and help system content
 
 ## Recent Deployments
+
+**2026-04-08**: Codebase Review — Full 6-Phase Refactor
+
+- Phase A: API route standardization with shared helpers and unit tests
+- Phase B: Centralized toast message catalog
+- Phase C: Map page decomposed into 5 focused modules (1,650→800 lines)
+- Phase E: Shared `TagInput` and `UnsavedChangesBanner` components extracted
+- Tailwind v4 canonical class cleanup across 9 files
+- iOS Phases D+F: 5 new extracted files, all source files under SwiftLint thresholds
 
 **2026-02-18**: Friends/Public Locations API & iOS Compatibility
 

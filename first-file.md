@@ -78,3 +78,76 @@ Apr 2 2026
 - If at any time you have questions please ask.
 
 - One issue I see is the Toast-Alerts-Success system is the messages are inconsistent and in some cases do not communicate effectively to the user. An example is the photo uploads, it does not show the stages of photo upload. It becomes confusing when adding the
+
+...
+Apr 9 2026
+
+**_ Task _**
+Location Cards (Grid View)
+
+- The Photos in the Card Viewport should show the entire photo scaled to fit into the view port. This includes handling vertical photos the same way, reducing the scale to fit into the viewport.
+  **_ Instructions _**
+- Review how the Location Card render the photos in the viewport.
+  There will need to be a space filler added to the background since the viewport and photo scale will always be different.
+- show me a plan to impliment the changes before coding.
+
+...
+**_ Task _**
+Panel Components details, edit amd save panels
+
+- Impliment the same photo treatment in the viewport as the Location Cards.
+- The Photos in the Panel Components should show the entire photo scaled to fit into the view port. This includes handling vertical photos the same way, reducing the scale to fit into the viewport.
+  **_ Instructions _**
+- Review how the Panel components render the photos in the viewport.
+  There will need to be a space filler added to the background since the viewport and photo scale will always be different.
+- show me a plan to impliment the changes before coding.
+
+...
+
+Specifically when Editing a location through the edit location panel. If I click "Delete" to delete a location I get an alert from "URL" says ... this location will be deleted.
+
+- there are 2 issues:
+  1st The alert is in the middle of the screen and it should be over the panel so the user's eyes see it squarely, brining focus to the important message. This would also work with mobile browser but I am less concerned there because we have iOS app. The idea is to make sure the users attention is brought to the alert about losing data.
+
+  2nd Issue is the alert dialog is styled with a white background and no information about what is being deleted; it should be Specific ie; [Location Name] with all photos and data will be permently removed. Continue? . The Alert should be Red like an Error warning etc.
+
+  ..
+  The delete notice looks much better, much more clear what is happening. Next is Validation and Sanitation of user Text inputs. I web app has one set of standards and the iOS app has another. I know this because I was able to enter an @ symbol in the Location Name in iOS when creating a location, but when I viewed the location on the Web and tried to save it the web with an update it was rejected. I need to make sure both Validate and Sanitize the in the same process. I also feel I need to be able to allow more charecters since I found myself using % as in "50% power" but I cannot use the % symbold. What is the best solution to aligning the validation and sanitizing user input and allowing users to keep the context of their infomation and considering security. Review and explain a Plan before any code changes.
+
+**_ issue _**
+
+- I recieved the below notice from Apple Develper Review for the iOS app. Can we plan and address this issue below.
+
+Note from Apple
+
+Issue Description
+
+We noticed that the user is taken to the default web browser to sign in or register for an account, which provides a poor user experience.
+
+Next Steps
+
+To resolve this issue, please revise the app to enable users to sign in or register for an account in the app.
+
+You may also choose to implement the Safari View Controller API to display web content within the app. The Safari View Controller allows the display of a URL and inspection of the certificate from an embedded browser in an app so that customers can verify the webpage URL and SSL certificate to confirm they are entering their sign in credentials into a legitimate page.
+
+Resources
+
+- For additional information on the Safari View Controller API, please review the What's New in Safari webpage.
+- Note that apps that support account creation must also offer account deletion, per guideline 4. Learn more about offering account deletion in the app.
+  Guideline 2.3.6 - Performance - Accurate Metadata
+
+Issue Description
+
+The content description selected for the app’s Age Rating indicates that the app includes In-App Controls. However, we were unable to find either Parental Controls or Age Assurance mechanisms in the app.
+
+Next Steps
+
+If the app currently includes these features, reply to this message and let us know how to locate them.
+
+Otherwise, update the Age Rating selections to "None" for "Parental Controls." Age Rating selections can be found on the App Information page after selecting the app in App Store Connect.
+
+Resources
+
+- Learn more about In-App Controls in Age ratings values and definitions.
+- Learn more about age rating requirements in guideline 2.3.6.
+  Support

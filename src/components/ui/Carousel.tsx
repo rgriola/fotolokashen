@@ -25,10 +25,8 @@ export function Carousel({ images, alt = "Photo", className = "" }: CarouselProp
       <Image
         src={images[index]}
         alt={alt}
-        className="w-full h-full object-cover rounded-lg"
-        style={{ aspectRatio: "16/9" }}
-        width={1200}
-        height={675}
+        className="object-contain"
+        fill
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         priority
         draggable={false}

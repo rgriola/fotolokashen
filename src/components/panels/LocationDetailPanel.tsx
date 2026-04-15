@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -21,6 +22,7 @@ import {
     DollarSign,
     Phone,
     AlertCircle,
+    AlertTriangle,
     Key,
     X,
     Copy,
@@ -29,6 +31,16 @@ import {
     Users,
     Bookmark,
 } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogFooter,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogAction,
+    AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { PhotoGallery } from "../locations/PhotoGallery";
 import type { Location } from "@/types/location";
 import { getOptimizedAvatarUrl } from "@/lib/imagekit";
@@ -55,6 +67,7 @@ export function LocationDetailPanel({
     canEdit = true,
 }: LocationDetailPanelProps) {
     const router = useRouter();
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
     const typeColor = location.userSave?.color || "#64748B";
 
@@ -203,9 +216,7 @@ export function LocationDetailPanel({
                                         size="icon"
                                         onClick={() => {
                                             if (source === 'user' && canEdit && onDelete) {
-                                                if (confirm('Are you sure you want to delete this location?')) {
-                                                    onDelete(location.userSave?.id || location.id);
-                                                }
+                                                setShowDeleteDialog(true);
                                             }
                                         }}
                                         className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm text-destructive hover:text-destructive disabled:text-muted-foreground"
@@ -227,7 +238,7 @@ export function LocationDetailPanel({
                                 src={`https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=16&size=800x400&scale=2&maptype=roadmap&markers=color:red%7C${location.lat},${location.lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}`}
                                 alt={`Map of ${location.name}`}
                                 fill
-                                className="object-cover"
+                                className="object-contain"
                                 sizes="(max-width: 768px) 100vw, 800px"
                                 unoptimized
                                 onError={(e) => {
@@ -554,6 +565,32 @@ export function LocationDetailPanel({
                     </div>
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent className="border-destructive">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                            <AlertTriangle className="w-5 h-5" />
+                            Delete Location
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-foreground">
+                            <span className="font-semibold">&ldquo;{location.name}&rdquo;</span> with all photos and data will be permanently removed. This cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-white hover:bg-destructive/90"
+                            onClick={() => {
+                                onDelete?.(location.userSave?.id || location.id);
+                            }}
+                        >
+                            Delete Permanently
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

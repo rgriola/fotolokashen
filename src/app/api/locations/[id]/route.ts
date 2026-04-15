@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
 import { canEditLocation, canDeleteUserSave } from '@/lib/permissions';
+import { sanitizeUserInput, sanitizeArray } from '@/lib/sanitize';
 
 /**
  * GET /api/locations/[id]
@@ -112,24 +113,24 @@ export async function PATCH(
             where: { id },
             data: {
                 // Basic info
-                ...(body.name && { name: body.name }),
-                ...(body.address && { address: body.address }),
+                ...(body.name && { name: sanitizeUserInput(body.name) }),
+                ...(body.address && { address: sanitizeUserInput(body.address) }),
                 ...(body.type && { type: body.type }),
                 ...(body.rating !== undefined && { rating: body.rating }),
                 // Address components
-                ...(body.street !== undefined && { street: body.street }),
-                ...(body.number !== undefined && { number: body.number }),
-                ...(body.city !== undefined && { city: body.city }),
-                ...(body.state !== undefined && { state: body.state }),
-                ...(body.zipcode !== undefined && { zipcode: body.zipcode }),
+                ...(body.street !== undefined && { street: sanitizeUserInput(body.street) }),
+                ...(body.number !== undefined && { number: sanitizeUserInput(body.number) }),
+                ...(body.city !== undefined && { city: sanitizeUserInput(body.city) }),
+                ...(body.state !== undefined && { state: sanitizeUserInput(body.state) }),
+                ...(body.zipcode !== undefined && { zipcode: sanitizeUserInput(body.zipcode) }),
                 // Production details
                 ...(body.productionDate !== undefined && { 
                     productionDate: body.productionDate ? new Date(body.productionDate) : null 
                 }),
-                ...(body.productionNotes !== undefined && { productionNotes: body.productionNotes }),
-                ...(body.entryPoint !== undefined && { entryPoint: body.entryPoint }),
-                ...(body.parking !== undefined && { parking: body.parking }),
-                ...(body.access !== undefined && { access: body.access }),
+                ...(body.productionNotes !== undefined && { productionNotes: sanitizeUserInput(body.productionNotes) }),
+                ...(body.entryPoint !== undefined && { entryPoint: sanitizeUserInput(body.entryPoint) }),
+                ...(body.parking !== undefined && { parking: sanitizeUserInput(body.parking) }),
+                ...(body.access !== undefined && { access: sanitizeUserInput(body.access) }),
                 ...(body.indoorOutdoor !== undefined && { indoorOutdoor: body.indoorOutdoor }),
                 // Metadata
                 ...(body.isPermanent !== undefined && { isPermanent: body.isPermanent }),
@@ -188,12 +189,12 @@ export async function PATCH(
                 userSave = await prisma.userSave.update({
                     where: { id: existingUserSave.id },
                     data: {
-                        ...(body.tags !== undefined && { tags: body.tags }),
+                        ...(body.tags !== undefined && { tags: body.tags ? sanitizeArray(body.tags) : body.tags }),
                         ...(body.isFavorite !== undefined && { isFavorite: body.isFavorite }),
                         ...(body.personalRating !== undefined && { personalRating: body.personalRating }),
                         ...(body.color !== undefined && { color: body.color }),
                         ...(body.visibility !== undefined && { visibility: body.visibility }),
-                        ...(body.caption !== undefined && { caption: body.caption }),
+                        ...(body.caption !== undefined && { caption: sanitizeUserInput(body.caption) }),
                     },
                 });
                 console.log('[PATCH /api/locations] UserSave updated:', {
@@ -216,7 +217,7 @@ export async function PATCH(
                 await prisma.photo.update({
                     where: { id: photo.id },
                     data: {
-                        caption: photo.caption || null,
+                        caption: photo.caption ? sanitizeUserInput(photo.caption) : null,
                         isPrimary: photo.isPrimary || false,
                     },
                 });
@@ -237,7 +238,7 @@ export async function PATCH(
                         width: photo.width,
                         height: photo.height,
                         isPrimary: index === 0 && body.photos.length === newPhotos.length, // Only set primary if all photos are new
-                        caption: photo.caption || null,
+                        caption: photo.caption ? sanitizeUserInput(photo.caption) : null,
                     })),
                 });
             }

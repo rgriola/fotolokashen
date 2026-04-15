@@ -105,11 +105,10 @@ export function PhotoCarouselManager({
                             src={currentPhoto.url}
                             alt={currentPhoto.originalFilename || "Photo"}
                             className={cn(
-                                "w-full h-full object-cover transition-all",
+                                "object-contain transition-all",
                                 isCurrentPhotoMarkedForDeletion && "opacity-50"
                             )}
-                            width={1200}
-                            height={675}
+                            fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             priority
                             draggable={false}

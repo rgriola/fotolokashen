@@ -9,7 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, X, Map, Sparkles, Camera, Navigation } from "lucide-react";
+import { MapPin, X, Map, Sparkles, Camera, Navigation, AlertTriangle } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogFooter,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogAction,
+    AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
 import { PhotoCarouselManager } from "@/components/ui/PhotoCarouselManager";
 import { TagInput } from "@/components/locations/TagInput";
@@ -23,35 +33,36 @@ import { useImproveDescription } from "@/hooks/useImproveDescription";
 import Image from "next/image";
 import { toast } from "sonner";
 import { TOAST } from "@/lib/constants/messages";
-
-// Security: Regex to prevent XSS and SQL injection in text fields
-const safeTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()]+$/;
-const productionNotesRegex = /^[a-zA-Z0-9\s\-.,!?&'"();:@\n\r]+$/; // Allows @, commas, semicolons, colons for emails and phone numbers
+import { sanitizeUserInput } from "@/lib/sanitize";
 
 const editLocationSchema = z.object({
     id: z.number(),
     name: z.string()
         .min(1, "Location name is required")
-        .max(200, "Name must be 200 characters or less")
-        .regex(safeTextRegex, "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
+        .max(50, "Name must be 50 characters or less")
+        .transform(sanitizeUserInput),
     address: z.string().optional(),
     type: z.string().min(1, "Type is required"),
     indoorOutdoor: indoorOutdoorSchema,
 
     // Production details
     productionDate: z.string().optional(),
-    productionNotes: z.string().optional()
-        .refine((val) => !val || val.length <= 500, "Production notes must be 500 characters or less")
-        .refine((val) => !val || productionNotesRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and punctuation (.,!?&'\"()-;:@) are allowed for contact info."),
-    entryPoint: z.string().optional()
-        .refine((val) => !val || val.length <= 200, "Entry point must be 200 characters or less")
-        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
-    parking: z.string().optional()
-        .refine((val) => !val || val.length <= 200, "Parking info must be 200 characters or less")
-        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
-    access: z.string().optional()
-        .refine((val) => !val || val.length <= 200, "Access info must be 200 characters or less")
-        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
+    productionNotes: z.string()
+        .max(500, "Production notes must be 500 characters or less")
+        .transform(sanitizeUserInput)
+        .optional(),
+    entryPoint: z.string()
+        .max(200, "Entry point must be 200 characters or less")
+        .transform(sanitizeUserInput)
+        .optional(),
+    parking: z.string()
+        .max(200, "Parking info must be 200 characters or less")
+        .transform(sanitizeUserInput)
+        .optional(),
+    access: z.string()
+        .max(200, "Access info must be 200 characters or less")
+        .transform(sanitizeUserInput)
+        .optional(),
 
     // User save details
     caption: z.string().max(200).optional(),
@@ -96,6 +107,10 @@ export function EditLocationForm({
     const [cachedPhotos, setCachedPhotos] = useState<any[]>([]);
     const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
     const uploadPhotosRef = useRef<(() => Promise<any[]>) | null>(null);
+    
+    // Photo delete confirmation dialog state
+    const [showPhotoDeleteDialog, setShowPhotoDeleteDialog] = useState(false);
+    const pendingSubmitRef = useRef<{ data: EditLocationFormData; uploadedPhotos: any[] } | null>(null);
     
     // AI description improvement hook
     const { improveDescription, isLoading: isAiLoading, error: aiError } = useImproveDescription();
@@ -355,13 +370,19 @@ export function EditLocationForm({
 
         // Show warning if photos are marked for deletion
         if (photosToDelete.length > 0) {
-            const message = `You are about to delete ${photosToDelete.length} ${photosToDelete.length === 1 ? 'photo' : 'photos'} on this update. This action cannot be undone.\n\nDo you want to continue?`;
-            
-            if (!window.confirm(message)) {
-                return; // User cancelled
-            }
+            // Save state and show confirmation dialog
+            pendingSubmitRef.current = { data, uploadedPhotos };
+            setShowPhotoDeleteDialog(true);
+            return;
+        }
 
-            // Delete marked photos from the server
+        // No photos to delete — proceed directly
+        await finalizeSubmit(data, uploadedPhotos);
+    };
+
+    const finalizeSubmit = async (data: EditLocationFormData, uploadedPhotos: any[]) => {
+        // Delete marked photos from the server
+        if (photosToDelete.length > 0) {
             for (const photoId of photosToDelete) {
                 try {
                     const response = await fetch(`/api/photos/${photoId}`, {
@@ -775,6 +796,38 @@ export function EditLocationForm({
                 changes={hasChanges ? changes : []}
                 onDiscard={handleDiscard}
             />
+
+            {/* Photo Delete Confirmation Dialog */}
+            <AlertDialog open={showPhotoDeleteDialog} onOpenChange={setShowPhotoDeleteDialog}>
+                <AlertDialogContent className="border-destructive">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+                            <AlertTriangle className="w-5 h-5" />
+                            Delete Photos
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-foreground">
+                            <span className="font-semibold">{photosToDelete.length} {photosToDelete.length === 1 ? 'photo' : 'photos'}</span> will be permanently deleted from <span className="font-semibold">&ldquo;{location.name}&rdquo;</span>. This cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => { pendingSubmitRef.current = null; }}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive text-white hover:bg-destructive/90"
+                            onClick={async () => {
+                                const pending = pendingSubmitRef.current;
+                                pendingSubmitRef.current = null;
+                                if (pending) {
+                                    await finalizeSubmit(pending.data, pending.uploadedPhotos);
+                                }
+                            }}
+                        >
+                            Delete Permanently
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </form>
     );
 }
@@ -793,7 +846,7 @@ function StaticMapPreview({ location }: { location: Location }) {
                     src={mapImageUrl}
                     alt={`Map of ${location.name}`}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                     onError={() => setMapError(true)}
                     unoptimized
                 />

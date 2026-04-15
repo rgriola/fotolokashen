@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
 import prisma from '@/lib/prisma';
+import { sanitizeUserInput } from '@/lib/sanitize';
 
 // Validation schema with comprehensive rules
 const updateProfileSchema = z.object({
@@ -17,6 +18,7 @@ const updateProfileSchema = z.object({
         .or(z.literal('')),
     bio: z.string()
         .max(500, 'Bio must be less than 500 characters')
+        .transform(sanitizeUserInput)
         .optional()
         .or(z.literal('')),
     phoneNumber: z.string()

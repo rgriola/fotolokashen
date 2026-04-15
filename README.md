@@ -1,6 +1,6 @@
 # fotolokashen
 
-**Last Updated**: 2026-02-18
+**Last Updated**: 2026-04-09
 **Production**: [fotolokashen.com](https://fotolokashen.com) ✅ Live  
 **Status**: Active Development - v2.0.0
 
@@ -166,8 +166,14 @@ fotolokashen/
 ├── public/                     # Static assets
 ├── src/
 │   ├── app/                    # Next.js App Router
-│   │   ├── api/               # API routes
-│   │   ├── map/               # Main map interface
+│   │   ├── api/               # API routes (standardized error/success patterns)
+│   │   ├── map/               # Main map interface (decomposed into modules)
+│   │   │   ├── page.tsx       # Map page (~800 lines, down from ~1,650)
+│   │   │   ├── types.ts       # Shared map type definitions
+│   │   │   ├── useMapMarkers.ts    # Marker creation & clustering
+│   │   │   ├── useMapNavigation.ts # GPS, bounds, camera movement
+│   │   │   ├── useGpsHandlers.ts   # GPS toggle & location tracking
+│   │   │   └── MapInfoWindowContent.tsx # Info window component
 │   │   ├── locations/         # Locations management
 │   │   ├── search/            # User search/people page
 │   │   ├── profile/           # User profile settings
@@ -176,14 +182,19 @@ fotolokashen/
 │   ├── components/            # React components
 │   │   ├── auth/              # Authentication components
 │   │   ├── locations/         # Location management
+│   │   │   ├── TagInput.tsx   # Shared tag input with validation & AI suggestions
+│   │   │   └── UnsavedChangesBanner.tsx # Reusable unsaved changes banner
 │   │   ├── maps/              # Google Maps components
 │   │   ├── onboarding/        # Tour providers
 │   │   ├── panels/            # Side panels (Save, Edit, Detail)
 │   │   └── ui/                # shadcn/ui components
 │   ├── hooks/                 # Custom React hooks
 │   ├── lib/                   # Utilities and libraries
+│   │   ├── constants/messages.ts  # Centralized toast message catalog
+│   │   └── __tests__/         # Unit tests (vitest)
 │   └── types/                 # TypeScript definitions
 ├── docs/                       # Documentation
+│   └── CODEBASE_REVIEW_PLAN.md # 6-phase review plan (all complete)
 ├── scripts/                    # Utility scripts
 ├── PROJECT_STATUS.md          # Current status & priorities
 └── README.md                  # This file
@@ -272,8 +283,9 @@ npm run db:seed      # Seed database with templates
 ## 📚 Documentation
 
 - **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Current status, priorities, and recent updates
+- **[docs/CODEBASE_REVIEW_PLAN.md](./docs/CODEBASE_REVIEW_PLAN.md)** - 6-phase codebase review plan (all phases complete)
 - **[docs/](./docs/)** - Complete documentation archive
-  - `api/` - API documentation (Follow System, Search System)
+  - `api/` - API documentation (Follow System, Search System, Mobile API Schemas)
   - `features/` - Feature specifications
   - `guides/` - Development guides
   - `deployment/` - Deployment documentation

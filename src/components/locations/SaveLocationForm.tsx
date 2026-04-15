@@ -17,18 +17,15 @@ import { TagInput } from "@/components/locations/TagInput";
 import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/location-constants";
 import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR } from "@/lib/form-constants";
 import { useAuth } from "@/lib/auth-context";
+import { sanitizeUserInput } from "@/lib/sanitize";
 import type { CachedPhoto, UploadedPhotoData } from "@/types/photo-cache";
-
-// Security: Regex to prevent XSS and SQL injection in text fields
-const safeTextRegex = /^[a-zA-Z0-9\s\-.,!?&'"()]+$/;
-const productionNotesRegex = /^[a-zA-Z0-9\s\-.,!?&'"();:@\n\r]+$/; // Allows @, commas, semicolons, colons for emails and phone numbers
 
 const saveLocationSchema = z.object({
     placeId: z.string().min(1, "Place ID is required").max(255),
     name: z.string()
         .min(1, "Location name is required")
-        .max(200, "Name must be 200 characters or less")
-        .regex(safeTextRegex, "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
+        .max(50, "Name must be 50 characters or less")
+        .transform(sanitizeUserInput),
     address: z.string().max(500).optional(),
     lat: z.number().min(-90).max(90),
     lng: z.number().min(-180).max(180),
@@ -42,19 +39,23 @@ const saveLocationSchema = z.object({
     state: z.string().max(100).optional(),
     zipcode: z.string().max(20).optional(),
 
-    // Production details - User editable, needs strict validation
-    productionNotes: z.string().optional()
-        .refine((val) => !val || val.length <= 500, "Production notes must be 500 characters or less")
-        .refine((val) => !val || productionNotesRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and punctuation (.,!?&'\"()-;:@) are allowed for contact info."),
-    entryPoint: z.string().optional()
-        .refine((val) => !val || val.length <= 200, "Entry point must be 200 characters or less")
-        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
-    parking: z.string().optional()
-        .refine((val) => !val || val.length <= 200, "Parking info must be 200 characters or less")
-        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
-    access: z.string().optional()
-        .refine((val) => !val || val.length <= 200, "Access info must be 200 characters or less")
-        .refine((val) => !val || safeTextRegex.test(val), "Invalid characters detected. Only letters, numbers, spaces, and basic punctuation (.,!?&'\"()-) are allowed. @ symbol is not allowed."),
+    // Production details - User editable
+    productionNotes: z.string()
+        .max(500, "Production notes must be 500 characters or less")
+        .transform(sanitizeUserInput)
+        .optional(),
+    entryPoint: z.string()
+        .max(200, "Entry point must be 200 characters or less")
+        .transform(sanitizeUserInput)
+        .optional(),
+    parking: z.string()
+        .max(200, "Parking info must be 200 characters or less")
+        .transform(sanitizeUserInput)
+        .optional(),
+    access: z.string()
+        .max(200, "Access info must be 200 characters or less")
+        .transform(sanitizeUserInput)
+        .optional(),
 
     // User save details - Personal notes, needs validation
     isFavorite: z.boolean().optional(),

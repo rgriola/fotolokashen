@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth, parseBoundsFilter } from '@/lib/api-middleware';
 import { VALIDATION_CONFIG } from '@/lib/validation-config';
-import { sanitizeText } from '@/lib/sanitize';
+import { sanitizeUserInput, sanitizeArray } from '@/lib/sanitize';
 
 /**
  * GET /api/locations
@@ -135,12 +135,17 @@ export async function POST(request: NextRequest) {
         } = body;
 
         // Sanitize all text inputs
-        name = sanitizeText(name);
-        address = sanitizeText(address);
-        productionNotes = productionNotes ? sanitizeText(productionNotes) : undefined;
-        entryPoint = entryPoint ? sanitizeText(entryPoint) : undefined;
-        parking = parking ? sanitizeText(parking) : undefined;
-        access = access ? sanitizeText(access) : undefined;
+        name = sanitizeUserInput(name);
+        address = sanitizeUserInput(address);
+        productionNotes = productionNotes ? sanitizeUserInput(productionNotes) : undefined;
+        entryPoint = entryPoint ? sanitizeUserInput(entryPoint) : undefined;
+        parking = parking ? sanitizeUserInput(parking) : undefined;
+        access = access ? sanitizeUserInput(access) : undefined;
+        street = street ? sanitizeUserInput(street) : undefined;
+        number = number ? sanitizeUserInput(number) : undefined;
+        city = city ? sanitizeUserInput(city) : undefined;
+        state = state ? sanitizeUserInput(state) : undefined;
+        zipcode = zipcode ? sanitizeUserInput(zipcode) : undefined;
 
         // Debug logging - see what we received
         console.log('[Save Location] Received data:', {
@@ -253,7 +258,7 @@ export async function POST(request: NextRequest) {
             data: {
                 userId: user.id,
                 locationId: location.id,
-                tags: tags ? tags : undefined, // Prisma will convert array to JSON
+                tags: tags ? sanitizeArray(tags) : undefined, // Prisma will convert array to JSON
                 isFavorite: isFavorite || false,
                 personalRating: personalRating || undefined,
                 color: color || undefined,
@@ -297,20 +302,20 @@ export async function POST(request: NextRequest) {
                     gpsLongitude: photo.gpsLongitude || null,
                     gpsAltitude: photo.gpsAltitude || null,
                     hasGpsData: photo.hasGpsData || false,
-                    cameraMake: photo.cameraMake ? sanitizeText(photo.cameraMake) : null,
-                    cameraModel: photo.cameraModel ? sanitizeText(photo.cameraModel) : null,
-                    lensMake: photo.lensMake ? sanitizeText(photo.lensMake) : null,
-                    lensModel: photo.lensModel ? sanitizeText(photo.lensModel) : null,
+                    cameraMake: photo.cameraMake ? sanitizeUserInput(photo.cameraMake) : null,
+                    cameraModel: photo.cameraModel ? sanitizeUserInput(photo.cameraModel) : null,
+                    lensMake: photo.lensMake ? sanitizeUserInput(photo.lensMake) : null,
+                    lensModel: photo.lensModel ? sanitizeUserInput(photo.lensModel) : null,
                     dateTaken: photo.dateTaken ? new Date(photo.dateTaken) : null,
                     iso: photo.iso || null,
-                    focalLength: photo.focalLength ? sanitizeText(photo.focalLength) : null,
-                    aperture: photo.aperture ? sanitizeText(photo.aperture) : null,
-                    shutterSpeed: photo.shutterSpeed ? sanitizeText(photo.shutterSpeed) : null,
-                    exposureMode: photo.exposureMode ? sanitizeText(photo.exposureMode) : null,
-                    whiteBalance: photo.whiteBalance ? sanitizeText(photo.whiteBalance) : null,
-                    flash: photo.flash ? sanitizeText(photo.flash) : null,
+                    focalLength: photo.focalLength ? sanitizeUserInput(photo.focalLength) : null,
+                    aperture: photo.aperture ? sanitizeUserInput(photo.aperture) : null,
+                    shutterSpeed: photo.shutterSpeed ? sanitizeUserInput(photo.shutterSpeed) : null,
+                    exposureMode: photo.exposureMode ? sanitizeUserInput(photo.exposureMode) : null,
+                    whiteBalance: photo.whiteBalance ? sanitizeUserInput(photo.whiteBalance) : null,
+                    flash: photo.flash ? sanitizeUserInput(photo.flash) : null,
                     orientation: photo.orientation || null,
-                    colorSpace: photo.colorSpace ? sanitizeText(photo.colorSpace) : null,
+                    colorSpace: photo.colorSpace ? sanitizeUserInput(photo.colorSpace) : null,
                     uploadSource: photo.uploadSource || 'manual',
                 })),
             });

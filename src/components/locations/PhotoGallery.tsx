@@ -77,9 +77,8 @@ export function PhotoGallery({ photos, locationName, className }: PhotoGalleryPr
                         <Image
                             src={photoUrl}
                             alt={currentPhoto.caption || currentPhoto.originalFilename || "Photo"}
-                            className="w-full h-full object-cover"
-                            width={1200}
-                            height={675}
+                            className="object-contain"
+                            fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                             priority
                             draggable={false}

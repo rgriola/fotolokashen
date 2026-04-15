@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth, apiError } from '@/lib/api-middleware';
+import { sanitizeUserInput } from '@/lib/sanitize';
 
 export async function GET(request: NextRequest) {
   try {
@@ -108,9 +109,15 @@ export async function PATCH(request: NextRequest) {
 
     // Filter out any fields not in allowedFields
     const updateData: Record<string, unknown> = {};
+    const textFields = ['firstName', 'lastName', 'bio', 'city', 'country', 'language', 'timezone'];
     for (const field of allowedFields) {
       if (field in body) {
-        updateData[field] = body[field];
+        // Sanitize text fields to strip HTML/control chars
+        if (textFields.includes(field) && typeof body[field] === 'string') {
+          updateData[field] = sanitizeUserInput(body[field]);
+        } else {
+          updateData[field] = body[field];
+        }
       }
     }
 
