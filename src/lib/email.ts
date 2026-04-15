@@ -117,13 +117,17 @@ async function sendEmail(
  * @param email - User's email address
  * @param token - Verification token
  * @param username - User's username
+ * @param platform - Optional platform identifier (e.g. 'ios') — appended to verification URL
+ *                   so the verify-email page can redirect back to the native app
  */
 export async function sendVerificationEmail(
   email: string,
   token: string,
-  username: string
+  username: string,
+  platform?: string
 ): Promise<boolean> {
-  const verificationUrl = `${APP_URL}/verify-email?token=${token}`;
+  const platformParam = platform ? `&platform=${platform}` : '';
+  const verificationUrl = `${APP_URL}/verify-email?token=${token}${platformParam}`;
 
   // In development mode, just log the URL to console
   if (EMAIL_MODE === 'development') {

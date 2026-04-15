@@ -22,6 +22,7 @@ export default function VerifyEmailPage() {
         const token = searchParams.get('token');
         const emailParam = searchParams.get('email');
         const resent = searchParams.get('resent');
+        const platform = searchParams.get('platform');
 
         if (emailParam) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -89,9 +90,15 @@ export default function VerifyEmailPage() {
             }, 1000);
             return () => clearTimeout(timer);
         } else if (shouldRedirect && countdown === 0) {
-            router.push('/login');
+            // If user registered from iOS, redirect to the app via deep link
+            const platform = searchParams.get('platform');
+            if (platform === 'ios') {
+                window.location.href = 'fotolokashen://email-verified';
+            } else {
+                router.push('/login');
+            }
         }
-    }, [shouldRedirect, countdown, router]);
+    }, [shouldRedirect, countdown, router, searchParams]);
 
     return (
         <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -149,18 +156,38 @@ export default function VerifyEmailPage() {
                             </p>
                         )}
                         <div className="mt-6 space-y-3">
-                            <Link
-                                href="/login"
-                                className="block w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                            >
-                                Go to Login
-                            </Link>
-                            <Link
-                                href="/"
-                                className="block w-full bg-muted hover:bg-muted text-foreground font-medium py-3 px-4 rounded-lg transition-colors"
-                            >
-                                Go to Home
-                            </Link>
+                            {/* iOS users: deep-link back to the app */}
+                            {searchParams.get('platform') === 'ios' ? (
+                                <>
+                                    <a
+                                        href="fotolokashen://email-verified"
+                                        className="block w-full bg-primary hover:bg-primary/90 text-white text-center font-medium py-3 px-4 rounded-lg transition-colors"
+                                    >
+                                        Open fotolokashen App
+                                    </a>
+                                    <Link
+                                        href="/login"
+                                        className="block w-full bg-muted hover:bg-muted text-foreground text-center font-medium py-3 px-4 rounded-lg transition-colors"
+                                    >
+                                        Or Login on Web
+                                    </Link>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        href="/login"
+                                        className="block w-full bg-primary hover:bg-primary/90 text-white text-center font-medium py-3 px-4 rounded-lg transition-colors"
+                                    >
+                                        Go to Login
+                                    </Link>
+                                    <Link
+                                        href="/"
+                                        className="block w-full bg-muted hover:bg-muted text-foreground text-center font-medium py-3 px-4 rounded-lg transition-colors"
+                                    >
+                                        Go to Home
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 )}

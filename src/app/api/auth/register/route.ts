@@ -147,24 +147,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Send verification email (don't fail registration if email fails)
-    try {
-      await sendVerificationEmail(email, verificationToken, username);
-    } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
-      // Continue with registration even if email fails
-    }
-
-    // Generate JWT token
-    const token = generateToken({
-      ...user,
-      bannerImage: user.bannerImage,
-      gpsPermissionUpdated: user.gpsPermissionUpdated?.toISOString() || null,
-      homeLocationUpdated: user.homeLocationUpdated?.toISOString() || null,
-      createdAt: user.createdAt.toISOString(),
-    }, false);
-
-    // Extract session metadata
+    // Extract session metadata (moved before email send so deviceType is available)
     const ipAddress = request.headers.get('x-forwarded-for') || 
                       request.headers.get('x-real-ip') || 
                       'unknown';
@@ -183,6 +166,25 @@ export async function POST(request: NextRequest) {
     
     // Extract device name from user agent (simplified)
     const deviceName = userAgent.split('(')[1]?.split(')')[0] || null;
+
+    // Send verification email (don't fail registration if email fails)
+    try {
+      // Pass platform so the verification link can redirect back to the native app
+      const platform = deviceType === 'mobile-browser-ios' ? 'ios' : undefined;
+      await sendVerificationEmail(email, verificationToken, username, platform);
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      // Continue with registration even if email fails
+    }
+
+    // Generate JWT token
+    const token = generateToken({
+      ...user,
+      bannerImage: user.bannerImage,
+      gpsPermissionUpdated: user.gpsPermissionUpdated?.toISOString() || null,
+      homeLocationUpdated: user.homeLocationUpdated?.toISOString() || null,
+      createdAt: user.createdAt.toISOString(),
+    }, false);
 
     // Delete existing sessions for this device type to prevent duplicates
     // This allows multi-device (web + iOS) but prevents multiple sessions from same device
