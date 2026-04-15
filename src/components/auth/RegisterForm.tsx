@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { TOAST } from '@/lib/constants/messages';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
 import { DateOfBirthPicker } from './DateOfBirthPicker';
 
 // ─── Validation Schema ────────────────────────────────────────────────────────
@@ -81,12 +81,17 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // ── Success state: shows "Check Your Email" card after registration ──
+  const [registrationComplete, setRegistrationComplete] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState('');
+
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -100,6 +105,16 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
   const passwordsMatch = password && confirmPassword && password === confirmPassword;
   const passwordsDontMatch = password && confirmPassword && password !== confirmPassword;
   const passwordStrength = getPasswordStrength(password);
+
+  // ── Username handler: force lowercase + strip trailing spaces live ──
+  const handleUsernameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      // Force lowercase + trim trailing whitespace silently
+      const cleaned = e.target.value.toLowerCase().replace(/\s+$/, '');
+      setValue('username', cleaned, { shouldValidate: false });
+    },
+    [setValue]
+  );
 
   const onSubmit = useCallback(async (data: RegisterFormData) => {
     setIsLoading(true);
@@ -115,20 +130,57 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
         toast.error(result.error || TOAST.AUTH.REGISTER_FAILED);
         return;
       }
-      toast.success(TOAST.AUTH.REGISTER_SUCCESS);
-      if (returnUrl) {
-        router.push(`/login?returnUrl=${encodeURIComponent(returnUrl)}&message=${message || ''}`);
-      } else {
-        router.push('/login');
-      }
+
+      // Show the "Check Your Email" success card instead of a toast
+      setSubmittedEmail(data.email);
+      setRegistrationComplete(true);
     } catch (error) {
       console.error('Registration error:', error);
       toast.error(TOAST.GENERIC.UNEXPECTED);
     } finally {
       setIsLoading(false);
     }
-  }, [router, returnUrl, message]);
+  }, []);
 
+  // ── Success Screen ──────────────────────────────────────────────────────
+  if (registrationComplete) {
+    return (
+      <Card className="w-full">
+        <CardHeader className="space-y-1 text-center">
+          <div className="mx-auto w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle className="w-6 h-6 text-success" />
+          </div>
+          <CardTitle className="text-xl sm:text-2xl font-bold">Check Your Email</CardTitle>
+          <CardDescription>
+            We sent a verification link to<br />
+            <strong>{submittedEmail}</strong>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+            <p className="text-sm text-primary">
+              <strong>Make Sure To:</strong>
+            </p>
+            <ul className="text-sm text-primary mt-2 space-y-1 list-disc list-inside">
+              <li>Check your spam or junk folder</li>
+              <li>Confirm this is the correct email</li>
+              <li>Wait a few minutes and check again</li>
+            </ul>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-2">
+          <Link href={returnUrl ? `/login?returnUrl=${encodeURIComponent(returnUrl)}&message=${message || ''}` : '/login'} className="w-full">
+            <Button variant="outline" className="w-full h-9 sm:h-10">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Go to Login
+            </Button>
+          </Link>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  // ── Registration Form ───────────────────────────────────────────────────
   return (
     <Card className="w-full">
       {/* Compact header on mobile */}
@@ -204,7 +256,7 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
             )}
           </div>
 
-          {/* Username */}
+          {/* Username — forced lowercase, no trailing spaces */}
           <div className="space-y-1">
             <Label htmlFor="username" className="text-xs sm:text-sm">Username</Label>
             <Input
@@ -212,7 +264,9 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               type="text"
               placeholder="johndoe"
               autoComplete="off"
-              {...register('username')}
+              {...register('username', {
+                onChange: handleUsernameChange,
+              })}
               disabled={isLoading}
               className={`h-9 sm:h-10 text-sm ${errors.username ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             />
@@ -221,7 +275,7 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
             )}
           </div>
 
-          {/* ── Date of Birth — custom 3-dropdown picker ── */}
+          {/* ── Date of Birth — scroll-wheel picker ── */}
           <Controller
             name="dateOfBirth"
             control={control}

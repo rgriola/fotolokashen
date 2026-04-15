@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { ScrollWheelPicker } from '@/components/ui/ScrollWheelPicker';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,18 +36,21 @@ function getDaysInMonth(month: string, year: string): number {
   return new Date(parseInt(year), parseInt(month), 0).getDate();
 }
 
-function buildDays(month: string, year: string): string[] {
+function buildDays(month: string, year: string) {
   const max = getDaysInMonth(month, year);
-  return Array.from({ length: max }, (_, i) => String(i + 1).padStart(2, '0'));
+  return Array.from({ length: max }, (_, i) => {
+    const val = String(i + 1).padStart(2, '0');
+    return { value: val, label: String(i + 1) };
+  });
 }
 
-function buildYears(): string[] {
+function buildYears() {
   const current = new Date().getFullYear();
   const maxYear = current - 18; // Must be ≥18
   const minYear = current - 100;
-  const years: string[] = [];
+  const years: { value: string; label: string }[] = [];
   for (let y = maxYear; y >= minYear; y--) {
-    years.push(String(y));
+    years.push({ value: String(y), label: String(y) });
   }
   return years;
 }
@@ -59,7 +61,7 @@ function buildYears(): string[] {
  * DateOfBirthPicker
  *
  * - Blank by default (never pre-selects today)
- * - Three separate dropdowns: Month / Day / Year
+ * - Three scroll-wheel pickers: Month / Day / Year
  * - Year range: 18–100 years ago (enforces minimum age at the picker level)
  * - Outputs ISO "YYYY-MM-DD" string for the backend
  */
@@ -106,63 +108,38 @@ export function DateOfBirthPicker({
   const days = buildDays(month, year);
   const years = buildYears();
 
-  const triggerClass = cn(
-    'h-10',
-    hasError && 'border-destructive focus-visible:ring-destructive'
-  );
-
   return (
     <div className="space-y-1.5">
-      <Label>Date of Birth</Label>
-      {/* Three dropdowns side-by-side */}
+      <Label className="text-xs sm:text-sm">Date of Birth</Label>
+      {/* Three scroll-wheel pickers side-by-side */}
       <div className="grid grid-cols-3 gap-2">
-        {/* Month */}
-        <div>
-          <Select value={month} onValueChange={setMonth} disabled={disabled}>
-            <SelectTrigger className={triggerClass} aria-label="Month">
-              <SelectValue placeholder="Month" />
-            </SelectTrigger>
-            <SelectContent>
-              {MONTHS.map((m) => (
-                <SelectItem key={m.value} value={m.value}>
-                  {m.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Day */}
-        <div>
-          <Select value={day} onValueChange={setDay} disabled={disabled}>
-            <SelectTrigger className={triggerClass} aria-label="Day">
-              <SelectValue placeholder="Day" />
-            </SelectTrigger>
-            <SelectContent>
-              {days.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {parseInt(d)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Year */}
-        <div>
-          <Select value={year} onValueChange={setYear} disabled={disabled}>
-            <SelectTrigger className={triggerClass} aria-label="Year">
-              <SelectValue placeholder="Year" />
-            </SelectTrigger>
-            <SelectContent className="max-h-60">
-              {years.map((y) => (
-                <SelectItem key={y} value={y}>
-                  {y}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <ScrollWheelPicker
+          items={MONTHS}
+          value={month}
+          onChange={setMonth}
+          placeholder="Month"
+          disabled={disabled}
+          hasError={hasError}
+          visibleCount={7}
+        />
+        <ScrollWheelPicker
+          items={days}
+          value={day}
+          onChange={setDay}
+          placeholder="Day"
+          disabled={disabled}
+          hasError={hasError}
+          visibleCount={7}
+        />
+        <ScrollWheelPicker
+          items={years}
+          value={year}
+          onChange={setYear}
+          placeholder="Year"
+          disabled={disabled}
+          hasError={hasError}
+          visibleCount={7}
+        />
       </div>
       <p className="text-xs text-muted-foreground">Must be at least 18 years old.</p>
     </div>
