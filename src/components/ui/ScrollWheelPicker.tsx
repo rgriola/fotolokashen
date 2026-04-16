@@ -36,7 +36,7 @@ export function ScrollWheelPicker({
   placeholder = 'Select',
   disabled = false,
   hasError = false,
-  visibleCount = 7,
+  visibleCount = 5,
 }: ScrollWheelPickerProps) {
   const [open, setOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -207,7 +207,7 @@ export function ScrollWheelPicker({
           {/* Scrollable list */}
           <div
             ref={scrollRef}
-            className="h-full overflow-y-auto"
+            className="h-full overflow-y-auto scrollbar-hide"
             onScroll={handleScroll}
             style={{
               paddingTop: halfVisible * ITEM_HEIGHT,
