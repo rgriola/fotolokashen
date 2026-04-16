@@ -133,11 +133,14 @@ const runtimeEnvSchema = envSchema.extend({
     // Optional: Analytics
     GOOGLE_ANALYTICS_ID: z.string().optional(),
 }).superRefine((data, ctx) => {
-    // Prevent EMAIL_MODE=development in production — this silently swallows all emails
-    if (data.NODE_ENV === 'production' && data.EMAIL_MODE === 'development') {
+    // Prevent EMAIL_MODE=development in a real production deployment.
+    // Note: `next build` always sets NODE_ENV=production even locally,
+    // so we also check for VERCEL env var to avoid blocking local builds.
+    const isVercelDeployment = !!process.env.VERCEL;
+    if (isVercelDeployment && data.NODE_ENV === 'production' && data.EMAIL_MODE === 'development') {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: 'EMAIL_MODE must be "production" when NODE_ENV is "production". Emails will NOT be sent otherwise!',
+            message: 'EMAIL_MODE must be "production" when deployed to Vercel. Emails will NOT be sent otherwise!',
             path: ['EMAIL_MODE'],
         });
     }
