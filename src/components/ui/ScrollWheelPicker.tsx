@@ -181,11 +181,15 @@ export function ScrollWheelPicker({
         </svg>
       </button>
 
-      {/* Scroll wheel dropdown */}
+      {/* Scroll wheel dropdown — positioned so highlight band overlays the trigger */}
       {open && (
         <div
-          className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg overflow-hidden"
-          style={{ height: listHeight }}
+          className="absolute z-50 left-0 right-0 rounded-md border bg-popover shadow-lg overflow-hidden"
+          style={{
+            height: listHeight,
+            // Position so the center highlight band sits exactly on the trigger button
+            top: -(halfVisible * ITEM_HEIGHT),
+          }}
         >
           {/* Center highlight band */}
           <div
@@ -200,16 +204,14 @@ export function ScrollWheelPicker({
           <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-popover to-transparent z-10" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-popover to-transparent z-10" />
 
-          {/* Scrollable list — NO scroll-snap to avoid fighting with JS */}
+          {/* Scrollable list */}
           <div
             ref={scrollRef}
             className="h-full overflow-y-auto"
             onScroll={handleScroll}
             style={{
-              // Pad top/bottom so first/last items can reach the center
               paddingTop: halfVisible * ITEM_HEIGHT,
               paddingBottom: halfVisible * ITEM_HEIGHT,
-              // Smooth momentum scrolling on iOS
               WebkitOverflowScrolling: 'touch',
             }}
           >
