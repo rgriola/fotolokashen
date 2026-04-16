@@ -223,7 +223,7 @@ export function ScrollWheelPicker({
                   'flex items-center justify-center cursor-pointer select-none transition-colors',
                   'text-sm',
                   item.value === value
-                    ? 'text-foreground font-semibold'
+                    ? 'text-foreground font-bold'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
                 style={{ height: ITEM_HEIGHT }}
