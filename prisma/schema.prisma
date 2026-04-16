@@ -19,6 +19,8 @@ model User {
   dateOfBirth                  DateTime?
   emailVerified                Boolean                  @default(false)
   verificationToken            String?
+  autoLoginToken               String?                  @unique
+  autoLoginTokenExpiry         DateTime?
   resetToken                   String?
   resetTokenExpiry             DateTime?
   isActive                     Boolean                  @default(true)

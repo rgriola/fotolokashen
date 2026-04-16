@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError } from '@/lib/api-middleware';
 import { sendWelcomeEmail } from '@/lib/email';
@@ -7,6 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const token = searchParams.get('token');
+    const platform = searchParams.get('platform');
 
     if (!token) {
       console.log('❌ Email verification failed: No token provided');
@@ -34,13 +36,25 @@ export async function GET(request: NextRequest) {
       return apiError('Verification token has expired. Please request a new one.', 400, 'TOKEN_EXPIRED');
     }
 
-    // Update user to mark email as verified and clear token
+    // Generate auto-login token for iOS users
+    // This one-time token lets the app skip the manual login step after verification
+    let autoLoginToken: string | null = null;
+    if (platform === 'ios') {
+      autoLoginToken = crypto.randomBytes(32).toString('base64url');
+    }
+
+    // Update user to mark email as verified, clear verification token,
+    // and optionally set auto-login token
     await prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
         verificationToken: null,
         verificationTokenExpiry: null,
+        ...(autoLoginToken && {
+          autoLoginToken,
+          autoLoginTokenExpiry: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+        }),
       },
     });
 
@@ -48,6 +62,8 @@ export async function GET(request: NextRequest) {
     console.log('✅ Email verified successfully');
     console.log(`   User: ${user.email} (${user.username})`);
     console.log(`   User ID: ${user.id}`);
+    console.log(`   Platform: ${platform || 'web'}`);
+    console.log(`   Auto-login token: ${autoLoginToken ? 'generated' : 'n/a'}`);
     console.log(`   Timestamp: ${new Date().toISOString()}`);
 
     // Send welcome email
@@ -61,6 +77,7 @@ export async function GET(request: NextRequest) {
     return apiResponse({
       success: true,
       message: 'Email verified successfully! You can now login.',
+      ...(autoLoginToken && { autoLoginToken }),
     });
   } catch (error) {
     console.error('❌ Email verification error:', error);

@@ -16,6 +16,7 @@ export default function VerifyEmailPage() {
     const [email, setEmail] = useState('');
     const [countdown, setCountdown] = useState(3);
     const [shouldRedirect, setShouldRedirect] = useState(false);
+    const [autoLoginToken, setAutoLoginToken] = useState<string | null>(null);
     const verifyingRef = useRef(false);
 
     useEffect(() => {
@@ -47,13 +48,19 @@ export default function VerifyEmailPage() {
         if (verifyingRef.current) return;
         verifyingRef.current = true;
 
-        // Call the verification API
-        fetch(`/api/auth/verify-email?token=${token}`)
+        // Call the verification API — include platform so it can generate auto-login token
+        const platformParam = platform ? `&platform=${platform}` : '';
+        fetch(`/api/auth/verify-email?token=${token}${platformParam}`)
             .then((res) => res.json())
             .then((data) => {
                 if (data.success) {
                     setStatus('success');
                     setMessage(data.message || 'Email verified successfully!');
+
+                    // Store auto-login token if provided (iOS flow)
+                    if (data.autoLoginToken) {
+                        setAutoLoginToken(data.autoLoginToken);
+                    }
 
                     // Auto-redirect for already verified emails
                     if (data.alreadyVerified) {
@@ -93,7 +100,8 @@ export default function VerifyEmailPage() {
             // If user registered from iOS, redirect to the app via deep link
             const platform = searchParams.get('platform');
             if (platform === 'ios') {
-                window.location.href = 'fotolokashen://email-verified';
+                const tokenParam = autoLoginToken ? `?token=${autoLoginToken}` : '';
+                window.location.href = `fotolokashen://email-verified${tokenParam}`;
             } else {
                 router.push('/login');
             }
@@ -156,14 +164,14 @@ export default function VerifyEmailPage() {
                             </p>
                         )}
                         <div className="mt-6 space-y-3">
-                            {/* iOS users: deep-link back to the app */}
+                            {/* iOS users: deep-link back to the app with auto-login token */}
                             {searchParams.get('platform') === 'ios' ? (
                                 <>
                                     <a
-                                        href="fotolokashen://email-verified"
+                                        href={`fotolokashen://email-verified${autoLoginToken ? `?token=${autoLoginToken}` : ''}`}
                                         className="block w-full bg-primary hover:bg-primary/90 text-white text-center font-medium py-3 px-4 rounded-lg transition-colors"
                                     >
-                                        Open fotolokashen App
+                                        Continue to fotolokashen
                                     </a>
                                     <Link
                                         href="/login"
