@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -76,7 +76,6 @@ function getPasswordStrength(pass: string): number {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -324,15 +323,14 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
-                      className={`h-1 flex-1 rounded ${
-                        i < passwordStrength
-                          ? passwordStrength <= 2
-                            ? 'bg-destructive'
-                            : passwordStrength <= 3
-                              ? 'bg-warning'
-                              : 'bg-success'
-                          : 'bg-muted'
-                      }`}
+                      className={`h-1 flex-1 rounded ${i < passwordStrength
+                        ? passwordStrength <= 2
+                          ? 'bg-destructive'
+                          : passwordStrength <= 3
+                            ? 'bg-warning'
+                            : 'bg-success'
+                        : 'bg-muted'
+                        }`}
                     />
                   ))}
                 </div>
@@ -357,15 +355,14 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 autoComplete="new-password"
                 {...register('confirmPassword')}
                 disabled={isLoading}
-                className={`h-9 sm:h-10 text-sm pr-20 ${
-                  errors.confirmPassword
-                    ? 'border-destructive focus-visible:ring-destructive'
-                    : passwordsMatch
-                      ? 'border-success focus-visible:ring-success'
-                      : passwordsDontMatch
-                        ? 'border-destructive focus-visible:ring-destructive'
-                        : ''
-                }`}
+                className={`h-9 sm:h-10 text-sm pr-20 ${errors.confirmPassword
+                  ? 'border-destructive focus-visible:ring-destructive'
+                  : passwordsMatch
+                    ? 'border-success focus-visible:ring-success'
+                    : passwordsDontMatch
+                      ? 'border-destructive focus-visible:ring-destructive'
+                      : ''
+                  }`}
               />
               {/* Match indicator icon */}
               {confirmPassword && (

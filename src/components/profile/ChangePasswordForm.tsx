@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -33,7 +32,6 @@ const changePasswordSchema = z.object({
 type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;
 
 export function ChangePasswordForm() {
-    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -87,7 +85,7 @@ export function ChangePasswordForm() {
                 return;
             }
 
-toast.success(TOAST.PROFILE.PASSWORD_CHANGED);
+            toast.success(TOAST.PROFILE.PASSWORD_CHANGED);
 
             // Clear form
             reset();

@@ -13,7 +13,7 @@ import { sanitizeUserInput } from '@/lib/sanitize';
 export async function GET(request: NextRequest) {
   try {
     const authResult = await requireAuth(request);
-    
+
     if (!authResult.authorized || !authResult.user) {
       return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
     }
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const authResult = await requireAuth(request);
-    
+
     if (!authResult.authorized || !authResult.user) {
       return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
     }
@@ -128,16 +128,16 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Validate privacy settings values
-    if (updateData.profileVisibility && 
-        !['public', 'followers', 'private'].includes(updateData.profileVisibility as string)) {
+    if (updateData.profileVisibility &&
+      !['public', 'followers', 'private'].includes(updateData.profileVisibility as string)) {
       return NextResponse.json(
         { error: 'Invalid profileVisibility value' },
         { status: 400 }
       );
     }
 
-    if (updateData.showSavedLocations && 
-        !['public', 'followers', 'private'].includes(updateData.showSavedLocations as string)) {
+    if (updateData.showSavedLocations &&
+      !['public', 'followers', 'private'].includes(updateData.showSavedLocations as string)) {
       return NextResponse.json(
         { error: 'Invalid showSavedLocations value' },
         { status: 400 }

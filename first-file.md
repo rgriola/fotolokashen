@@ -162,3 +162,53 @@ Resources
 - A feature update is iOS location creation; iOS needs a photo upload UI Pipeline using iOS Photo Library images + also allowing adding Camera Photos directly. this feature will need a separate implimentation plan as I will use this going forward for another app.
 - Any suggestions to make this app stronger.
   -- And place this into a markdown file.
+
+  - look for opportunities to create reusable components and utlity functions. 
+
+...
+*** issue ***
+- the web app login doubles for the login for iOS. The issue is in the view the web page header [fotolokashen] [login] [Register] float on top of the login panel (dialog) and really make it hard to use this UI on iOS. Can we lose the header on mobile login so the user con focus on the view. 
+- Also on mobile can we adjust the styling to make the UI more compact. There is too much scrolling. 
+- We can lose the Fotolokashen Logo + Text above the Create Account panel on mobile. 
+
+- Also the Date of Birth Calendar picker needs to go MM - DD - YYYY with a calend component, something better than what is there now - in the UI the user click on the field and automatically chooses today as their Date of Birth, Humans are not born today... but you know that. It can be changed but is not intuitive enough. In the United States and Canada the format is MM - DD - YYYY. The rest of the world it is DD - MM - YYYY but should map to MM-DD-YYYY for the backend.
+
+- Read this back to me then I will approve. 
+
+
+...
+*** issue ***
+- Can you review the login sequence for the iOS app. A user said they never got their confirmation emaila for > "Verification Email". When I checked Resend both the Verification Email had been sent and their email "Email confirmed" was also sent. 
+- I checked the database and their email was confirmed, they were listed as active.
+- When I told them to just goahead and login then they said it would not let them. 
+-  Yesterday when I tried the new iOS Create Account Process it was confusing, but I also did get my emails. But my emails were to gmail his was to a corporate email with spam catchers that lock emails away for a few days. I have the same corporate email system.
+
+- But the iOS create account, confirm email, login is difficult to follow as a user. 
+ 
+ *** Task ***
+ - Redesign of the iOS Profile View and subview structure. 
+ - Attached is a screenshot of a mock up of what I am looking for. 
+ - The main Profile View should list options of what the user can do here. 
+ - Logout button should be on the main Profile View at the very bottom. 
+ - Delete Account should be in a subview, not on the main Profile View. 
+ - Can you review the Profile View and subview structure and make sure it is logical and easy to use, show me a plan and I will approve.
+
+ ...
+
+ Looks Good. on iOS Profile > Account & Security > Change "Account Info" to Personal details
+ Under Personal details create a summary:
+
+ Peronsal Details (each field should be on its own line as shown below)
+ [User Name]
+ [Email Address]
+[City], [State]
+[Country]
+  Heading: Birthday
+ [Date of Birth]
+ Joined
+ [Date Joined]
+
+ Move Edit Profile to the Security Subheading
+
+ ....
+in the iOS App we  should also display the user timezone using the GPS data user allows if allowed or IP if no GPS. 
