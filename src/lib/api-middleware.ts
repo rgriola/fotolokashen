@@ -50,14 +50,16 @@ export const USER_SUMMARY_SELECT = {
 /**
  * Standardized API response format
  */
-export function apiResponse(data: any, status: number = 200) {
+export function apiResponse(data: unknown, status: number = 200) {
     return NextResponse.json(data, { status });
 }
 
 /**
- * Serialize user object by converting Date objects to ISO strings
+ * Serialize user object by converting Date objects to ISO strings.
+ * Accepts a raw Prisma user record (dates as Date objects) and returns
+ * a PublicUser (dates as ISO strings).
  */
-export function serializeUser(user: any): PublicUser {
+export function serializeUser(user: Record<string, unknown>): PublicUser {
     return {
         ...user,
         dateOfBirth: user.dateOfBirth
@@ -65,10 +67,10 @@ export function serializeUser(user: any): PublicUser {
                 ? user.dateOfBirth.toISOString().split('T')[0]
                 : user.dateOfBirth)
             : null,
-        gpsPermissionUpdated: user.gpsPermissionUpdated?.toISOString() || null,
-        homeLocationUpdated: user.homeLocationUpdated?.toISOString() || null,
-        createdAt: user.createdAt.toISOString(),
-    };
+        gpsPermissionUpdated: (user.gpsPermissionUpdated as Date | null)?.toISOString() || null,
+        homeLocationUpdated: (user.homeLocationUpdated as Date | null)?.toISOString() || null,
+        createdAt: (user.createdAt as Date).toISOString(),
+    } as PublicUser;
 }
 
 /**
