@@ -133,7 +133,9 @@ export async function POST(request: NextRequest) {
         avatar: true,
         bannerImage: true,
         city: true,
+        state: true,
         country: true,
+        dateOfBirth: true,
         language: true,
         timezone: true,
         emailNotifications: true,
@@ -181,6 +183,7 @@ export async function POST(request: NextRequest) {
     const token = generateToken({
       ...user,
       bannerImage: user.bannerImage,
+      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().split('T')[0] : null,
       gpsPermissionUpdated: user.gpsPermissionUpdated?.toISOString() || null,
       homeLocationUpdated: user.homeLocationUpdated?.toISOString() || null,
       createdAt: user.createdAt.toISOString(),
