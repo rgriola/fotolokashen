@@ -20,7 +20,9 @@ export const USER_PUBLIC_SELECT = {
     avatar: true,
     bannerImage: true,
     city: true,
+    state: true,
     country: true,
+    dateOfBirth: true,
     language: true,
     timezone: true,
     emailNotifications: true,
@@ -58,6 +60,11 @@ export function apiResponse(data: any, status: number = 200) {
 export function serializeUser(user: any): PublicUser {
     return {
         ...user,
+        dateOfBirth: user.dateOfBirth
+            ? (user.dateOfBirth instanceof Date
+                ? user.dateOfBirth.toISOString().split('T')[0]
+                : user.dateOfBirth)
+            : null,
         gpsPermissionUpdated: user.gpsPermissionUpdated?.toISOString() || null,
         homeLocationUpdated: user.homeLocationUpdated?.toISOString() || null,
         createdAt: user.createdAt.toISOString(),

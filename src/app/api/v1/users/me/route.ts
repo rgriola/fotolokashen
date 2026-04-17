@@ -32,7 +32,9 @@ export async function GET(request: NextRequest) {
         bannerImage: true,
         bio: true,
         city: true,
+        state: true,
         country: true,
+        dateOfBirth: true,
         language: true,
         timezone: true,
         emailNotifications: true,
@@ -95,7 +97,9 @@ export async function PATCH(request: NextRequest) {
       'lastName',
       'bio',
       'city',
+      'state',
       'country',
+      'dateOfBirth',
       'language',
       'timezone',
       'emailNotifications',
@@ -109,11 +113,13 @@ export async function PATCH(request: NextRequest) {
 
     // Filter out any fields not in allowedFields
     const updateData: Record<string, unknown> = {};
-    const textFields = ['firstName', 'lastName', 'bio', 'city', 'country', 'language', 'timezone'];
+    const textFields = ['firstName', 'lastName', 'bio', 'city', 'state', 'country', 'language', 'timezone'];
     for (const field of allowedFields) {
       if (field in body) {
-        // Sanitize text fields to strip HTML/control chars
-        if (textFields.includes(field) && typeof body[field] === 'string') {
+        if (field === 'dateOfBirth') {
+          // Parse ISO date string to Date object (or null)
+          updateData[field] = body[field] ? new Date(body[field]) : null;
+        } else if (textFields.includes(field) && typeof body[field] === 'string') {
           updateData[field] = sanitizeUserInput(body[field]);
         } else {
           updateData[field] = body[field];
@@ -152,7 +158,9 @@ export async function PATCH(request: NextRequest) {
         bannerImage: true,
         bio: true,
         city: true,
+        state: true,
         country: true,
+        dateOfBirth: true,
         language: true,
         timezone: true,
         emailNotifications: true,

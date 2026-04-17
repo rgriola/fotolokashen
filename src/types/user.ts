@@ -30,7 +30,9 @@ export interface User {
     bio: string | null
     phoneNumber: string | null
     city: string | null
+    state: string | null
     country: string | null
+    dateOfBirth: Date | null
     timezone: string | null
     language: string | null
 
@@ -70,7 +72,9 @@ export interface PublicUser {
     avatar: string | null
     bannerImage: string | null
     city: string | null
+    state: string | null
     country: string | null
+    dateOfBirth: string | null  // ISO string (date only: YYYY-MM-DD)
     language: string | null
     timezone: string | null
 
