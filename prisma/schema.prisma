@@ -140,6 +140,7 @@ model Location {
   number           String?
   parking          String?
   productionNotes  String?
+  details          String?
   state            String?
   street           String?
   zipcode          String?

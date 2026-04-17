@@ -131,10 +131,12 @@ export async function POST(request: NextRequest) {
             // Indoor/Outdoor
             indoorOutdoor,
             // Photo data
-            isPermanent
+            isPermanent,
+            // Location details (from iOS Create Location form)
+            details,
         } = body;
 
-        // Sanitize all text inputs
+        // Sanitize all text inputs (strips HTML, control chars, URLs)
         name = sanitizeUserInput(name);
         address = sanitizeUserInput(address);
         productionNotes = productionNotes ? sanitizeUserInput(productionNotes) : undefined;
@@ -146,23 +148,21 @@ export async function POST(request: NextRequest) {
         city = city ? sanitizeUserInput(city) : undefined;
         state = state ? sanitizeUserInput(state) : undefined;
         zipcode = zipcode ? sanitizeUserInput(zipcode) : undefined;
+        details = details ? sanitizeUserInput(details) : undefined;
 
-        // Debug logging - see what we received
-        console.log('[Save Location] Received data:', {
-            placeId,
-            name,
-            address,
-            latitude,
-            longitude,
-            type,
-            indoorOutdoor,
-            hasPhotos: !!body.photos,
-            photoCount: body.photos ? body.photos.length : 0,
-            photoData: body.photos ? body.photos.map((p: any) => ({ 
-                fileId: p.imagekitFileId || p.fileId,
-                hasFileId: !!(p.imagekitFileId || p.fileId)
-            })) : null
-        });
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[Save Location] Received data:', {
+                placeId,
+                name,
+                address,
+                latitude,
+                longitude,
+                type,
+                indoorOutdoor,
+                hasPhotos: !!body.photos,
+                photoCount: body.photos ? body.photos.length : 0,
+            });
+        }
 
         // Validation - Required fields
         if (!placeId || !name || !address || latitude === undefined || longitude === undefined) {
@@ -205,9 +205,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Create a new location record for this save
-        // Users can now save the same Google place multiple times (e.g., different shoots)
-        console.log('[Save Location] Creating new location record:', { placeId, name, userId: user.id });
+        if (details && details.length > 500) {
+            return apiError('Location details must be 500 characters or less', 400, 'VALIDATION_ERROR');
+        }
+
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[Save Location] Creating new location record:', { placeId, name, userId: user.id });
+        }
         const location = await prisma.location.create({
             data: {
                 placeId,
@@ -231,12 +235,16 @@ export async function POST(request: NextRequest) {
                 ...(access && { access }),
                 // Indoor/Outdoor
                 ...(indoorOutdoor && { indoorOutdoor }),
+                // Location details
+                ...(details && { details }),
                 // Metadata
                 ...(isPermanent !== undefined && { isPermanent }),
-                createdBy: user.id, // Set creator
+                createdBy: user.id,
             },
         });
-        console.log('[Save Location] New location created with ID:', location.id);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[Save Location] New location created with ID:', location.id);
+        }
 
         // Extract UserSave fields from body
         const { tags, isFavorite, personalRating, color } = body;

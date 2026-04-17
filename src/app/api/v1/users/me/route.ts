@@ -144,6 +144,26 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // Enforce max-length on text fields (client-side limits can be bypassed)
+    const fieldMaxLengths: Record<string, number> = {
+      firstName: 50,
+      lastName: 50,
+      bio: 500,
+      city: 100,
+      state: 50,
+      country: 100,
+      language: 10,
+      timezone: 60,
+    };
+    for (const [field, max] of Object.entries(fieldMaxLengths)) {
+      if (typeof updateData[field] === 'string' && (updateData[field] as string).length > max) {
+        return NextResponse.json(
+          { error: `${field} must be ${max} characters or less` },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update user
     const updatedUser = await prisma.user.update({
       where: { id: userId },

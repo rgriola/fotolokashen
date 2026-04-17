@@ -111,7 +111,6 @@ export async function requireAuth(request: NextRequest): Promise<{
     error?: string;
 }> {
     const token = extractToken(request);
-    console.log('[requireAuth] Token extracted:', token ? 'YES' : 'NO');
 
     if (!token) {
         return {
@@ -121,7 +120,6 @@ export async function requireAuth(request: NextRequest): Promise<{
     }
 
     const decoded = verifyToken(token);
-    console.log('[requireAuth] Token decoded:', decoded ? 'YES' : 'NO');
     if (!decoded) {
         return {
             authorized: false,
@@ -139,14 +137,11 @@ export async function requireAuth(request: NextRequest): Promise<{
         });
 
         if (!session) {
-            console.log('[requireAuth] No valid session found for token');
             return {
                 authorized: false,
                 error: 'Session expired or invalid',
             };
         }
-
-        console.log('[requireAuth] Session validated for user:', decoded.userId);
     } catch (error) {
         console.error('[requireAuth] Session validation error:', error);
         return {
@@ -155,21 +150,19 @@ export async function requireAuth(request: NextRequest): Promise<{
         };
     }
 
-    // Fetch user from database to ensure they still exist and are active
+    // Fetch user from database — also confirms they exist, are active, and not deleted
     try {
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId },
+            where: { id: decoded.userId, deletedAt: null },
             select: USER_PUBLIC_SELECT,
         });
 
         if (!user) {
-            console.log('[requireAuth] User not found in database');
             return {
                 authorized: false,
                 error: 'User not found',
             };
         }
-        console.log('[requireAuth] User found:', user.email);
 
         if (!user.isActive) {
             return {

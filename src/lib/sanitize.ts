@@ -18,6 +18,8 @@ export function sanitizeUserInput(input: string | null | undefined): string {
         .replace(/<\/?[^>]+(>|$)/g, "")   // Strip all HTML tags
         .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "") // Strip control chars (keep \t \n \r)
         .replace(/[\u200B-\u200F\u2028-\u202F\uFEFF]/g, "") // Strip zero-width/invisible chars
+        .replace(/https?:\/\/\S+/gi, "")  // Strip http:// and https:// URLs
+        .replace(/\bwww\.\S+/gi, "")      // Strip www. URLs
         .trim();
 }
 
