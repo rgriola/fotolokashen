@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -34,9 +34,23 @@ interface ResetPasswordFormProps {
 
 export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const isIOS = searchParams.get('platform') === 'ios';
+
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // iOS: redirect to app after successful reset
+    const [iosRedirect, setIosRedirect] = useState(false);
+    useEffect(() => {
+        if (iosRedirect) {
+            const timer = setTimeout(() => {
+                window.location.href = 'fotolokashen://password-reset-complete';
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [iosRedirect]);
 
     const {
         register,
@@ -108,13 +122,19 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                 return;
             }
 
-            // Email is verified - auto-login successful
+            // Email is verified - success
             toast.success(TOAST.AUTH.RESET_SUCCESS_LOGIN);
 
-            // Wait for server to process and set cookies
+            // Wait for server to process
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            // Redirect to map
+            // iOS: redirect to app via deep link
+            if (isIOS) {
+                setIosRedirect(true);
+                return;
+            }
+
+            // Web: redirect to map
             router.push('/map');
         } catch (error) {
             console.error('Reset password error:', error);

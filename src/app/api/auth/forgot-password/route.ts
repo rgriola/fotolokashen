@@ -18,6 +18,7 @@ const forgotPasswordSchema = z.object({
     .email('Invalid email address')
     .toLowerCase()
     .trim(),
+  platform: z.string().optional(),
 });
 
 /**
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email } = validation.data;
+    const { email, platform } = validation.data;
 
     // Check rate limiting - 15 minute window (stricter)
     const recentRequestCount = await getPasswordResetRequestCount(email, 15);
@@ -116,7 +117,8 @@ export async function POST(request: NextRequest) {
         const emailSent = await sendPasswordResetEmail(
           user.email,
           resetToken,
-          user.username
+          user.username,
+          platform
         );
 
         // Log the event

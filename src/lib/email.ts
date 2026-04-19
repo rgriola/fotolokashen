@@ -224,9 +224,11 @@ export async function sendWelcomeEmail(
 export async function sendPasswordResetEmail(
   email: string,
   token: string,
-  username: string
+  username: string,
+  platform?: string
 ): Promise<boolean> {
-  const resetUrl = `${APP_URL}/reset-password?token=${token}`;
+  const platformParam = platform ? `&platform=${platform}` : '';
+  const resetUrl = `${APP_URL}/reset-password?token=${token}${platformParam}`;
 
   // In development mode, just log the URL to console
   if (EMAIL_MODE === 'development') {

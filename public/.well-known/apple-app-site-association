@@ -4,7 +4,7 @@
     "details": [
       {
         "appIDs": ["LW5P4PVL96.com.rodczaro.fotolokashen"],
-        "paths": ["/shared/*"]
+        "paths": ["/shared/*", "/app/auth-callback"]
       }
     ]
   },
