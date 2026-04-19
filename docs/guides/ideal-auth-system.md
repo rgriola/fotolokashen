@@ -257,41 +257,33 @@ App receives: fotolokashen://password-reset-complete
 
 ---
 
-## `ASWebAuthenticationSession` Callback Routing
+## `ASWebAuthenticationSession` Callback Routing ✅ Implemented
 
-Currently `handleCallback(url:)` assumes every URL is an OAuth callback with `?code=xxx`. To support the new deep link schemes, the callback handler must route by URL host:
+`handleCallback(url:)` now routes by URL host instead of assuming every URL is an OAuth callback:
 
 ```swift
-// AuthService — updated handleCallback
-func handleCallback(url: URL) async {
-    guard let host = url.host else { return }
-    
-    switch host {
-    case "oauth-callback":
-        // Existing PKCE flow
-        guard let code = URLComponents(url: url, ...)?.queryItems?
-            .first(where: { $0.name == "code" })?.value else { return }
-        try await exchangeCodeForTokens(code: code)
-        
-    case "await-verification":
-        // Registration success — show native "check email" UI
-        isLoading = false
-        // Post notification or set state for LoginView to observe
-        
-    case "auth-redirect":
-        // Error redirect — parse action + reason
-        let params = URLComponents(url: url, ...)?.queryItems
-        let action = params?.first(where: { $0.name == "action" })?.value
-        let reason = params?.first(where: { $0.name == "reason" })?.value
-        handleAuthRedirect(action: action, reason: reason)
-        
-    case "await-password-reset":
-        // Forgot password submitted — show native "check email" UI
-        isLoading = false
-        
-    default:
-        break
+// AuthService.swift — handleCallback routes by url.host
+switch host {
+case "oauth-callback":
+    // Standard PKCE code exchange
+    guard let code = ... else { return }
+    try await exchangeCodeForTokens(code: code)
+
+case "await-verification":
+    // Registration success — show native "check email" UI
+    awaitingVerification = true
+
+case "await-password-reset":
+    // Forgot password submitted — show native "check email" UI
+    awaitingPasswordReset = true
+
+case "auth-redirect":
+    // Error redirect — parse action + reason
+    if action == "login" && reason == "account_exists" {
+        errorMessage = "You already have an account. Please log in."
     }
+
+default: break
 }
 ```
 
@@ -386,48 +378,49 @@ Every auth page that may be opened inside `ASWebAuthenticationSession` must:
 | Flow | Ideal State | Current State | Effort |
 |---|---|---|---|
 | **Login** | PKCE → redirect → tokens | ✅ Working | — |
-| **Register → success** | Web redirects to `await-verification`; panel auto-closes | ❌ Shows "Check Email" card inside panel; user must manually close | Small |
-| **Register → email exists** | Web redirects to `auth-redirect?reason=account_exists` | ❌ Toast error; panel stuck open | Small |
-| **Register → email verified** | verify-email auto-redirects to `email-verified?token=` | ⚠️ Shows manual button; no auto-redirect for iOS | Small |
-| **Forgot password → submitted** | Web redirects to `await-password-reset` | ❌ Shows success message inside panel | Small |
-| **Reset password → complete** | Web redirects to `password-reset-complete` | ❌ Shows success in browser; no app return | Small |
-| **`handleCallback` routing** | Routes by URL host (oauth vs await vs redirect) | ❌ Only parses `?code=` | Small |
-| **Platform detection** | Explicit `?source=ios` param | ⚠️ User-Agent sniffing (fragile) | Small |
-| **verify-email auto-redirect** | Auto-redirect after 2-3s for `platform=ios` | ⚠️ Only auto-redirects for `alreadyVerified` case | Small |
-| **OAuth redirect URI** | Universal Link | ⚠️ Custom URL scheme (AASA infra exists but unused for auth) | Medium |
+| **Register → success** | Web redirects to `await-verification`; panel auto-closes | ✅ Implemented April 2026 | — |
+| **Register → email exists** | Web redirects to `auth-redirect?reason=account_exists` | ✅ Implemented April 2026 | — |
+| **Register → email verified** | verify-email auto-redirects to `email-verified?token=` | ✅ Implemented April 2026 | — |
+| **Forgot password → submitted** | Web redirects to `await-password-reset` | ✅ Implemented April 2026 | — |
+| **`handleCallback` routing** | Routes by URL host (oauth vs await vs redirect) | ✅ Implemented April 2026 | — |
+| **Platform detection** | Explicit `?source=ios` param | ✅ Implemented April 2026 (register + forgot-password) | — |
 | **Token hashing** | SHA-256 for all auth tokens | ✅ Implemented April 2026 | — |
+| **Reset password → complete** | Web redirects to `password-reset-complete` | ❌ Shows success in browser; no app return | Small |
+| **iOS native UI for new states** | LoginView shows sheets for awaitingVerification, awaitingPasswordReset | ⚠️ States published but LoginView not yet updated | Small |
+| **OAuth redirect URI** | Universal Link | ⚠️ Custom URL scheme (AASA infra exists but unused for auth) | Medium |
 
-### Priority Order
+### Remaining Work (Priority Order)
 
-1. **High — `handleCallback` routing** — Must be done first; all other panel-based redirects depend on it
-2. **High — Register email exists → redirect** — Active UX bug reported by user
-3. **High — Register success → close panel** — Poor UX; user stuck in panel
-4. **Medium — Forgot password → close panel** — Same pattern as #3
-5. **Medium — Explicit `?source=ios`** — Replaces fragile User-Agent sniffing
-6. **Medium — verify-email auto-redirect for iOS** — Currently requires manual tap
-7. **Medium — Reset password → redirect to app** — Requires piping `platform` through reset email
-8. **Low — Universal Links for OAuth** — AASA infrastructure already exists; extend paths
+1. **Medium — LoginView native UI** — Observe `awaitingVerification`, `awaitingPasswordReset`, `errorMessage` states and show native sheets/alerts
+2. **Medium — Reset password → redirect to app** — Pipe `platform` through `sendPasswordResetEmail()`, redirect on success
+3. **Low — Universal Links for OAuth** — AASA infrastructure exists; extend paths array
 
 ---
 
-## Files to Change (When Implementing)
+## Files Changed (April 2026 Implementation)
 
-### iOS — `fotolokashen-ios`
-
-| File | Change |
-|---|---|
-| `AuthService.swift` → `startRegistration()` | Add `?source=ios` to URL |
-| `AuthService.swift` → `handleCallback(url:)` | Route by `url.host` instead of always parsing `?code=` |
-| `AuthService.swift` | Add `startForgotPassword()` method that opens panel with `?source=ios` |
-| `DeepLinkManager.swift` | Add handlers for `password-reset-complete` (same pattern as `email-verified`) |
-| `LoginView` / `ContentView` | React to new states: `awaitingVerification`, `awaitingPasswordReset`, `accountExists` |
-
-### Web — `fotolokashen`
+### Web — `fotolokashen` ✅ Complete
 
 | File | Change |
 |---|---|
-| `RegisterForm.tsx` | Read `?source=ios`; on success → redirect `await-verification`; on `EMAIL_EXISTS` → redirect `auth-redirect` |
-| `ForgotPasswordForm.tsx` | Read `?source=ios`; on submit → redirect `await-password-reset` |
-| `verify-email/page.tsx` | Add auto-redirect timer for `platform=ios + success` (don't only do it for `alreadyVerified`) |
-| `reset-password page` | On success + `platform=ios` → redirect `password-reset-complete` |
+| `RegisterForm.tsx` | ✅ Reads `?source=ios`; on success → redirect `await-verification`; on `EMAIL_EXISTS` → redirect `auth-redirect` |
+| `ForgotPasswordForm.tsx` | ✅ Reads `?source=ios`; on submit → redirect `await-password-reset` |
+| `verify-email/page.tsx` | ✅ Auto-redirect timer fires for `platform=ios + autoLoginToken` (not just `alreadyVerified`) |
+
+### iOS — `fotolokashen-ios` ✅ Core Complete
+
+| File | Change |
+|---|---|
+| `AuthService.swift` → `startRegistration()` | ✅ Passes `?source=ios&client_id=xxx` (removed unused PKCE params) |
+| `AuthService.swift` → `handleCallback(url:)` | ✅ Routes by `url.host` — supports `oauth-callback`, `await-verification`, `await-password-reset`, `auth-redirect` |
+| `AuthService.swift` → `startForgotPassword()` | ✅ New method, opens panel with `?source=ios` |
+| `AuthService.swift` → published states | ✅ Added `awaitingVerification`, `awaitingPasswordReset` |
+| `DeepLinkManager.swift` | ✅ Added `passwordResetComplete` property + handler |
+
+### Remaining Files
+
+| File | Change |
+|---|---|
+| `LoginView` / `ContentView` | React to `awaitingVerification`, `awaitingPasswordReset`, `accountExists` with native sheets |
+| `reset-password page` (web) | On success + `platform=ios` → redirect `password-reset-complete` |
 | `sendPasswordResetEmail()` in `email.ts` | Accept optional `platform` param, append `&platform=ios` to reset link |
