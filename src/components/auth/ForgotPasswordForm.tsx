@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,9 +22,23 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
+    const searchParams = useSearchParams();
+    const isIOS = searchParams.get('source') === 'ios';
+
     const [isLoading, setIsLoading] = useState(false);
     const [emailSent, setEmailSent] = useState(false);
     const [submittedEmail, setSubmittedEmail] = useState('');
+
+    // ── iOS: redirect to app after submit (closes Safari panel) ──
+    const [iosRedirect, setIosRedirect] = useState(false);
+    useEffect(() => {
+        if (iosRedirect) {
+            const timer = setTimeout(() => {
+                window.location.href = 'fotolokashen://await-password-reset';
+            }, 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [iosRedirect]);
 
     const {
         register,
@@ -50,7 +65,14 @@ export function ForgotPasswordForm() {
                 return;
             }
 
-            // Show success state
+            // iOS: redirect to app immediately (closes panel)
+            if (isIOS) {
+                setSubmittedEmail(data.email);
+                setIosRedirect(true);
+                return;
+            }
+
+            // Web: show success state
             setEmailSent(true);
             setSubmittedEmail(data.email);
             toast.success(TOAST.AUTH.RESET_EMAIL_CHECK);
@@ -61,6 +83,24 @@ export function ForgotPasswordForm() {
             setIsLoading(false);
         }
     };
+
+    // ── iOS redirect screen ──
+    if (iosRedirect) {
+        return (
+            <Card className="w-full max-w-md mx-auto">
+                <CardHeader className="space-y-1 text-center">
+                    <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    </div>
+                    <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+                    <CardDescription>
+                        If an account exists for <strong>{submittedEmail}</strong>,
+                        you&apos;ll receive a reset link. Redirecting...
+                    </CardDescription>
+                </CardHeader>
+            </Card>
+        );
+    }
 
     if (emailSent) {
         return (

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -76,13 +77,30 @@ function getPasswordStrength(pass: string): number {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
+  const searchParams = useSearchParams();
+  const isIOS = searchParams.get('source') === 'ios';
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // ── Success state: shows "Check Your Email" card after registration ──
+  // ── iOS redirect state: brief message before deep link redirect ──
+  const [iosRedirectMessage, setIosRedirectMessage] = useState<string | null>(null);
+  const [iosRedirectUrl, setIosRedirectUrl] = useState<string | null>(null);
+
+  // ── Success state: shows "Check Your Email" card after registration (web only) ──
   const [registrationComplete, setRegistrationComplete] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
+
+  // ── iOS redirect timer: show brief message, then deep link redirect ──
+  useEffect(() => {
+    if (iosRedirectUrl) {
+      const timer = setTimeout(() => {
+        window.location.href = iosRedirectUrl;
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [iosRedirectUrl]);
 
   const {
     register,
@@ -126,11 +144,24 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
       });
       const result = await response.json();
       if (!response.ok) {
+        // iOS: EMAIL_EXISTS → redirect to app with reason
+        if (isIOS && result.code === 'EMAIL_EXISTS') {
+          setIosRedirectMessage('You already have an account. Redirecting to login...');
+          setIosRedirectUrl('fotolokashen://auth-redirect?action=login&reason=account_exists');
+          return;
+        }
         toast.error(result.error || TOAST.AUTH.REGISTER_FAILED);
         return;
       }
 
-      // Show the "Check Your Email" success card instead of a toast
+      // iOS: registration success → redirect to app immediately (closes panel)
+      if (isIOS) {
+        setIosRedirectMessage('Account created! Check your email to verify.');
+        setIosRedirectUrl('fotolokashen://await-verification');
+        return;
+      }
+
+      // Web: show the "Check Your Email" success card
       setSubmittedEmail(data.email);
       setRegistrationComplete(true);
     } catch (error) {
@@ -139,9 +170,23 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isIOS]);
 
-  // ── Success Screen ──────────────────────────────────────────────────────
+  // ── iOS Redirect Screen — brief message before deep link fires ──
+  if (iosRedirectMessage) {
+    return (
+      <Card className="w-full">
+        <CardHeader className="space-y-1 text-center">
+          <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+          <CardTitle className="text-xl sm:text-2xl font-bold">{iosRedirectMessage}</CardTitle>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  // ── Success Screen (web only) ──────────────────────────────────────────
   if (registrationComplete) {
     return (
       <Card className="w-full">

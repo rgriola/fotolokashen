@@ -62,8 +62,8 @@ export default function VerifyEmailPage() {
                         setAutoLoginToken(data.autoLoginToken);
                     }
 
-                    // Auto-redirect for already verified emails
-                    if (data.alreadyVerified) {
+                    // Auto-redirect: for already-verified emails OR iOS first-time verifications
+                    if (data.alreadyVerified || (platform === 'ios' && data.autoLoginToken)) {
                         setShouldRedirect(true);
                     }
                 } else {
