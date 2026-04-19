@@ -212,3 +212,20 @@ Resources
 
  ....
 in the iOS App we  should also display the user timezone using the GPS data user allows if allowed or IP if no GPS. 
+
+... 
+*** Task ***
+- iOS Profile > Account & Security > Personal Details > Edit Profile > Move Preferences up one level to Account & Security > Preferences. 
+- We also need to add a Permissions section for GPS, Camera, Photo Library, and Notifications. 
+In the Permissions Section add on/off toggles. 
+
+
+...
+
+MY TO-DO Apr 17
+Continue Security Review and implimentations 
+
+- Change iOS login to GPS location if permitted or home if not. 
+- Finish Profile redesign. 
+- Finish Create Location Basic Set ups
+- 

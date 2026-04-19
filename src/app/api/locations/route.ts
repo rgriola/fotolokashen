@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth, parseBoundsFilter } from '@/lib/api-middleware';
 import { VALIDATION_CONFIG } from '@/lib/validation-config';
 import { sanitizeUserInput, sanitizeArray } from '@/lib/sanitize';
+import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
 
 /**
  * GET /api/locations
@@ -112,6 +113,21 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
     try {
+        // Rate limit: 100 requests per 15 minutes per IP
+        const rateLimitResult = rateLimit(request, {
+            ...RateLimitPresets.LENIENT,
+            keyPrefix: 'locations-post',
+        });
+        if (!rateLimitResult.allowed) {
+            const response = apiError(
+                `Too many requests. Please try again in ${Math.ceil(rateLimitResult.retryAfter / 1000)} seconds.`,
+                429,
+                'RATE_LIMIT_EXCEEDED'
+            );
+            addRateLimitHeaders(response.headers, rateLimitResult);
+            return response;
+        }
+
         const authResult = await requireAuth(request);
 
         if (!authResult.authorized || !authResult.user) {

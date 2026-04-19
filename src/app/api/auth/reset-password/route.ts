@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { hashPassword, generateToken } from '@/lib/auth';
+import { hashPassword, generateToken, hashToken } from '@/lib/auth';
 import { apiResponse, apiError, setAuthCookie } from '@/lib/api-middleware';
 import { sendPasswordChangedEmail } from '@/lib/email';
 import { logSecurityEvent, SecurityEventType, getClientIP, getPasswordResetAttemptCount } from '@/lib/security';
@@ -45,10 +45,10 @@ export async function POST(request: NextRequest) {
 
     const { token, password } = validation.data;
 
-    // Find user with valid reset token
+    // Find user with valid reset token (hash incoming token to match stored hash)
     const user = await prisma.user.findFirst({
       where: {
-        resetToken: token,
+        resetToken: hashToken(token),
         resetTokenExpiry: {
           gt: new Date(), // Token must not be expired
         },

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { hashPassword, generateToken, generateVerificationToken } from '@/lib/auth';
+import { hashPassword, generateToken, generateVerificationToken, hashToken } from '@/lib/auth';
 import { sendVerificationEmail } from '@/lib/email';
 import { apiResponse, apiError, setAuthCookie } from '@/lib/api-middleware';
 import {
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     const verificationToken = generateVerificationToken();
     const verificationTokenExpiry = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
-    // Create user
+    // Create user (store hashed verification token; raw token sent in email)
     const user = await prisma.user.create({
       data: {
         email,
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
         firstName: firstName || null,
         lastName: lastName || null,
         dateOfBirth: new Date(dateOfBirth),
-        verificationToken,
+        verificationToken: hashToken(verificationToken),
         verificationTokenExpiry,
         emailVerified: false,
         isActive: true,

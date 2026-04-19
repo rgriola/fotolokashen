@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { apiResponse, apiError } from '@/lib/api-middleware';
 import { sendPasswordResetEmail } from '@/lib/email';
 import { logSecurityEvent, SecurityEventType, getPasswordResetRequestCount } from '@/lib/security';
+import { hashToken } from '@/lib/auth';
 import crypto from 'crypto';
 
 // Rate limiting constants
@@ -102,11 +103,11 @@ export async function POST(request: NextRequest) {
         const resetToken = crypto.randomBytes(32).toString('hex');
         const resetTokenExpiry = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
 
-        // Save token to database
+        // Save hashed token to database (raw token sent in email)
         await prisma.user.update({
           where: { id: user.id },
           data: {
-            resetToken,
+            resetToken: hashToken(resetToken),
             resetTokenExpiry,
           },
         });

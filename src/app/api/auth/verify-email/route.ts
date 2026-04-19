@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError } from '@/lib/api-middleware';
 import { sendWelcomeEmail } from '@/lib/email';
+import { hashToken } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,10 +16,10 @@ export async function GET(request: NextRequest) {
       return apiError('Verification token is required', 400, 'MISSING_TOKEN');
     }
 
-    // Find user with this verification token
+    // Find user with this verification token (hash incoming token to match stored hash)
     const user = await prisma.user.findFirst({
       where: {
-        verificationToken: token,
+        verificationToken: hashToken(token),
         emailVerified: false,
       },
     });
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Update user to mark email as verified, clear verification token,
-    // and optionally set auto-login token
+    // and optionally set auto-login token (stored hashed)
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -52,19 +53,17 @@ export async function GET(request: NextRequest) {
         verificationToken: null,
         verificationTokenExpiry: null,
         ...(autoLoginToken && {
-          autoLoginToken,
+          autoLoginToken: hashToken(autoLoginToken),
           autoLoginTokenExpiry: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
         }),
       },
     });
 
-    // Log successful verification
-    console.log('✅ Email verified successfully');
-    console.log(`   User: ${user.email} (${user.username})`);
-    console.log(`   User ID: ${user.id}`);
-    console.log(`   Platform: ${platform || 'web'}`);
-    console.log(`   Auto-login token: ${autoLoginToken ? 'generated' : 'n/a'}`);
-    console.log(`   Timestamp: ${new Date().toISOString()}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ Email verified successfully');
+      console.log(`   User: ${user.email} (${user.username})`);
+      console.log(`   Platform: ${platform || 'web'}`);
+    }
 
     // Send welcome email
     const username = user.firstName && user.lastName
@@ -72,7 +71,6 @@ export async function GET(request: NextRequest) {
       : user.username;
 
     await sendWelcomeEmail(user.email, username);
-    console.log('📧 Welcome email sent to', user.email);
 
     return apiResponse({
       success: true,

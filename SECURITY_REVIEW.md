@@ -21,7 +21,7 @@ The codebase has a **solid security foundation** — JWT + session validation, Z
 - `isActive` check prevents deactivated accounts from authenticating
 - `httpOnly` cookies — auth token cannot be read by JavaScript 
 - `secure: true` in production — cookies only sent over HTTPS
-- `sameSite: 'lax'` — CSRF protection for most scenarios
+- `sameSite: 'lax'` — CSRF protection for most scenarios 
 - Account lockout fields exist in schema: `failedLoginAttempts`, `lockedUntil`
 
 ### ⚠️ Issues Found
@@ -33,7 +33,7 @@ const rateLimitStore = new Map<string, RateLimitRecord>();
 ```
 This resets on every server restart / deployment and doesn't work across multiple serverless instances (Vercel). An attacker can brute-force login after each cold start.
 
-> **Recommendation:** Replace with Redis (Upstash is free tier, integrates with Vercel). Until then, the existing `failedLoginAttempts` + `lockedUntil` DB-backed lockout is your real protection — verify it's actually enforced on the login route.
+> **Recommendation:** Replace with Redis (Upstash is free tier, integrates with Vercel). Until then, the existing `failedLoginAttempts` + `lockedUntil` DB-backed lockout is your real protection — verify it's actually enforced on the login route. 
 
 **1.2 — `x-forwarded-for` IP can be spoofed**
 ```typescript
@@ -286,62 +286,15 @@ Same issue as 6.2.
 
 ---
 
-## Quick Wins — Implementation Status
-*Session: April 17, 2026*
+## Quick Wins (Can implement in one session)
 
-| # | Item | Status |
-|---|---|---|
-| 1 | Strip URLs in `sanitizeUserInput` (web) | ✅ **Done** — `sanitize.ts` now strips `http://`, `https://`, `www.` |
-| 2 | Strip URLs from iOS pre-save sanitization | ✅ **Done** — `stripURLs()` helper in `CreateLocationView`, applied to name + details |
-| 3 | Add `deletedAt: null` guard in `requireAuth` | ✅ **Done** — soft-deleted users can no longer authenticate |
-| 4 | Guard all `console.log` with `NODE_ENV !== 'production'` | ✅ **Done** — removed 5 PII-leaking logs from `requireAuth`; debug logs in `locations/route.ts` now dev-only |
-| 5 | Add length validation loop to `PATCH /users/me` | ✅ **Done** — 8 text fields now have server-side max-length enforcement |
-| 6 | Add `locationDetails` to Prisma schema + Location API | ✅ **Done** — `Location.details String?` added to schema, `db push` applied to Neon, field sanitized + validated in POST route |
+1. **Strip URLs in `sanitizeUserInput`** — 3-line regex addition
+2. **Add `deletedAt: null` guard in `requireAuth`** — 1-line addition
+3. **Guard all `console.log` with `NODE_ENV !== 'production'`** — global find/replace
+4. **Add length validation loop to `PATCH /users/me`** — ~15 lines
+5. **Add `locationDetails` to Prisma schema + Location API** — schema migration + route update
+6. **Strip URLs from iOS pre-save sanitization** — add `stripURLs()` helper
 
 ---
 
-## Remaining TODO List
-
-### 🔴 Medium Priority — Pick Up Next
-
-- [ ] **Rate-limit `PATCH /users/me` and `POST /api/locations`**  
-  Apply `RateLimitPresets.LENIENT` to authenticated write endpoints. The rate limiter util exists — it's just not wired into these routes.
-
-- [ ] **Audit location edit/delete routes for ownership check**  
-  Confirm `PATCH /api/locations/[id]` and `DELETE /api/locations/[id]` verify `createdBy === user.id` before applying changes.
-
-- [ ] **Hash verification and reset tokens before DB storage**  
-  `verificationToken` and `resetToken` are stored in plaintext. Store a `SHA-256` hash; only the raw token travels by email.  
-  *Files:* `api/auth/register/route.ts`, `api/auth/forgot-password/route.ts`, `api/auth/reset-password/route.ts`
-
-- [ ] **Validate `x-forwarded-for` IP trustworthiness**  
-  Current rate limiter takes the first IP in the chain which can be spoofed. On Vercel, trust only the last hop or use Vercel's native IP resolution.  
-  *File:* `src/lib/rate-limit.ts:163`
-
-### 🟡 Lower Priority — Future Sprint
-
-- [ ] **Replace in-memory rate limiter with Redis (Upstash)**  
-  In-memory store resets on Vercel cold starts. Upstash free tier integrates natively. Blocked by cost/complexity tradeoff for current scale.
-
-- [ ] **Add `@db.VarChar(N)` column constraints to Prisma schema**  
-  Provides DB-level enforcement independent of application code.  
-  Priority fields: `Location.name`, `User.bio`, `User.firstName`, `User.lastName`, `Photo.caption`.
-
-- [ ] **Hash `autoLoginToken` before storage**  
-  Auto-login tokens act as short-lived passwords. Currently stored plaintext.  
-  *File:* `prisma/schema.prisma`, `api/auth/auto-login/route.ts`
-
-- [ ] **Preferences PATCH — send only changed fields**  
-  iOS sends full user object on preference save. Create a minimal `preferencesBody` with only `language`, `timezone`, `emailNotifications`.
-
-- [ ] **Certificate pinning (iOS)**  
-  Low priority until the app reaches production scale. Increases maintenance burden significantly.
-
-- [ ] **Photo caption limit review**  
-  `VALIDATION_CONFIG.location.caption.max = 20` — likely too low. Increase to 200.
-
----
-
-*Implemented items committed to `main` on both repos — April 17, 2026.*  
-*Next review recommended before public launch or at 500+ users.*
-
+*Review based on source code audit conducted April 17, 2026. This is a point-in-time snapshot; re-review recommended before any public launch or significant user growth.*

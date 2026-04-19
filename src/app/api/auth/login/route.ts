@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
-import { comparePassword, generateToken, generateVerificationToken } from '@/lib/auth';
+import { comparePassword, generateToken, generateVerificationToken, hashToken } from '@/lib/auth';
 import { apiResponse, apiError, setAuthCookie } from '@/lib/api-middleware';
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
 import { sendVerificationEmail } from '@/lib/email';
@@ -139,11 +139,11 @@ export async function POST(request: NextRequest) {
         const newToken = generateVerificationToken();
         const newExpiry = new Date(Date.now() + 30 * 60 * 1000);
         
-        // Update user in database
+        // Update user in database (store hashed token)
         await prisma.user.update({
           where: { id: user.id },
           data: {
-            verificationToken: newToken,
+            verificationToken: hashToken(newToken),
             verificationTokenExpiry: newExpiry,
             lastVerificationEmailSent: new Date(),
           },

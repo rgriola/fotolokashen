@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError } from '@/lib/api-middleware';
-import { generateVerificationToken } from '@/lib/auth';
+import { generateVerificationToken, hashToken } from '@/lib/auth';
 import { sendVerificationEmail } from '@/lib/email';
 
 // Rate limiting: store last send times in memory (simple approach for now)
@@ -60,11 +60,11 @@ export async function POST(request: NextRequest) {
         const verificationToken = generateVerificationToken();
         const verificationTokenExpiry = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
-        // Update user with new token
+        // Update user with new hashed token
         await prisma.user.update({
             where: { id: user.id },
             data: {
-                verificationToken,
+                verificationToken: hashToken(verificationToken),
                 verificationTokenExpiry,
             },
         });

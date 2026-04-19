@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireAuth, apiError } from '@/lib/api-middleware';
 import { sanitizeUserInput } from '@/lib/sanitize';
+import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -81,6 +82,21 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    // Rate limit: 100 requests per 15 minutes per IP
+    const rateLimitResult = rateLimit(request, {
+      ...RateLimitPresets.LENIENT,
+      keyPrefix: 'users-me-patch',
+    });
+    if (!rateLimitResult.allowed) {
+      const response = apiError(
+        `Too many requests. Please try again in ${Math.ceil(rateLimitResult.retryAfter / 1000)} seconds.`,
+        429,
+        'RATE_LIMIT_EXCEEDED'
+      );
+      addRateLimitHeaders(response.headers, rateLimitResult);
+      return response;
+    }
+
     const authResult = await requireAuth(request);
 
     if (!authResult.authorized || !authResult.user) {

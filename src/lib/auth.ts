@@ -86,6 +86,15 @@ export function generatePasswordResetToken(): string {
 }
 
 /**
+ * Hash a token with SHA-256 for secure storage.
+ * Raw tokens are sent to the user (email, deep link); only the hash is stored in DB.
+ * On verification, hash the incoming token and compare to the stored hash.
+ */
+export function hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+/**
  * Get token expiry time (1 hour from now)
  * @returns Date - Expiry date
  */

@@ -160,8 +160,11 @@ function getIpAddress(request: Request): string {
     // Check common proxy headers
     const forwardedFor = headers.get('x-forwarded-for');
     if (forwardedFor) {
-        // x-forwarded-for can be a comma-separated list, get the first one
-        return forwardedFor.split(',')[0].trim();
+        // Take the LAST entry — on Vercel/reverse-proxies, the proxy appends
+        // the real client IP at the end. The first entry is client-controlled
+        // and can be spoofed via a forged X-Forwarded-For header.
+        const ips = forwardedFor.split(',').map(ip => ip.trim());
+        return ips[ips.length - 1];
     }
 
     const realIp = headers.get('x-real-ip');

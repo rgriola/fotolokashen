@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import crypto from 'crypto';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, serializeUser } from '@/lib/api-middleware';
-import { generateToken } from '@/lib/auth';
+import { generateToken, hashToken } from '@/lib/auth';
 
 /**
  * POST /api/auth/auto-login
@@ -39,10 +39,10 @@ export async function POST(request: NextRequest) {
       return apiError('Invalid client_id', 400, 'INVALID_CLIENT');
     }
 
-    // Find user with this auto-login token
+    // Find user with this auto-login token (hash incoming token to match stored hash)
     const user = await prisma.user.findFirst({
       where: {
-        autoLoginToken: token,
+        autoLoginToken: hashToken(token),
         emailVerified: true,
         isActive: true,
       },
@@ -130,9 +130,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('✅ Auto-login successful after email verification');
-    console.log(`   User: ${user.email} (${user.username})`);
-    console.log(`   User ID: ${user.id}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ Auto-login successful after email verification');
+      console.log(`   User ID: ${user.id}`);
+    }
 
     return apiResponse({
       access_token: accessToken,
