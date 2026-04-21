@@ -1,25 +1,16 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Save, Image as ImageIcon, Lock } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/lib/auth-context";
+import { HeroCTA, BottomCTA } from "@/components/landing/HeroCTA";
 
+/**
+ * Landing page — Server Component for fast LCP.
+ * 
+ * The hero image, heading, and description are server-rendered (visible
+ * in the initial HTML). Only the CTA buttons and auth-dependent redirect
+ * are client-side (HeroCTA, BottomCTA).
+ */
 export default function Home() {
-  const { user } = useAuth();
-  const router = useRouter();
-
-  // Redirect authenticated users to map page
-  useEffect(() => {
-    if (user) {
-      router.push("/map");
-    }
-  }, [user, router]);
-
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -57,25 +48,9 @@ export default function Home() {
             </h1>
             <p className="mb-8 text-lg sm:text-xl text-muted-foreground text-center">
               Use Fotolokashen with Google Maps to organize your Photos, Locations, Projects, and Teams.</p>
-            {/* Buttons - Reduced width by ~50% */}
+            {/* Buttons — client component for auth state */}
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center items-center">
-              {user ? (
-                <Button size="lg" asChild className="bg-linear-to-r from-primary to-social hover:from-primary/90 hover:to-social text-white shadow-lg shadow-primary/50 max-w-50 w-full">
-                  <Link href="/map">
-                    <MapPin className="mr-2 h-5 w-5" />
-                    Open Map
-                  </Link>
-                </Button>
-              ) : (
-                <>
-                  <Button size="lg" asChild className="bg-linear-to-r from-primary to-social hover:from-primary/90 hover:to-social text-white shadow-lg shadow-primary/50 max-w-45 w-full">
-                    <Link href="/register">Get Started</Link>
-                  </Button>
-                  <Button size="lg" variant="outline" asChild className="bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20 max-w-45 w-full">
-                    <Link href="/login">Sign In</Link>
-                  </Button>
-                </>
-              )}
+              <HeroCTA />
             </div>
           </div>
         </div>
@@ -137,24 +112,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      {!user && (
-        <section className="bg-muted/50">
-          <div className="px-4 md:px-6 lg:px-8 py-16 md:py-24">
-            <div className="mx-auto max-w-3xl text-center">
-              <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-                Ready to Get Started?
-              </h2>
-              <p className="mb-8 text-lg text-muted-foreground">
-                Create your free account today and start organizing your favorite locations.
-              </p>
-              <Button size="lg" asChild>
-                <Link href="/register">Create Free Account</Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* CTA Section — client component for auth state */}
+      <BottomCTA />
     </div>
   );
 }

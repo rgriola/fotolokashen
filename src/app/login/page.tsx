@@ -15,10 +15,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       {/* Background Image Layer */}
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-90"
-        style={{ backgroundImage: 'url(/images/landing/hero/login-hero-bg.jpg)' }}
-      />
+      <div className="absolute inset-0 opacity-90">
+        <Image
+          src="/images/landing/hero/login-hero-bg.jpg"
+          alt="Login background"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+      </div>
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-social/80 to-primary/80" />
 

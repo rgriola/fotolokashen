@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Home, ArrowLeft } from 'lucide-react';
 
@@ -8,10 +9,16 @@ export default function NotFound() {
     return (
         <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
             {/* Background Image Layer */}
-            <div
-                className="absolute inset-0 bg-cover bg-center opacity-90"
-                style={{ backgroundImage: 'url(/images/landing/hero/hero-background.jpg)' }}
-            />
+            <div className="absolute inset-0 opacity-90">
+                <Image
+                    src="/images/landing/hero/hero-background.jpg"
+                    alt="404 background"
+                    fill
+                    className="object-cover"
+                    priority
+                    sizes="100vw"
+                />
+            </div>
             {/* Gradient Overlay */}
             <div className="absolute inset-0 bg-linear-to-br from-primary/80 via-social/80 to-primary/80" />
 

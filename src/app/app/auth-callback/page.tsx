@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -94,10 +95,15 @@ function AuthCallbackContent() {
 export default function AuthCallbackPage() {
     return (
         <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
-            <div
-                className="absolute inset-0 bg-cover bg-center opacity-90"
-                style={{ backgroundImage: 'url(/images/landing/hero/forgot-hero-bg.jpg)' }}
-            />
+            <div className="absolute inset-0 opacity-90">
+                <Image
+                    src="/images/landing/hero/forgot-hero-bg.jpg"
+                    alt="Auth callback background"
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                />
+            </div>
             <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-social/80 to-primary/80" />
 
             <div className="relative z-10 px-4 w-full">

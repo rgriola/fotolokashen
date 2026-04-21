@@ -6,7 +6,6 @@ import { Providers } from "@/components/providers";
 import { Header } from "@/components/layout/Header";
 import { ConditionalFooter } from "@/components/layout/ConditionalFooter";
 import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
-import { GoogleMapsProvider } from "@/lib/GoogleMapsProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 
@@ -97,18 +96,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <GoogleMapsProvider>
-            <LayoutWrapper>
-              <Header />
-              <main className="flex-1 overflow-hidden">{children}</main>
-              <ConditionalFooter />
-            </LayoutWrapper>
-            <Toaster position="top-center" />
-          </GoogleMapsProvider>
+          <LayoutWrapper>
+            <Header />
+            <main className="flex-1 overflow-hidden">{children}</main>
+            <ConditionalFooter />
+          </LayoutWrapper>
+          <Toaster position="top-center" />
         </Providers>
         <SpeedInsights />
-        <Script src="https://tweakcn.com/live-preview.min.js" strategy="beforeInteractive" />
+        <Script src="https://tweakcn.com/live-preview.min.js" strategy="lazyOnload" />
       </body>
     </html>
   );
 }
+
