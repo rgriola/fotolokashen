@@ -631,14 +631,21 @@ Create the following:
 
 ---
 
-## Phase 6 — Apple App Site Association & Universal Links 
+## Phase 6 — Apple App Site Association & Universal Links
 
 ### Prompt for Agent
 
 ```
-You are configuring Universal Links for [APP_NAME].
+You are implementing Universal Links for [APP_NAME] OAuth.
+This makes the OAuth redirect domain-verified — another app cannot register
+your redirect URI, preventing callback hijacking.
 
-1. Create public/.well-known/apple-app-site-association:
+IMPORTANT: iOS 17.4+ introduced ASWebAuthenticationSession.Callback.https(),
+which intercepts HTTPS Universal Links directly in the auth session. iOS 17.0-17.3
+only supports the legacy callbackURLScheme: API (custom scheme only).
+Your implementation MUST support both via if #available(iOS 17.4, *).
+
+1. AASA FILE — Create/update public/.well-known/apple-app-site-association:
 
 {
   "applinks": {
@@ -655,21 +662,82 @@ You are configuring Universal Links for [APP_NAME].
   }
 }
 
-2. In the iOS project, add entitlements:
+2. iOS ENTITLEMENTS — Ensure .entitlements file contains:
    - com.apple.developer.associated-domains:
      - applinks:[DOMAIN]
      - webcredentials:[DOMAIN]
 
-3. Ensure the AASA file is served with Content-Type: application/json
-   from https://[DOMAIN]/.well-known/apple-app-site-association
+3. OAUTH CLIENT — Update the OAuthClient seed to add the Universal Link:
 
-4. webcredentials enables Safari AutoFill integration —
-   when users save passwords on the web, iOS will suggest them in-app.
+   redirectUris: [
+     "[URL_SCHEME]://oauth-callback",           // Custom scheme (all iOS)
+     "https://[DOMAIN]/app/auth-callback",       // Universal Link (17.4+)
+   ]
 
-Note: This phase is optional. The custom URL scheme ([URL_SCHEME]://)
-works for all auth flows. Universal Links add security (domain-verified,
-can't be hijacked by another app) and are Apple's preferred approach
-for OAuth redirect URIs.
+   The upsert update block MUST also set redirectUris (not empty {}).
+
+4. FALLBACK PAGE — Create /app/auth-callback/page.tsx:
+
+   Only loads when Universal Link is NOT intercepted (app not installed).
+   - Read ?code= from URL params
+   - Immediately try: window.location.href = '[URL_SCHEME]://oauth-callback?code=xxx'
+   - After 2 seconds: show "Open [APP_NAME]" button + App Store link
+   - No code: show "Invalid callback" error
+
+5. iOS AUTH SERVICE — Update startLogin():
+
+   redirect_uri must be version-dependent:
+   if #available(iOS 17.4, *) {
+       redirectUri = backendBaseURL + "/app/auth-callback"
+   } else {
+       redirectUri = config.oauthRedirectUri  // custom scheme
+   }
+
+6. iOS AUTH SERVICE — Update startWebAuthSession():
+
+   if #available(iOS 17.4, *) {
+       let isLoginFlow = url.path == "/login"
+       if isLoginFlow {
+           session = ASWebAuthenticationSession(
+               url: url,
+               callback: .https(host: "[DOMAIN]", path: "/app/auth-callback"),
+               completionHandler: completionHandler
+           )
+       } else {
+           session = ASWebAuthenticationSession(
+               url: url,
+               callback: .customScheme("[URL_SCHEME]"),
+               completionHandler: completionHandler
+           )
+       }
+   } else {
+       session = ASWebAuthenticationSession(
+           url: url,
+           callbackURLScheme: "[URL_SCHEME]",
+           completionHandler: completionHandler
+       )
+   }
+
+   Extract the completion handler into a let closure to avoid duplication.
+
+7. iOS AUTH SERVICE — Update handleCallback(url:):
+
+   Must handle both HTTPS and custom scheme URLs:
+   if url.scheme == "https" {
+       host = url.path == "/app/auth-callback" ? "oauth-callback" : url.host
+   } else {
+       host = url.host
+   }
+
+8. iOS AUTH SERVICE — Update exchangeCodeForTokens():
+
+   redirect_uri MUST match what startLogin() sent:
+   if #available(iOS 17.4, *) {
+       redirectUri = backendBaseURL + "/app/auth-callback"
+   } else {
+       redirectUri = config.oauthRedirectUri
+   }
+   Mismatch = server rejects the code.
 ```
 
 ---
