@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
         if (!passwordValid) {
             await logSecurityEvent({
                 userId: user.id,
-                eventType: SecurityEventType.PASSWORD_CHANGE,
+                eventType: SecurityEventType.EMAIL_CHANGE,
                 request,
                 success: false,
                 metadata: { reason: 'incorrect_password_for_email_change' },
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         if (recentRequests >= MAX_EMAIL_CHANGES_PER_DAY) {
             await logSecurityEvent({
                 userId: user.id,
-                eventType: SecurityEventType.PASSWORD_CHANGE,
+                eventType: SecurityEventType.EMAIL_CHANGE,
                 request,
                 success: false,
                 metadata: { reason: 'email_change_rate_limited_daily' },
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
         if (yearlyRequests >= MAX_EMAIL_CHANGES_PER_YEAR) {
             await logSecurityEvent({
                 userId: user.id,
-                eventType: SecurityEventType.PASSWORD_CHANGE,
+                eventType: SecurityEventType.EMAIL_CHANGE,
                 request,
                 success: false,
                 metadata: {
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
         // Log the request
         await logSecurityEvent({
             userId: user.id,
-            eventType: SecurityEventType.PASSWORD_CHANGE,
+            eventType: SecurityEventType.EMAIL_CHANGE,
             request,
             success: true,
             metadata: {

@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         // Log the change
         await logSecurityEvent({
             userId: changeRequest.userId,
-            eventType: SecurityEventType.PASSWORD_CHANGE,
+            eventType: SecurityEventType.EMAIL_CHANGE,
             request,
             success: true,
             metadata: {

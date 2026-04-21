@@ -10,6 +10,7 @@ export const SecurityEventType = {
     PASSWORD_RESET_REQUEST: 'password_reset_request',
     PASSWORD_RESET_SUCCESS: 'password_reset_success',
     PASSWORD_CHANGE: 'password_change',
+    EMAIL_CHANGE: 'email_change',
     FAILED_LOGIN: 'failed_login',
     ACCOUNT_LOCKED: 'account_locked',
     EMAIL_VERIFICATION: 'email_verification',
