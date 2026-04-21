@@ -631,6 +631,168 @@ Create the following:
 
 ---
 
+## Phase 5.5 — Authenticated Profile Changes (Password, Email, Username)
+
+### Prompt for Agent
+
+```
+You are implementing profile-level account changes for [APP_NAME].
+These routes are for AUTHENTICATED users modifying their own account
+from inside the app (profile settings), NOT the public auth system.
+
+Stack: Next.js App Router, Prisma. The auth library from Phase 1 is at
+src/lib/auth.ts and src/lib/api-middleware.ts. Use requireAuth() on
+every route — unauthenticated requests must be rejected.
+
+SECURITY PRINCIPLE: Every destructive account change requires the user
+to prove identity by entering their CURRENT password. A stolen session
+alone should not be enough to take over an account.
+
+Create the following API routes:
+
+1. POST /api/auth/change-password (src/app/api/auth/change-password/route.ts):
+
+   Input: { currentPassword, newPassword, confirmPassword }
+   Requires: authenticated session (requireAuth)
+
+   Validation (Zod):
+   - currentPassword: non-empty string
+   - newPassword: same rules as registration (8+ chars, uppercase, lowercase, number)
+   - confirmPassword: must match newPassword
+   - newPassword !== currentPassword (prevent no-op changes)
+
+   Logic:
+   - requireAuth() — get userId from session
+   - Fetch user with passwordHash
+   - comparePassword(currentPassword, user.passwordHash)
+   - If wrong → 401 INVALID_PASSWORD ("Current password is incorrect")
+   - Hash new password with bcrypt
+   - Update user.passwordHash
+   - Invalidate ALL OTHER sessions for this user (delete from Session table
+     where userId = user.id AND id !== currentSessionId)
+   - Revoke ALL refresh tokens for this user (set revoked = true on
+     OAuthRefreshToken where userId = user.id)
+   - Send password changed notification email to user's email
+     (include: timestamp, IP address, device info from request headers)
+   - Return { success: true, message: "Password updated" }
+
+   The notification email is critical — if the user didn't initiate the
+   change, this email is how they know their account is compromised.
+
+2. POST /api/auth/change-email/request (src/app/api/auth/change-email/request/route.ts):
+
+   Input: { newEmail, currentPassword }
+   Requires: authenticated session
+
+   Validation:
+   - newEmail: valid email, lowercase, trimmed
+   - newEmail !== currentEmail (prevent no-op)
+   - currentPassword: non-empty
+
+   Logic:
+   - requireAuth() — get userId
+   - comparePassword(currentPassword, user.passwordHash)
+   - Check newEmail isn't already taken → 409 EMAIL_EXISTS
+   - Generate emailChangeToken (crypto.randomBytes(32))
+   - Store on user record:
+     - pendingEmail: newEmail
+     - emailChangeToken: hashToken(rawToken)  ← SHA-256
+     - emailChangeTokenExpiry: 30 minutes from now
+   - Send verification email to the NEW address with link:
+     [DOMAIN]/api/auth/change-email/verify?token=[rawToken]
+   - Send notification to the OLD address:
+     "Someone requested to change your email to [newEmail].
+      If this wasn't you, change your password immediately."
+   - Return { success: true, message: "Verification email sent to new address" }
+
+   WHY TWO EMAILS:
+   - Email to NEW address: proves ownership of the new address
+   - Email to OLD address: alerts the real user if it wasn't them
+
+3. GET /api/auth/change-email/verify (src/app/api/auth/change-email/verify/route.ts):
+
+   Input: ?token=xxx (query param)
+
+   Logic:
+   - Hash incoming token with hashToken()
+   - Look up user by hashed emailChangeToken
+   - If not found → 400 INVALID_TOKEN
+   - If expired → 400 TOKEN_EXPIRED
+   - Verify pendingEmail is still available (race condition check)
+   - Swap: user.email = user.pendingEmail
+   - Clear: pendingEmail, emailChangeToken, emailChangeTokenExpiry
+   - Send confirmation to NEW email: "Your email has been updated"
+   - Send notification to OLD email: "Your email was changed to [newEmail]"
+   - Invalidate all sessions (force re-login with new email)
+   - Redirect to /login?message=email-updated (or deep link for iOS)
+
+   EMAIL TO OLD ADDRESS IS NON-NEGOTIABLE — it's the only way the
+   legitimate user can detect an unauthorized email change.
+
+4. POST /api/auth/change-email/cancel (src/app/api/auth/change-email/cancel/route.ts):
+
+   Input: none (just auth)
+   Requires: authenticated session
+
+   Logic:
+   - Clear pendingEmail, emailChangeToken, emailChangeTokenExpiry
+   - Return { success: true }
+
+5. POST /api/auth/change-username (src/app/api/auth/change-username/route.ts):
+
+   Input: { newUsername }
+   Requires: authenticated session
+
+   Validation:
+   - 3-50 chars, [a-zA-Z0-9_-] only, forced lowercase, trimmed
+   - newUsername !== currentUsername
+
+   Logic:
+   - requireAuth()
+   - Check username availability → 409 USERNAME_TAKEN
+   - Update user.username
+   - Return { success: true, user: { username: newUsername } }
+
+   Note: Username changes do NOT require current password because
+   usernames are not a security credential. They also don't require
+   email verification or session invalidation.
+
+6. PRISMA SCHEMA — Add these fields to the User model (if not present):
+
+   pendingEmail         String?
+   emailChangeToken     String?    // SHA-256 hash
+   emailChangeTokenExpiry DateTime?
+
+7. EMAIL TEMPLATES — Create notification emails:
+
+   - sendPasswordChangedEmail(email, username, ipAddress, timestamp)
+     "Your password was changed on [date] from [IP].
+      If this wasn't you, reset your password immediately."
+
+   - sendEmailChangeRequestEmail(newEmail, username, verifyUrl)
+     "Click to verify your new email address for [APP_NAME]."
+
+   - sendEmailChangeNotificationEmail(oldEmail, username, newEmail)
+     "Someone requested to change your email to [newEmail].
+      If this wasn't you, change your password immediately."
+
+   - sendEmailChangedConfirmationEmail(newEmail, username)
+     "Your email has been updated successfully."
+
+8. iOS INTEGRATION:
+
+   These routes are called from the ProfileView / Settings screen
+   in the iOS app using standard authenticated API calls (Bearer token).
+   They do NOT use ASWebAuthenticationSession — the user is already
+   logged in and making changes from within the app.
+
+   The only exception is change-email/verify — the user taps a link
+   in their email, which opens in Safari (not in the app). After
+   verification, redirect to the app via deep link if platform=ios.
+```
+
+---
+
 ## Phase 6 — Apple App Site Association & Universal Links
 
 ### Prompt for Agent
