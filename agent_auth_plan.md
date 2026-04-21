@@ -36,7 +36,7 @@ IOS_MIN_TARGET: "17.0"
 │  AuthService (PKCE)              │                 (login, register,
 │  KeychainService (token store)   │                  forgot-password)
 │  DeepLinkManager (URL routing)   │
-│                                  │◄─── closes ───── fotolokashen://
+│                                  │◄─── closes ───── [URL_SCHEME]://
 │                                  │                  (auto-close panel)
 └──────────────────────────────────┘
           │ API calls
@@ -46,11 +46,16 @@ IOS_MIN_TARGET: "17.0"
 │                                  │
 │  POST /api/auth/register         │  Cookie sessions (web)
 │  POST /api/auth/login            │  OAuth tokens (iOS)
+│  POST /api/auth/logout           │
+│  GET  /api/auth/me               │
 │  POST /api/auth/oauth/token      │
 │  POST /api/auth/auto-login       │
 │  GET  /api/auth/verify-email     │
 │  POST /api/auth/forgot-password  │
 │  POST /api/auth/reset-password   │
+│  POST /api/auth/change-password  │
+│  POST /api/auth/change-email/*   │
+│  POST /api/auth/delete-account   │
 │                                  │
 │  Prisma → PostgreSQL             │
 └──────────────────────────────────┘
@@ -150,6 +155,18 @@ Create the following:
    Add indexes on: User.email, User.username, User.verificationToken, User.resetToken,
    User.autoLoginToken, Session.token, OAuthAuthorizationCode.code, OAuthRefreshToken.token
 
+   SecurityEvent:
+   - id (String, cuid)
+   - userId (Int, FK → User)
+   - eventType (String) — login, failed_login, logout, password_change,
+     password_reset_request, password_reset_success, email_change,
+     email_verification, session_created, session_revoked
+   - ipAddress (String, optional)
+   - userAgent (String, optional)
+   - success (Boolean, default true)
+   - metadata (Json, optional) — arbitrary key-value data
+   - createdAt (DateTime)
+
 2. AUTH LIBRARY — Create src/lib/auth.ts:
 
    - hashPassword(password) — bcrypt with 10 salt rounds
@@ -173,15 +190,22 @@ Create the following:
    - apiError(message, status, code) — consistent error response
    - setAuthCookie(response, token, rememberMe)
 
-4. RATE LIMITING — Create src/lib/rate-limit.ts:
+4. SECURITY LOGGING — Create src/lib/security.ts:
+
+   - logSecurityEvent({ userId, eventType, request, success, metadata })
+     Extracts IP and user-agent from request headers automatically.
+   - getClientIP(request) — use LAST entry in x-forwarded-for
+   - SecurityEventType enum with all event types listed above
+
+5. RATE LIMITING — Create src/lib/rate-limit.ts:
 
    - In-memory rate limiter with configurable presets
    - Presets: LOGIN (10/15min), STRICT (5/15min), LENIENT (100/15min)
    - getIpAddress(request) — use LAST entry in x-forwarded-for (proxy-appended)
    - addRateLimitHeaders(headers, result) — X-RateLimit-* headers
 
-5. Seed the OAuthClient table with: { id: "[OAUTH_CLIENT_ID]", name: "[APP_NAME] iOS",
-   redirectUris: ["[URL_SCHEME]://oauth-callback"] }
+6. Seed the OAuthClient table with: { id: "[OAUTH_CLIENT_ID]", name: "[APP_NAME] iOS",
+   redirectUris: ["[URL_SCHEME]://oauth-callback", "https://[DOMAIN]/app/auth-callback"] }
 
 Run: npx prisma migrate dev --name auth-system
 ```
@@ -349,6 +373,53 @@ Create the following:
    - Clear resetToken fields
    - Invalidate all existing sessions for this user
    - Return { success: true }
+
+6. GET /api/auth/me (src/app/api/auth/me/route.ts):
+
+   Requires: authenticated session (cookie or Bearer token)
+   Returns the current user's profile data.
+   
+   Logic:
+   - requireAuth() — get userId from JWT
+   - Fetch user (exclude passwordHash, tokens)
+   - Return { user: { id, email, username, firstName, lastName, role, ... } }
+   
+   Used by:
+   - iOS app on launch (checkAuthStatus → refreshToken → fetchMe)
+   - Web app for profile page / header display
+
+7. POST /api/auth/logout (src/app/api/auth/logout/route.ts):
+
+   Requires: authenticated session
+   
+   Logic:
+   - requireAuth() — get session from JWT
+   - Delete the current session from Session table
+   - Clear auth_token cookie
+   - Log security event (SecurityEventType.LOGOUT)
+   - Return { success: true }
+
+8. POST /api/auth/delete-account (src/app/api/auth/delete-account/route.ts):
+
+   REQUIRED: Apple App Store Review Guideline 5.1.1(v) mandates account deletion.
+   
+   Input: { currentPassword, confirmation: "DELETE" }
+   Requires: authenticated session
+   
+   Logic:
+   - requireAuth() — get userId
+   - comparePassword(currentPassword, user.passwordHash)
+   - Require confirmation string === "DELETE" (prevent accidental deletion)
+   - Soft-delete: set user.deletedAt = new Date()
+   - Invalidate all sessions
+   - Revoke all refresh tokens
+   - Clear all PII (firstName, lastName) — GDPR compliance
+   - Send account deletion confirmation email
+   - Return { success: true }
+   
+   Note: Use soft-delete (set deletedAt) rather than hard-delete so you
+   can recover from accidental deletions within a grace period (e.g. 30 days).
+   After the grace period, a scheduled job should hard-delete the data.
 ```
 
 ---
@@ -920,6 +991,7 @@ WEB FLOWS:
 □ Login with unverified email → "verify your email" + resend option
 □ Forgot password → receive email → reset → login with new password
 □ Session expiry → redirected to login
+□ Logout → cookie cleared → redirected to login
 
 iOS FLOWS:
 □ Create Account → panel opens → fill form → submit
@@ -940,6 +1012,24 @@ iOS FLOWS:
 □ Token refresh → expired access token → auto-refresh → still authenticated
 □ Session invalidation → 401 from API → auto-logout
 
+PROFILE CHANGES:
+□ Change password → enter current + new → success
+  → all other sessions invalidated
+  → notification email received
+□ Change password with wrong current password → error
+□ Change email → enter new + current password
+  → verification email to NEW address + alert to OLD address
+  → verify → email swapped → forced re-login
+□ Change email → cancel pending change → old email stays
+□ Change username → enter new → success
+□ Change username to taken name → error
+
+ACCOUNT DELETION:
+□ Delete account → enter password + "DELETE" → success
+  → soft-deleted, sessions cleared, logged out
+□ Delete account with wrong password → error
+□ Deleted user cannot log in
+
 SECURITY:
 □ Tokens stored as SHA-256 hashes in DB (not plaintext)
 □ Rate limiting active on login, register, forgot-password
@@ -947,7 +1037,10 @@ SECURITY:
 □ Auto-login token expires after 5 minutes
 □ PKCE code_verifier is validated on token exchange
 □ Password reset invalidates all existing sessions
+□ Email change notifications sent to BOTH old and new addresses
+□ Security events logged for all sensitive operations
 □ No PII in production console.log statements
+□ Soft-deleted users cannot authenticate
 ```
 
 ---
@@ -964,3 +1057,9 @@ SECURITY:
 | `prefersEphemeralWebBrowserSession = true` breaks "Remember Me" | Set to `false` to share cookies with Safari |
 | `WKWebView` for auth will be rejected by Apple | Always use `ASWebAuthenticationSession` |
 | In-memory rate limiting resets on serverless cold starts | Use Redis/Upstash for production; in-memory is dev-only |
+| `redirect_uri` mismatch in token exchange | `exchangeCodeForTokens()` must send the SAME `redirect_uri` as `startLogin()` — both must use Universal Link on 17.4+ or custom scheme on 17.0 |
+| Refresh token not rotated | Always issue a NEW refresh token on refresh and revoke the old one — prevents stolen token reuse |
+| Email change only notifies new address | MUST notify BOTH old and new addresses — old address alert is the only way to detect unauthorized changes |
+| No account deletion | Apple requires it (Guideline 5.1.1(v)) — submission will be rejected without it |
+| Security events not logged | Use `logSecurityEvent()` on every auth operation — you'll need these for incident response and compliance |
+
