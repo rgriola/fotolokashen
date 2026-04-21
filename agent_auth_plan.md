@@ -58,7 +58,9 @@ IOS_MIN_TARGET: "17.0"
 
 ### The One Rule for iOS Auth UX
 
-> **Every auth flow opened in a Safari panel MUST end with a redirect to your custom URL scheme.** The panel never requires the user to manually close it. Web pages drive themselves to a `yourapp://` redirect which auto-closes the panel and returns control to native code.
+> **Every auth flow opened in a Safari panel MUST end with a redirect to your custom URL scheme.** 
+The panel never requires the user to manually close it. 
+Web pages drive themselves to a `yourapp://` redirect which auto-closes the panel and returns control to native code.
 
 ### Deep Link Registry
 
@@ -629,7 +631,7 @@ Create the following:
 
 ---
 
-## Phase 6 — Apple App Site Association & Universal Links (Optional)
+## Phase 6 — Apple App Site Association & Universal Links 
 
 ### Prompt for Agent
 

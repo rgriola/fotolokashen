@@ -8,7 +8,13 @@ async function main() {
     // Create iOS app OAuth client
     const iosClient = await prisma.oAuthClient.upsert({
         where: { clientId: 'fotolokashen-ios' },
-        update: {},
+        update: {
+            redirectUris: [
+                'fotolokashen://oauth-callback',
+                'fotolokashen://auth', // Alternative scheme
+                'https://fotolokashen.com/app/auth-callback', // Universal Link (iOS 17.4+)
+            ],
+        },
         create: {
             clientId: 'fotolokashen-ios',
             clientSecret: null, // Public client (mobile app) - no secret
@@ -16,6 +22,7 @@ async function main() {
             redirectUris: [
                 'fotolokashen://oauth-callback',
                 'fotolokashen://auth', // Alternative scheme
+                'https://fotolokashen.com/app/auth-callback', // Universal Link (iOS 17.4+)
             ],
             scopes: ['read', 'write'],
             grantTypes: ['authorization_code', 'refresh_token'],
