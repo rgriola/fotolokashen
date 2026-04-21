@@ -2,9 +2,9 @@
 
 > **Purpose:** Reference architecture for a cross-platform auth system connecting a Next.js web app to an iOS app, accounting for Apple's mandatory `ASWebAuthenticationSession` (Safari panel) requirement.
 >
-> **Status:** Design target. See the gap analysis at the bottom for what Fotolokashen still needs to reach this state.
+> **Status:** ✅ Fully implemented. All flows working across web and iOS.
 >
-> **Last reviewed against codebase:** April 19, 2026
+> **Last reviewed against codebase:** April 20, 2026
 
 ---
 
@@ -20,18 +20,33 @@ Apple's App Store Review Guideline 4.8 **mandates** `ASWebAuthenticationSession`
 
 **Critical implementation detail:**
 ```swift
-// AuthService.swift line 222-224
-let session = ASWebAuthenticationSession(
-    url: url,
-    callbackURLScheme: "fotolokashen"  // ← ALL fotolokashen:// URLs close the panel
-)
+// AuthService.swift — version-dependent callback
+if #available(iOS 17.4, *) {
+    // Login: Universal Link callback (domain-verified, cannot be hijacked)
+    session = ASWebAuthenticationSession(
+        url: url,
+        callback: .https(host: "fotolokashen.com", path: "/app/auth-callback"),
+        completionHandler: completionHandler
+    )
+    // Non-login flows: custom scheme callback
+    session = ASWebAuthenticationSession(
+        url: url,
+        callback: .customScheme("fotolokashen"),
+        completionHandler: completionHandler
+    )
+} else {
+    // iOS 17.0-17.3: custom scheme only
+    session = ASWebAuthenticationSession(
+        url: url,
+        callbackURLScheme: "fotolokashen",
+        completionHandler: completionHandler
+    )
+}
 ```
-The `callbackURLScheme` is set to `"fotolokashen"`, which means **any** URL starting with `fotolokashen://` will:
-1. Close the Safari panel
-2. Deliver the URL to the session's completion handler
-3. The completion handler currently calls `handleCallback(url:)` which **only looks for `?code=xxx`**
 
-This means new redirect schemes (`fotolokashen://await-verification`, `fotolokashen://auth-redirect`, etc.) will automatically close the panel — which is the desired behavior — but `handleCallback` must be updated to route these URLs differently instead of always expecting an OAuth `code`.
+For **login** (OAuth), the callback is `https://fotolokashen.com/app/auth-callback?code=xxx` on iOS 17.4+ (Universal Link) or `fotolokashen://oauth-callback?code=xxx` on older versions. For **non-login flows** (registration, forgot-password), `fotolokashen://await-verification` etc. always use the custom scheme.
+
+`handleCallback(url:)` routes by URL host and handles both HTTPS and custom scheme URLs.
 
 ---
 
@@ -65,10 +80,13 @@ Standard OAuth 2.0 PKCE. This flow is already correct.
 ```
 App
   → generates code_verifier + code_challenge (PKCEGenerator.generate())
+  → selects redirect_uri based on iOS version:
+      iOS 17.4+: https://fotolokashen.com/app/auth-callback  (Universal Link)
+      iOS 17.0:  fotolokashen://oauth-callback                (custom scheme)
   → opens ASWebAuthenticationSession:
       fotolokashen.com/login?
         client_id=xxx
-        &redirect_uri=fotolokashen://oauth-callback
+        &redirect_uri=<selected_uri>
         &code_challenge=xxx
         &code_challenge_method=S256
         &scope=read+write
@@ -77,13 +95,15 @@ App
 User logs in on web page
   → server validates credentials
   → server issues authorization code
-  → server redirects: fotolokashen://oauth-callback?code=xxx
+  → server redirects to the redirect_uri with ?code=xxx
 
-ASWebAuthenticationSession intercepts fotolokashen://
+ASWebAuthenticationSession intercepts the callback
+  (via .https() on 17.4+ or callbackURLScheme on 17.0)
   → panel auto-closes
   → completion handler fires with callbackURL
 
 AuthService.handleCallback(url:)
+  → detects scheme (https → normalize to "oauth-callback", custom → use host)
   → parses ?code= from URL
   → POST /api/auth/oauth/token { code, code_verifier, client_id, redirect_uri }
   → receives access_token + refresh_token
@@ -150,7 +170,7 @@ verify-email page detects: platform=ios + autoLoginToken in response
   → button href: fotolokashen://email-verified?token=<rawAutoLoginToken>
 ```
 
-> **Current behavior note:** The verify-email page does NOT auto-redirect for first-time verifications on iOS. It shows a manual "Continue to fotolokashen" button. Auto-redirect only fires for the `alreadyVerified` edge case. For the ideal flow, we should add a timed auto-redirect (2-3 seconds) for the `platform=ios + success` case, matching the `alreadyVerified` behavior.
+> **Implementation note:** The verify-email page auto-redirects after 2 seconds for `platform=ios + success`, with a fallback "Continue to fotolokashen" button. This works for both first-time and already-verified cases.
 
 ### Stage 3 — No Panel (App Handles via DeepLinkManager)
 
@@ -176,16 +196,7 @@ AuthService.autoLoginWithToken(token)
 
 ---
 
-## Flow 3 — Email Already Exists
-
-### Current behavior (broken)
-1. `POST /api/auth/register` returns `409 { error: "Email already registered", code: "EMAIL_EXISTS" }`
-2. `RegisterForm.tsx` line 129: `toast.error(result.error)` — toast renders in web page
-3. `ASWebAuthenticationSession` panel has no Sonner `<Toaster>` mounted — toast may show as an HTML-only element but with poor UX
-4. Panel stays open with only a small inline error — user has no clear path to login
-5. User must manually close the panel
-
-### Ideal behavior
+## Flow 3 — Email Already Exists ✅
 
 ```
 User submits registration form with existing email
@@ -199,10 +210,10 @@ ASWebAuthenticationSession intercepts fotolokashen://
   → panel auto-closes
   → completion handler fires with auth-redirect URL
 
-AuthService routes the URL
+AuthService.handleCallback(url:) routes by host
   → reads: action=login, reason=account_exists
   → sets errorMessage = "You already have an account. Please log in."
-  → or shows native alert with [Log In] / [Cancel] buttons
+  → LoginView shows native alert with [Log In] / [Cancel] buttons
   → [Log In] → triggers startLogin() (new panel opens for login)
 ```
 
@@ -244,7 +255,7 @@ For iOS users (if we can detect): redirects to fotolokashen://password-reset-com
 Otherwise: "Go to Login" button
 ```
 
-> **Challenge:** By stage 2 the user is in regular Safari (not the auth panel). We can't easily detect iOS context here unless the reset email link includes `&platform=ios`. Currently the forgot-password API does **not** pass platform to the reset email template — only the register API does. This would require an additional change to `sendPasswordResetEmail()`.
+> **Resolved:** The forgot-password API now passes `platform` from the request body to `sendPasswordResetEmail()`, which appends `&platform=ios` to the reset link. The `ResetPasswordForm` detects `?platform=ios` and redirects to `fotolokashen://password-reset-complete` on success.
 
 ### Stage 3 — App Receives Completion
 
@@ -370,6 +381,125 @@ Every auth page that may be opened inside `ASWebAuthenticationSession` must:
 | Mobile layout optimized for < 640px | Panel is narrow; hide header/logo |
 | No app JS state dependencies | Panel is sandboxed |
 | **Never show a "you're done" state** in the panel | The app owns post-action UI |
+---
+
+## Flow 5 — Token Refresh
+
+```
+iOS app detects: access_token expired or about to expire (< 5 min)
+  → KeychainService.needsRefresh() returns true
+
+AuthService.refreshToken()
+  → POST /api/auth/oauth/token {
+        grant_type: "refresh_token",
+        refresh_token: <current_refresh_token>,
+        client_id: "fotolokashen-ios"
+      }
+  ← { access_token, refresh_token, expires_in, token_type }
+  → Old refresh token is revoked server-side (rotation)
+  → New tokens saved to Keychain
+  → Transparent to the user — no re-login needed
+
+If refresh fails (revoked, expired, 401):
+  → Clear Keychain
+  → isAuthenticated = false → LoginView appears
+```
+
+> **Token rotation:** Every refresh issues a NEW refresh token and revokes the old one. This means a stolen refresh token can only be used once — the legitimate user's next refresh will fail (old token revoked), alerting them to compromise.
+
+---
+
+## Flow 6 — Logout
+
+```
+User taps Logout in profile/settings
+  → AuthService.logout()
+  → POST /api/auth/oauth/revoke {
+        token: <refresh_token>,
+        client_id: "fotolokashen-ios"
+      }
+  → Server: marks refresh token as revoked
+  → KeychainService.clearTokens() — removes access + refresh from Keychain
+  → isAuthenticated = false, currentUser = nil
+  → LoginView appears
+```
+
+---
+
+## Flow 7 — Authenticated Profile Changes
+
+These flows happen **inside the app** (not in a Safari panel). The user is already authenticated and making changes from their profile/settings screen.
+
+### Change Password
+
+```
+User enters current password + new password
+  → POST /api/auth/change-password {
+        currentPassword, newPassword, confirmPassword
+      }
+  → Server: verifies current password (bcrypt compare)
+  → Server: hashes new password, updates user
+  → Server: invalidates ALL OTHER sessions (keeps current)
+  → Server: revokes ALL refresh tokens
+  → Server: sends notification email to user
+    ("Your password was changed on [date] from [IP]")
+  → iOS app: on success, user stays logged in on current device
+    (all other devices are kicked out)
+```
+
+### Change Email (Two-Step)
+
+```
+Step 1 — Request:
+  User enters new email + current password
+  → POST /api/auth/change-email/request { newEmail, currentPassword }
+  → Server: verifies current password
+  → Server: checks new email availability
+  → Server: generates verification token, stores SHA-256 hash
+  → Server: sends verification email to NEW address
+  → Server: sends alert to OLD address
+    ("Someone requested to change your email to [newEmail]")
+
+Step 2 — Verify:
+  User clicks link in email sent to NEW address
+  → POST /api/auth/change-email/verify { token }
+  → Server: validates token
+  → Server: swaps email (old → new)
+  → Server: sends confirmation to NEW email
+  → Server: sends notification to OLD email
+  → Server: invalidates ALL sessions (force re-login)
+  → iOS app: next API call returns 401 → auto-logout → user logs in with new email
+```
+
+### Change Username
+
+```
+  → POST /api/auth/change-username { newUsername }
+  → Server: checks availability → 409 USERNAME_TAKEN if taken
+  → Server: updates username
+  → No password required (not a security credential)
+  → No session invalidation
+```
+
+---
+
+## Security Audit Log
+
+All security-sensitive operations are logged to the `SecurityEvent` table with:
+- `userId`, `eventType`, `ipAddress`, `userAgent`, `success`, `metadata`, `timestamp`
+
+| Event Type | When Logged |
+|---|---|
+| `login` | Successful login |
+| `failed_login` | Wrong password |
+| `logout` | User logout |
+| `password_change` | Password changed from profile |
+| `password_reset_request` | Forgot password submitted |
+| `password_reset_success` | Password reset completed |
+| `email_change` | Email change requested, verified, or cancelled |
+| `email_verification` | Email verified |
+| `session_created` | New session/token issued |
+| `session_revoked` | Session or refresh token revoked |
 
 ---
 
