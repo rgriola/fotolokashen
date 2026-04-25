@@ -63,6 +63,7 @@
     "react-dom": "19.2.1",
     "react-hook-form": "^7.68.0",
     "react-joyride": "^2.9.3",
+    "react-style-singleton": "^2.2.3",
     "resend": "^6.6.0",
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",
@@ -71,10 +72,7 @@
     "zod": "^4.2.1"
   },
   "overrides": {
-    "@radix-ui/react-primitive": "$@radix-ui/react-primitive",
-    "@radix-ui/react-slot": "$@radix-ui/react-slot",
-    "@radix-ui/react-context": "$@radix-ui/react-context",
-    "@radix-ui/react-compose-refs": "$@radix-ui/react-compose-refs"
+    "@radix-ui/react-slot": "$@radix-ui/react-slot"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
