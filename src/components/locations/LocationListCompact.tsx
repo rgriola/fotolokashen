@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { IMAGEKIT_URL_ENDPOINT, getOptimizedAvatarUrl } from "@/lib/imagekit";
+import { getPhotoUrl, getOptimizedAvatarUrl } from "@/lib/imagekit";
 import { useState } from "react";
 import { toast } from "sonner";
 import { TOAST } from "@/lib/constants/messages";
@@ -86,7 +86,7 @@ export function LocationListCompact({
 
                 // Get photo URL
                 const photoUrl = location.photos && location.photos.length > 0
-                    ? `${IMAGEKIT_URL_ENDPOINT}${location.photos[0].imagekitFilePath}`
+                    ? getPhotoUrl(location.photos[0].imagekitFilePath, 'thumbnail')
                     : location.photoUrls && location.photoUrls.length > 0
                         ? location.photoUrls[0]
                         : null;

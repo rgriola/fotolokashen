@@ -55,6 +55,33 @@ export function getImageKitUrl(filePath: string, transformations?: string): stri
 }
 
 /**
+ * Predefined photo size variants for consistent image optimization.
+ * Every variant includes fo-auto (WebP for modern browsers) and quality settings.
+ */
+export type PhotoVariant = 'thumbnail' | 'card' | 'gallery' | 'full' | 'og';
+
+const PHOTO_TRANSFORMS: Record<PhotoVariant, string> = {
+    thumbnail: 'w-200,h-200,c-at_max,fo-auto,q-80',   // Thumbnail strips, list items
+    card:      'w-400,h-300,c-at_max,fo-auto,q-80',   // Location cards, grid cells
+    gallery:   'w-1200,h-800,c-at_max,fo-auto,q-85',  // Main gallery display
+    full:      'w-1600,fo-auto,q-90',                  // Lightbox / full screen
+    og:        'w-1200,h-630,c-at_max,fo-auto,q-80',  // Open Graph / social share
+};
+
+/**
+ * Get an optimized photo URL with predefined size variant.
+ * This is the preferred way to load photos — ensures consistent sizing,
+ * WebP auto-format, and quality optimization across all components.
+ *
+ * @param filePath - ImageKit file path (e.g., /production/locations/123/photo.jpg)
+ * @param variant - Size preset: 'thumbnail' | 'card' | 'gallery' | 'full' | 'og'
+ * @returns Full ImageKit URL with transforms applied
+ */
+export function getPhotoUrl(filePath: string, variant: PhotoVariant = 'gallery'): string {
+    return getImageKitUrl(filePath, PHOTO_TRANSFORMS[variant]);
+}
+
+/**
  * Optimize avatar URL with ImageKit transformations
  * This is CLIENT-SAFE - just URL manipulation
  * @param url - Full ImageKit URL

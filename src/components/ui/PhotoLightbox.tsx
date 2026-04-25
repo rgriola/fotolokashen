@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
+import { getPhotoUrl } from "@/lib/imagekit";
 
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 
@@ -49,14 +49,12 @@ export function PhotoLightbox({ photos, locationName, open, onOpenChange, initia
     }
     const currentPhoto = photos[currentIndex];
 
-    // Helper function to get full image URL
+    // Build optimized URL — use 'full' variant for lightbox (highest quality, still WebP-optimized)
     const getImageUrl = (imagekitFilePath: string): string => {
-        // If already a full URL (starts with http/https), return as-is
         if (imagekitFilePath.startsWith('http://') || imagekitFilePath.startsWith('https://')) {
             return imagekitFilePath;
         }
-        // Otherwise, prepend ImageKit endpoint
-        return `${IMAGEKIT_URL_ENDPOINT}${imagekitFilePath}`;
+        return getPhotoUrl(imagekitFilePath, 'full');
     };
 
     const imageUrl = getImageUrl(currentPhoto.imagekitFilePath);

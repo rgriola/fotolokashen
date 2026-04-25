@@ -16,7 +16,7 @@ import {
 import type { Location } from "@/types/location";
 import { useState, memo } from "react";
 import { useRouter } from "next/navigation";
-import { IMAGEKIT_URL_ENDPOINT, getOptimizedAvatarUrl } from "@/lib/imagekit";
+import { getPhotoUrl, getOptimizedAvatarUrl } from "@/lib/imagekit";
 import { TYPE_COLOR_MAP } from "@/lib/location-constants";
 
 // Get Google Maps API key for static images
@@ -82,7 +82,7 @@ export const LocationCard = memo(function LocationCard({
     const photoUrls: string[] = [];
     if (location.photos && location.photos.length > 0) {
         for (const p of location.photos) {
-            if (p.imagekitFilePath) photoUrls.push(`${IMAGEKIT_URL_ENDPOINT}${p.imagekitFilePath}`);
+            if (p.imagekitFilePath) photoUrls.push(getPhotoUrl(p.imagekitFilePath, 'card'));
         }
     }
     if (location.photoUrls && location.photoUrls.length > 0) {

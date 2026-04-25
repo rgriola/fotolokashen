@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
-import { getImageKitUrl } from '@/lib/imagekit';
+import { getPhotoUrl } from '@/lib/imagekit';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -151,7 +151,7 @@ export default async function UserLocationsPage({ params }: UserLocationsPagePro
                     {save.location.photos[0] ? (
                       <div className="relative w-full h-48 bg-muted">
                         <Image
-                          src={getImageKitUrl(save.location.photos[0].imagekitFilePath, 'w-400,h-300,c-at_max')}
+                          src={getPhotoUrl(save.location.photos[0].imagekitFilePath, 'card')}
                           alt={save.location.name}
                           fill
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"

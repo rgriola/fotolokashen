@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Star, Info, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
+import { getPhotoUrl } from "@/lib/imagekit";
 import { PhotoLightbox } from "@/components/ui/PhotoLightbox";
 import Image from "next/image";
 import type { Photo } from "@/types/location";
@@ -32,7 +32,7 @@ export function PhotoGallery({ photos, locationName, className }: PhotoGalleryPr
     }
 
     const currentPhoto = photos[currentIndex];
-    const photoUrl = `${IMAGEKIT_URL_ENDPOINT}${currentPhoto.imagekitFilePath}`;
+    const photoUrl = getPhotoUrl(currentPhoto.imagekitFilePath, 'gallery');
 
     const goToPrevious = () => {
         setCurrentIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
@@ -220,13 +220,13 @@ export function PhotoGallery({ photos, locationName, className }: PhotoGalleryPr
                                 )}
                             >
                                 <Image
-                                    src={`${IMAGEKIT_URL_ENDPOINT}${photo.imagekitFilePath}`}
+                                    src={getPhotoUrl(photo.imagekitFilePath, 'thumbnail')}
                                     alt={photo.caption || photo.originalFilename || "Photo"}
                                     className="w-full h-full object-cover"
-                                    width={1200}
-                                    height={675}
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    priority
+                                    width={200}
+                                    height={200}
+                                    sizes="80px"
+                                    loading="lazy"
                                     draggable={false}
                                 />
 

@@ -6,12 +6,17 @@ You are assisting with the **fotolokashen** project, this platform allows profes
 
 - **Framework**: Next.js 16.1.6 (App Router), React 19.2.1, TypeScript 5
 - **Database**: PostgreSQL (Neon Cloud) with Prisma 6.19.1 ORM
-- **Styling**: Tailwind CSS v4, shadcn/ui components
-- **APIs**: Google Maps JavaScript API, ImageKit CDN, Resend (email), OpenAI (AI features)
-- **State**: TanStack Query (React Query)
-- **Auth**: Custom JWT-based authentication
-- **Image Processing**: Sharp (server-side HEIC/TIFF conversion)
-- **Security**: ClamAV (virus scanning), DOMPurify (XSS protection)
+- **Styling**: Tailwind CSS v4, shadcn/ui components (Radix UI primitives)
+- **APIs**: Google Maps JavaScript API (`@react-google-maps/api`), ImageKit CDN, Resend + Nodemailer (email), OpenAI (AI features)
+- **State**: TanStack Query v5 (React Query) + React Query Devtools
+- **Forms**: React Hook Form + Zod 4 resolvers
+- **Auth**: Custom JWT-based authentication (bcryptjs, jsonwebtoken)
+- **Image Processing**: Sharp (server-side HEIC/TIFF → JPEG), heic2any + utif (client-side), exifr (EXIF extraction)
+- **Security**: ClamAV (virus scanning), isomorphic-dompurify (XSS protection), Upstash Redis + `@upstash/ratelimit` (distributed rate limiting)
+- **Email Templates**: Handlebars-based templating with database-stored templates
+- **Notifications**: Sonner (toasts)
+- **Onboarding**: React Joyride (guided tours)
+- **Testing**: Vitest + `@vitejs/plugin-react`
 - **Monitoring**: Vercel Speed Insights
 - **lingo**: when the user or you are refering to iOS this is the /fotolokashen-ios directory. The web app (/fotolokashen) is the source of truth and backbone for all features. The iOS app selectively integrates features from the web app, but all core functionality is built and tested on the web first.
 
@@ -69,9 +74,7 @@ You are assisting with the **fotolokashen** project, this platform allows profes
 
 #### Color — Semantic Tokens Only
 
-- Only use #hex colors for styles. 
-
-
+- Only use #hex colors for styles.
 
 **Never use hardcoded Tailwind color classes** (gray, slate, red, green, amber, yellow, blue, purple, indigo, etc.). Always use the semantic token system:
 
@@ -138,43 +141,92 @@ If a page feels "loud", check whether accent colors exceed ~10% of visible surfa
 ```
 src/
 ├── app/
-│   ├── api/              # API routes
-│   │   ├── auth/         # Authentication endpoints
-│   │   ├── locations/    # Location management
-│   │   ├── photos/       # Photo uploads
-│   │   ├── users/        # User management
-│   │   ├── onboarding/   # Tour completion tracking
-│   │   └── admin/        # Admin tools
-│   ├── map/              # Main map interface
-│   ├── locations/        # Locations grid/list page
-│   ├── search/           # People search page
-│   ├── profile/          # User profile settings
-│   ├── create-with-photo/ # Photo-first location creation
-│   ├── support/          # Public support form
-│   ├── member-support/   # Authenticated support form
-│   ├── admin/            # Admin dashboard
-│   ├── [username]/       # Public user profiles
-│   └── (auth routes)     # login, register, verify-email
+│   ├── api/                   # API routes
+│   │   ├── auth/              # Authentication endpoints
+│   │   ├── locations/         # Location management (web)
+│   │   ├── photos/            # Photo uploads (secure pipeline)
+│   │   ├── onboarding/        # Tour completion tracking
+│   │   ├── ai/                # OpenAI-powered endpoints
+│   │   ├── imagekit/          # ImageKit auth/signature endpoints
+│   │   ├── admin/             # Admin tools
+│   │   ├── member-support/    # Authenticated support submissions
+│   │   ├── support/           # Public support submissions
+│   │   ├── debug/             # Dev/debug endpoints
+│   │   └── v1/                # Mobile API (iOS) — see MOBILE_API_SCHEMAS.md
+│   ├── map/                   # Main map interface
+│   ├── locations/             # Locations grid/list page
+│   ├── search/                # People search page
+│   ├── profile/               # User profile settings
+│   ├── projects/              # Projects feature
+│   ├── create-with-photo/     # Photo-first location creation
+│   ├── shared/                # Public/shared location pages
+│   ├── preview/               # Email/template preview
+│   ├── ai-demo/               # AI feature demos
+│   ├── support/               # Public support form
+│   ├── member-support/        # Authenticated support form
+│   ├── admin/                 # Admin dashboard
+│   ├── [username]/            # Public user profiles + /locations/[id]
+│   ├── verify-email/          # Email verification
+│   ├── verify-email-change/   # Email change confirmation
+│   ├── cancel-email-change/   # Cancel pending email change
+│   ├── privacy-policy/        # Public privacy policy
+│   └── (auth routes)          # login, register, forgot-password, reset-password, logout
 ├── components/
-│   ├── auth/             # Auth components & route guards
-│   ├── maps/             # Google Maps integration
-│   ├── locations/        # Location UI components
-│   ├── panels/           # SaveLocationPanel, EditLocationPanel, LocationDetailPanel
-│   ├── onboarding/       # Tour providers (Map, Locations, People)
-│   ├── admin/            # Admin components
-│   └── ui/               # shadcn/ui components
+│   ├── auth/                  # Auth components & route guards (ProtectedRoute)
+│   ├── maps/                  # Google Maps integration (markers, clustering)
+│   ├── map/                   # Map page UI shell
+│   ├── locations/             # Location UI components (cards, grids, lists)
+│   ├── panels/                # SaveLocationPanel, EditLocationPanel, LocationDetailPanel
+│   ├── photos/                # Photo grid, upload UI, lightbox
+│   ├── profile/               # Profile editing UI
+│   ├── social/                # Follow buttons, follower lists, social UI
+│   ├── search/                # People search UI
+│   ├── dialogs/               # Reusable dialogs/modals
+│   ├── landing/               # Landing/marketing page sections
+│   ├── layout/                # App shell, navigation, headers
+│   ├── onboarding/            # Tour providers (Map, Locations, People) + Terms modal
+│   ├── admin/                 # Admin components
+│   └── ui/                    # shadcn/ui components
 ├── lib/
-│   ├── auth.ts           # JWT generation/verification
-│   ├── api-middleware.ts # requireAuth middleware
-│   ├── sanitize.ts       # Input sanitization
-│   ├── virus-scan.ts     # ClamAV file scanning
-│   ├── prisma.ts         # Database client
-│   └── email.ts          # Email sending
-├── hooks/                # Custom React hooks
-└── types/                # TypeScript type definitions
+│   ├── auth.ts                # JWT generation/verification
+│   ├── auth-context.tsx       # Client auth context provider
+│   ├── api-middleware.ts      # requireAuth middleware
+│   ├── api-routes.ts          # Centralized API route paths
+│   ├── sanitize.ts            # Input sanitization (DOMPurify)
+│   ├── security.ts            # Security helpers / SecurityLog wrappers
+│   ├── virus-scan.ts          # ClamAV file scanning
+│   ├── rate-limit.ts          # Upstash Redis rate limiter (in-memory fallback)
+│   ├── permissions.ts         # Privacy / visibility checks
+│   ├── prisma.ts              # Database client
+│   ├── email.ts               # Resend + Nodemailer transport
+│   ├── email-templates.ts     # Static template registry
+│   ├── email-template-service.ts # DB-backed Handlebars templates
+│   ├── email-preview-utils.ts # Template preview helpers
+│   ├── imagekit.ts            # ImageKit SDK wrapper / URL helpers
+│   ├── image-converter.ts     # Browser HEIC/TIFF → JPEG
+│   ├── photo-utils.ts         # Photo helpers
+│   ├── upload-validation.ts   # File-type / size validation
+│   ├── geocoding-utils.ts     # Reverse geocoding helpers
+│   ├── address-utils.ts       # Address formatting
+│   ├── maps-utils.ts          # Google Maps helpers
+│   ├── location-constants.ts  # Location type registry / colors
+│   ├── form-constants.ts      # Form option lists
+│   ├── validation-config.ts   # Shared Zod schemas / limits
+│   ├── search-utils.ts        # Search helpers
+│   ├── username-utils.ts      # Username validation/normalization
+│   ├── browser-utils.ts       # Client-only helpers
+│   ├── env.ts                 # Typed env access
+│   ├── react-query.ts         # QueryClient factory
+│   ├── GoogleMapsProvider.tsx # Shared <LoadScript> provider
+│   ├── constants/             # Centralized constants (upload, etc.)
+│   ├── onboarding/            # Tour step definitions
+│   ├── utils/                 # Misc utilities
+│   └── __tests__/             # Vitest unit tests
+├── hooks/                     # Custom React hooks (TanStack Query)
+└── types/                     # TypeScript type definitions
 
 prisma/
-└── schema.prisma         # Database schema
+└── schema.prisma              # Database schema
 ```
 
 ## Common Patterns
@@ -415,8 +467,10 @@ if (needsConversion(file)) {
 - `usePhotoCacheManager` - Manage photos before upload
 - `useLocations` - Fetch user's saved locations (TanStack Query)
 - `usePublicLocations` - Fetch locations for public profile
+- `useFriendsLocations` - Fetch friends' visible locations for the map
 - `useSaveLocation` - Save/unsave location mutations
 - `useUpdateLocation` - Update location details
+- `useUpdateCaption` - Quick caption-only update mutation
 - `useDeleteLocation` - Delete location with confirmation
 - `useGpsLocation` - Get browser geolocation
 - `useReverseGeocode` - Convert coordinates to address
@@ -548,25 +602,36 @@ npm run db:studio    # Open Prisma Studio (database GUI)
 
 ## Rate Limiting Pattern
 
-```typescript
-// Check rate limit (example: password reset)
-const recentRequests = await prisma.securityLog.count({
-  where: {
-    userId: user.id,
-    action: "PASSWORD_RESET_REQUEST",
-    createdAt: {
-      gte: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes
-    },
-  },
-});
+Use the centralized `rateLimit()` helper from `@/lib/rate-limit`. It uses Upstash Redis in production (survives serverless cold starts, multi-instance safe) and falls back to an in-memory Map locally — no Redis required for dev.
 
-if (recentRequests >= 2) {
-  return Response.json(
-    { error: "Rate limit exceeded. Please try again later." },
-    { status: 429 },
-  );
+```typescript
+import { rateLimit, addRateLimitHeaders } from "@/lib/rate-limit";
+
+export async function POST(request: Request) {
+  const result = await rateLimit(request, {
+    keyPrefix: "password-reset",
+    limit: 3,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+  });
+
+  if (!result.allowed) {
+    const retrySeconds = Math.ceil(result.retryAfter / 1000);
+    return Response.json(
+      { error: `Too many attempts. Try again in ${retrySeconds}s.` },
+      { status: 429 },
+    );
+  }
+
+  // ... handle request, then optionally attach rate-limit headers
+  // return addRateLimitHeaders(Response.json({ ok: true }), result);
 }
 ```
+
+**Guidelines:**
+
+- Always pass a unique `keyPrefix` per endpoint (e.g., `"login"`, `"register"`, `"password-reset"`, `"photo-upload"`).
+- Limits are keyed by IP (extracted from `x-forwarded-for` / `x-real-ip` / `cf-connecting-ip`).
+- For audit trails, also write to `SecurityLog` — but do NOT use `prisma.securityLog.count()` as the rate-limit mechanism.
 
 ## OpenGraph & Rich Link Previews
 

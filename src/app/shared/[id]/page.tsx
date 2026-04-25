@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import SharedLocationClient from './SharedLocationClient';
+import { getPhotoUrl } from '@/lib/imagekit';
 
 interface SharedLocationPageProps {
   params: Promise<{ id: string }>;
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: SharedLocationPageProps): Pro
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fotolokashen.com';
   const photo = location.photos[0];
   const imageUrl = photo
-    ? `https://ik.imagekit.io/rgriola${photo.imagekitFilePath}?tr=w-1200,h-630,fo-auto`
+    ? getPhotoUrl(photo.imagekitFilePath, 'og')
     : `${appUrl}/images/og-default.png`;
 
   return {
@@ -88,7 +89,7 @@ export default async function SharedLocationPage({ params }: SharedLocationPageP
     type: location.type,
     photos: location.photos.map((p) => ({
       id: p.id,
-      url: `https://ik.imagekit.io/rgriola${p.imagekitFilePath}`,
+      url: getPhotoUrl(p.imagekitFilePath, 'gallery'),
       isPrimary: p.isPrimary,
     })),
   };
