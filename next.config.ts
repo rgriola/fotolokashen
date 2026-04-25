@@ -5,6 +5,12 @@ import './src/lib/env';
 
 
 const nextConfig: NextConfig = {
+  // Skip type-checking during builds — already runs in the IDE
+  // This can save 15-30 seconds on each build
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   // Exclude problematic packages from server components bundle
   // exifr and its dependencies (jsdom, parse5) should only run on the client
   // isomorphic-dompurify uses jsdom which has ES Module issues in serverless

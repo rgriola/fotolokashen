@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import SearchBar from '@/components/search/SearchBar';
 import UserSearchCard from '@/components/search/UserSearchCard';
@@ -65,7 +65,7 @@ interface SearchResponse {
   };
 }
 
-export default function SearchPage() {
+function SearchPageInner() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get('q') || '';
@@ -502,5 +502,13 @@ export default function SearchPage() {
       </div>
     </div>
     </PeopleOnboardingProvider>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={null}>
+      <SearchPageInner />
+    </Suspense>
   );
 }

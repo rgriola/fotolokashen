@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { Suspense } from 'react';
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
 
 export default function ForgotPasswordPage() {
@@ -36,7 +37,9 @@ export default function ForgotPasswordPage() {
                             priority
                         />
                     </div>
-                    <ForgotPasswordForm />
+                    <Suspense fallback={null}>
+                        <ForgotPasswordForm />
+                    </Suspense>
                 </div>
             </div>
         </div>

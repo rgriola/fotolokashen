@@ -70,6 +70,12 @@
     "utif": "^3.1.0",
     "zod": "^4.2.1"
   },
+  "overrides": {
+    "@radix-ui/react-primitive": "$@radix-ui/react-primitive",
+    "@radix-ui/react-slot": "$@radix-ui/react-slot",
+    "@radix-ui/react-context": "$@radix-ui/react-context",
+    "@radix-ui/react-compose-refs": "$@radix-ui/react-compose-refs"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",

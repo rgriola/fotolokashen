@@ -3,7 +3,7 @@
  * Converts HEIC and TIFF files to JPEG while preserving metadata
  */
 
-import heic2any from 'heic2any';
+// heic2any is imported dynamically to avoid 'window is not defined' during SSR
 import UTIF from 'utif';
 
 /**
@@ -108,6 +108,7 @@ async function convertHeicToJpeg(file: File): Promise<Blob> {
         
         // Fallback to heic2any library (Chrome/Firefox)
         try {
+            const { default: heic2any } = await import('heic2any');
             const result = await heic2any({
                 blob: file,
                 toType: 'image/jpeg',

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
@@ -544,7 +544,9 @@ export default function LocationsPage() {
                 locationsOnboardingCompleted={locationsOnboardingCompleted}
                 onTourComplete={handleTourComplete}
             >
-                <LocationsPageInner />
+                <Suspense fallback={null}>
+                    <LocationsPageInner />
+                </Suspense>
             </LocationsOnboardingProvider>
         </ProtectedRoute>
     );
