@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import { apiResponse, apiError, requireAuth, parseBoundsFilter } from '@/lib/api-middleware';
+import { apiResponse, apiError, requireAuth, withAuth, parseBoundsFilter } from '@/lib/api-middleware';
 import { VALIDATION_CONFIG } from '@/lib/validation-config';
 import { sanitizeUserInput, sanitizeArray } from '@/lib/sanitize';
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
+import type { PublicUser } from '@/types/user';
 
 /**
  * GET /api/locations
@@ -13,117 +14,107 @@ import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-lim
  * - order: 'asc' | 'desc' (default: 'desc')
  * - type: filter by location type
  * - bounds: 'lat1,lng1,lat2,lng2' for viewport filtering
+ * - limit: page size (default: 50, max: 100)
+ * - cursor: userSave.id for cursor-based pagination
  */
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest, user: PublicUser) => {
+    const searchParams = request.nextUrl.searchParams;
+
+    // Parse query parameters
+    const sort = searchParams.get('sort') || 'createdAt';
+    const order = searchParams.get('order') || 'desc';
+    const type = searchParams.get('type');
+
+    // Build where clause
+    const where: any = {
+        userId: user.id,
+    };
+
+    // Add type filter if provided
+    if (type) {
+        where.location = { type };
+    }
+
+    // Add bounds filter for viewport loading
     try {
-        const authResult = await requireAuth(request);
-
-        if (!authResult.authorized || !authResult.user) {
-            return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
+        const boundsFilter = parseBoundsFilter(searchParams);
+        if (boundsFilter) {
+            where.location = {
+                ...where.location,
+                ...boundsFilter,
+            };
         }
+    } catch (e) {
+        return apiError(e as string, 400, 'INVALID_BOUNDS');
+    }
 
-        const user = authResult.user;
-        const searchParams = request.nextUrl.searchParams;
+    // Build orderBy clause
+    let orderBy: any = {};
+    if (sort === 'name' || sort === 'rating') {
+        orderBy = { location: { [sort]: order } };
+    } else {
+        orderBy = { savedAt: order };
+    }
 
-        // Parse query parameters
-        const sort = searchParams.get('sort') || 'createdAt';
-        const order = searchParams.get('order') || 'desc';
-        const type = searchParams.get('type');
+    // Pagination: cursor-based, default 50, max 100
+    const limitParam = parseInt(searchParams.get('limit') || '50', 10);
+    const limit = Math.min(Math.max(1, isNaN(limitParam) ? 50 : limitParam), 100);
+    const cursor = searchParams.get('cursor'); // userSave.id (string)
+    const cursorId = cursor ? parseInt(cursor, 10) : undefined;
 
-        // Build where clause
-        const where: any = {
-            userId: user.id,
-        };
-
-        // Add type filter if provided
-        if (type) {
-            where.location = { type };
-        }
-
-        // Add bounds filter for viewport loading
-        try {
-            const boundsFilter = parseBoundsFilter(searchParams);
-            if (boundsFilter) {
-                where.location = {
-                    ...where.location,
-                    ...boundsFilter,
-                };
-            }
-        } catch (e) {
-            return apiError(e as string, 400, 'INVALID_BOUNDS');
-        }
-
-        // Build orderBy clause
-        let orderBy: any = {};
-        if (sort === 'name' || sort === 'rating') {
-            orderBy = { location: { [sort]: order } };
-        } else {
-            orderBy = { savedAt: order };
-        }
-
-        // Pagination: cursor-based, default 50, max 100
-        const limitParam = parseInt(searchParams.get('limit') || '50', 10);
-        const limit = Math.min(Math.max(1, isNaN(limitParam) ? 50 : limitParam), 100);
-        const cursor = searchParams.get('cursor'); // userSave.id (string)
-        const cursorId = cursor ? parseInt(cursor, 10) : undefined;
-
-        // Fetch user's saved locations
-        const userSaves = await prisma.userSave.findMany({
-            where,
-            include: {
-                location: {
-                    include: {
-                        creator: {
-                            select: {
-                                id: true,
-                                username: true,
-                                firstName: true,
-                                lastName: true,
-                            },
+    // Fetch user's saved locations
+    const userSaves = await prisma.userSave.findMany({
+        where,
+        include: {
+            location: {
+                include: {
+                    creator: {
+                        select: {
+                            id: true,
+                            username: true,
+                            firstName: true,
+                            lastName: true,
                         },
                     },
                 },
             },
-            orderBy,
-            take: limit + 1, // Fetch one extra to determine if there's a next page
-            ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
-        });
+        },
+        orderBy,
+        take: limit + 1, // Fetch one extra to determine if there's a next page
+        ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+    });
 
-        // Determine if there's a next page
-        const hasNextPage = userSaves.length > limit;
-        const page = hasNextPage ? userSaves.slice(0, limit) : userSaves;
-        const nextCursor = hasNextPage ? String(page[page.length - 1].id) : null;
+    // Determine if there's a next page
+    const hasNextPage = userSaves.length > limit;
+    const page = hasNextPage ? userSaves.slice(0, limit) : userSaves;
+    const nextCursor = hasNextPage ? String(page[page.length - 1].id) : null;
 
-        // Fetch photos for each location (now uses locationId for user-specific photos)
-        const locationsWithPhotos = await Promise.all(
-            page.map(async (userSave) => {
-                const photos = await prisma.photo.findMany({
-                    where: { locationId: userSave.location.id },
-                    orderBy: [{ isPrimary: 'desc' }, { uploadedAt: 'asc' }],
-                });
-                return {
-                    ...userSave,
-                    location: {
-                        ...userSave.location,
-                        photos,
-                    },
-                };
-            })
-        );
+    // Fetch photos for each location (now uses locationId for user-specific photos)
+    const locationsWithPhotos = await Promise.all(
+        page.map(async (userSave) => {
+            const photos = await prisma.photo.findMany({
+                where: { locationId: userSave.location.id },
+                orderBy: [{ isPrimary: 'desc' }, { uploadedAt: 'asc' }],
+            });
+            return {
+                ...userSave,
+                location: {
+                    ...userSave.location,
+                    photos,
+                },
+            };
+        })
+    );
 
-        return apiResponse({
-            locations: locationsWithPhotos,
-            pagination: {
-                limit,
-                nextCursor,
-                hasNextPage,
-            },
-        });
-    } catch (error: any) {
-        console.error('Error fetching locations:', error);
-        return apiError('Failed to fetch locations', 500, 'FETCH_ERROR');
-    }
-}
+    return apiResponse({
+        locations: locationsWithPhotos,
+        pagination: {
+            limit,
+            nextCursor,
+            hasNextPage,
+        },
+    });
+});
 
 /**
  * POST /api/locations
