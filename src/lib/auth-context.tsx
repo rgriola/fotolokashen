@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { TOAST } from "@/lib/constants/messages";
 import type { PublicUser, AuthResponse } from "@/types/user";
@@ -51,7 +50,6 @@ async function logoutUser(): Promise<void> {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const router = useRouter();
     const queryClient = useQueryClient();
 
     // Fetch current user
@@ -77,7 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             queryClient.setQueryData(["currentUser"], null);
             queryClient.clear(); // Clear all cached data on logout
             toast.success(TOAST.AUTH.LOGOUT_SUCCESS);
-            router.push("/logout");
+            // Hard redirect — router.push() does a soft navigation that can race
+            // with React Query refetches and won't trigger edge middleware.
+            window.location.href = "/logout";
         },
         onError: () => {
             toast.error(TOAST.AUTH.LOGOUT_FAILED);

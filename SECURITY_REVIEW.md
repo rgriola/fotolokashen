@@ -3,6 +3,9 @@
 **Scope:** Web API (Next.js/Prisma) + iOS Client (SwiftUI)  
 **Reviewer:** Antigravity  
 
+# Completed Apr 25, 2026. All issues fixed or accepted.
+All 16 tasks from the original SECURITY_REVIEW and comprehensive review are now complete across both repos.
+
 ---
 
 ## Executive Summary
