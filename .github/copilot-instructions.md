@@ -69,6 +69,10 @@ You are assisting with the **fotolokashen** project, this platform allows profes
 
 #### Color — Semantic Tokens Only
 
+- Only use #hex colors for styles. 
+
+
+
 **Never use hardcoded Tailwind color classes** (gray, slate, red, green, amber, yellow, blue, purple, indigo, etc.). Always use the semantic token system:
 
 | Intent                 | Token              | Example classes                   |

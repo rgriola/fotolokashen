@@ -46,7 +46,7 @@ export default function Home() {
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl text-white">
               Coordinate with Purpose{" "}
             </h1>
-            <p className="mb-8 text-lg sm:text-xl text-muted-foreground text-center">
+            <p className="mb-8 text-lg sm:text-xl text-secondary text-center">
               Use Fotolokashen with Google Maps to organize your Photos, Locations, Projects, and Teams.</p>
             {/* Buttons — client component for auth state */}
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center items-center">

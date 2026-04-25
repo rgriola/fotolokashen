@@ -228,7 +228,8 @@ Continue Security Review and implimentations
 - Change iOS login to GPS location if permitted or home if not. 
 - Finish Profile redesign. 
 - Finish Create Location Basic Set ups 
-     
+  iOS Create Location (Camera > Photos the Create Location does not move the photo to the upload queue)
+  
 - Create Unit Tests for APIs and IOS
 
 
