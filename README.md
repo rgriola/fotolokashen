@@ -316,18 +316,6 @@ The application is deployed to Vercel at [fotolokashen.com](https://fotolokashen
 - Push to `main` branch triggers automatic deployment
 - Environment variables configured in Vercel dashboard
 
-### Manual Deployment
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy to production
-vercel --prod
-
-# Preview deployment
-npx vercel
-```
 
 ## 🔗 Useful Links
 

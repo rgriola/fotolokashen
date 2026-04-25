@@ -88,17 +88,17 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net https://va.vercel-scripts.com https://vercel.live https://tweakcn.com", // Added Vercel Live + Tweakcn
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com https://cdn.jsdelivr.net https://va.vercel-scripts.com https://vercel.live https://tweakcn.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https://ik.imagekit.io https://maps.googleapis.com https://maps.gstatic.com https://*.tile.openstreetmap.org",
-              "connect-src 'self' https://maps.googleapis.com https://upload.imagekit.io https://ik.imagekit.io https://cdn.jsdelivr.net https://va.vercel-scripts.com https://vitals.vercel-insights.com https://vercel.live https://tweakcn.com", // Added Vercel Live + Tweakcn
+              "connect-src 'self' https://maps.googleapis.com https://upload.imagekit.io https://ik.imagekit.io https://cdn.jsdelivr.net https://va.vercel-scripts.com https://vitals.vercel-insights.com https://vercel.live https://tweakcn.com",
               "worker-src 'self' blob:",
-              "frame-src 'self' https://tweakcn.com", // Allowed Tweakcn frame
+              "frame-src 'self' https://vercel.live https://tweakcn.com",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
-              "frame-ancestors 'self' https://tweakcn.com", // Allowed Tweakcn to frame us
+              "frame-ancestors 'self' https://vercel.live https://tweakcn.com",
               "upgrade-insecure-requests",
             ].join('; '),
           },
