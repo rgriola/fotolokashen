@@ -2,6 +2,7 @@
 
 import { GoogleMap as GoogleMapComponent } from '@react-google-maps/api';
 import { ReactNode, useCallback, useState } from 'react';
+import { useGoogleMaps } from '@/lib/GoogleMapsProvider';
 
 const containerStyle = {
     width: '100%',
@@ -32,6 +33,7 @@ export function GoogleMap({
     className = '',
     children,
 }: GoogleMapProps) {
+    const { isLoaded, loadError } = useGoogleMaps();
     const [map, setMap] = useState<google.maps.Map | null>(null);
 
     const handleLoad = useCallback(
@@ -88,6 +90,22 @@ export function GoogleMap({
         ],
     };
 
+
+    if (loadError) {
+        return (
+            <div className={`relative ${className} flex items-center justify-center bg-muted`}>
+                <p className="text-destructive text-sm">Failed to load Google Maps</p>
+            </div>
+        );
+    }
+
+    if (!isLoaded) {
+        return (
+            <div className={`relative ${className} flex items-center justify-center bg-muted`}>
+                <div className="animate-pulse text-muted-foreground text-sm">Loading map…</div>
+            </div>
+        );
+    }
 
     return (
         <div className={`relative ${className}`}>
