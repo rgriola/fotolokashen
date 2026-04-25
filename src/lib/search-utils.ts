@@ -295,6 +295,7 @@ export async function searchByLocation(
           locationId,
           // Only show users with public or unlisted saves
           // (followers-only and private excluded for privacy)
+          visibility: { in: ['public', 'unlisted'] },
         },
       },
     },

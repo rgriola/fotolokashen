@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     const user = auth.user;
 
     // Rate limiting: 5 requests per hour for authenticated users
-    const rateLimitResult = rateLimit(request, {
+    const rateLimitResult = await rateLimit(request, {
       limit: 5,
       windowMs: 60 * 60 * 1000, // 1 hour
       keyPrefix: 'member-support',

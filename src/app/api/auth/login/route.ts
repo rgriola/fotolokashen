@@ -29,7 +29,7 @@ const loginSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting BEFORE any database queries
-    const rateLimitResult = rateLimit(request, {
+    const rateLimitResult = await rateLimit(request, {
       ...RateLimitPresets.MODERATE,  // 10 requests per 15 minutes
       keyPrefix: 'login',
     });

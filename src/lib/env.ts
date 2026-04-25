@@ -127,8 +127,10 @@ const runtimeEnvSchema = envSchema.extend({
     SLACK_BOT_TOKEN: z.string().optional(),
     SLACK_SIGNING_SECRET: z.string().optional(),
 
-    // Optional: Redis (for distributed rate limiting)
-    REDIS_URL: z.string().url().optional(),
+    // Optional: Upstash Redis (for distributed rate limiting in production)
+    // If both are present, the rate limiter uses Redis. Otherwise, falls back to in-memory.
+    UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 
     // Optional: Analytics
     GOOGLE_ANALYTICS_ID: z.string().optional(),

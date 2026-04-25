@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import type { PublicUser } from '@/types/user';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
+const JWT_SECRET = process.env.JWT_SECRET!; // env.ts validates this exists at startup — no fallback
 const JWT_EXPIRY = '7d'; // 7 days
 const JWT_EXPIRY_REMEMBER_ME = '30d'; // 30 days
 const SALT_ROUNDS = 10;

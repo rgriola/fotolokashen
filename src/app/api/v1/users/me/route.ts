@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Rate limit: 100 requests per 15 minutes per IP
-    const rateLimitResult = rateLimit(request, {
+    const rateLimitResult = await rateLimit(request, {
       ...RateLimitPresets.LENIENT,
       keyPrefix: 'users-me-patch',
     });

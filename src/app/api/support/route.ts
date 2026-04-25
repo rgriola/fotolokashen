@@ -160,7 +160,7 @@ ${sanitizeInput(message)}
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting: 3 requests per hour per IP
-    const rateLimitResult = rateLimit(request, {
+    const rateLimitResult = await rateLimit(request, {
       limit: 3,
       windowMs: 60 * 60 * 1000, // 1 hour
       keyPrefix: 'support',

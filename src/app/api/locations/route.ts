@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         // Rate limit: 100 requests per 15 minutes per IP
-        const rateLimitResult = rateLimit(request, {
+        const rateLimitResult = await rateLimit(request, {
             ...RateLimitPresets.LENIENT,
             keyPrefix: 'locations-post',
         });
@@ -225,47 +225,10 @@ export async function POST(request: NextRequest) {
             return apiError('Location details must be 500 characters or less', 400, 'VALIDATION_ERROR');
         }
 
-        if (process.env.NODE_ENV !== 'production') {
-            console.log('[Save Location] Creating new location record:', { placeId, name, userId: user.id });
-        }
-        const location = await prisma.location.create({
-            data: {
-                placeId,
-                name,
-                address,
-                lat: latitude,
-                lng: longitude,
-                ...(type && { type }),
-                ...(rating !== undefined && rating !== null && { rating }),
-                // Address components
-                ...(street && { street }),
-                ...(number && { number }),
-                ...(city && { city }),
-                ...(state && { state }),
-                ...(zipcode && { zipcode }),
-                // Production details
-                ...(productionDate && { productionDate: new Date(productionDate) }),
-                ...(productionNotes && { productionNotes }),
-                ...(entryPoint && { entryPoint }),
-                ...(parking && { parking }),
-                ...(access && { access }),
-                // Indoor/Outdoor
-                ...(indoorOutdoor && { indoorOutdoor }),
-                // Location details
-                ...(details && { details }),
-                // Metadata
-                ...(isPermanent !== undefined && { isPermanent }),
-                createdBy: user.id,
-            },
-        });
-        if (process.env.NODE_ENV !== 'production') {
-            console.log('[Save Location] New location created with ID:', location.id);
-        }
-
         // Extract UserSave fields from body
         const { tags, isFavorite, personalRating, color } = body;
 
-        // Validate tags if provided
+        // Validate tags if provided (before entering transaction)
         if (tags && Array.isArray(tags)) {
             if (tags.length > 20) {
                 return apiError('Maximum 20 tags allowed', 400, 'VALIDATION_ERROR');
@@ -277,75 +240,123 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Create UserSave with all fields
-        const userSave = await prisma.userSave.create({
-            data: {
-                userId: user.id,
-                locationId: location.id,
-                tags: tags ? sanitizeArray(tags) : undefined, // Prisma will convert array to JSON
-                isFavorite: isFavorite || false,
-                personalRating: personalRating || undefined,
-                color: color || undefined,
-            },
-            include: {
-                location: {
-                    include: {
-                        creator: {
-                            select: {
-                                id: true,
-                                username: true,
-                                firstName: true,
-                                lastName: true,
+        // === TRANSACTION: Create Location + UserSave + Photos atomically ===
+        // If any step fails, the entire operation is rolled back (no orphaned records).
+        const userSave = await prisma.$transaction(async (tx) => {
+            // 1. Create Location
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[Save Location] Creating new location record:', { placeId, name, userId: user.id });
+            }
+            const location = await tx.location.create({
+                data: {
+                    placeId,
+                    name,
+                    address,
+                    lat: latitude,
+                    lng: longitude,
+                    ...(type && { type }),
+                    ...(rating !== undefined && rating !== null && { rating }),
+                    // Address components
+                    ...(street && { street }),
+                    ...(number && { number }),
+                    ...(city && { city }),
+                    ...(state && { state }),
+                    ...(zipcode && { zipcode }),
+                    // Production details
+                    ...(productionDate && { productionDate: new Date(productionDate) }),
+                    ...(productionNotes && { productionNotes }),
+                    ...(entryPoint && { entryPoint }),
+                    ...(parking && { parking }),
+                    ...(access && { access }),
+                    // Indoor/Outdoor
+                    ...(indoorOutdoor && { indoorOutdoor }),
+                    // Location details
+                    ...(details && { details }),
+                    // Metadata
+                    ...(isPermanent !== undefined && { isPermanent }),
+                    createdBy: user.id,
+                },
+            });
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('[Save Location] New location created with ID:', location.id);
+            }
+
+            // 2. Create UserSave
+            const save = await tx.userSave.create({
+                data: {
+                    userId: user.id,
+                    locationId: location.id,
+                    tags: tags ? sanitizeArray(tags) : undefined,
+                    isFavorite: isFavorite || false,
+                    personalRating: personalRating || undefined,
+                    color: color || undefined,
+                },
+                include: {
+                    location: {
+                        include: {
+                            creator: {
+                                select: {
+                                    id: true,
+                                    username: true,
+                                    firstName: true,
+                                    lastName: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        });
-
-        // Handle photos if provided
-        if (body.photos && Array.isArray(body.photos) && body.photos.length > 0) {
-            console.log(`[Save Location] Creating ${body.photos.length} photo(s) for locationId: ${location.id}`);
-
-            await prisma.photo.createMany({
-                data: body.photos.map((photo: any, index: number) => ({
-                    locationId: location.id,  // Link to user's specific location
-                    placeId: location.placeId,
-                    userId: user.id,
-                    imagekitFileId: photo.imagekitFileId || photo.fileId,
-                    imagekitFilePath: photo.imagekitFilePath || photo.filePath,
-                    originalFilename: photo.originalFilename || photo.name,
-                    fileSize: photo.fileSize || photo.size,
-                    mimeType: photo.mimeType || photo.type,
-                    width: photo.width,
-                    height: photo.height,
-                    isPrimary: index === 0, // First photo is primary
-                    caption: photo.caption || null,
-                    // GPS/EXIF metadata (SANITIZED for defense-in-depth)
-                    gpsLatitude: photo.gpsLatitude || null,
-                    gpsLongitude: photo.gpsLongitude || null,
-                    gpsAltitude: photo.gpsAltitude || null,
-                    hasGpsData: photo.hasGpsData || false,
-                    cameraMake: photo.cameraMake ? sanitizeUserInput(photo.cameraMake) : null,
-                    cameraModel: photo.cameraModel ? sanitizeUserInput(photo.cameraModel) : null,
-                    lensMake: photo.lensMake ? sanitizeUserInput(photo.lensMake) : null,
-                    lensModel: photo.lensModel ? sanitizeUserInput(photo.lensModel) : null,
-                    dateTaken: photo.dateTaken ? new Date(photo.dateTaken) : null,
-                    iso: photo.iso || null,
-                    focalLength: photo.focalLength ? sanitizeUserInput(photo.focalLength) : null,
-                    aperture: photo.aperture ? sanitizeUserInput(photo.aperture) : null,
-                    shutterSpeed: photo.shutterSpeed ? sanitizeUserInput(photo.shutterSpeed) : null,
-                    exposureMode: photo.exposureMode ? sanitizeUserInput(photo.exposureMode) : null,
-                    whiteBalance: photo.whiteBalance ? sanitizeUserInput(photo.whiteBalance) : null,
-                    flash: photo.flash ? sanitizeUserInput(photo.flash) : null,
-                    orientation: photo.orientation || null,
-                    colorSpace: photo.colorSpace ? sanitizeUserInput(photo.colorSpace) : null,
-                    uploadSource: photo.uploadSource || 'manual',
-                })),
             });
 
-            console.log(`[Save Location] Photos created successfully`);
-        }
+            // 3. Create Photos (if provided)
+            if (body.photos && Array.isArray(body.photos) && body.photos.length > 0) {
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log(`[Save Location] Creating ${body.photos.length} photo(s) for locationId: ${location.id}`);
+                }
+
+                await tx.photo.createMany({
+                    data: body.photos.map((photo: any, index: number) => ({
+                        locationId: location.id,
+                        placeId: location.placeId,
+                        userId: user.id,
+                        imagekitFileId: photo.imagekitFileId || photo.fileId,
+                        imagekitFilePath: photo.imagekitFilePath || photo.filePath,
+                        originalFilename: photo.originalFilename || photo.name,
+                        fileSize: photo.fileSize || photo.size,
+                        mimeType: photo.mimeType || photo.type,
+                        width: photo.width,
+                        height: photo.height,
+                        isPrimary: index === 0,
+                        caption: photo.caption || null,
+                        // GPS/EXIF metadata (SANITIZED for defense-in-depth)
+                        gpsLatitude: photo.gpsLatitude || null,
+                        gpsLongitude: photo.gpsLongitude || null,
+                        gpsAltitude: photo.gpsAltitude || null,
+                        hasGpsData: photo.hasGpsData || false,
+                        cameraMake: photo.cameraMake ? sanitizeUserInput(photo.cameraMake) : null,
+                        cameraModel: photo.cameraModel ? sanitizeUserInput(photo.cameraModel) : null,
+                        lensMake: photo.lensMake ? sanitizeUserInput(photo.lensMake) : null,
+                        lensModel: photo.lensModel ? sanitizeUserInput(photo.lensModel) : null,
+                        dateTaken: photo.dateTaken ? new Date(photo.dateTaken) : null,
+                        iso: photo.iso || null,
+                        focalLength: photo.focalLength ? sanitizeUserInput(photo.focalLength) : null,
+                        aperture: photo.aperture ? sanitizeUserInput(photo.aperture) : null,
+                        shutterSpeed: photo.shutterSpeed ? sanitizeUserInput(photo.shutterSpeed) : null,
+                        exposureMode: photo.exposureMode ? sanitizeUserInput(photo.exposureMode) : null,
+                        whiteBalance: photo.whiteBalance ? sanitizeUserInput(photo.whiteBalance) : null,
+                        flash: photo.flash ? sanitizeUserInput(photo.flash) : null,
+                        orientation: photo.orientation || null,
+                        colorSpace: photo.colorSpace ? sanitizeUserInput(photo.colorSpace) : null,
+                        uploadSource: photo.uploadSource || 'manual',
+                    })),
+                });
+
+                if (process.env.NODE_ENV !== 'production') {
+                    console.log(`[Save Location] Photos created successfully`);
+                }
+            }
+
+            return save;
+        });
 
         return apiResponse({ userSave }, 201);
     } catch (error: any) {
