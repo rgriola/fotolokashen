@@ -143,9 +143,13 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
 
           console.log('[OAuth] Authorization code received, redirecting to app...');
           
-          // Redirect back to mobile app with authorization code
-          const redirectUrl = `${oauthParams.redirectUri}?code=${oauthResult.authorization_code}`;
-          window.location.href = redirectUrl;
+          // Always redirect through the HTTPS auth-callback page.
+          // Direct window.location.href to a custom URL scheme (fotolokashen://...)
+          // can be blocked by browser security inside ASWebAuthenticationSession.
+          // The /app/auth-callback page handles the custom-scheme redirect for us.
+          const callbackUrl = new URL('/app/auth-callback', window.location.origin);
+          callbackUrl.searchParams.set('code', oauthResult.authorization_code);
+          window.location.href = callbackUrl.toString();
           return;
         } catch (oauthError) {
           console.error('[OAuth] Error during OAuth flow:', oauthError);
