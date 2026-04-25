@@ -61,6 +61,12 @@ export async function GET(request: NextRequest) {
             orderBy = { savedAt: order };
         }
 
+        // Pagination: cursor-based, default 50, max 100
+        const limitParam = parseInt(searchParams.get('limit') || '50', 10);
+        const limit = Math.min(Math.max(1, isNaN(limitParam) ? 50 : limitParam), 100);
+        const cursor = searchParams.get('cursor'); // userSave.id (string)
+        const cursorId = cursor ? parseInt(cursor, 10) : undefined;
+
         // Fetch user's saved locations
         const userSaves = await prisma.userSave.findMany({
             where,
@@ -79,12 +85,18 @@ export async function GET(request: NextRequest) {
                 },
             },
             orderBy,
-            take: 100, // Limit for performance
+            take: limit + 1, // Fetch one extra to determine if there's a next page
+            ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
         });
+
+        // Determine if there's a next page
+        const hasNextPage = userSaves.length > limit;
+        const page = hasNextPage ? userSaves.slice(0, limit) : userSaves;
+        const nextCursor = hasNextPage ? String(page[page.length - 1].id) : null;
 
         // Fetch photos for each location (now uses locationId for user-specific photos)
         const locationsWithPhotos = await Promise.all(
-            userSaves.map(async (userSave) => {
+            page.map(async (userSave) => {
                 const photos = await prisma.photo.findMany({
                     where: { locationId: userSave.location.id },
                     orderBy: [{ isPrimary: 'desc' }, { uploadedAt: 'asc' }],
@@ -99,7 +111,14 @@ export async function GET(request: NextRequest) {
             })
         );
 
-        return apiResponse({ locations: locationsWithPhotos });
+        return apiResponse({
+            locations: locationsWithPhotos,
+            pagination: {
+                limit,
+                nextCursor,
+                hasNextPage,
+            },
+        });
     } catch (error: any) {
         console.error('Error fetching locations:', error);
         return apiError('Failed to fetch locations', 500, 'FETCH_ERROR');

@@ -104,7 +104,9 @@ export default function RootLayout({
           <Toaster position="top-center" />
         </Providers>
         <SpeedInsights />
-        <Script src="https://tweakcn.com/live-preview.min.js" strategy="lazyOnload" />
+        {process.env.NODE_ENV !== 'production' && (
+          <Script src="https://tweakcn.com/live-preview.min.js" strategy="lazyOnload" />
+        )}
       </body>
     </html>
   );

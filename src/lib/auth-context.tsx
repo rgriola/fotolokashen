@@ -75,8 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         mutationFn: logoutUser,
         onSuccess: () => {
             queryClient.setQueryData(["currentUser"], null);
-            queryClient.clear(); // Clear all cached data
-            queryClient.clear(); // Clear all cached data
+            queryClient.clear(); // Clear all cached data on logout
             toast.success(TOAST.AUTH.LOGOUT_SUCCESS);
             router.push("/logout");
         },

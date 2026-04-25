@@ -1,33 +1,8 @@
 import { PublicUser } from './user';
+import { Photo } from './photo';
+export type { Photo } from './photo'; // Single source of truth — see types/photo.ts
 
-export interface Photo {
-    id: number;
-    placeId: string;
-    userId: number;
-    imagekitFileId: string;
-    imagekitFilePath: string;
-    originalFilename: string;
-    fileSize: number | null;
-    mimeType: string | null;
-    width: number | null;
-    height: number | null;
-    isPrimary: boolean;
-    caption: string | null;
-    uploadedAt: Date;
-    
-    // EXIF / GPS data
-    gpsLatitude?: number | null;
-    gpsLongitude?: number | null;
-    gpsAltitude?: number | null;
-    hasGpsData?: boolean;
-    cameraMake?: string | null;
-    cameraModel?: string | null;
-    dateTaken?: Date | null;
-    iso?: number | null;
-    focalLength?: number | null;
-    aperture?: number | null;
-    shutterSpeed?: string | null;
-}
+
 
 export interface Location {
     id: number;

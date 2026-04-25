@@ -1,6 +1,6 @@
 # fotolokashen
 
-**Last Updated**: 2026-04-09
+**Last Updated**: 2026-04-25
 **Production**: [fotolokashen.com](https://fotolokashen.com) ✅ Live  
 **Status**: Active Development - v2.0.0
 
@@ -113,7 +113,7 @@ Create a `.env.local` file in the root directory:
 # Database
 DATABASE_URL="postgresql://..."
 
-# Authentication
+# Authentication — must be at least 32 chars, no fallback in production
 JWT_SECRET="your-secret-key-min-32-chars"
 
 # Google Maps
@@ -125,11 +125,20 @@ IMAGEKIT_PRIVATE_KEY="your-private-key"
 IMAGEKIT_URL_ENDPOINT="https://ik.imagekit.io/your-id"
 
 # Email (Resend)
-RESEND_API_KEY="re_..."
-EMAIL_FROM="noreply@yourdomain.com"
+EMAIL_SERVICE="resend"
+EMAIL_API_KEY="re_..."
+EMAIL_MODE="development"   # Set to "production" in Vercel for real emails
+EMAIL_FROM_NAME="Fotolokashen"
+EMAIL_FROM_ADDRESS="noreply@yourdomain.com"
 
 # App URL
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+
+# Rate Limiting (Upstash Redis — required for production brute-force protection)
+# Create a free database at https://upstash.com and paste credentials here
+# Without these, the rate limiter falls back to in-memory (local dev only)
+UPSTASH_REDIS_REST_URL="https://your-db.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="your-token"
 
 # Optional: ClamAV
 CLAMAV_HOST="localhost"
@@ -257,14 +266,18 @@ fotolokashen/
 
 ## 🔒 Security Features
 
-- **Authentication**: Custom JWT with secure httpOnly cookies
+- **Authentication**: Custom JWT with secure httpOnly cookies — no fallback secret, crashes loudly if `JWT_SECRET` is missing
 - **Password Security**: bcrypt hashing (10 rounds)
+- **Token Security**: Verification, reset, and auto-login tokens stored as SHA-256 hashes (raw token sent by email only)
 - **Email Verification**: Required, 30-minute token expiration
-- **Rate Limiting**: Password reset (2/15min, 3/hour), Login attempts (lockout)
+- **Rate Limiting**: Upstash Redis (distributed, survives serverless cold starts) — strict limits on login/reset, moderate on register, in-memory fallback for local dev
+- **DB Transactions**: Location creation (Location + UserSave + Photos) wrapped in `prisma.$transaction()` — atomic, no orphaned records
+- **Privacy Enforcement**: `searchByLocation()` only surfaces `public` and `unlisted` saves — private saves never exposed
 - **Virus Scanning**: ClamAV integration for all file uploads
-- **XSS Protection**: DOMPurify sanitization
+- **XSS Protection**: DOMPurify + `sanitizeUserInput()` strips HTML tags, control chars, and URLs from all free-text fields
 - **SQL Injection**: Prisma ORM with parameterized queries
-- **Input Validation**: Zod schemas with centralized config
+- **Input Validation**: Zod schemas on auth routes; centralized `VALIDATION_CONFIG` for all field limits
+- **Content Security Policy**: Strict CSP headers configured in `next.config.ts`
 
 ## 🔧 Available Scripts
 
@@ -282,6 +295,9 @@ npm run db:seed      # Seed database with templates
 
 ## 📚 Documentation
 
+- **[TASKS.md](./TASKS.md)** - Open security and architecture tasks (Tier 1 complete, Tier 2 in progress)
+- **[SECURITY_REVIEW.md](./SECURITY_REVIEW.md)** - Full security audit (April 17, 2026)
+- **[fotolokashen_comprehensive_review.md](./fotolokashen_comprehensive_review.md)** - Full architecture audit (April 15, 2026)
 - **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Current status, priorities, and recent updates
 - **[docs/CODEBASE_REVIEW_PLAN.md](./docs/CODEBASE_REVIEW_PLAN.md)** - 6-phase codebase review plan (all phases complete)
 - **[docs/](./docs/)** - Complete documentation archive

@@ -56,13 +56,29 @@ export function generateToken(
 }
 
 /**
+ * Decoded JWT payload shape.
+ * Must stay in sync with the payload object in generateToken().
+ */
+export interface JWTPayload {
+    userId: number;
+    email: string;
+    username: string;
+    isAdmin: boolean;
+    role: string;
+    avatar: string | null;
+    bannerImage: string | null;
+    iat?: number;
+    exp?: number;
+}
+
+/**
  * Verify and decode a JWT token
  * @param token - JWT token string
  * @returns Decoded token payload or null if invalid
  */
-export function verifyToken(token: string): any | null {
+export function verifyToken(token: string): JWTPayload | null {
     try {
-        return jwt.verify(token, JWT_SECRET);
+        return jwt.verify(token, JWT_SECRET) as JWTPayload;
     } catch (error) {
         console.error('Token verification failed:', error);
         return null;
