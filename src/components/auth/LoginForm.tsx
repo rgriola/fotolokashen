@@ -33,6 +33,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [oauthDebug, setOauthDebug] = useState('');
   
   // OAuth parameters from URL
   const [oauthParams, setOauthParams] = useState<{
@@ -116,6 +117,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
 
       // Check if this is an OAuth login (mobile app)
       if (oauthParams.clientId && oauthParams.redirectUri && oauthParams.codeChallenge) {
+        setOauthDebug('1/4: Login OK, requesting auth code...');
         console.log('[OAuth] Mobile app login detected, requesting authorization code...');
         
         // Request authorization code from OAuth endpoint
@@ -136,11 +138,13 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
           const oauthResult = await oauthResponse.json();
 
           if (!oauthResponse.ok) {
+            setOauthDebug(`2/4 FAIL: ${oauthResponse.status} - ${JSON.stringify(oauthResult)}`);
             console.error('[OAuth] Authorization failed:', oauthResult);
             toast.error(TOAST.AUTH.OAUTH_FAILED);
             return;
           }
 
+          setOauthDebug('3/4: Auth code received, redirecting...');
           console.log('[OAuth] Authorization code received, redirecting to app...');
           
           // Always redirect through the HTTPS auth-callback page.
@@ -149,9 +153,11 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
           // The /app/auth-callback page handles the custom-scheme redirect for us.
           const callbackUrl = new URL('/app/auth-callback', window.location.origin);
           callbackUrl.searchParams.set('code', oauthResult.authorization_code);
+          setOauthDebug(`4/4: Navigating to ${callbackUrl.toString()}`);
           window.location.href = callbackUrl.toString();
           return;
         } catch (oauthError) {
+          setOauthDebug(`CATCH: ${oauthError}`);
           console.error('[OAuth] Error during OAuth flow:', oauthError);
           toast.error(TOAST.AUTH.OAUTH_FLOW_FAILED);
           return;
@@ -176,6 +182,11 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
 
   return (
     <Card className="w-full max-w-md mx-auto">
+      {oauthDebug && (
+        <div className="bg-yellow-100 text-yellow-900 text-xs p-2 rounded-t-lg font-mono">
+          [OAuth Debug] {oauthDebug}
+        </div>
+      )}
       <CardHeader className="space-y-0.5 pb-3 sm:space-y-1 sm:pb-4">
         <CardTitle className="text-xl sm:text-2xl font-bold">Welcome Back</CardTitle>
         <CardDescription className="text-xs sm:text-sm">
