@@ -22,6 +22,7 @@ export interface Location {
 
     // Production & access details
     productionNotes: string | null;
+    details: string | null;        // Free-text notes (from iOS CreateLocationView)
     entryPoint: string | null;
     parking: string | null;
     access: string | null;

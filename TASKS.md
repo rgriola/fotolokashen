@@ -16,9 +16,9 @@
 
 ## 🟡 Tier 2 — Should Fix Soon
 
-- [ ] **Add Next.js `middleware.ts`** for server-side auth redirects — `src/middleware.ts` does not exist. Protected pages flash before client-side auth redirect kicks in. *(ref: Comprehensive Review §4)*
+- [x] **Add Next.js `middleware.ts`** for server-side auth redirects — Merged auth logic into `src/proxy.ts` (Turbopack's middleware entrypoint). Reads `auth_token` cookie, lightweight-decodes JWT payload, redirects unauthenticated users to `/login?next=<path>` and logged-in users away from `/login`/`/register`. Auth flash eliminated. *(completed Apr 25, 2026)*
 - [x] **Hash tokens before DB storage** — Already implemented: `verificationToken`, `resetToken`, and `autoLoginToken` all call `hashToken()` before writing to DB. Raw token only in email. *(verified Apr 25, 2026)*
-- [ ] **Add `locationDetails` field to Prisma schema + API** — iOS `CreateLocationView` has a details field that is silently dropped on save. Needs schema migration + route update. *(ref: Security Review 2.3)*
+- [x] **Add `locationDetails` field to Prisma schema + API** — `details` field was already in the schema and POST handler. Added it to PATCH `/api/locations/[id]` and the `Location` TypeScript interface. iOS `CreateLocationView` details now round-trip correctly. *(completed Apr 25, 2026)*
 - [x] **Gate tweakcn.com script with `NODE_ENV`** — `layout.tsx` now wraps the script in `process.env.NODE_ENV !== 'production'`. Never loads for real users. *(completed Apr 25, 2026)*
 - [x] **Add pagination to `GET /api/locations`** — Replaced hardcoded `take:100` with cursor-based pagination (default 50, max 100). Returns `pagination.nextCursor` for clients to page forward. *(completed Apr 25, 2026)*
 - [x] **Consolidate duplicate `Photo` type definitions** — `types/location.ts` now re-exports `Photo` from `types/photo.ts`. Single source of truth, `userId` is correctly `number | null`. *(completed Apr 25, 2026)*

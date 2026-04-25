@@ -132,6 +132,10 @@ export async function PATCH(
                 ...(body.parking !== undefined && { parking: sanitizeUserInput(body.parking) }),
                 ...(body.access !== undefined && { access: sanitizeUserInput(body.access) }),
                 ...(body.indoorOutdoor !== undefined && { indoorOutdoor: body.indoorOutdoor }),
+                // Location details (free-text notes from iOS CreateLocationView)
+                ...(body.details !== undefined && {
+                    details: body.details ? sanitizeUserInput(body.details).slice(0, 500) : null,
+                }),
                 // Metadata
                 ...(body.isPermanent !== undefined && { isPermanent: body.isPermanent }),
                 // Audit trail
