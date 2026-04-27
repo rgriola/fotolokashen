@@ -55,6 +55,8 @@ const PUBLIC_PREFIXES = [
     '/api',
     '/_next',
     '/support',
+    '/help',
+    '/terms',
     '/privacy-policy',
     '/shared',
     '/cancel-email-change',

@@ -237,5 +237,15 @@ Continue Security Review and implimentations
 - Plan an implimentation to Standardize URL transforms so every image request includes size limits + fo-auto,q-80.
 - iOS: plan an implimentation to add Kingfisher for disk caching — SwiftUI's AsyncImage has no cache, so it re-fetches every time.
 
+... Mon Apr 28 2026
+*** Task ***
+- I need help determining the path of this project. I have a hard time describing what its purpose is to some of the first time test users.  I also feel the marketing needs to be better aligned, ie my web and iOS app have different tag lines and I am shifting more to the iOS app in terms of single user features with the web app being more for project management and teams-projects.  Also I want to understand how to impliment agent assisted planning and search and what is possible through the iOS app. For example I just planned a trip to Europe using Claude and it was amazing the amount of help it provided without any infostructure or coding like fotolokashen, the point being why would a user need fotolokashen when they can more easily plan with Claude Gemini or another Agent assistant.  This app retains propritrary company production info, but I feel like I need another avenue to help plan the practical part of productions, connecting institutional knowledge and public data. 
+
+*** Task ***
+- There are some issues in the email system on the web app. It requires template seeding and a few other odd features. The emails are for admins only on the overall app. 
+- Should we improve this now or wait until we move towards teams-projects and AI Assist. 
+
+
+...
 *** Task ***
 - 

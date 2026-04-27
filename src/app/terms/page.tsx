@@ -3,13 +3,13 @@ import path from 'path';
 import { MarkdownPageLayout } from '@/components/markdown/MarkdownPageLayout';
 
 export const metadata = {
-    title: 'Privacy Policy | fotolokashen',
-    description: 'Privacy Policy for fotolokashen — how we collect, use, and protect your data.',
+    title: 'Terms of Service | fotolokashen',
+    description: 'Terms of Service for fotolokashen — professional production location management.',
 };
 
-export default function PrivacyPolicyPage() {
+export default function TermsPage() {
     const content = fs.readFileSync(
-        path.join(process.cwd(), 'content', 'privacy-policy.md'),
+        path.join(process.cwd(), 'content', 'terms-of-service.md'),
         'utf-8'
     );
 

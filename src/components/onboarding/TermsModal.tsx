@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -11,6 +11,7 @@ import {
     DialogDescription,
 } from '@/components/ui/dialog';
 import { useOnboarding } from './OnboardingProvider';
+import { MarkdownContent } from '@/components/markdown/MarkdownContent';
 
 export function TermsModal() {
     const { showTermsModal, setShowTermsModal } = useOnboarding();
@@ -18,7 +19,24 @@ export function TermsModal() {
     const [isChecked, setIsChecked] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [termsContent, setTermsContent] = useState<string>('');
+    const [privacyContent, setPrivacyContent] = useState<string>('');
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+    // Fetch markdown content when modal opens
+    useEffect(() => {
+        if (showTermsModal && !termsContent) {
+            fetch('/api/content/legal')
+                .then(res => res.json())
+                .then(data => {
+                    setTermsContent(data.termsContent || '');
+                    setPrivacyContent(data.privacyContent || '');
+                })
+                .catch(() => {
+                    setError('Failed to load terms. Please try again.');
+                });
+        }
+    }, [showTermsModal, termsContent]);
 
     const handleScroll = () => {
         if (!scrollContainerRef.current) return;
@@ -74,141 +92,19 @@ export function TermsModal() {
                     onScroll={handleScroll}
                     className="flex-1 min-h-0 overflow-y-auto p-6 bg-muted rounded-lg border border-border space-y-6"
                 >
-                    {/* Terms of Service */}
-                    <section>
-                        <h2 className="text-xl font-semibold mb-4">Terms of Service</h2>
-                        <div className="space-y-4 text-sm text-foreground">
-                            <p>
-                                Welcome to Fotolokashen, a professoinal film production managment and location sharing service.  
-                        
-                            </p>
+                    {termsContent ? (
+                        <MarkdownContent content={termsContent} />
+                    ) : (
+                        <p className="text-muted-foreground">Loading terms...</p>
+                    )}
 
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">1. Acceptance of Terms</h3>
-                                <p>
-                                By using this app you must agree to the full terms of service outlined here. 
-                                These terms of service may be reviewed from the home page at any time and may periodically be updated. 
-                                </p>
-                            </div>
+                    <hr className="border-border" />
 
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">2. Age </h3>
-                                <p>
-                                Any person must be at least 18 at the time of regiristy to use this service. There are no exceptions to this. 
-                                 </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">3. Your Member Account</h3>
-                                <p>
-                                    You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. 
-                                    You agree to notify us immediately of any unauthorized access at security@fotolokashen.com. Do not share your account with anyone.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">4. Content</h3>
-                                <p>
-                                    You retain ownership of your uploaded images but you agree and grant fotolokashen license to use, display, and distribute your content as part of the service. 
-                                    By agreeing to these terms you acknowledge ownership or permission to use all images you upload. 
-                                    You are responsible for ensuring you have the right to share any content you upload, when you upload a image and displayed you are attributed. 
-                                </p>
-                            </div>
-
-                             <div>
-                                <h3 className="font-semibold text-foreground mb-2">5.Your Images</h3>
-                                <p>
-                                    Your images are sent to ImageKit a CDN. Your images are compressed to optimize data transfers. 
-                                    This means when you upload an image the orginal quaility is permenently changed.
-                                    Do not use Fotolokashen to store ORIGINAL FILES, you will lose data in this process.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">6. Prohibited Conduct</h3>
-                                <p>
-                                    You may not use fotolokashen to: violate any laws, infringe on others&apos; rights, distribute malware, spam users, pitch products or engage in any harmful activity.
-                                    We do monitor images for inappropriate content, while fairly liberal Fotolokashen admins are the final arbitors for content issues.  
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">7. Termination</h3>
-                                <p>
-                                    We reserve the right to suspend or terminate your account at any time for violations of these terms or for any other reason at our discretion.
-                                </p>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Privacy Policy */}
-                    <section className="pt-6 border-t border-border">
-                        <h2 className="text-xl font-semibold mb-4">Privacy Policy</h2>
-                        <div className="space-y-4 text-sm text-foreground">
-                            <p>
-                                Your privacy is important to us. This policy explains how we collect, use, and protect your personal information.
-                            </p>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">1. Information We Collect</h3>
-                                <p>
-                                    We collect information you provide directly (Your real name, email, birthday, specific locations data), automatically (usage data, device information, GPS location when permitted), and from third parties (OAuth providers like Google and Apple).
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">2. How We Use Your Information</h3>
-                                <p>
-                                    We use your information to provide and improve our services, personalize your experience, communicate with you, ensure security, and comply with legal obligations.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">3. Information Sharing</h3>
-                                <p>
-                                    We do not sell your personal information. We may share data with service providers, when required by law, or with your consent. 
-                                    Your saved locations are only visible according to your privacy settings; by default your locations are all private.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">4. Data Security</h3>
-                                <p>
-                                    We implement industry-standard security measures to protect your data, including encryption, secure authentication, and regular security audits. 
-                                    We do not know your password, it encrypted to protect your data. Do not share this with anyone. We will never ask for your password. 
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">5. Your Account Rights</h3>
-                                <p>
-                                    You have the right to access, modify, or delete your personal information. 
-                                    Under Account Profile You can manage your privacy settings or auto delete your account at any time.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">6. Cookies and Tracking</h3>
-                                <p>
-                                    We use cookies and similar technologies to maintain your session, remember your preferences, and analyze usage patterns. You can manage cookie preferences in your browser settings.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">7. Changes to This Policy</h3>
-                                <p>
-                                    We may update this policy from time to time. We will notify you of significant changes via email or in-app notification.
-                                </p>
-                            </div>
-
-                            <div>
-                                <h3 className="font-semibold text-foreground mb-2">8. Contact Us</h3>
-                                <p>
-                                    If you have questions about these terms or our privacy practices, please contact us at support@fotolokashen.com.
-                                </p>
-                            </div>
-                        </div>
-                    </section>
+                    {privacyContent ? (
+                        <MarkdownContent content={privacyContent} />
+                    ) : (
+                        <p className="text-muted-foreground">Loading privacy policy...</p>
+                    )}
 
                     <div className="h-12" /> {/* Bottom spacer for better scroll experience */}
                 </div>
