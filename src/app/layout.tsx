@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     url: "https://fotolokashen.com",
     siteName: "fotolokashen",
     title: `fotolokashen | ${tagline}`,
-    description: "Your crew's location knowledge, always with you. Capture, annotate, and share production locations — so you never re-learn the same location twice.",
+    description: "Production Location Intelligence. Capture, annotate, and share production locations — never re-learn the same location twice.",
     images: [
       {
         url: "/og-image.png", // Static image in public folder
@@ -61,8 +61,8 @@ export const metadata: Metadata = {
     site: "@fotolokashen", // Your Twitter handle if you have one
     creator: "@fotolokashen",
     title: `fotolokashen | ${tagline}`,
-    description: "The location intelligence platform for production crews. Capture, annotate, and share your crew's location knowledge — searchable from any device.",
-    images: ["/og-image.png"], // Static image in public folder
+    description: "Production Location Intelligence. Capture, annotate, and share production locations — never re-learn the same location twice.",
+    images: ["/og-image.png"],
   },
 
   // Additional metadata
