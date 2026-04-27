@@ -16,8 +16,7 @@ export function Footer() {
                             <span className="font-bold text-lg">fotolokashen</span>
                         </Link>
                         <p className="text-sm text-muted-foreground max-w-md">
-                            Enhance your Google Maps experience. Search, save, and organize
-                            your favorite locations with custom notes and photos.
+                            The location intelligence platform for production crews. Capture, annotate, and share your crew&apos;s firsthand location knowledge &mdash; searchable from any device.
                         </p>
                     </div>
 

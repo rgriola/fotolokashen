@@ -59,13 +59,13 @@ export function BottomCTA() {
       <div className="px-4 md:px-6 lg:px-8 py-16 md:py-24">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-            Ready to Get Started?
+            Ready to Build Your Location Library?
           </h2>
           <p className="mb-8 text-lg text-muted-foreground">
-            Create your free account today and start organizing your favorite locations.
+            Join your crew on fotolokashen. Capture your first location in minutes &mdash; your team&apos;s institutional knowledge starts here.
           </p>
           <Button size="lg" asChild>
-            <Link href="/register">Create Free Account</Link>
+            <Link href="/register">Get Started Free</Link>
           </Button>
         </div>
       </div>

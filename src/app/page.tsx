@@ -44,10 +44,10 @@ export default function Home() {
               />
             </div>
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-6xl text-white">
-              Coordinate with Purpose{" "}
+              Your Crew&apos;s Location Knowledge{" "}
             </h1>
             <p className="mb-8 text-lg sm:text-xl text-secondary text-center">
-              Use Fotolokashen with Google Maps to organize your Photos, Locations, Projects, and Teams.</p>
+              Capture production locations in the field. Share your crew&apos;s firsthand knowledge — GPS, photos, notes, access points — so every team member knows exactly what worked.</p>
             {/* Buttons — client component for auth state */}
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center items-center">
               <HeroCTA />
@@ -65,46 +65,46 @@ export default function Home() {
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
             <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-              Everything You Need
+              Built for Production Crews
             </h2>
             <p className="text-lg text-muted-foreground">
-              Purposeful locations for your crew
+              Turn every shoot into institutional knowledge your whole team can use
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader>
                 <MapPin className="mb-2 h-10 w-10 text-primary" />
-                <CardTitle>Google Maps Integration</CardTitle>
+                <CardTitle>Interactive Map</CardTitle>
                 <CardDescription>
-                  Search and discover locations using Google Maps Places API
+                  See all your crew&apos;s locations at a glance. Discover what&apos;s nearby before you scout.
                 </CardDescription>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader>
                 <Save className="mb-2 h-10 w-10 text-success" />
-                <CardTitle>Save Locations</CardTitle>
+                <CardTitle>Production Notes</CardTitle>
                 <CardDescription>
-                  Save your favorite places with custom captions and notes
+                  Log parking, access points, contacts, lighting conditions, and crew setup details — attached to the exact GPS pin.
                 </CardDescription>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader>
                 <ImageIcon className="mb-2 h-10 w-10 text-social" />
-                <CardTitle>Photo Uploads</CardTitle>
+                <CardTitle>Photo Documentation</CardTitle>
                 <CardDescription>
-                  Add photos to your saved locations using ImageKit
+                  Attach field photos with EXIF metadata preserved. Your team sees exactly what you saw.
                 </CardDescription>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader>
                 <Lock className="mb-2 h-10 w-10 text-orange-600" />
-                <CardTitle>Secure & Private</CardTitle>
+                <CardTitle>Access Controls</CardTitle>
                 <CardDescription>
-                  Your data is protected with industry-standard security
+                  Share locations with your whole crew, specific teammates, or keep them private to your account.
                 </CardDescription>
               </CardHeader>
             </Card>

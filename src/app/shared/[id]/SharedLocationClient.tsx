@@ -164,7 +164,7 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
             View on fotolokashen
           </h2>
           <p className="text-sm text-muted-foreground">
-            Save this location, add photos, and collaborate with your crew.
+            Add production notes, annotate with crew details, and share with your team.
           </p>
 
           <div className="flex flex-col gap-2">
@@ -197,7 +197,7 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground dark:text-muted-foreground py-4">
           <p>Shared via fotolokashen</p>
-          <p className="mt-1">Location Scouting Made Simple</p>
+          <p className="mt-1">Production Location Intelligence</p>
         </div>
       </main>
     </div>
