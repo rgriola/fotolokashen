@@ -234,5 +234,8 @@ Continue Security Review and implimentations
 
 
 *** Task ***
-- Plan an implimentation to  Standardize URL transforms so every image request includes size limits + fo-auto,q-80. This alone will cut bandwidth 60-80%.
+- Plan an implimentation to Standardize URL transforms so every image request includes size limits + fo-auto,q-80.
 - iOS: plan an implimentation to add Kingfisher for disk caching — SwiftUI's AsyncImage has no cache, so it re-fetches every time.
+
+*** Task ***
+- 
