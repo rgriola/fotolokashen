@@ -126,15 +126,14 @@ async function handleAuthorizationCodeGrant(body: any, client: any, request: Nex
                       request.headers.get('user-agent') || 
                       'fotolokashen-ios';
 
-    // Delete existing iOS sessions to prevent duplicates
-    // Also delete any mobile-browser sessions created during OAuth login flow
-    // The web login was only needed for authentication, the iOS session is the real one
+    // Delete existing iOS app sessions to prevent duplicates.
+    // Only target 'ios' deviceType — do NOT delete 'mobile-browser-ios' or
+    // 'mobile-browser-android' sessions, which are real browser sessions on
+    // mobile devices and should coexist with the native iOS app session.
     await prisma.session.deleteMany({
         where: {
             userId: authCode.userId,
-            deviceType: {
-                in: ['ios', 'mobile-browser-ios', 'mobile-browser-android'],
-            },
+            deviceType: 'ios',
         },
     });
 
@@ -257,14 +256,13 @@ async function handleRefreshTokenGrant(body: any, client: any, request: NextRequ
                       request.headers.get('user-agent') || 
                       'fotolokashen-ios';
 
-    // Delete existing mobile sessions to prevent duplicates from refresh
-    // Also clean up any mobile-browser sessions that may have been created
+    // Delete existing iOS app sessions to prevent duplicates from refresh.
+    // Only target 'ios' deviceType — preserve 'mobile-browser-*' sessions
+    // which are legitimate browser sessions on mobile devices.
     await prisma.session.deleteMany({
         where: {
             userId: refreshTokenRecord.userId,
-            deviceType: {
-                in: ['ios', 'mobile-browser-ios', 'mobile-browser-android'],
-            },
+            deviceType: 'ios',
         },
     });
 
