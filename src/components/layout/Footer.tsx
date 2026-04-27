@@ -103,7 +103,7 @@ export function Footer() {
 
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
                     <p className="text-sm text-muted-foreground">
-                        © {currentYear} fotolokashen. All rights reserved.
+                        © {currentYear} Sea Lion Media LLC. All rights reserved.
                     </p>
                     <div className="flex gap-4 text-sm">
                         <Link
