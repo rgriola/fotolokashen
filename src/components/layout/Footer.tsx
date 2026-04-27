@@ -20,9 +20,9 @@ export function Footer() {
                         </p>
                     </div>
 
-                    {/* Quick Links */}
+                    {/* Product */}
                     <div>
-                        <h3 className="font-semibold mb-3">Quick Links</h3>
+                        <h3 className="font-semibold mb-3">Product</h3>
                         <ul className="space-y-2 text-sm">
                             <li>
                                 <Link
@@ -42,7 +42,7 @@ export function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    href="/my-locations"
+                                    href="/locations"
                                     className="text-muted-foreground hover:text-primary transition-colors"
                                 >
                                     My Locations
@@ -50,18 +50,18 @@ export function Footer() {
                             </li>
                             <li>
                                 <Link
-                                    href="/support"
+                                    href="/help"
                                     className="text-muted-foreground hover:text-primary transition-colors"
                                 >
-                                    Support
+                                    Help & FAQ
                                 </Link>
                             </li>
                             <li>
                                 <Link
-                                    href="/privacy-policy"
+                                    href="/support"
                                     className="text-muted-foreground hover:text-primary transition-colors"
                                 >
-                                    Privacy Policy
+                                    Contact Support
                                 </Link>
                             </li>
                         </ul>
@@ -107,7 +107,7 @@ export function Footer() {
                     </p>
                     <div className="flex gap-4 text-sm">
                         <Link
-                            href="/privacy"
+                            href="/privacy-policy"
                             className="text-muted-foreground hover:text-primary transition-colors"
                         >
                             Privacy Policy
@@ -124,3 +124,4 @@ export function Footer() {
         </footer>
     );
 }
+
