@@ -138,6 +138,8 @@ export async function PATCH(
                 }),
                 // Metadata
                 ...(body.isPermanent !== undefined && { isPermanent: body.isPermanent }),
+                // Location group: pass groupId to link, null to unlink
+                ...(body.groupId !== undefined && { groupId: body.groupId }),
                 // Audit trail
                 lastModifiedBy: user.id,
                 lastModifiedAt: new Date(),

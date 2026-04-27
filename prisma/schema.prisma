@@ -97,6 +97,8 @@ model User {
   createdTemplates             EmailTemplate[]          @relation("TemplateCreator")
   updatedTemplates             EmailTemplate[]          @relation("TemplateUpdater")
   createdTemplateVersions      EmailTemplateVersion[]   @relation("VersionCreator")
+  locationGroups               LocationGroup[]
+  customGroupTypes             UserGroupType[]
 
   @@index([city])
   @@index([country])
@@ -158,10 +160,13 @@ model Location {
   photos           Photo[]
   projectLocations ProjectLocation[]
   savedBy          UserSave[]
+  groupId          Int?              @map("group_id")
+  group            LocationGroup?    @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   @@index([createdBy])
   @@index([lastModifiedBy])
   @@index([placeId])
+  @@index([groupId])
   @@map("locations")
 }
 
@@ -583,4 +588,38 @@ model EmailLog {
   @@index([sentAt])
   @@index([status])
   @@map("email_logs")
+}
+
+// ============================================================================
+// LOCATION GROUPS & CUSTOM TYPES
+// ============================================================================
+
+model LocationGroup {
+  id           Int        @id @default(autoincrement())
+  name         String     @db.VarChar(100)
+  description  String?    @db.VarChar(500)
+  type         String?    // preset (EVENT, ROUTE, STORY, COVERAGE) or custom type label
+  startTime    DateTime?
+  endTime      DateTime?
+  coverPhotoId Int?
+  createdBy    Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  creator      User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  locations    Location[]
+
+  @@index([createdBy])
+  @@map("location_groups")
+}
+
+model UserGroupType {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  typeName  String   @db.VarChar(50)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, typeName])
+  @@index([userId])
+  @@map("user_group_types")
 }

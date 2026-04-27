@@ -160,6 +160,8 @@ export async function POST(request: NextRequest) {
             isPermanent,
             // Location details (from iOS Create Location form)
             details,
+            // Location group (optional — links to LocationGroup)
+            groupId,
         } = body;
 
         // Sanitize all text inputs (strips HTML, control chars, URLs)
@@ -250,6 +252,21 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Validate groupId if provided (must belong to this user)
+        if (groupId !== undefined && groupId !== null) {
+            const parsedGroupId = parseInt(groupId, 10);
+            if (isNaN(parsedGroupId)) {
+                return apiError('Invalid groupId', 400, 'VALIDATION_ERROR');
+            }
+            const group = await prisma.locationGroup.findFirst({
+                where: { id: parsedGroupId, createdBy: user.id },
+            });
+            if (!group) {
+                return apiError('Location group not found or does not belong to you', 404, 'NOT_FOUND');
+            }
+            groupId = parsedGroupId;
+        }
+
         // === TRANSACTION: Create Location + UserSave + Photos atomically ===
         // If any step fails, the entire operation is rolled back (no orphaned records).
         const userSave = await prisma.$transaction(async (tx) => {
@@ -285,6 +302,8 @@ export async function POST(request: NextRequest) {
                     // Metadata
                     ...(isPermanent !== undefined && { isPermanent }),
                     createdBy: user.id,
+                    // Link to location group (optional)
+                    ...(groupId && { groupId }),
                 },
             });
             if (process.env.NODE_ENV !== 'production') {
