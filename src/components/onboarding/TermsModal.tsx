@@ -75,7 +75,7 @@ export function TermsModal() {
 
     return (
         <Dialog open={showTermsModal} modal>
-            <DialogContent 
+            <DialogContent
                 className="max-w-4xl max-h-[90dvh] flex flex-col [&>button]:hidden"
                 onPointerDownOutside={(e) => e.preventDefault()}
                 onEscapeKeyDown={(e) => e.preventDefault()}
@@ -134,9 +134,8 @@ export function TermsModal() {
                         />
                         <label
                             htmlFor="terms-checkbox"
-                            className={`text-sm leading-relaxed ${
-                                hasScrolledToBottom ? 'text-foreground' : 'text-muted-foreground'
-                            }`}
+                            className={`text-sm leading-relaxed ${hasScrolledToBottom ? 'text-foreground' : 'text-muted-foreground'
+                                }`}
                         >
                             I have read and accept the Terms of Service and Privacy Policy
                             {!hasScrolledToBottom && (
