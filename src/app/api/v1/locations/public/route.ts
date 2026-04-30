@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth, parseBoundsFilter, USER_SUMMARY_SELECT } from '@/lib/api-middleware';
+import { attachPhotoSizes } from '@/lib/imagekit';
 
 /**
  * GET /api/v1/locations/public
@@ -24,6 +25,13 @@ export async function GET(request: NextRequest) {
         const limit = boundsParam 
             ? Math.min(requestedLimit, 500)  // Map view: max 500
             : Math.min(requestedLimit, 100); // Grid view: max 100
+
+        // Cursor-based pagination: client passes the last UserSave.id from previous page
+        const cursorParam = searchParams.get('cursor');
+        const cursorId = cursorParam ? parseInt(cursorParam, 10) : undefined;
+        if (cursorParam && (cursorId === undefined || isNaN(cursorId))) {
+            return apiError('Invalid cursor', 400, 'INVALID_CURSOR');
+        }
 
         // Build location filter with proper typing
         interface LocationFilter {
@@ -96,14 +104,20 @@ export async function GET(request: NextRequest) {
                     select: USER_SUMMARY_SELECT,
                 },
             },
-            orderBy: {
-                savedAt: 'desc',
-            },
+            // Stable ordering: savedAt desc with id desc tiebreaker for cursor stability
+            orderBy: [
+                { savedAt: 'desc' },
+                { id: 'desc' },
+            ],
+            ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
         });
 
         // Check if there are more results
         const hasMore = publicLocations.length > limit;
         const locationsToReturn = hasMore ? publicLocations.slice(0, limit) : publicLocations;
+        const nextCursor = hasMore && locationsToReturn.length > 0
+            ? String(locationsToReturn[locationsToReturn.length - 1].id)
+            : null;
 
         // Flatten nested location structure to match iOS MapSocialLocation model
         const flatLocations = locationsToReturn.map(save => ({
@@ -118,8 +132,8 @@ export async function GET(request: NextRequest) {
             type: save.location.type ?? null,
             rating: save.personalRating ?? null,
             caption: save.caption ?? null,
-            savedAt: save.savedAt?.toISOString?.() ?? null,
-            photos: save.location.photos,
+            savedAt: save.savedAt ? save.savedAt.toISOString() : null,
+            photos: save.location.photos.map(attachPhotoSizes),
             user: save.user,
         }));
 
@@ -128,6 +142,7 @@ export async function GET(request: NextRequest) {
             total: flatLocations.length,
             limit: limit,
             hasMore: hasMore,
+            nextCursor: nextCursor,
         });
     } catch (error: unknown) {
         console.error('Error fetching public locations:', error);

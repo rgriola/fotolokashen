@@ -82,6 +82,50 @@ export function getPhotoUrl(filePath: string, variant: PhotoVariant = 'gallery')
 }
 
 /**
+ * Bundle of all standard photo size variants for a single ImageKit file.
+ * Returned alongside Photo records in API responses so clients (iOS, web)
+ * can pick the right size without computing transform URLs themselves.
+ */
+export interface PhotoSizes {
+    thumbnail: string;  // 200x200 — grid cells, avatars, marker thumbs
+    card: string;       // 400x300 — list rows, location cards
+    gallery: string;    // 1200x800 — detail view, lightbox
+    full: string;       // 1600w   — high-res download / share
+    og: string;         // 1200x630 — Open Graph / social share
+}
+
+/**
+ * Build all photo size variants for a given ImageKit file path.
+ * Returns null when filePath is empty/missing so callers can omit the
+ * `sizes` field cleanly.
+ */
+export function getPhotoVariants(filePath: string | null | undefined): PhotoSizes | null {
+    if (!filePath) return null;
+    return {
+        thumbnail: getPhotoUrl(filePath, 'thumbnail'),
+        card:      getPhotoUrl(filePath, 'card'),
+        gallery:   getPhotoUrl(filePath, 'gallery'),
+        full:      getPhotoUrl(filePath, 'full'),
+        og:        getPhotoUrl(filePath, 'og'),
+    };
+}
+
+/**
+ * Attach a `sizes` object (PhotoSizes) to a photo-shaped record.
+ * Additive serializer: returns the original photo plus a `sizes` field
+ * derived from `imagekitFilePath`. Existing fields are preserved exactly
+ * so this is safe to drop into any Photo response.
+ */
+export function attachPhotoSizes<T extends { imagekitFilePath?: string | null }>(
+    photo: T,
+): T & { sizes: PhotoSizes | null } {
+    return {
+        ...photo,
+        sizes: getPhotoVariants(photo.imagekitFilePath),
+    };
+}
+
+/**
  * Optimize avatar URL with ImageKit transformations
  * This is CLIENT-SAFE - just URL manipulation
  * @param url - Full ImageKit URL

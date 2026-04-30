@@ -26,6 +26,7 @@
 ## 📍 Location Coordinate Fields
 
 **❌ WRONG**:
+
 ```json
 {
   "latitude": 37.7749,
@@ -34,6 +35,7 @@
 ```
 
 **✅ CORRECT**:
+
 ```json
 {
   "lat": 37.7749,
@@ -43,11 +45,24 @@
 
 **Rationale**: Matches Prisma schema (`Location.lat`, `Location.lng`) and Google Maps API conventions.
 
+### Request Bodies (POST `/api/locations`)
+
+The legacy web `POST /api/locations` endpoint accepts **either** key pair for backward compatibility:
+
+| Sent by client           | Accepted? | Notes                                                         |
+| ------------------------ | --------- | ------------------------------------------------------------- |
+| `lat` + `lng`            | ✅ Yes    | **Preferred**. Matches `/api/v1/*` and Prisma schema.         |
+| `latitude` + `longitude` | ✅ Yes    | Legacy. Used by older iOS builds and existing `/web` clients. |
+| Both pairs present       | ✅ Yes    | `lat`/`lng` win.                                              |
+
+iOS clients SHOULD migrate to `lat`/`lng` for consistency, but no breaking change is required.
+
 ---
 
 ## 📐 Standard Response Structures
 
 ### Location Object (Nested in User Saves)
+
 Used in: `/api/v1/users/{username}/locations`, `/api/v1/locations/public`, `/api/v1/locations/friends`
 
 ```typescript
@@ -67,13 +82,21 @@ Used in: `/api/v1/users/{username}/locations`, `/api/v1/locations/public`, `/api
       "id": number,
       "imagekitFilePath": string,
       "isPrimary": boolean,
-      "caption": string | null
+      "caption": string | null,
+      "sizes": {              // Pre-computed ImageKit URL variants (additive, may be null if filePath missing)
+        "thumbnail": string,  // 200x200 — grids, avatars, marker thumbs
+        "card": string,       // 400x300 — list rows, location cards
+        "gallery": string,    // 1200x800 — detail view, lightbox
+        "full": string,       // 1600w   — high-res download / share
+        "og": string          // 1200x630 — Open Graph / social share
+      } | null
     }
   ]
 }
 ```
 
 ### Social Location Object (User's Public Profile)
+
 Used in: `/api/v1/users/{username}/locations`
 
 ```typescript
@@ -89,6 +112,7 @@ Used in: `/api/v1/users/{username}/locations`
 ```
 
 ### Map Social Location Object (Friends/Public Map)
+
 Used in: `/api/v1/locations/public`, `/api/v1/locations/friends`
 
 ```typescript
@@ -107,7 +131,14 @@ Used in: `/api/v1/locations/public`, `/api/v1/locations/friends`
   "savedAt": string | null,
   "photos": [             // Primary photo only (for thumbnail)
     {
-      "imagekitFilePath": string
+      "imagekitFilePath": string,
+      "sizes": {          // Same shape as Photo.sizes above (or null)
+        "thumbnail": string,
+        "card": string,
+        "gallery": string,
+        "full": string,
+        "og": string
+      } | null
     }
   ],
   "user": {
@@ -121,6 +152,29 @@ Used in: `/api/v1/locations/public`, `/api/v1/locations/friends`
 ```
 
 ### Pagination Metadata
+
+Two paginations styles are in use. New endpoints SHOULD adopt **cursor-based**.
+
+**Cursor-based** (preferred — used by `/api/v1/locations/friends`, `/api/v1/locations/public`):
+
+```typescript
+{
+  "locations": [...],          // Page of records (length <= limit)
+  "limit": number,             // Page size requested (clamped server-side)
+  "total": number,             // Length of THIS page only (legacy field)
+  "hasMore": boolean,          // True if another page exists
+  "nextCursor": string | null  // Pass back as `?cursor=` to fetch next page
+}
+```
+
+Client request: `GET /api/v1/locations/public?limit=50&cursor=<previousNextCursor>`
+
+- Cursor is the `UserSave.id` of the last record in the previous page (opaque string).
+- When `nextCursor` is `null`, no more pages.
+- Ordering is `savedAt DESC, id DESC` (deterministic — safe across cursor jumps).
+
+**Offset-based** (legacy — older endpoints):
+
 ```typescript
 {
   "page": number,
@@ -137,15 +191,20 @@ Used in: `/api/v1/locations/public`, `/api/v1/locations/friends`
 
 iOS uses these `Codable` structs to decode responses:
 
-| Backend Field | iOS Model Property | Type |
-|--------------|-------------------|------|
-| `lat` | `lat` | `Double` |
-| `lng` | `lng` | `Double` |
-| `placeId` | `placeId` | `String?` |
-| `savedAt` | `savedAt` | `String?` (ISO 8601) |
-| `imagekitFilePath` | `imagekitFilePath` | `String` |
+| Backend Field      | iOS Model Property | Type                     |
+| ------------------ | ------------------ | ------------------------ |
+| `lat`              | `lat`              | `Double`                 |
+| `lng`              | `lng`              | `Double`                 |
+| `placeId`          | `placeId`          | `String?`                |
+| `savedAt`          | `savedAt`          | `String?` (ISO 8601)     |
+| `imagekitFilePath` | `imagekitFilePath` | `String`                 |
+| `sizes.thumbnail`  | `sizes.thumbnail`  | `String?` (ImageKit URL) |
+| `sizes.card`       | `sizes.card`       | `String?` (ImageKit URL) |
+| `sizes.gallery`    | `sizes.gallery`    | `String?` (ImageKit URL) |
+| `sizes.full`       | `sizes.full`       | `String?` (ImageKit URL) |
 
 **Key Models**:
+
 - `SocialLocation` - for `/api/v1/users/{username}/locations`
 - `MapSocialLocation` - for `/api/v1/locations/public` & `/friends`
 - `LocationPhoto` - simplified photo with only `id`, `imagekitFilePath`, `isPrimary`
@@ -169,6 +228,7 @@ When creating a new v1 mobile endpoint:
 ## 🐛 Common Mistakes
 
 ### ❌ Mistake 1: Inconsistent Coordinate Fields
+
 ```typescript
 // Bug: /api/v1/users/{username}/locations used latitude/longitude
 location: {
@@ -178,6 +238,7 @@ location: {
 ```
 
 **Fix**: Use `lat`/`lng` consistently
+
 ```typescript
 location: {
   lat: save.location.lat,  // ✅ Correct
@@ -186,24 +247,28 @@ location: {
 ```
 
 ### ❌ Mistake 2: Omitting Null Fields
+
 ```typescript
 // Don't do this - breaks iOS Codable decoding
-address: save.location.address || undefined  // ❌ undefined becomes omitted
+address: save.location.address || undefined; // ❌ undefined becomes omitted
 ```
 
 **Fix**: Always explicitly return `null`
+
 ```typescript
-address: save.location.address || null  // ✅ Correct
+address: save.location.address || null; // ✅ Correct
 ```
 
 ### ❌ Mistake 3: Date String Formats
+
 ```typescript
-savedAt: save.savedAt.toString()  // ❌ Wrong - returns JS date format
+savedAt: save.savedAt.toString(); // ❌ Wrong - returns JS date format
 ```
 
 **Fix**: Use ISO 8601
+
 ```typescript
-savedAt: save.savedAt.toISOString()  // ✅ Correct
+savedAt: save.savedAt.toISOString(); // ✅ Correct
 ```
 
 ---

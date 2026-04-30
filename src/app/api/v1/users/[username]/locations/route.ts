@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiError } from '@/lib/api-middleware';
+import { getPhotoVariants } from '@/lib/imagekit';
 import { normalizeUsername } from '@/lib/username-utils';
 
 /**
@@ -91,6 +92,7 @@ export async function GET(
             imagekitFilePath: photo.imagekitFilePath,
             isPrimary: photo.isPrimary,
             caption: photo.caption,
+            sizes: getPhotoVariants(photo.imagekitFilePath),
           })),
         },
       }));

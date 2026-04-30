@@ -4,6 +4,7 @@ import { apiResponse, apiError, requireAuth, withAuth, parseBoundsFilter } from 
 import { VALIDATION_CONFIG } from '@/lib/validation-config';
 import { sanitizeUserInput, sanitizeArray } from '@/lib/sanitize';
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
+import { attachPhotoSizes } from '@/lib/imagekit';
 import type { PublicUser } from '@/types/user';
 
 /**
@@ -62,7 +63,7 @@ export const GET = withAuth(async (request: NextRequest, user: PublicUser) => {
     const cursor = searchParams.get('cursor'); // userSave.id (string)
     const cursorId = cursor ? parseInt(cursor, 10) : undefined;
 
-    // Fetch user's saved locations
+    // Fetch user's saved locations (single query — photos joined via include to avoid N+1)
     const userSaves = await prisma.userSave.findMany({
         where,
         include: {
@@ -75,6 +76,9 @@ export const GET = withAuth(async (request: NextRequest, user: PublicUser) => {
                             firstName: true,
                             lastName: true,
                         },
+                    },
+                    photos: {
+                        orderBy: [{ isPrimary: 'desc' }, { uploadedAt: 'asc' }],
                     },
                 },
             },
@@ -89,22 +93,14 @@ export const GET = withAuth(async (request: NextRequest, user: PublicUser) => {
     const page = hasNextPage ? userSaves.slice(0, limit) : userSaves;
     const nextCursor = hasNextPage ? String(page[page.length - 1].id) : null;
 
-    // Fetch photos for each location (now uses locationId for user-specific photos)
-    const locationsWithPhotos = await Promise.all(
-        page.map(async (userSave) => {
-            const photos = await prisma.photo.findMany({
-                where: { locationId: userSave.location.id },
-                orderBy: [{ isPrimary: 'desc' }, { uploadedAt: 'asc' }],
-            });
-            return {
-                ...userSave,
-                location: {
-                    ...userSave.location,
-                    photos,
-                },
-            };
-        })
-    );
+    // Attach ImageKit transform variants to each photo (no extra DB calls)
+    const locationsWithPhotos = page.map((userSave) => ({
+        ...userSave,
+        location: {
+            ...userSave.location,
+            photos: userSave.location.photos.map(attachPhotoSizes),
+        },
+    }));
 
     return apiResponse({
         locations: locationsWithPhotos,
@@ -148,8 +144,10 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
 
         // Extract and sanitize inputs
+        // NOTE: Coordinates accept BOTH `lat`/`lng` (canonical, per MOBILE_API_SCHEMAS.md)
+        // AND `latitude`/`longitude` (legacy). Canonical wins when both are present.
         let {
-            placeId, name, address, latitude, longitude, type, rating,
+            placeId, name, address, type, rating,
             // Address components
             street, number, city, state, zipcode,
             // Production details
@@ -163,6 +161,12 @@ export async function POST(request: NextRequest) {
             // Location group (optional — links to LocationGroup)
             groupId,
         } = body;
+
+        // Normalize coordinates: prefer canonical lat/lng, fall back to latitude/longitude
+        const latitude: number | undefined =
+            body.lat !== undefined ? body.lat : body.latitude;
+        const longitude: number | undefined =
+            body.lng !== undefined ? body.lng : body.longitude;
 
         // Sanitize all text inputs (strips HTML, control chars, URLs)
         name = sanitizeUserInput(name);
@@ -342,8 +346,25 @@ export async function POST(request: NextRequest) {
                     console.log(`[Save Location] Creating ${body.photos.length} photo(s) for locationId: ${location.id}`);
                 }
 
-                await tx.photo.createMany({
-                    data: body.photos.map((photo: any, index: number) => ({
+                // Dedupe within the payload by imagekitFileId — protects against
+                // client retries that resend the same uploaded photo reference.
+                const seenFileIds = new Set<string>();
+                const uniquePhotos: any[] = [];
+                for (const photo of body.photos) {
+                    const fileId: string | undefined = photo?.imagekitFileId || photo?.fileId;
+                    if (!fileId) continue; // skip malformed entries
+                    if (seenFileIds.has(fileId)) continue;
+                    seenFileIds.add(fileId);
+                    uniquePhotos.push(photo);
+                }
+
+                if (uniquePhotos.length === 0) {
+                    if (process.env.NODE_ENV !== 'production') {
+                        console.log('[Save Location] No valid (non-duplicate) photos to create');
+                    }
+                } else {
+                    await tx.photo.createMany({
+                        data: uniquePhotos.map((photo: any, index: number) => ({
                         locationId: location.id,
                         placeId: location.placeId,
                         userId: user.id,
@@ -380,7 +401,8 @@ export async function POST(request: NextRequest) {
                 });
 
                 if (process.env.NODE_ENV !== 'production') {
-                    console.log(`[Save Location] Photos created successfully`);
+                    console.log(`[Save Location] Photos created successfully (${uniquePhotos.length} unique of ${body.photos.length} submitted)`);
+                }
                 }
             }
 

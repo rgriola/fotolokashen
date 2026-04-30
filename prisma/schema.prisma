@@ -167,6 +167,10 @@ model Location {
   @@index([lastModifiedBy])
   @@index([placeId])
   @@index([groupId])
+  // Bounds queries (map fetches by lat/lng range)
+  @@index([lat, lng])
+  // Filtered list ordering by type + recency
+  @@index([type, createdAt])
   @@map("locations")
 }
 
@@ -188,6 +192,12 @@ model UserSave {
   @@unique([userId, locationId])
   @@index([locationId])
   @@index([visibility]) // For filtering public/unlisted locations
+  // Hot path: GET /api/locations (own saves filtered by visibility, ordered by savedAt)
+  @@index([userId, visibility, savedAt])
+  // Hot path: /api/v1/locations/{public,friends} (visibility filter + savedAt ordering)
+  @@index([visibility, savedAt])
+  // Hot path: location detail / friends-on-map (lookup saves of a location filtered by visibility)
+  @@index([locationId, visibility])
   @@map("user_saves")
 }
 
@@ -256,6 +266,8 @@ model Photo {
   @@index([dateTaken], map: "idx_photos_dateTaken")
   @@index([hasGpsData], map: "idx_photos_hasGpsData")
   @@index([uploadSource], map: "idx_photos_uploadSource")
+  // Hot path: fetch primary photo for a location first (orderBy isPrimary desc)
+  @@index([locationId, isPrimary])
   @@map("photos")
 }
 
@@ -598,7 +610,7 @@ model LocationGroup {
   id           Int        @id @default(autoincrement())
   name         String     @db.VarChar(100)
   description  String?    @db.VarChar(500)
-  type         String?    // preset (EVENT, ROUTE, STORY, COVERAGE) or custom type label
+  type         String? // preset (EVENT, ROUTE, STORY, COVERAGE) or custom type label
   startTime    DateTime?
   endTime      DateTime?
   coverPhotoId Int?

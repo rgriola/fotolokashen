@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
-import { getImageKitUrl } from '@/lib/imagekit';
+import { getImageKitUrl, getPhotoVariants } from '@/lib/imagekit';
 
 /**
  * GET /api/locations/[id]/photos
@@ -78,6 +78,7 @@ export async function GET(
             imagekitFilePath: photo.imagekitFilePath,
             url: getImageKitUrl(photo.imagekitFilePath),
             thumbnailUrl: `${getImageKitUrl(photo.imagekitFilePath)}?tr=w-400,h-400,c-at_max,fo-auto,q-80`,
+            sizes: getPhotoVariants(photo.imagekitFilePath),
             caption: photo.caption,
             width: photo.width,
             height: photo.height,
@@ -200,6 +201,7 @@ export async function POST(
             imagekitFilePath: photo.imagekitFilePath,
             url: url,
             thumbnailUrl: thumbnailUrl || `${url}?tr=w-400,h-400,c-at_max,fo-auto,q-80`,
+            sizes: getPhotoVariants(photo.imagekitFilePath),
             caption: photo.caption,
             width: photo.width,
             height: photo.height,

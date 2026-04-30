@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
 import { canEditLocation, canDeleteUserSave } from '@/lib/permissions';
 import { sanitizeUserInput, sanitizeArray } from '@/lib/sanitize';
+import { attachPhotoSizes } from '@/lib/imagekit';
 
 /**
  * GET /api/locations/[id]
@@ -59,7 +60,16 @@ export async function GET(
             return apiError('Permission denied', 403, 'FORBIDDEN');
         }
 
-        return apiResponse({ userSave });
+        // Attach pre-computed ImageKit size variants to each photo (additive)
+        const userSaveWithSizes = {
+            ...userSave,
+            location: {
+                ...userSave.location,
+                photos: userSave.location.photos.map(attachPhotoSizes),
+            },
+        };
+
+        return apiResponse({ userSave: userSaveWithSizes });
     } catch (error: any) {
         if (error.message === 'UNAUTHORIZED') {
             return apiError('Authentication required', 401, 'UNAUTHORIZED');
@@ -231,22 +241,48 @@ export async function PATCH(
 
             // Create new photos
             if (newPhotos.length > 0) {
-                await prisma.photo.createMany({
-                    data: newPhotos.map((photo: any, index: number) => ({
-                        locationId: location.id,  // Link to user's specific location
-                        placeId: location.placeId,
-                        userId: user.id,
-                        imagekitFileId: photo.imagekitFileId,
-                        imagekitFilePath: photo.imagekitFilePath,
-                        originalFilename: photo.originalFilename,
-                        fileSize: photo.fileSize,
-                        mimeType: photo.mimeType,
-                        width: photo.width,
-                        height: photo.height,
-                        isPrimary: index === 0 && body.photos.length === newPhotos.length, // Only set primary if all photos are new
-                        caption: photo.caption ? sanitizeUserInput(photo.caption) : null,
-                    })),
+                // Dedupe: drop entries with the same imagekitFileId within the payload
+                // AND drop any that already exist on this location (e.g. client retried).
+                const seenFileIds = new Set<string>();
+                const candidates = newPhotos.filter((photo: any) => {
+                    const fileId: string | undefined = photo?.imagekitFileId;
+                    if (!fileId) return false;
+                    if (seenFileIds.has(fileId)) return false;
+                    seenFileIds.add(fileId);
+                    return true;
                 });
+
+                let photosToCreate = candidates;
+                if (candidates.length > 0) {
+                    const existing = await prisma.photo.findMany({
+                        where: {
+                            locationId: location.id,
+                            imagekitFileId: { in: candidates.map((p: any) => p.imagekitFileId) },
+                        },
+                        select: { imagekitFileId: true },
+                    });
+                    const existingIds = new Set(existing.map(p => p.imagekitFileId));
+                    photosToCreate = candidates.filter((p: any) => !existingIds.has(p.imagekitFileId));
+                }
+
+                if (photosToCreate.length > 0) {
+                    await prisma.photo.createMany({
+                        data: photosToCreate.map((photo: any, index: number) => ({
+                            locationId: location.id,  // Link to user's specific location
+                            placeId: location.placeId,
+                            userId: user.id,
+                            imagekitFileId: photo.imagekitFileId,
+                            imagekitFilePath: photo.imagekitFilePath,
+                            originalFilename: photo.originalFilename,
+                            fileSize: photo.fileSize,
+                            mimeType: photo.mimeType,
+                            width: photo.width,
+                            height: photo.height,
+                            isPrimary: index === 0 && body.photos.length === photosToCreate.length, // Only set primary if all submitted photos are new uniques
+                            caption: photo.caption ? sanitizeUserInput(photo.caption) : null,
+                        })),
+                    });
+                }
             }
         }
 
@@ -282,7 +318,7 @@ export async function PATCH(
         });
 
         return apiResponse({
-            location: { ...finalLocation, photos },
+            location: { ...finalLocation, photos: photos.map(attachPhotoSizes) },
             userSave
         });
     } catch (error: any) {

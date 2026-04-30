@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
-import { uploadToImageKit } from '@/lib/imagekit';
+import { uploadToImageKit, getPhotoVariants } from '@/lib/imagekit';
 import { scanFile } from '@/lib/virus-scan';
 import { sanitizeText } from '@/lib/sanitize';
 import { FILE_SIZE_LIMITS, FOLDER_PATHS } from '@/lib/constants/upload';
@@ -299,6 +299,10 @@ export async function POST(request: NextRequest) {
         width: uploadResult.width,
         height: uploadResult.height,
       },
+      // Pre-computed ImageKit variant URLs so clients (iOS, web) can use
+      // the right size without building transform strings themselves.
+      // Additive — `upload.url` is still the canonical full-size URL.
+      sizes: getPhotoVariants(uploadResult.filePath),
       file: {
         originalFilename: file.name,
         size: processedBuffer.length, // Return processed size
