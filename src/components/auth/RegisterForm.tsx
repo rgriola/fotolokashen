@@ -61,6 +61,11 @@ interface RegisterFormProps {
   message?: string;
 }
 
+interface RegisterApiError {
+  error?: string;
+  code?: string;
+}
+
 // ─── Password Strength ────────────────────────────────────────────────────────
 
 function getPasswordStrength(pass: string): number {
@@ -109,6 +114,9 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
     formState: { errors },
     watch,
     setValue,
+    setError,
+    setFocus,
+    clearErrors,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -129,9 +137,42 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
       // Force lowercase + trim trailing whitespace silently
       const cleaned = e.target.value.toLowerCase().replace(/\s+$/, '');
       setValue('username', cleaned, { shouldValidate: false });
+      clearErrors('username');
     },
-    [setValue]
+    [setValue, clearErrors]
   );
+
+  const mapServerErrorToField = useCallback((result: RegisterApiError) => {
+    const messageText = result.error || TOAST.AUTH.REGISTER_FAILED;
+
+    switch (result.code) {
+      case 'USERNAME_TAKEN':
+      case 'INVALID_USERNAME':
+        return { field: 'username' as const, message: messageText };
+      case 'EMAIL_EXISTS':
+        return { field: 'email' as const, message: messageText };
+      case 'AGE_RESTRICTION':
+        return { field: 'dateOfBirth' as const, message: messageText };
+      default:
+        break;
+    }
+
+    const normalizedMessage = messageText.toLowerCase();
+    if (normalizedMessage.includes('username')) {
+      return { field: 'username' as const, message: messageText };
+    }
+    if (normalizedMessage.includes('email')) {
+      return { field: 'email' as const, message: messageText };
+    }
+    if (normalizedMessage.includes('date of birth') || normalizedMessage.includes('18 years')) {
+      return { field: 'dateOfBirth' as const, message: messageText };
+    }
+    if (normalizedMessage.includes('password')) {
+      return { field: 'password' as const, message: messageText };
+    }
+
+    return null;
+  }, []);
 
   const onSubmit = useCallback(async (data: RegisterFormData) => {
     setIsLoading(true);
@@ -142,7 +183,7 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(registerData),
       });
-      const result = await response.json();
+      const result: RegisterApiError = await response.json();
       if (!response.ok) {
         // iOS: EMAIL_EXISTS → redirect to app with reason
         if (isIOS && result.code === 'EMAIL_EXISTS') {
@@ -150,6 +191,15 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
           setIosRedirectUrl('fotolokashen://auth-redirect?action=login&reason=account_exists');
           return;
         }
+
+        const fieldError = mapServerErrorToField(result);
+        if (fieldError) {
+          setError(fieldError.field, { type: 'server', message: fieldError.message });
+          if (fieldError.field !== 'dateOfBirth') {
+            setFocus(fieldError.field);
+          }
+        }
+
         toast.error(result.error || TOAST.AUTH.REGISTER_FAILED);
         return;
       }
@@ -170,7 +220,7 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [isIOS]);
+  }, [isIOS, mapServerErrorToField, setError, setFocus]);
 
   // ── iOS Redirect Screen — brief message before deep link fires ──
   if (iosRedirectMessage) {
@@ -291,7 +341,9 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               type="email"
               placeholder="you@example.com"
               autoComplete="off"
-              {...register('email')}
+              {...register('email', {
+                onChange: () => clearErrors('email'),
+              })}
               disabled={isLoading}
               className={`h-9 sm:h-10 text-sm ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
             />
@@ -326,7 +378,10 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
             render={({ field }) => (
               <DateOfBirthPicker
                 value={field.value}
-                onChange={field.onChange}
+                onChange={(value) => {
+                  clearErrors('dateOfBirth');
+                  field.onChange(value);
+                }}
                 disabled={isLoading}
                 hasError={!!errors.dateOfBirth}
               />
@@ -345,7 +400,9 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 autoComplete="new-password"
-                {...register('password')}
+                {...register('password', {
+                  onChange: () => clearErrors('password'),
+                })}
                 disabled={isLoading}
                 className={`h-9 sm:h-10 text-sm pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
               />
@@ -398,7 +455,9 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 autoComplete="new-password"
-                {...register('confirmPassword')}
+                {...register('confirmPassword', {
+                  onChange: () => clearErrors('confirmPassword'),
+                })}
                 disabled={isLoading}
                 className={`h-9 sm:h-10 text-sm pr-20 ${errors.confirmPassword
                   ? 'border-destructive focus-visible:ring-destructive'

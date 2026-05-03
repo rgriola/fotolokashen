@@ -21,6 +21,11 @@ const forgotPasswordSchema = z.object({
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
+interface ForgotPasswordApiError {
+    error?: string;
+    code?: string;
+}
+
 export function ForgotPasswordForm() {
     const searchParams = useSearchParams();
     const isIOS = searchParams.get('source') === 'ios';
@@ -44,12 +49,34 @@ export function ForgotPasswordForm() {
         register,
         handleSubmit,
         formState: { errors },
+        setError,
+        setFocus,
+        clearErrors,
     } = useForm<ForgotPasswordFormData>({
         resolver: zodResolver(forgotPasswordSchema),
     });
 
+    const mapServerErrorToField = (result: ForgotPasswordApiError) => {
+        const messageText = result.error || TOAST.AUTH.RESET_REQUEST_FAILED;
+
+        switch (result.code) {
+            case 'VALIDATION_ERROR':
+            case 'RATE_LIMITED':
+                return { field: 'email' as const, message: messageText };
+            default:
+                break;
+        }
+
+        if (messageText.toLowerCase().includes('email')) {
+            return { field: 'email' as const, message: messageText };
+        }
+
+        return null;
+    };
+
     const onSubmit = async (data: ForgotPasswordFormData) => {
         setIsLoading(true);
+        clearErrors('email');
 
         try {
             const response = await fetch('/api/auth/forgot-password', {
@@ -61,9 +88,14 @@ export function ForgotPasswordForm() {
                 }),
             });
 
-            const result = await response.json();
+            const result: ForgotPasswordApiError = await response.json();
 
             if (!response.ok) {
+                const fieldError = mapServerErrorToField(result);
+                if (fieldError) {
+                    setError(fieldError.field, { type: 'server', message: fieldError.message });
+                    setFocus(fieldError.field);
+                }
                 toast.error(result.error || TOAST.AUTH.RESET_REQUEST_FAILED);
                 return;
             }
@@ -164,7 +196,9 @@ export function ForgotPasswordForm() {
                                 id="email"
                                 type="email"
                                 placeholder="you@example.com"
-                                {...register('email')}
+                                {...register('email', {
+                                    onChange: () => clearErrors('email'),
+                                })}
                                 disabled={isLoading}
                                 className={`pl-9 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                                 aria-invalid={errors.email ? 'true' : 'false'}

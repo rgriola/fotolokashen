@@ -23,6 +23,14 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
+interface LoginApiError {
+  error?: string;
+  code?: string;
+  requiresVerification?: boolean;
+  email?: string;
+  tokenResent?: boolean;
+}
+
 interface LoginFormProps {
   returnUrl?: string;
   message?: string;
@@ -61,6 +69,9 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
+    setFocus,
+    clearErrors,
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -68,8 +79,33 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
     },
   });
 
+  const mapServerErrorToField = (result: LoginApiError) => {
+    const messageText = result.error || TOAST.AUTH.LOGIN_FAILED;
+
+    switch (result.code) {
+      case 'INVALID_CREDENTIALS':
+        return { field: 'password' as const, message: messageText };
+      case 'ACCOUNT_LOCKED':
+      case 'ACCOUNT_DEACTIVATED':
+        return { field: 'email' as const, message: messageText };
+      default:
+        break;
+    }
+
+    const normalizedMessage = messageText.toLowerCase();
+    if (normalizedMessage.includes('email')) {
+      return { field: 'email' as const, message: messageText };
+    }
+    if (normalizedMessage.includes('password')) {
+      return { field: 'password' as const, message: messageText };
+    }
+
+    return null;
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
+    clearErrors(['email', 'password']);
 
     try {
       const response = await fetch('/api/auth/login', {
@@ -78,7 +114,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
         body: JSON.stringify(data),
       });
 
-      const result = await response.json();
+      const result: LoginApiError = await response.json();
 
       if (!response.ok) {
         // Check if email verification is required
@@ -107,6 +143,12 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
             }, 1000);
             return;
           }
+        }
+
+        const fieldError = mapServerErrorToField(result);
+        if (fieldError) {
+          setError(fieldError.field, { type: 'server', message: fieldError.message });
+          setFocus(fieldError.field);
         }
         
         toast.error(result.error || TOAST.AUTH.LOGIN_FAILED);
@@ -214,7 +256,9 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
               id="email"
               type="email"
               placeholder="you@example.com"
-              {...register('email')}
+              {...register('email', {
+                onChange: () => clearErrors('email'),
+              })}
               disabled={isLoading}
               className={`h-9 sm:h-10 text-sm ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
               aria-invalid={errors.email ? 'true' : 'false'}
@@ -236,7 +280,9 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
-                {...register('password')}
+                {...register('password', {
+                  onChange: () => clearErrors('password'),
+                })}
                 disabled={isLoading}
                 className={`h-9 sm:h-10 text-sm pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 aria-invalid={errors.password ? 'true' : 'false'}
