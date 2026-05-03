@@ -1,6 +1,6 @@
 # fotolokashen
 
-**Last Updated**: 2026-04-25
+**Last Updated**: 2026-05-03 13:42 EDT
 **Production**: [fotolokashen.com](https://fotolokashen.com) ✅ Live  
 **Status**: Active Development - v2.0.0
 
@@ -295,11 +295,13 @@ npm run db:seed      # Seed database with templates
 
 ## 📚 Documentation
 
-- **[TASKS.md](./TASKS.md)** - Open security and architecture tasks (Tier 1 complete, Tier 2 in progress)
-- **[SECURITY_REVIEW.md](./SECURITY_REVIEW.md)** - Full security audit (April 17, 2026)
-- **[fotolokashen_comprehensive_review.md](./fotolokashen_comprehensive_review.md)** - Full architecture audit (April 15, 2026)
+- **[TASKS.md](./TASKS.md)** - Active priorities and execution checklist
+- **[docs/archive/reviews/SECURITY_REVIEW_2026-04-17.md](./docs/archive/reviews/SECURITY_REVIEW_2026-04-17.md)** - Archived full security audit
+- **[docs/archive/reviews/fotolokashen_comprehensive_review_2026-04-15.md](./docs/archive/reviews/fotolokashen_comprehensive_review_2026-04-15.md)** - Archived full architecture audit
 - **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Current status, priorities, and recent updates
 - **[docs/CODEBASE_REVIEW_PLAN.md](./docs/CODEBASE_REVIEW_PLAN.md)** - 6-phase codebase review plan (all phases complete)
+- **[docs/planning/strategy/](./docs/planning/strategy/)** - Strategy and marketing direction docs
+- **[docs/process/ROOT_DOC_POLICY_PROMPTS_HANDOFF.md](./docs/process/ROOT_DOC_POLICY_PROMPTS_HANDOFF.md)** - Root-doc policy and prompts-folder handoff workflow
 - **[docs/](./docs/)** - Complete documentation archive
   - `api/` - API documentation (Follow System, Search System, Mobile API Schemas)
   - `features/` - Feature specifications
@@ -315,7 +317,6 @@ The application is deployed to Vercel at [fotolokashen.com](https://fotolokashen
 
 - Push to `main` branch triggers automatic deployment
 - Environment variables configured in Vercel dashboard
-
 
 ## 🔗 Useful Links
 

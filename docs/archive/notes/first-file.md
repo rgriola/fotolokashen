@@ -162,90 +162,93 @@ Resources
 - A feature update is iOS location creation; iOS needs a photo upload UI Pipeline using iOS Photo Library images + also allowing adding Camera Photos directly. this feature will need a separate implimentation plan as I will use this going forward for another app.
 - Any suggestions to make this app stronger.
   -- And place this into a markdown file.
-
-  - look for opportunities to create reusable components and utlity functions. 
+  - look for opportunities to create reusable components and utlity functions.
 
 ...
-*** issue ***
-- the web app login doubles for the login for iOS. The issue is in the view the web page header [fotolokashen] [login] [Register] float on top of the login panel (dialog) and really make it hard to use this UI on iOS. Can we lose the header on mobile login so the user con focus on the view. 
-- Also on mobile can we adjust the styling to make the UI more compact. There is too much scrolling. 
-- We can lose the Fotolokashen Logo + Text above the Create Account panel on mobile. 
+**_ issue _**
+
+- the web app login doubles for the login for iOS. The issue is in the view the web page header [fotolokashen] [login] [Register] float on top of the login panel (dialog) and really make it hard to use this UI on iOS. Can we lose the header on mobile login so the user con focus on the view.
+- Also on mobile can we adjust the styling to make the UI more compact. There is too much scrolling.
+- We can lose the Fotolokashen Logo + Text above the Create Account panel on mobile.
 
 - Also the Date of Birth Calendar picker needs to go MM - DD - YYYY with a calend component, something better than what is there now - in the UI the user click on the field and automatically chooses today as their Date of Birth, Humans are not born today... but you know that. It can be changed but is not intuitive enough. In the United States and Canada the format is MM - DD - YYYY. The rest of the world it is DD - MM - YYYY but should map to MM-DD-YYYY for the backend.
 
-- Read this back to me then I will approve. 
-
+- Read this back to me then I will approve.
 
 ...
-*** issue ***
-- Can you review the login sequence for the iOS app. A user said they never got their confirmation emaila for > "Verification Email". When I checked Resend both the Verification Email had been sent and their email "Email confirmed" was also sent. 
+**_ issue _**
+
+- Can you review the login sequence for the iOS app. A user said they never got their confirmation emaila for > "Verification Email". When I checked Resend both the Verification Email had been sent and their email "Email confirmed" was also sent.
 - I checked the database and their email was confirmed, they were listed as active.
-- When I told them to just goahead and login then they said it would not let them. 
--  Yesterday when I tried the new iOS Create Account Process it was confusing, but I also did get my emails. But my emails were to gmail his was to a corporate email with spam catchers that lock emails away for a few days. I have the same corporate email system.
+- When I told them to just goahead and login then they said it would not let them.
+- Yesterday when I tried the new iOS Create Account Process it was confusing, but I also did get my emails. But my emails were to gmail his was to a corporate email with spam catchers that lock emails away for a few days. I have the same corporate email system.
 
-- But the iOS create account, confirm email, login is difficult to follow as a user. 
- 
- *** Task ***
- - Redesign of the iOS Profile View and subview structure. 
- - Attached is a screenshot of a mock up of what I am looking for. 
- - The main Profile View should list options of what the user can do here. 
- - Logout button should be on the main Profile View at the very bottom. 
- - Delete Account should be in a subview, not on the main Profile View. 
- - Can you review the Profile View and subview structure and make sure it is logical and easy to use, show me a plan and I will approve.
+- But the iOS create account, confirm email, login is difficult to follow as a user.
 
- ...
+  **_ Task _**
 
- Looks Good. on iOS Profile > Account & Security > Change "Account Info" to Personal details
- Under Personal details create a summary:
+- Redesign of the iOS Profile View and subview structure.
+- Attached is a screenshot of a mock up of what I am looking for.
+- The main Profile View should list options of what the user can do here.
+- Logout button should be on the main Profile View at the very bottom.
+- Delete Account should be in a subview, not on the main Profile View.
+- Can you review the Profile View and subview structure and make sure it is logical and easy to use, show me a plan and I will approve.
 
- Peronsal Details (each field should be on its own line as shown below)
- [User Name]
- [Email Address]
+...
+
+Looks Good. on iOS Profile > Account & Security > Change "Account Info" to Personal details
+Under Personal details create a summary:
+
+Peronsal Details (each field should be on its own line as shown below)
+[User Name]
+[Email Address]
 [City], [State]
 [Country]
-  Heading: Birthday
- [Date of Birth]
- Joined
- [Date Joined]
+Heading: Birthday
+[Date of Birth]
+Joined
+[Date Joined]
 
- Move Edit Profile to the Security Subheading
+Move Edit Profile to the Security Subheading
 
- ....
-in the iOS App we  should also display the user timezone using the GPS data user allows if allowed or IP if no GPS. 
+....
+in the iOS App we should also display the user timezone using the GPS data user allows if allowed or IP if no GPS.
 
-... 
-*** Task ***
-- iOS Profile > Account & Security > Personal Details > Edit Profile > Move Preferences up one level to Account & Security > Preferences. 
-- We also need to add a Permissions section for GPS, Camera, Photo Library, and Notifications. 
-In the Permissions Section add on/off toggles. 
+...
+**_ Task _**
 
+- iOS Profile > Account & Security > Personal Details > Edit Profile > Move Preferences up one level to Account & Security > Preferences.
+- We also need to add a Permissions section for GPS, Camera, Photo Library, and Notifications.
+  In the Permissions Section add on/off toggles.
 
 ...
 
 MY TO-DO Apr 17
-Continue Security Review and implimentations 
+Continue Security Review and implimentations
 
-- Change iOS login to GPS location if permitted or home if not. 
-- Finish Profile redesign. 
-- Finish Create Location Basic Set ups 
+- Change iOS login to GPS location if permitted or home if not.
+- Finish Profile redesign.
+- Finish Create Location Basic Set ups
   iOS Create Location (Camera > Photos the Create Location does not move the photo to the upload queue)
-  
 - Create Unit Tests for APIs and IOS
 
+**_ Task _**
 
-*** Task ***
 - Plan an implimentation to Standardize URL transforms so every image request includes size limits + fo-auto,q-80.
 - iOS: plan an implimentation to add Kingfisher for disk caching — SwiftUI's AsyncImage has no cache, so it re-fetches every time.
 
 ... Mon Apr 28 2026
-*** Task ***
-- I need help determining the path of this project. I have a hard time describing what its purpose is to some of the first time test users.  I also feel the marketing needs to be better aligned, ie my web and iOS app have different tag lines and I am shifting more to the iOS app in terms of single user features with the web app being more for project management and teams-projects.  Also I want to understand how to impliment agent assisted planning and search and what is possible through the iOS app. For example I just planned a trip to Europe using Claude and it was amazing the amount of help it provided without any infostructure or coding like fotolokashen, the point being why would a user need fotolokashen when they can more easily plan with Claude Gemini or another Agent assistant.  This app retains propritrary company production info, but I feel like I need another avenue to help plan the practical part of productions, connecting institutional knowledge and public data. 
+**_ Task _**
 
-*** Task ***
-- There are some issues in the email system on the web app. It requires template seeding and a few other odd features. The emails are for admins only on the overall app. 
-- Should we improve this now or wait until we move towards teams-projects and AI Assist. 
+- I need help determining the path of this project. I have a hard time describing what its purpose is to some of the first time test users. I also feel the marketing needs to be better aligned, ie my web and iOS app have different tag lines and I am shifting more to the iOS app in terms of single user features with the web app being more for project management and teams-projects. Also I want to understand how to impliment agent assisted planning and search and what is possible through the iOS app. For example I just planned a trip to Europe using Claude and it was amazing the amount of help it provided without any infostructure or coding like fotolokashen, the point being why would a user need fotolokashen when they can more easily plan with Claude Gemini or another Agent assistant. This app retains propritrary company production info, but I feel like I need another avenue to help plan the practical part of productions, connecting institutional knowledge and public data.
 
+**_ Task _**
+
+- There are some issues in the email system on the web app. It requires template seeding and a few other odd features. The emails are for admins only on the overall app.
+- Should we improve this now or wait until we move towards teams-projects and AI Assist.
 
 ...
-*** Task ***
-- 
+
+**_ issue _**
+
+- /register the create account web page doubles as create account for iOS. Input errors need to highlight issues with red strokes to focus user attention. Currently gray with vague toast and no input field focus. I experienced this through iOS create account.

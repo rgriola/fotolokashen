@@ -40,11 +40,13 @@ src/
 ```
 
 **What works:**
+
 - Clear separation between `app/`, `components/`, `hooks/`, `lib/`, `types/`
 - Custom hooks extract reusable logic from pages (`useMapMarkers`, `useGpsHandlers`, etc.)
 - The `lib/` folder is well-organized with focused utility modules
 
 **What needs improvement:**
+
 - `src/config/` has only `icons.ts` — consider consolidating into `lib/constants/`
 - No `middleware.ts` at the root — all auth is done per-route (see Auth section)
 - Missing a `services/` layer between API routes and Prisma queries
@@ -61,8 +63,8 @@ The `withAuth()`, `withOptionalAuth()`, and `withAdmin()` higher-order wrappers 
 ```typescript
 // Clean pattern (used in some routes)
 export const GET = withAuth(async (request, user) => {
-    const data = await doSomething(user.id);
-    return apiResponse(data);
+  const data = await doSomething(user.id);
+  return apiResponse(data);
 });
 ```
 
@@ -73,15 +75,15 @@ The main [locations/route.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolok
 ```typescript
 // locations/route.ts — manual pattern (INCONSISTENT)
 export async function GET(request: NextRequest) {
-    try {
-        const authResult = await requireAuth(request);
-        if (!authResult.authorized || !authResult.user) {
-            return apiError(authResult.error || 'Authentication required', 401);
-        }
-        // ... 80+ lines of business logic ...
-    } catch (error) {
-        return apiError('Failed to fetch locations', 500);
+  try {
+    const authResult = await requireAuth(request);
+    if (!authResult.authorized || !authResult.user) {
+      return apiError(authResult.error || "Authentication required", 401);
     }
+    // ... 80+ lines of business logic ...
+  } catch (error) {
+    return apiError("Failed to fetch locations", 500);
+  }
 }
 ```
 
@@ -95,6 +97,7 @@ export async function GET(request: NextRequest) {
 #### [auth.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/auth.ts)
 
 **Strengths:**
+
 - JWT + bcrypt with proper salt rounds (10)
 - "Remember me" support (7d vs 30d expiry)
 - Verification and reset tokens via `crypto.randomBytes(32)`
@@ -103,7 +106,7 @@ export async function GET(request: NextRequest) {
 
 ```typescript
 // Line 6 — SECURITY: Fallback secret in production is dangerous
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
+const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-for-development";
 ```
 
 > [!CAUTION]
@@ -121,6 +124,7 @@ export function verifyToken(token: string): any | null {
 #### [auth-context.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/auth-context.tsx)
 
 **Issue — Duplicate `queryClient.clear()` on line 78-79:**
+
 ```typescript
 queryClient.clear(); // Clear all cached data
 queryClient.clear(); // Clear all cached data ← DUPLICATE
@@ -148,6 +152,7 @@ There is no `middleware.ts` file at the project root. All route protection happe
 #### [schema.prisma](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/prisma/schema.prisma) (583 lines)
 
 **Strengths:**
+
 - Proper indexing on frequently-queried fields
 - Soft deletes via `deletedAt` on User
 - OAuth (PKCE) support for iOS app
@@ -157,15 +162,19 @@ There is no `middleware.ts` file at the project root. All route protection happe
 **Concerns:**
 
 1. **`User.role` is a raw string instead of an enum:**
+
    ```prisma
    role String @default("user") // user, staffer, super_admin
    ```
+
    This should be a Prisma enum for type safety and database-level validation.
 
 2. **No database-level constraint on `UserSave.visibility`:**
+
    ```prisma
    visibility String @default("private") // 'public', 'unlisted', 'private'
    ```
+
    App-level validation exists, but a database `CHECK` constraint or enum would prevent invalid data.
 
 3. **`Photo` has BOTH `locationId` and `placeId`:**  
@@ -180,11 +189,11 @@ There is no `middleware.ts` file at the project root. All route protection happe
 
 The `Photo` interface is defined in TWO files with different shapes:
 
-| Field | [types/location.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/location.ts) (L3-30) | [types/photo.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/photo.ts) (L1-23) |
-|---|---|---|
-| `userId` | `number` (required) | `number \| null` |
-| GPS fields | included (optional) | not included |
-| `originalFilename` | `string` | `string \| null` |
+| Field              | [types/location.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/location.ts) (L3-30) | [types/photo.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/photo.ts) (L1-23) |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `userId`           | `number` (required)                                                                                        | `number \| null`                                                                                     |
+| GPS fields         | included (optional)                                                                                        | not included                                                                                         |
+| `originalFilename` | `string`                                                                                                   | `string \| null`                                                                                     |
 
 > [!WARNING]
 > **This is a latent bug.** Components importing `Photo` from `types/location` will have different type expectations than those importing from `types/photo`. Consolidate into a single canonical `Photo` type.
@@ -198,6 +207,7 @@ Similarly, `types/photo.ts` has `PhotoMetadata` and `lib/photo-utils.ts` also de
 #### [map/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/map/page.tsx) (803 lines)
 
 The map page has **15+ useState calls** and manages:
+
 - Save panel, details panel, locations panel, public details panel, friends dialog, share dialog, search dialog
 - GPS state, markers, public locations, bounds
 - Onboarding state
@@ -242,6 +252,7 @@ The comment acknowledges the issue — this `Map` is per-process and per-invocat
 ### 10. Testing — ❌ Minimal Coverage
 
 Only **3 test files** exist:
+
 - `parseBoundsFilter.test.ts`
 - `apiHelpers.test.ts`
 - `uploadValidation.test.ts`
@@ -257,6 +268,7 @@ For 47,000 LOC and ~285 files, this is critically low. No component tests, no in
 #### [globals.css](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/globals.css) (176 lines)
 
 **Strengths:**
+
 - Uses **oklch()** color space — cutting-edge for perceptual uniformity
 - Full dark mode support via `.dark` class
 - Custom semantic tokens: `--success`, `--warning`, `--info`, `--social`, `--destructive`
@@ -283,10 +295,12 @@ For 47,000 LOC and ~285 files, this is critically low. No component tests, no in
 ### 2. Component Library (shadcn/ui) — ✅ Good Choice
 
 28 UI components in `components/ui/` including:
+
 - Radix primitives: Dialog, Select, Dropdown, Tabs, Tooltip, Switch, Slider, Alert Dialog
 - Custom components: `HoldToVerify`, `ImageKitUploader`, `PhotoCarouselManager`, `PhotoLightbox`
 
 **Strengths:**
+
 - Consistent use of `class-variance-authority` for component variants
 - `tailwind-merge` prevents className conflicts
 - `sonner` for toast notifications (top-center positioning)
@@ -296,6 +310,7 @@ For 47,000 LOC and ~285 files, this is critically low. No component tests, no in
 1. **No typography component:** Text styles are applied via global CSS base styles (`h1`, `h2`, etc.) and inline Tailwind. A `<Typography variant="h1">` component would be more maintainable.
 
 2. **Inline style overrides scattered through pages:** Many components have long `className` strings with one-off adjustments:
+
    ```tsx
    // map/page.tsx L394 — 4-line className string
    className={`
@@ -305,6 +320,7 @@ For 47,000 LOC and ~285 files, this is critically low. No component tests, no in
        ${rightPanelOpen ? 'right-[calc(50%+14rem)]' : 'right-56'}
    `}
    ```
+
    These should be extracted into component CSS or variant classes.
 
 3. **Backup file in components:** `HomeLocationMapPicker.tsx.bak` exists in `components/maps/` — should be deleted.
@@ -314,6 +330,7 @@ For 47,000 LOC and ~285 files, this is critically low. No component tests, no in
 ### 3. Layout Architecture — ⚠️ Rigid for Growth
 
 #### Layout Components:
+
 - `Header.tsx` — clean, simple (49 lines)
 - `Navigation.tsx` — desktop nav links
 - `AuthButton.tsx` — login/avatar button
@@ -335,58 +352,59 @@ For 47,000 LOC and ~285 files, this is critically low. No component tests, no in
 
 ### Core Business Logic
 
-| File | Gap | Severity |
-|------|-----|----------|
-| [api/locations/route.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/api/locations/route.ts) | No pagination on GET — `take: 100` hardcoded. Users with 100+ locations get truncated results silently | 🔴 High |
-| [api/locations/route.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/api/locations/route.ts) | N+1 query pattern: fetches photos per-location in a loop (`Promise.all` with individual queries) | 🟡 Medium |
-| [api/locations/route.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/api/locations/route.ts) | POST creates Location + UserSave + Photos in separate queries without a transaction — partial failure leaves orphaned records | 🔴 High |
-| [auth.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/auth.ts) | `verifyToken()` returns `any` — JWT payload is untyped | 🟡 Medium |
-| [auth.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/auth.ts) | JWT payload includes `avatar` and `bannerImage` URLs — these become stale if user changes their avatar | 🟡 Medium |
-| [auth-context.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/auth-context.tsx) | Duplicate `queryClient.clear()` call (L78-79) | 🟢 Low |
-| [rate-limit.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/rate-limit.ts) | In-memory Map resets on every serverless cold start — rate limiting is non-functional on Vercel | 🔴 High |
-| [permissions.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/permissions.ts) | Team/Project permission functions exist but are never imported or used anywhere in the codebase | 🟡 Medium |
-| [security.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/security.ts) | `getFailedLoginAttempts()` loads ALL failed login events then filters in JavaScript — should be a database query | 🟡 Medium |
-| [search-utils.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/search-utils.ts) | `searchByBio()` doesn't filter out current user — you can find yourself in results | 🟢 Low |
-| [search-utils.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/search-utils.ts) | `searchByLocation()` comment says to filter by visibility but the `where` clause doesn't actually filter `visibility` field | 🔴 High |
-| [photo-utils.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/photo-utils.ts) | 30+ `console.log` debug statements left in production code | 🟡 Medium |
-| [sanitize.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/sanitize.ts) | `sanitizeHTML()` is supposed to allow safe HTML but actually strips all tags (same as `sanitizeText`) | 🟡 Medium |
-| [imagekit.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/imagekit.ts) | Hardcoded CDN URL fallback `'https://ik.imagekit.io/rgriola'` — should come from env | 🟢 Low |
+| File                                                                                                             | Gap                                                                                                                           | Severity  |
+| ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | --------- |
+| [api/locations/route.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/api/locations/route.ts) | No pagination on GET — `take: 100` hardcoded. Users with 100+ locations get truncated results silently                        | 🔴 High   |
+| [api/locations/route.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/api/locations/route.ts) | N+1 query pattern: fetches photos per-location in a loop (`Promise.all` with individual queries)                              | 🟡 Medium |
+| [api/locations/route.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/api/locations/route.ts) | POST creates Location + UserSave + Photos in separate queries without a transaction — partial failure leaves orphaned records | 🔴 High   |
+| [auth.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/auth.ts)                               | `verifyToken()` returns `any` — JWT payload is untyped                                                                        | 🟡 Medium |
+| [auth.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/auth.ts)                               | JWT payload includes `avatar` and `bannerImage` URLs — these become stale if user changes their avatar                        | 🟡 Medium |
+| [auth-context.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/auth-context.tsx)             | Duplicate `queryClient.clear()` call (L78-79)                                                                                 | 🟢 Low    |
+| [rate-limit.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/rate-limit.ts)                   | In-memory Map resets on every serverless cold start — rate limiting is non-functional on Vercel                               | 🔴 High   |
+| [permissions.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/permissions.ts)                 | Team/Project permission functions exist but are never imported or used anywhere in the codebase                               | 🟡 Medium |
+| [security.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/security.ts)                       | `getFailedLoginAttempts()` loads ALL failed login events then filters in JavaScript — should be a database query              | 🟡 Medium |
+| [search-utils.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/search-utils.ts)               | `searchByBio()` doesn't filter out current user — you can find yourself in results                                            | 🟢 Low    |
+| [search-utils.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/search-utils.ts)               | `searchByLocation()` comment says to filter by visibility but the `where` clause doesn't actually filter `visibility` field   | 🔴 High   |
+| [photo-utils.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/photo-utils.ts)                 | 30+ `console.log` debug statements left in production code                                                                    | 🟡 Medium |
+| [sanitize.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/sanitize.ts)                       | `sanitizeHTML()` is supposed to allow safe HTML but actually strips all tags (same as `sanitizeText`)                         | 🟡 Medium |
+| [imagekit.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/lib/imagekit.ts)                       | Hardcoded CDN URL fallback `'https://ik.imagekit.io/rgriola'` — should come from env                                          | 🟢 Low    |
 
 ### Pages & Components
 
-| File | Gap | Severity |
-|------|-----|----------|
-| [page.tsx (home)](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/page.tsx) | Landing page is `"use client"` — blocks SEO since the entire page is client-rendered including meta content | 🟡 Medium |
-| [page.tsx (home)](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/page.tsx) | Features section has a bizarre `-mt-[calc(100vh-25px)]` that pulls content up over the hero — brittle layout math | 🟡 Medium |
-| [map/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/map/page.tsx) | 15+ useState calls, 65-line prop literals, 800 lines total — needs decomposition | 🟡 Medium |
-| [map/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/map/page.tsx) | Onboarding status is fetched via separate API call instead of being included in the auth context | 🟡 Medium |
-| [locations/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/locations/page.tsx) | Client-side filtering instead of server-side — loads ALL locations then filters in browser | 🟡 Medium |
-| [locations/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/locations/page.tsx) | `confirm("Are you sure...")` for delete — should use the Radix AlertDialog from the UI library | 🟢 Low |
-| [projects/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/projects/page.tsx) | Entire page is a "Coming Soon" placeholder despite having full Prisma schema (Project, ProjectLocation, ProjectMember, LocationContact) | 🟡 Medium |
-| [not-found.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/not-found.tsx) | Both buttons ("Go Home" and "Return Home") link to the same page ("/") | 🟢 Low |
-| [layout.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/layout.tsx) | Loads tweakcn.com live preview script in production (line 110) — should be development only | 🟡 Medium |
+| File                                                                                                     | Gap                                                                                                                                     | Severity  |
+| -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| [page.tsx (home)](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/page.tsx)              | Landing page is `"use client"` — blocks SEO since the entire page is client-rendered including meta content                             | 🟡 Medium |
+| [page.tsx (home)](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/page.tsx)              | Features section has a bizarre `-mt-[calc(100vh-25px)]` that pulls content up over the hero — brittle layout math                       | 🟡 Medium |
+| [map/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/map/page.tsx)             | 15+ useState calls, 65-line prop literals, 800 lines total — needs decomposition                                                        | 🟡 Medium |
+| [map/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/map/page.tsx)             | Onboarding status is fetched via separate API call instead of being included in the auth context                                        | 🟡 Medium |
+| [locations/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/locations/page.tsx) | Client-side filtering instead of server-side — loads ALL locations then filters in browser                                              | 🟡 Medium |
+| [locations/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/locations/page.tsx) | `confirm("Are you sure...")` for delete — should use the Radix AlertDialog from the UI library                                          | 🟢 Low    |
+| [projects/page.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/projects/page.tsx)   | Entire page is a "Coming Soon" placeholder despite having full Prisma schema (Project, ProjectLocation, ProjectMember, LocationContact) | 🟡 Medium |
+| [not-found.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/not-found.tsx)           | Both buttons ("Go Home" and "Return Home") link to the same page ("/")                                                                  | 🟢 Low    |
+| [layout.tsx](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/app/layout.tsx)                 | Loads tweakcn.com live preview script in production (line 110) — should be development only                                             | 🟡 Medium |
 
 ### Hooks
 
-| File | Gap | Severity |
-|------|-----|----------|
-| [usePhotoCacheManager.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/hooks/usePhotoCacheManager.ts) | 20+ debug `console.log` calls left in production | 🟡 Medium |
+| File                                                                                                                 | Gap                                                                                                                                | Severity  |
+| -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| [usePhotoCacheManager.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/hooks/usePhotoCacheManager.ts) | 20+ debug `console.log` calls left in production                                                                                   | 🟡 Medium |
 | [usePhotoCacheManager.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/hooks/usePhotoCacheManager.ts) | `uploadAllToImageKit()` stops on first error — no partial success handling. If photo 3/5 fails, photos 4 and 5 are never attempted | 🟡 Medium |
-| [usePhotoCacheManager.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/hooks/usePhotoCacheManager.ts) | `user` is imported from auth context but never used | 🟢 Low |
+| [usePhotoCacheManager.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/hooks/usePhotoCacheManager.ts) | `user` is imported from auth context but never used                                                                                | 🟢 Low    |
 
 ### Types
 
-| File | Gap | Severity |
-|------|-----|----------|
-| [types/location.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/location.ts) + [types/photo.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/photo.ts) | Duplicate `Photo` interface with conflicting field types | 🔴 High |
-| [types/user.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/user.ts) | `role` is `string` instead of a typed union `'user' \| 'staffer' \| 'super_admin'` | 🟡 Medium |
-| [types/photo.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/photo.ts) | `PhotoMetadata` also defined in `lib/photo-utils.ts` — two versions | 🟡 Medium |
+| File                                                                                                                                                                                              | Gap                                                                                | Severity  |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------- |
+| [types/location.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/location.ts) + [types/photo.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/photo.ts) | Duplicate `Photo` interface with conflicting field types                           | 🔴 High   |
+| [types/user.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/user.ts)                                                                                                        | `role` is `string` instead of a typed union `'user' \| 'staffer' \| 'super_admin'` | 🟡 Medium |
+| [types/photo.ts](file:///Users/rodczaro/Desktop/00-Vibecode/fotolokashen/src/types/photo.ts)                                                                                                      | `PhotoMetadata` also defined in `lib/photo-utils.ts` — two versions                | 🟡 Medium |
 
 ---
 
 ## What Works Well
 
 ### ✅ Security Posture
+
 - **CSP headers** properly configured with nonce-less approach
 - **HSTS** enabled in production with preload
 - **Input sanitization** applied systematically on all user inputs
@@ -397,30 +415,35 @@ For 47,000 LOC and ~285 files, this is critically low. No component tests, no in
 - **PKCE OAuth flow** for iOS app authentication
 
 ### ✅ API Design
+
 - `withAuth()` / `withAdmin()` wrappers are DRY and well-designed
 - Consistent `apiResponse()` / `apiError()` formatting
 - `USER_PUBLIC_SELECT` / `USER_SUMMARY_SELECT` prevent data leakage
 - `parseBoundsFilter()` supports both JSON and CSV formats
 
 ### ✅ Design System
+
 - oklch color space is forward-thinking
 - Full light/dark mode token parity
 - Semantic color tokens (`success`, `warning`, `info`, `social`, `destructive`)
 - Radix UI primitives provide accessible component foundations
 
 ### ✅ Code Organization
+
 - Clean hook extraction from complex pages
 - Validation config centralized in one file
 - Constants centralized (`messages.ts`, `upload.ts`)
 - Environment validation at startup with clear error messages
 
 ### ✅ Photo Pipeline
+
 - EXIF extraction with comprehensive metadata capture
 - HEIC/TIFF → JPEG client-side conversion before upload
 - Server-side virus scanning + compression
 - ImageKit CDN with proper folder separation (dev/prod)
 
 ### ✅ Prisma Schema
+
 - Well-indexed with composite and single-field indexes
 - Proper cascade deletes on all foreign keys
 - Soft delete support on User
@@ -465,48 +488,48 @@ For 47,000 LOC and ~285 files, this is critically low. No component tests, no in
 
 ### Priority 1 — Security & Data Integrity
 
-| # | Recommendation | Impact |
-|---|---|---|
-| 1 | **Replace in-memory rate limiter with Upstash Redis or Vercel KV** | Enables real brute-force protection |
-| 2 | **Wrap location creation in a Prisma `$transaction`** | Prevents orphaned Location/Photo records |
-| 3 | **Add Next.js `middleware.ts`** to redirect unauthenticated users server-side | Prevents flash of protected content |
-| 4 | **Remove JWT fallback secret** — crash if `JWT_SECRET` is missing | Prevents silent insecure fallback |
-| 5 | **Fix `searchByLocation()` visibility filter** | Prevents private location data leakage |
-| 6 | **Remove all `console.log` from auth middleware** | Stops PII logging in production |
+| #   | Recommendation                                                                | Impact                                   |
+| --- | ----------------------------------------------------------------------------- | ---------------------------------------- |
+| 1   | **Replace in-memory rate limiter with Upstash Redis or Vercel KV**            | Enables real brute-force protection      |
+| 2   | **Wrap location creation in a Prisma `$transaction`**                         | Prevents orphaned Location/Photo records |
+| 3   | **Add Next.js `middleware.ts`** to redirect unauthenticated users server-side | Prevents flash of protected content      |
+| 4   | **Remove JWT fallback secret** — crash if `JWT_SECRET` is missing             | Prevents silent insecure fallback        |
+| 5   | **Fix `searchByLocation()` visibility filter**                                | Prevents private location data leakage   |
+| 6   | **Remove all `console.log` from auth middleware**                             | Stops PII logging in production          |
 
 ### Priority 2 — Architecture Improvements
 
-| # | Recommendation | Impact |
-|---|---|---|
-| 7 | **Consolidate `Photo` type to single source of truth** in `types/photo.ts` and re-export from `types/location.ts` | Eliminates type conflicts |
-| 8 | **Migrate all API routes to `withAuth()`** wrapper pattern | Consistent auth + error handling |
-| 9 | **Add pagination to locations API** (`page`, `limit`, `cursor`) | Supports growth beyond 100 locations |
-| 10 | **Create a `services/` layer** (e.g., `LocationService`, `PhotoService`) | Separates business logic from route handlers |
-| 11 | **Type all `any` occurrences:** JWT payload, Prisma `where` clauses | Better IDE support & fewer runtime bugs |
-| 12 | **Introduce `useReducer` or Zustand for map page state** | Reduces 15 useState calls to structured state |
-| 13 | **Fix N+1 photos query** — use Prisma `include` on the initial query | Single query instead of N+1 |
+| #   | Recommendation                                                                                                    | Impact                                        |
+| --- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| 7   | **Consolidate `Photo` type to single source of truth** in `types/photo.ts` and re-export from `types/location.ts` | Eliminates type conflicts                     |
+| 8   | **Migrate all API routes to `withAuth()`** wrapper pattern                                                        | Consistent auth + error handling              |
+| 9   | **Add pagination to locations API** (`page`, `limit`, `cursor`)                                                   | Supports growth beyond 100 locations          |
+| 10  | **Create a `services/` layer** (e.g., `LocationService`, `PhotoService`)                                          | Separates business logic from route handlers  |
+| 11  | **Type all `any` occurrences:** JWT payload, Prisma `where` clauses                                               | Better IDE support & fewer runtime bugs       |
+| 12  | **Introduce `useReducer` or Zustand for map page state**                                                          | Reduces 15 useState calls to structured state |
+| 13  | **Fix N+1 photos query** — use Prisma `include` on the initial query                                              | Single query instead of N+1                   |
 
 ### Priority 3 — Developer Experience
 
-| # | Recommendation | Impact |
-|---|---|---|
-| 14 | **Add structured logging** (e.g., `pino` or `winston`) with log levels | Debug in dev, warn/error only in prod |
-| 15 | **Create error boundary components** for graceful failure UI | Better UX when things break |
-| 16 | **Increase test coverage to at least 40%** — prioritize auth, permissions, location CRUD | Catch regressions early |
-| 17 | **Add CI pipeline** (GitHub Actions) with lint, type-check, and test | Automated quality gates |
-| 18 | **Make `User.role` a Prisma enum** and TypeScript union type | Database + type-level validation |
-| 19 | **Remove tweakcn.com script from production** — wrap in `isDevelopment` check | Reduces production bundle + security surface |
-| 20 | **Add Sentry or similar** for production error tracking | Visibility into real user issues |
+| #   | Recommendation                                                                           | Impact                                       |
+| --- | ---------------------------------------------------------------------------------------- | -------------------------------------------- |
+| 14  | **Add structured logging** (e.g., `pino` or `winston`) with log levels                   | Debug in dev, warn/error only in prod        |
+| 15  | **Create error boundary components** for graceful failure UI                             | Better UX when things break                  |
+| 16  | **Increase test coverage to at least 40%** — prioritize auth, permissions, location CRUD | Catch regressions early                      |
+| 17  | **Add CI pipeline** (GitHub Actions) with lint, type-check, and test                     | Automated quality gates                      |
+| 18  | **Make `User.role` a Prisma enum** and TypeScript union type                             | Database + type-level validation             |
+| 19  | **Remove tweakcn.com script from production** — wrap in `isDevelopment` check            | Reduces production bundle + security surface |
+| 20  | **Add Sentry or similar** for production error tracking                                  | Visibility into real user issues             |
 
 ### Priority 4 — UX & Performance
 
-| # | Recommendation | Impact |
-|---|---|---|
-| 21 | **Make landing page a Server Component** — move auth redirect logic to a client wrapper | Better SEO + faster first paint |
-| 22 | **Server-side filtering + search on locations page** | Reduces client memory usage |
-| 23 | **Add skeleton loading states to map panels** | Better perceived performance |
-| 24 | **Implement virtual scrolling** for large location lists | Performance with 100+ locations |
-| 25 | **Remove `userScalable: false`** from viewport | Accessibility compliance |
+| #   | Recommendation                                                                          | Impact                          |
+| --- | --------------------------------------------------------------------------------------- | ------------------------------- |
+| 21  | **Make landing page a Server Component** — move auth redirect logic to a client wrapper | Better SEO + faster first paint |
+| 22  | **Server-side filtering + search on locations page**                                    | Reduces client memory usage     |
+| 23  | **Add skeleton loading states to map panels**                                           | Better perceived performance    |
+| 24  | **Implement virtual scrolling** for large location lists                                | Performance with 100+ locations |
+| 25  | **Remove `userScalable: false`** from viewport                                          | Accessibility compliance        |
 
 ---
 

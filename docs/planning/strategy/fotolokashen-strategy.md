@@ -1,5 +1,6 @@
 # Fotolokashen — Strategic Direction & AI Integration
-- Apr 27, 2026 
+
+- Apr 27, 2026
 
 ## The Core Question You're Asking
 
@@ -28,13 +29,13 @@ Fotolokashen is a **production location intelligence system** — not a planning
 
 The distinction matters:
 
-| What AI assistants do | What fotolokashen does |
-|---|---|
-| Generate generic advice about any location | Store **your crew's actual firsthand experience** at a location |
-| Answer "what's parking like near the Colosseum?" | Answer "how did *we* set up at the Colosseum in 2024, who did we call, where did we park the truck" |
-| Forget everything after the conversation | Remember everything permanently, searchable by everyone on your team |
-| Can't see your photos or GPS tracks | Holds the actual photos your photographer took that day |
-| No awareness of your organization's access points, contacts, or history | Is built from your organization's collective field knowledge |
+| What AI assistants do                                                   | What fotolokashen does                                                                              |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Generate generic advice about any location                              | Store **your crew's actual firsthand experience** at a location                                     |
+| Answer "what's parking like near the Colosseum?"                        | Answer "how did _we_ set up at the Colosseum in 2024, who did we call, where did we park the truck" |
+| Forget everything after the conversation                                | Remember everything permanently, searchable by everyone on your team                                |
+| Can't see your photos or GPS tracks                                     | Holds the actual photos your photographer took that day                                             |
+| No awareness of your organization's access points, contacts, or history | Is built from your organization's collective field knowledge                                        |
 
 **The one-line positioning:**
 
@@ -65,12 +66,14 @@ Now imagine a new producer joins your team and needs to plan a shoot in Brussels
 You're right to differentiate. Here's the clean split:
 
 ### iOS App — The Field Tool
+
 **Who uses it**: Individual photographers, field producers, scouts, crew on location  
 **When**: During and after a shoot, in the field, away from a desk  
 **What it does**: Capture → GPS tag → photo → note → sync. Fast, one-handed, camera-first.  
-**Tagline**: `fotolokashen · Location Scouting`  *(already updated)*
+**Tagline**: `fotolokashen · Location Scouting` _(already updated)_
 
-### Web App — The Production Hub  
+### Web App — The Production Hub
+
 **Who uses it**: Production managers, coordinators, department heads, teams planning future shoots  
 **When**: Pre-production planning, project review, sharing with stakeholders  
 **What it does**: Browse, search, filter, share, assign, manage access, project-level planning  
@@ -81,16 +84,20 @@ You're right to differentiate. Here's the clean split:
 ## Unified Marketing Language
 
 ### The Problem with Current Taglines
+
 - iOS: "Location Scouting" — ✅ clear but narrow (sounds like only scouting)
 - Web: "Enhance your Google Maps experience" — ❌ completely wrong, sounds like a Maps plugin
 
 ### Proposed Unified Tagline (Across Both)
+
 > **"Your crew's location knowledge, always with you."**
 
 Or for more production-specific audiences:
+
 > **"The location intelligence platform for production teams."**
 
 ### One-paragraph description (works for both App Store + web landing page):
+
 > Fotolokashen is the location knowledge system built for production crews. Capture locations in the field with GPS, photos, and production notes — then search, share, and plan from any device. Every shoot becomes institutional knowledge your whole team can use. No more asking "where did we park?" or "who do we call at that building?"
 
 ---
@@ -101,27 +108,32 @@ This is where fotolokashen becomes significantly more valuable than it is today.
 
 ### What's Possible Now (No New Infrastructure)
 
-**1. AI-Enhanced Location Descriptions** *(already partially built)*
+**1. AI-Enhanced Location Descriptions** _(already partially built)_
+
 - User adds raw notes → AI cleans and structures them
 - Current implementation: `/api/locations/improve-description`
 - Opportunity: expand to summarize location history, pull in past production notes
 
-**2. AI Tag Suggestions** *(already built)*
+**2. AI Tag Suggestions** _(already built)_
+
 - Suggests relevant tags from photo EXIF + notes
 - Opportunity: expand to suggest similar locations in the database
 
-**3. Smart Search** *(not yet built)*
+**3. Smart Search** _(not yet built)_
+
 - Natural language queries: "show me all indoor locations we've used in the northeast that fit 3 cameras"
 - Powered by: vector embeddings on location notes + semantic search
 - Infrastructure needed: pgvector extension on Neon DB (low cost, high value)
 
 ### What's Possible in the Next Phase
 
-**4. The "Brain Dump" Feature** *(mentioned in your notes)*
+**4. The "Brain Dump" Feature** _(mentioned in your notes)_
 You described this perfectly already:
+
 > "Write out everything needed for planning and let an agent format it into a clear start of planning."
 
 This is a high-value, low-complexity feature:
+
 - User types or voice-dictates rough planning notes in iOS
 - Agent structures it: location needs, timing, crew requirements, equipment, access considerations
 - Output is a formatted pre-production location brief
@@ -138,6 +150,7 @@ This is the direct answer to "why not just use Claude":
 This is **Retrieval Augmented Generation (RAG)** applied to production location knowledge.
 
 **Stack needed:**
+
 - Vector embeddings for location descriptions + notes (pgvector or Pinecone)
 - LLM API (Anthropic Claude or Gemini, or both via routing)
 - A new `/api/ai/query` endpoint that retrieves relevant locations + synthesizes response
@@ -162,21 +175,25 @@ If they say "can't I just ask ChatGPT?":
 ## Recommended Next Steps
 
 ### Immediate (no code)
+
 1. **Update the web landing page tagline** — replace "Enhance your Google Maps experience" with unified positioning
 2. **Align the App Store description** with the new one-paragraph copy above
 3. **Define the two audiences clearly** in all onboarding and marketing material
 
 ### Short Term (1-3 months)
+
 4. **Smart search with natural language** — the highest-value single feature for new users who don't know what's in the database
 5. **"Brain Dump" planner** — AI-structured pre-production brief from rough notes (iOS-first)
 6. **Slack integration** — the Slack story is powerful: executives are genuinely surprised when you can push structured location metadata and production notes from a third-party app directly into a planning channel. This is a strong proof-of-concept moment for enterprise sales.
 
 ### Medium Term (3-6 months)
+
 7. **RAG-powered location Q&A** — "what's worked for us near X?" grounded in your database
 8. **Enterprise workspace separation** — multi-tenant data isolation so CNN (workspace 1), Company B (workspace 2), etc. each have their own private knowledge base without any data leakage
 9. **Projects/Assignments** — organize locations by production, distribute to crew
 
 ### Strategic
+
 The iOS app becomes the field capture tool and the daily driver. The web becomes the production hub for planning and team management. AI runs through both — not as a chatbot, but as an intelligence layer that makes the data you've already captured dramatically more useful.
 
 ---
@@ -184,20 +201,23 @@ The iOS app becomes the field capture tool and the daily driver. The web becomes
 ## Strategic Decisions (Resolved)
 
 ### 1. Primary Target User
+
 **Decision**: CNN production staff in the short term. CNN is the proving ground — they're helping work out the bugs and validate the workflow in a real, high-volume production environment. Once the product is solid, add enterprise workspace separation so other production companies can purchase their own isolated instance.
 
 **Implication for product**: The current single-tenant architecture needs a workspace/organization layer before external enterprise launch. Every piece of data — locations, photos, notes, users — needs to be scoped to an org. This is a significant but well-understood infrastructure change and the right time to plan for it is before the user base grows, not after.
 
-**Implication for marketing**: The CNN validation story *is* the pitch to the next enterprise customer. "Built with and used by CNN production crews" is a strong proof point for any broadcaster, network, or production company.
+**Implication for marketing**: The CNN validation story _is_ the pitch to the next enterprise customer. "Built with and used by CNN production crews" is a strong proof point for any broadcaster, network, or production company.
 
 ---
 
 ### 2. Web App Future — Team/Project Management
+
 **Decision**: Yes, the web app is the team and project management hub. A solo freelancer working across multiple clients is also a valid power user — they'd use fotolokashen to organize their location knowledge by client/project and share relevant subsets.
 
 **Slack is the critical integration** — you've already seen this work on another project. The moment an executive can see a location brief, GPS coordinates, photos, and production notes appear directly in a Slack planning channel — without anyone copying and pasting — the value proposition becomes self-evident. This is the integration that sells the enterprise tier.
 
 **What the Slack integration enables:**
+
 - `/fotolokashen share [location]` → drops a formatted location card into any channel
 - Auto-post to a `#planning` channel when a location is approved for production
 - Crew can reply in Slack, comments sync back to the location record
@@ -215,7 +235,8 @@ This question isn't primarily about cost. It's about **how the AI layer is archi
 Enterprise customers like CNN bring their own AI API credentials. CNN already has enterprise agreements with Anthropic, Google, or OpenAI — often with negotiated privacy terms that ensure their data doesn't train the model and stays within compliance boundaries.
 
 In this model, fotolokashen acts as the orchestration layer:
-- Your app sends the query + retrieved location context to *their* AI endpoint using *their* key
+
+- Your app sends the query + retrieved location context to _their_ AI endpoint using _their_ key
 - CNN's IT/legal team is comfortable because data flows through their existing vendor agreement
 - Fotolokashen doesn't pay for inference costs at scale — the enterprise does
 - You build a single AI integration layer with configurable provider/key per workspace
@@ -224,6 +245,7 @@ This is the right model for regulated industries (broadcasting, healthcare, fina
 
 **Model B — Managed AI (Fotolokashen pays, charges per seat or usage)**
 Fotolokashen operates the AI layer centrally. You pay for inference and build that cost into the subscription price. Simpler to build initially, but:
+
 - You take on the data privacy responsibility for all customers
 - Cost scales with usage and needs careful monitoring
 - Harder to sell to enterprise legal/compliance teams who want their own AI agreement
@@ -236,6 +258,7 @@ Given CNN as the anchor customer and the enterprise expansion roadmap, the answe
 > **Build a provider-agnostic AI layer with BYOK support, and run a managed fallback for smaller tiers.**
 
 In practice:
+
 - The AI integration is abstracted behind an internal interface: `AIPlanningService`
 - At the workspace level, an admin can configure: provider (Anthropic / Google / OpenAI), API key, and model preference
 - If no key is configured, fall back to a managed key (fotolokashen's) with usage limits tied to the subscription tier
@@ -244,11 +267,11 @@ In practice:
 
 #### What This Enables Practically
 
-| Tier | AI Access | Data Governance |
-|---|---|---|
-| Solo / Freelancer | Managed key, limited queries/month | Fotolokashen's standard ToS |
-| Team | Managed key, higher limits | Fotolokashen's standard ToS |
-| Enterprise (e.g. CNN) | BYOK — their own API key | Their enterprise AI vendor agreement |
+| Tier                  | AI Access                          | Data Governance                      |
+| --------------------- | ---------------------------------- | ------------------------------------ |
+| Solo / Freelancer     | Managed key, limited queries/month | Fotolokashen's standard ToS          |
+| Team                  | Managed key, higher limits         | Fotolokashen's standard ToS          |
+| Enterprise (e.g. CNN) | BYOK — their own API key           | Their enterprise AI vendor agreement |
 
 #### The Infrastructure This Requires
 
