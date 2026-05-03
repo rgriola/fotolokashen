@@ -1,10 +1,39 @@
 # fotolokashen - Project Status
 
-**Last Updated**: 2026-04-09
+**Last Updated**: 2026-05-03 13:42 EDT
 **Production URL**: https://fotolokashen.com  
-**Status**: ✅ Live in Production | 📱 iOS App v1.4.1
+**Status**: ✅ Live in Production | 📱 iOS App v1.5.1
 
 ## Current Focus
+
+### 🎯 Recent Completions (Late April 2026)
+
+1. ✅ **Mobile API v1 Contract Hardening + ImageKit Variants**
+   - Added strict canonical response validation for `/api/v1/*` endpoints using shared Zod schemas in `src/lib/schemas/mobileApiV1.ts`
+   - Added comprehensive contract tests (`src/lib/__tests__/mobileApiV1Contract.test.ts`) to enforce iOS-compatible response shapes
+   - Locked coordinate response keys to `lat`/`lng` and added safeguards against `latitude`/`longitude` regressions
+   - Standardized ImageKit photo variant generation and added regression tests (`src/lib/__tests__/imagekitVariants.test.ts`)
+
+2. ✅ **Location Grouping Foundation (Events/Collections)**
+   - Added Prisma schema support for grouped locations and new API routes:
+     - `/api/location-groups`
+     - `/api/location-groups/[id]`
+     - `/api/user-group-types`
+   - Updated location create/update flows to support group association
+
+3. ✅ **Authentication & Session Reliability Fixes (Web + iOS)**
+   - Fixed OAuth token exchange behavior so iOS authentication no longer invalidates active web sessions
+   - Fixed stale auth cookie redirect loop by clearing invalid auth cookie state on `/api/auth/me` 401
+   - Fixed production auth navigation edge cases (login render loop and logout redirect getting stuck on `/map`)
+
+4. ✅ **Legal Content Architecture Refresh**
+   - Extracted Terms, Privacy Policy, and Help/FAQ content into markdown under `/content/`
+   - Added legal content API endpoint (`/api/content/legal`) and reusable markdown page rendering components
+   - Updated onboarding terms flow to consume markdown-backed legal content
+
+5. ✅ **Image URL Consistency Across Public Surfaces**
+   - Standardized public/shared/profile/location image transforms via `getPhotoUrl` helper
+   - Reduced transform drift across cards, lightbox, profile grids, and public location pages
 
 ### 🎯 Recent Completions (April 2026)
 
@@ -92,7 +121,7 @@
 - ✅ **Profile Management Enhancements** - Username/email change, avatar/banner editing
 - ✅ **Privacy & Visibility System** - Granular privacy controls
 
-### 📱 iOS Companion App (v1.4.1)
+### 📱 iOS Companion App (v1.5.1)
 
 **Status**: Active Development  
 **Location**: `/fotolokashen-ios/` workspace
@@ -101,6 +130,7 @@
 - **Core Features**: Camera-first workflow, GPS tagging, offline support (iOS 17+)
 - **Social Features**: Follow/unfollow, public profiles, friends' locations on map, people search
 - **Backend Integration**: OAuth2 + PKCE authentication, secure server-mediated uploads
+- **Recent Milestones**: v1.5.0 Profile & Settings restructure and v1.5.1 OAuth login/register reliability fixes
 - **Recent Refactors**: Extracted `GeocodingService`, `LocationDetailSubviews`, `ProfileHeaderComponents` — all files under 500-line SwiftLint threshold
 
 ---
@@ -276,82 +306,40 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 
 ## Known Issues & Priorities
 
-### High Priority
+### Active Priorities (Top)
 
-**Onboarding Tours** ✅ COMPLETED (2026-02-06)
+**1) Session Management Hardening (web + iOS)**
 
-- [x] Fixed repeating tour issue on /locations and /search
-- [x] Proper state management and database persistence
-- [x] Fixed positioning issues in fixed layouts
-- [x] Removed unreliable tour steps
+- [ ] Validate unusual IP change behavior in active sessions
+- [ ] Limit active sessions per account (target: 2-3)
+- [ ] Auto-expire oldest session when the cap is exceeded
+- [ ] Add user-facing "Active Sessions" management UI
 
-**Session Management Enhancements** ✅ COMPLETED (2026-01-16)
+**2) Email Verification UX Completion**
 
-- [x] Capture all session metadata (IP, user agent, device type, device name)
-- [x] Support multi-device sessions (web + iOS simultaneously)
-- [x] iOS logout isolation (doesn't affect web sessions)
-- [ ] Validate IP address changes in sessions
-- [ ] Limit to 2-3 active sessions per user
-- [ ] Auto-logout oldest session when limit exceeded
-- [ ] Add "active session" management UI
+- [ ] Add visual token-expiry timer on verify/resend flows
+- [ ] Implement resend flow with email re-entry + captcha
+- [ ] Ensure resend always rotates token and invalidates prior token
 
-**Email Verification Improvements** (Partially Complete)
+**3) Performance & Reliability**
 
-- [x] Add token expiration (30 minutes)
-- [x] Improve UX messaging
-- [ ] Add visual timer showing token expiration
-- [ ] Implement resend email option with:
-  - Generate new token on resend
-  - Rate limiting (already implemented)
-  - Email re-entry + Captcha for resend
+- [ ] Optimize key database query patterns and indexing
+- [ ] Add targeted caching for high-read endpoints
+- [ ] Continue Core Web Vitals regression tracking
+- [ ] Expand automated test coverage and E2E for critical flows
 
-### Medium Priority
+**4) Product Enhancements (Next)**
 
-**Performance Optimization**
-
-- [ ] Optimize database query patterns and indexing
-- [ ] Implement query result caching where appropriate
-- [ ] Review and optimize image loading strategies
-- [ ] Monitor and improve Core Web Vitals
-
-**Feature Enhancements**
-
-- [ ] Add in-app help documentation system
-- [ ] Implement notification system for social interactions
-- [ ] Add location collections/albums feature
+- [ ] Add social interaction notification system
+- [ ] Add location collections/albums
 - [ ] Expand AI features (auto-tagging, smart search)
+- [ ] Add in-app help documentation system
 
-**Avatar System** ✅ RESOLVED
+### Recently Resolved
 
-- Avatars currently saved to `/development/` folder on ImageKit
-- Should use `/production/` in production
-- Files work correctly, just in wrong folder
-- See `AVATAR_UPLOAD_FLOW.md` for details
-
-**Email Enhancements**
-
-- [ ] Implement "Send Test Email" in admin preview
-- [ ] Add email template versioning system
-- [ ] Create email analytics dashboard
-- [ ] Add unsubscribe management
-- [ ] Implement email notification preferences
-
-### Low Priority
-
-**UI/UX Polish**
-
-- [ ] Add loading skeletons for better perceived performance
-- [ ] Implement comprehensive toast notification system
-- [ ] Add keyboard shortcuts for power users
-- [ ] Improve mobile navigation and gestures
-- [ ] Add dark mode support
-
-**Testing & Quality**
-
-- [ ] Expand automated test coverage
-- [ ] Implement E2E testing for critical flows
-- [ ] Add performance monitoring and alerting
-- [ ] Create user acceptance testing protocols
+- ✅ Onboarding tour stability issues resolved (2026-02-06)
+- ✅ Session metadata capture + multi-device session support + iOS logout isolation completed (2026-01-16)
+- ✅ Avatar upload environment path issue resolved (see `AVATAR_UPLOAD_FLOW.md`)
 
 ### Documentation
 
@@ -373,6 +361,19 @@ fotolokashen is a location discovery and sharing platform built with Next.js 16,
 - 🔄 User guide and help system content
 
 ## Recent Deployments
+
+**2026-04-30**: Mobile API v1 Contract Hardening + ImageKit Variants
+
+- Added strict contract validation layer for mobile API responses with canonical shared schemas
+- Added endpoint fixtures and source-scan checks to prevent `latitude`/`longitude` regressions in `/api/v1/*`
+- Added ImageKit variant tests and standardized photo URL transform behavior
+
+**2026-04-27**: Location Groups + Auth/Session Stability + Legal Content Migration
+
+- Added `LocationGroup` schema support and new endpoints (`/api/location-groups`, `/api/location-groups/[id]`, `/api/user-group-types`)
+- Fixed iOS OAuth token exchange side effects that were invalidating active web sessions
+- Fixed stale-auth redirect loops and logout redirect issues in production auth flows
+- Migrated legal content to markdown-backed pages and fixed footer/legal links
 
 **2026-04-08**: Codebase Review — Full 6-Phase Refactor
 
