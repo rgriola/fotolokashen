@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { AlertCircle, CheckCircle, Mail, Clock } from 'lucide-react';
 
-type VerificationStatus = 'loading' | 'success' | 'no_token' | 'expired' | 'invalid' | 'error';
+type VerificationStatus = 'loading' | 'ready' | 'success' | 'no_token' | 'expired' | 'invalid' | 'error';
 
 function VerifyEmailPageInner() {
     const searchParams = useSearchParams();
@@ -17,13 +17,15 @@ function VerifyEmailPageInner() {
     const [countdown, setCountdown] = useState(3);
     const [shouldRedirect, setShouldRedirect] = useState(false);
     const [autoLoginToken, setAutoLoginToken] = useState<string | null>(null);
-    const verifyingRef = useRef(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const validationRef = useRef(false);
+
+    const token = searchParams.get('token');
+    const platform = searchParams.get('platform');
 
     useEffect(() => {
-        const token = searchParams.get('token');
         const emailParam = searchParams.get('email');
         const resent = searchParams.get('resent');
-        const platform = searchParams.get('platform');
 
         if (emailParam) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -44,28 +46,31 @@ function VerifyEmailPageInner() {
             return;
         }
 
-        // Prevent double execution in React Strict Mode
-        if (verifyingRef.current) return;
-        verifyingRef.current = true;
+        // Prevent duplicate checks in React Strict Mode.
+        if (validationRef.current) return;
+        validationRef.current = true;
 
-        // Call the verification API — include platform so it can generate auto-login token
+        // Validate token only. Actual verification requires explicit POST confirmation.
         const platformParam = platform ? `&platform=${platform}` : '';
         fetch(`/api/auth/verify-email?token=${token}${platformParam}`)
             .then((res) => res.json())
             .then((data) => {
                 if (data.success) {
-                    setStatus('success');
-                    setMessage(data.message || 'Email verified successfully!');
-
-                    // Store auto-login token if provided (iOS flow)
-                    if (data.autoLoginToken) {
-                        setAutoLoginToken(data.autoLoginToken);
-                    }
-
-                    // Auto-redirect: for already-verified emails OR iOS first-time verifications
-                    if (data.alreadyVerified || (platform === 'ios' && data.autoLoginToken)) {
+                    if (data.alreadyVerified) {
+                        setStatus('success');
+                        setMessage(data.message || 'Email is already verified.');
                         setShouldRedirect(true);
+                        return;
                     }
+
+                    if (data.canVerify) {
+                        setStatus('ready');
+                        setMessage(data.message || 'Verification link is valid. Click confirm below.');
+                        return;
+                    }
+
+                    setStatus('error');
+                    setMessage('Unable to validate verification link. Please request a new link.');
                 } else {
                     // Determine specific error type based on error code or message
                     const errorMsg = data.error || 'Verification failed';
@@ -87,7 +92,59 @@ function VerifyEmailPageInner() {
                 setStatus('error');
                 setMessage('An error occurred during verification');
             });
-    }, [searchParams]);
+    }, [searchParams, token, platform]);
+
+    const handleConfirmVerification = async () => {
+        if (!token || isSubmitting) return;
+
+        setIsSubmitting(true);
+        setStatus('loading');
+
+        try {
+            const response = await fetch('/api/auth/verify-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ token, platform }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setStatus('success');
+                setMessage(data.message || 'Email verified successfully!');
+
+                if (data.autoLoginToken) {
+                    setAutoLoginToken(data.autoLoginToken);
+                }
+
+                if (data.alreadyVerified || (platform === 'ios' && data.autoLoginToken)) {
+                    setShouldRedirect(true);
+                }
+                return;
+            }
+
+            const errorMsg = data.error || 'Verification failed';
+            const errorCode = data.code;
+
+            if (errorCode === 'TOKEN_EXPIRED' || errorMsg.includes('expired')) {
+                setStatus('expired');
+                setMessage('Your verification link has expired');
+            } else if (errorMsg.includes('Invalid')) {
+                setStatus('invalid');
+                setMessage('This verification link is invalid');
+            } else {
+                setStatus('error');
+                setMessage(errorMsg);
+            }
+        } catch {
+            setStatus('error');
+            setMessage('An error occurred during verification');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     // Countdown and redirect for already-verified emails
     useEffect(() => {
@@ -98,7 +155,6 @@ function VerifyEmailPageInner() {
             return () => clearTimeout(timer);
         } else if (shouldRedirect && countdown === 0) {
             // If user registered from iOS, redirect to the app via deep link
-            const platform = searchParams.get('platform');
             if (platform === 'ios') {
                 const tokenParam = autoLoginToken ? `?token=${autoLoginToken}` : '';
                 window.location.href = `fotolokashen://email-verified${tokenParam}`;
@@ -106,7 +162,7 @@ function VerifyEmailPageInner() {
                 router.push('/login');
             }
         }
-    }, [shouldRedirect, countdown, router, searchParams, autoLoginToken]);
+    }, [shouldRedirect, countdown, router, platform, autoLoginToken]);
 
     return (
         <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -149,6 +205,38 @@ function VerifyEmailPageInner() {
                             <h2 className="mt-4 text-xl font-semibold text-foreground">
                                 Verifying your email...
                             </h2>
+                        </div>
+                    )}
+
+                    {/* Ready To Confirm */}
+                    {status === 'ready' && (
+                        <div className="text-center">
+                            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-primary/10">
+                                <Mail className="h-10 w-10 text-primary" />
+                            </div>
+                            <h2 className="mt-4 text-2xl font-bold text-foreground">Confirm Your Email</h2>
+                            <p className="mt-2 text-muted-foreground">
+                                {message || 'Your verification link is valid. Confirm below to finish verification.'}
+                            </p>
+                            <div className="mt-6 space-y-3">
+                                <button
+                                    type="button"
+                                    onClick={handleConfirmVerification}
+                                    disabled={isSubmitting}
+                                    className="block w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                    {isSubmitting ? 'Confirming...' : 'Confirm Email Verification'}
+                                </button>
+                                <Link
+                                    href="/login"
+                                    className="block w-full bg-muted hover:bg-muted text-foreground font-medium py-3 px-4 rounded-lg transition-colors"
+                                >
+                                    Back to Login
+                                </Link>
+                            </div>
+                            <p className="mt-4 text-xs text-muted-foreground">
+                                This confirmation step helps prevent automated link scanners from verifying accounts.
+                            </p>
                         </div>
                     )}
 
