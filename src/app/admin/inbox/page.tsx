@@ -117,6 +117,19 @@ interface InboxHealthResponse {
   } | null;
 }
 
+interface InboundAlertResponse {
+  sent?: boolean;
+  skipped?: boolean;
+  reason?: string;
+  error?: string;
+  snapshot?: {
+    metrics: {
+      forwardFailed: number;
+      forwardNotConfigured: number;
+    };
+  };
+}
+
 type ForwardFilter = 'all' | 'ok' | 'failed' | 'not_configured';
 
 function formatDateTime(value: string): string {
@@ -166,6 +179,7 @@ export default function AdminInboxPage() {
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [isLoadingHealth, setIsLoadingHealth] = useState(true);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [isSendingAlert, setIsSendingAlert] = useState(false);
 
   const [search, setSearch] = useState('');
   const [forwardFilter, setForwardFilter] = useState<ForwardFilter>('all');
@@ -242,6 +256,44 @@ export default function AdminInboxPage() {
       setIsLoadingDetail(false);
     }
   }, []);
+
+  const sendForwardAlert = useCallback(async () => {
+    try {
+      setIsSendingAlert(true);
+
+      const response = await fetch('/api/admin/inbound-emails/health/alert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          windowHours: health?.windowHours || 24,
+          limit: 10,
+        }),
+      });
+
+      const data = (await response.json()) as InboundAlertResponse;
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send alert');
+      }
+
+      if (data.skipped) {
+        toast.message(data.reason || 'No alert sent because no failures were detected.');
+        return;
+      }
+
+      const failed = data.snapshot?.metrics.forwardFailed ?? 0;
+      const notConfigured = data.snapshot?.metrics.forwardNotConfigured ?? 0;
+      toast.success(`Slack alert sent (failed: ${failed}, not configured: ${notConfigured}).`);
+    } catch (error) {
+      console.error('Failed to send forwarding alert:', error);
+      const message = error instanceof Error ? error.message : 'Failed to send forwarding alert';
+      toast.error(message);
+    } finally {
+      setIsSendingAlert(false);
+    }
+  }, [health?.windowHours]);
 
   useEffect(() => {
     void fetchList();
@@ -387,6 +439,16 @@ export default function AdminInboxPage() {
                     }}
                   >
                     Clear Forward Filter
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isSendingAlert || isLoadingHealth}
+                    onClick={() => {
+                      void sendForwardAlert();
+                    }}
+                  >
+                    {isSendingAlert ? 'Sending Alert...' : 'Send Slack Alert'}
                   </Button>
                 </div>
               </>
