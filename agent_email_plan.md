@@ -81,15 +81,15 @@ This plan tracks the email system recovery and improvement effort. The first mil
   - Added admin health endpoint for 24h inbound and forwarding metrics
   - Added Admin Inbox health card with warning/healthy status and quick filters
 - [x] Secrets and environment safety (slice 1)
-   - Confirmed `EMAIL_FROM_ADDRESS` and `EMAIL_REPLY_TO` configured in Production
-   - Added Preview/main scoped values for `EMAIL_FROM_ADDRESS` and `EMAIL_REPLY_TO`
+  - Confirmed `EMAIL_FROM_ADDRESS` and `EMAIL_REPLY_TO` configured in Production
+  - Added Preview/main scoped values for `EMAIL_FROM_ADDRESS` and `EMAIL_REPLY_TO`
 - [x] Webhook robustness (slice 1)
-   - Added duplicate lifecycle guard in `/api/webhooks/resend` to skip replayed events already recorded for the same message/event pair
+  - Added duplicate lifecycle guard in `/api/webhooks/resend` to skip replayed events already recorded for the same message/event pair
 - [ ] Deliverability and sender-domain segmentation
   - Evaluate migration to dedicated sending subdomain (mail.fotolokashen.com)
   - Keep inbound receiving on dedicated receiving path to avoid reputation coupling
-   - Validate confirmation email deliverability to Outlook and corporate domains after cutover
-   - Cutover complete; controlled pass delivered; Gmail validated; remaining matrix in progress
+  - Validate confirmation email deliverability to Outlook and corporate domains after cutover
+  - Cutover complete; controlled pass delivered; Gmail validated; remaining matrix in progress
 - [ ] Data quality and retention
 - [ ] Monitoring and alerting (slice 2: alert channel)
 

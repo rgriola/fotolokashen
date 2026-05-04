@@ -1,6 +1,6 @@
 # Email Templates System - User Guide
 
-**Last Updated:** January 22, 2026  
+**Last Updated:** 2026-05-04 00:22:44 EDT  
 **For:** Super Admins  
 **Feature:** Dynamic Email Template Management
 
@@ -84,8 +84,19 @@ The template list shows:
 
 1. Save the template first (must have ID)
 2. Click **"Send Test"** button
-3. Test email will be sent to your email address
-4. Check your inbox to verify the template
+3. In the **Test Variables** modal, review required variables and edit values if needed
+4. Optionally add **custom variables** for non-required placeholders
+5. Click **"Send Test Email"**
+6. Test email will be sent to your account email address
+7. Check your inbox to verify the template
+
+#### Test Variables Modal
+
+- Required variables are prefilled with suggested sample values
+- Custom variables can be added using a key/value row
+- Custom keys are sanitized to letters, numbers, and underscores
+- Custom variables can be removed before sending
+- Backend still provides safe fallback defaults if a variable is blank
 
 **Development Mode:**
 

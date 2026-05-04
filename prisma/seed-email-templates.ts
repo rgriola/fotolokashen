@@ -5,14 +5,17 @@ import {
   passwordResetEmailTemplate,
   passwordChangedEmailTemplate,
   accountDeletionEmailTemplate,
+  publicSupportRequestTemplate,
+  memberSupportRequestTemplate,
+  supportConfirmationTemplate,
 } from '../src/lib/email-templates';
 
 /**
  * Seed Email Templates
- * Populates the database with default email templates from the hard-coded templates
+ * Creates missing defaults and refreshes existing system defaults.
  */
 async function seedEmailTemplates() {
-  console.log('🌱 Seeding email templates...');
+  console.log('Seeding email templates...');
 
   const templates = [
     {
@@ -65,36 +68,109 @@ async function seedEmailTemplates() {
       requiredVariables: ['username', 'email'],
       isDefault: true,
     },
+    {
+      key: 'support_request_public',
+      name: 'Public Support Request (Admin)',
+      description: 'Email sent to admin when public support form is submitted',
+      category: 'support',
+      subject: '[Support] {{subject}}',
+      htmlBody: publicSupportRequestTemplate('{{name}}', '{{email}}', '{{subject}}', '{{message}}'),
+      requiredVariables: ['name', 'email', 'subject', 'message'],
+      isDefault: true,
+    },
+    {
+      key: 'support_request_member',
+      name: 'Member Support Request (Admin)',
+      description: 'Email sent to admin when member support form is submitted',
+      category: 'support',
+      subject: '[Member Support] {{subject}}',
+      htmlBody: memberSupportRequestTemplate('{{name}}', '{{email}}', '{{subject}}', '{{message}}', '{{username}}'),
+      requiredVariables: ['name', 'email', 'subject', 'message', 'username'],
+      isDefault: true,
+    },
+    {
+      key: 'support_confirmation',
+      name: 'Support Request Confirmation',
+      description: 'Confirmation email sent to user after support request',
+      category: 'support',
+      subject: 'Your Support Request Has Been Received',
+      htmlBody: supportConfirmationTemplate('{{name}}', '{{subject}}'),
+      requiredVariables: ['name', 'subject'],
+      isDefault: true,
+    },
   ];
+
+  const results = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+  };
 
   for (const template of templates) {
     const existing = await prisma.emailTemplate.findUnique({
       where: { key: template.key },
     });
 
-    if (existing) {
-      console.log(`  ⏭️  Template "${template.key}" already exists, skipping...`);
+    if (!existing) {
+      await prisma.emailTemplate.create({
+        data: {
+          ...template,
+          requiredVariables: template.requiredVariables,
+        },
+      });
+
+      results.created += 1;
+      console.log(`Created template: ${template.name}`);
       continue;
     }
 
-    await prisma.emailTemplate.create({
+    if (!existing.isDefault) {
+      results.skipped += 1;
+      console.log(`Skipped template \"${template.key}\": existing template is not a system default`);
+      continue;
+    }
+
+    const existingRequiredVariables = Array.isArray(existing.requiredVariables)
+      ? existing.requiredVariables.map(String)
+      : [];
+    const requiredVariablesChanged =
+      JSON.stringify(existingRequiredVariables) !== JSON.stringify(template.requiredVariables);
+
+    const hasChanges =
+      existing.name !== template.name ||
+      existing.description !== template.description ||
+      existing.category !== template.category ||
+      existing.subject !== template.subject ||
+      existing.htmlBody !== template.htmlBody ||
+      requiredVariablesChanged;
+
+    if (!hasChanges) {
+      results.skipped += 1;
+      console.log(`Skipped template \"${template.key}\": no changes`);
+      continue;
+    }
+
+    await prisma.emailTemplate.update({
+      where: { id: existing.id },
       data: {
         ...template,
-        requiredVariables: template.requiredVariables,
+        version: existing.version + 1,
       },
     });
 
-    console.log(`  ✅ Created template: ${template.name}`);
+    results.updated += 1;
+    console.log(`Updated template: ${template.name}`);
   }
 
-  console.log('✨ Email templates seeded successfully!\n');
+  console.log('Email templates seed complete');
+  console.log(`Created: ${results.created}, Updated: ${results.updated}, Skipped: ${results.skipped}\n`);
 }
 
 async function main() {
   try {
     await seedEmailTemplates();
   } catch (error) {
-    console.error('❌ Error seeding email templates:', error);
+    console.error('Error seeding email templates:', error);
     throw error;
   }
 }

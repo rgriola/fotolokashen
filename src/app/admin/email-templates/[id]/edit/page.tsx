@@ -25,6 +25,8 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -84,10 +86,10 @@ export default function EmailTemplateEditPage({
     category: 'system',
     subject: '',
     htmlBody: '',
-    brandColor: '#4285f4',
-    headerGradientStart: '#4285f4',
-    headerGradientEnd: '#5a67d8',
-    buttonColor: '#4285f4',
+    brandColor: '#0f172b',
+    headerGradientStart: '#0f172b',
+    headerGradientEnd: '#1f2937',
+    buttonColor: '#0f172b',
     headerImageUrl: '',
     requiredVariables: [],
     isActive: true,
@@ -101,6 +103,10 @@ export default function EmailTemplateEditPage({
   const [keyError, setKeyError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | null>(null);
   const [subjectError, setSubjectError] = useState<string | null>(null);
+  const [showTestVariablesModal, setShowTestVariablesModal] = useState(false);
+  const [testVariables, setTestVariables] = useState<Record<string, string>>({});
+  const [customVariableKey, setCustomVariableKey] = useState('');
+  const [customVariableValue, setCustomVariableValue] = useState('');
 
   // Validation regex: lowercase letters, numbers, underscores, and hyphens only
   const TEMPLATE_KEY_REGEX = /^[a-z0-9_-]+$/;
@@ -239,10 +245,15 @@ export default function EmailTemplateEditPage({
 
   useEffect(() => {
     if (resolvedParams.id !== 'new') {
-      fetchTemplate();
-    } else {
-      setLoading(false);
+      void (async () => {
+        await fetchTemplate();
+      })();
+      return;
     }
+
+    void Promise.resolve().then(() => {
+      setLoading(false);
+    });
   }, [resolvedParams.id, fetchTemplate]);
 
   const handleSave = async () => {
@@ -331,32 +342,97 @@ export default function EmailTemplateEditPage({
     }
   };
 
-  const handleSendTest = async () => {
+  const getSuggestedTestValue = (variableName: string): string => {
+    const lower = variableName.toLowerCase();
+
+    if (lower.includes('url')) return 'https://fotolokashen.com/test-link';
+    if (lower.includes('email')) return 'test.user@example.com';
+    if (lower.includes('username')) return 'testuser';
+    if (lower.includes('name')) return 'Test User';
+    if (lower.includes('subject')) return 'Test support subject';
+    if (lower.includes('message')) return 'This is a test message submitted from the template editor.';
+    if (lower.includes('timestamp') || lower.includes('time') || lower.includes('date')) {
+      return new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' });
+    }
+    if (lower.includes('ip')) return '192.168.1.100';
+
+    return `Test ${variableName}`;
+  };
+
+  const openTestVariablesModal = () => {
+    const requiredVars = Array.isArray(template.requiredVariables) ? template.requiredVariables : [];
+
+    setTestVariables((prev) => {
+      const next = { ...prev };
+      for (const variableName of requiredVars) {
+        if (!next[variableName]) {
+          next[variableName] = getSuggestedTestValue(variableName);
+        }
+      }
+      return next;
+    });
+
+    setShowTestVariablesModal(true);
+  };
+
+  const sanitizeVariableKey = (value: string): string => {
+    return value
+      .trim()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_]/g, '');
+  };
+
+  const addCustomVariable = () => {
+    const key = sanitizeVariableKey(customVariableKey);
+
+    if (!key) {
+      toast.error('Enter a valid variable key. Use letters, numbers, and underscores only.');
+      return;
+    }
+
+    setTestVariables((prev) => ({
+      ...prev,
+      [key]: customVariableValue,
+    }));
+
+    setCustomVariableKey('');
+    setCustomVariableValue('');
+  };
+
+  const removeVariable = (variableName: string) => {
+    setTestVariables((prev) => {
+      const next = { ...prev };
+      delete next[variableName];
+      return next;
+    });
+  };
+
+  const handleSendTest = async (variables: Record<string, string> = {}) => {
     if (!template.id) {
       toast.error(TOAST.ADMIN.TEMPLATE_SAVE_FIRST);
       return;
     }
-
-    // Confirm with user that test email goes to their account
-    const confirmed = window.confirm(
-      'This will send a test email to your account email address.\n\nDo you want to continue?'
-    );
-    if (!confirmed) return;
 
     try {
       setSendingTest(true);
       const response = await fetch(`/api/admin/email-templates/${template.id}/test`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variables: {} }),
+        body: JSON.stringify({ variables }),
       });
 
-      if (!response.ok) throw new Error('Failed to send test email');
+      const data = await response.json().catch(() => ({}));
 
-      toast.success(TOAST.ADMIN.TEST_EMAIL_SENT);
+      if (!response.ok) {
+        throw new Error(data?.error || data?.message || 'Failed to send test email');
+      }
+
+      toast.success(data?.message || TOAST.ADMIN.TEST_EMAIL_SENT);
+      setShowTestVariablesModal(false);
     } catch (error) {
       console.error('Error sending test email:', error);
-      toast.error(TOAST.ADMIN.TEST_EMAIL_FAILED);
+      const message = error instanceof Error ? error.message : TOAST.ADMIN.TEST_EMAIL_FAILED;
+      toast.error(message);
     } finally {
       setSendingTest(false);
     }
@@ -387,6 +463,119 @@ export default function EmailTemplateEditPage({
   return (
     <AdminRoute>
       <div className="container max-w-7xl mx-auto py-8 px-4">
+        <Dialog open={showTestVariablesModal} onOpenChange={setShowTestVariablesModal}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Test Variables</DialogTitle>
+              <DialogDescription>
+                Review or customize variables used for this test send. If left blank, the backend applies sample defaults.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3 max-h-105 overflow-y-auto pr-1">
+              {template.requiredVariables.length > 0 ? (
+                template.requiredVariables.map((variableName) => (
+                  <div key={variableName} className="space-y-1.5">
+                    <Label htmlFor={`test-var-${variableName}`} className="text-xs">
+                      {variableName}
+                    </Label>
+                    <Input
+                      id={`test-var-${variableName}`}
+                      value={testVariables[variableName] || ''}
+                      onChange={(e) =>
+                        setTestVariables((prev) => ({
+                          ...prev,
+                          [variableName]: e.target.value,
+                        }))
+                      }
+                      placeholder={getSuggestedTestValue(variableName)}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  This template does not define required variables. A test email can still be sent with generated sample values.
+                </p>
+              )}
+
+              <div className="pt-2 border-t">
+                <p className="text-xs font-medium mb-2">Add Custom Variable</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Input
+                    value={customVariableKey}
+                    onChange={(e) => setCustomVariableKey(e.target.value)}
+                    placeholder="variableKey"
+                    className="h-8 text-sm"
+                  />
+                  <Input
+                    value={customVariableValue}
+                    onChange={(e) => setCustomVariableValue(e.target.value)}
+                    placeholder="Variable value"
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="mt-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addCustomVariable}
+                    disabled={!customVariableKey.trim()}
+                  >
+                    Add Variable
+                  </Button>
+                </div>
+              </div>
+
+              {Object.keys(testVariables).length > 0 && (
+                <div className="pt-2 border-t space-y-2">
+                  <p className="text-xs font-medium">Current Test Payload</p>
+                  {Object.entries(testVariables).map(([key, value]) => {
+                    const isRequired = template.requiredVariables.includes(key);
+                    return (
+                      <div key={key} className="flex items-center gap-2">
+                        <div className="flex-1 text-xs bg-muted rounded px-2 py-1.5 break-all">
+                          <span className="font-semibold">{key}</span>: {value || '(empty)'}
+                          {isRequired ? ' (required)' : ' (custom)'}
+                        </div>
+                        {!isRequired && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeVariable(key)}
+                            className="h-7 px-2"
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowTestVariablesModal(false)}
+                disabled={sendingTest}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => handleSendTest(testVariables)}
+                disabled={sendingTest}
+              >
+                <Send className="w-4 h-4 mr-2" />
+                {sendingTest ? 'Sending...' : 'Send Test Email'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -464,7 +653,7 @@ export default function EmailTemplateEditPage({
             {template.id && (
               <Button
                 variant="outline"
-                onClick={handleSendTest}
+                onClick={openTestVariablesModal}
                 disabled={sendingTest}
               >
                 <Send className="w-4 h-4 mr-2" />

@@ -115,6 +115,7 @@ export async function POST(req: NextRequest) {
 
     const results = {
       created: [] as string[],
+      updated: [] as string[],
       skipped: [] as string[],
       errors: [] as string[],
     };
@@ -126,7 +127,60 @@ export async function POST(req: NextRequest) {
         });
 
         if (existing) {
-          results.skipped.push(template.key);
+          if (!existing.isDefault) {
+            results.skipped.push(template.key);
+            continue;
+          }
+
+          const existingRequiredVariables = Array.isArray(existing.requiredVariables)
+            ? existing.requiredVariables.map(String)
+            : [];
+          const requiredVariablesChanged =
+            JSON.stringify(existingRequiredVariables) !== JSON.stringify(template.requiredVariables);
+
+          const hasChanges =
+            existing.name !== template.name ||
+            existing.description !== template.description ||
+            existing.category !== template.category ||
+            existing.subject !== template.subject ||
+            existing.htmlBody !== template.htmlBody ||
+            requiredVariablesChanged;
+
+          if (!hasChanges) {
+            results.skipped.push(template.key);
+            continue;
+          }
+
+          const nextVersion = existing.version + 1;
+
+          const updatedTemplate = await prisma.emailTemplate.update({
+            where: { id: existing.id },
+            data: {
+              ...template,
+              version: nextVersion,
+              updatedBy: authResult.user.id,
+            },
+          });
+
+          await prisma.emailTemplateVersion.create({
+            data: {
+              templateId: updatedTemplate.id,
+              version: updatedTemplate.version,
+              subject: updatedTemplate.subject,
+              htmlBody: updatedTemplate.htmlBody,
+              textBody: updatedTemplate.textBody,
+              customization: {
+                brandColor: updatedTemplate.brandColor,
+                headerGradientStart: updatedTemplate.headerGradientStart,
+                headerGradientEnd: updatedTemplate.headerGradientEnd,
+                buttonColor: updatedTemplate.buttonColor,
+              },
+              changeNote: 'Refreshed default template content and styling',
+              createdBy: authResult.user.id,
+            },
+          });
+
+          results.updated.push(template.key);
           continue;
         }
 
@@ -134,6 +188,7 @@ export async function POST(req: NextRequest) {
           data: {
             ...template,
             createdBy: authResult.user.id,
+            updatedBy: authResult.user.id,
           },
         });
 
@@ -147,7 +202,7 @@ export async function POST(req: NextRequest) {
     return apiResponse({
       message: 'Email templates seeding complete',
       results,
-      summary: `Created: ${results.created.length}, Skipped: ${results.skipped.length}, Errors: ${results.errors.length}`,
+      summary: `Created: ${results.created.length}, Updated: ${results.updated.length}, Skipped: ${results.skipped.length}, Errors: ${results.errors.length}`,
     });
   } catch (error) {
     console.error('Error seeding email templates:', error);

@@ -25,6 +25,43 @@ function getResendClient(): Resend {
   return resendClient;
 }
 
+function buildTestValueForVariable(varName: string): string {
+  const lower = varName.toLowerCase();
+
+  if (lower.includes('url')) {
+    return `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/test-link`;
+  }
+
+  if (lower.includes('email')) {
+    return 'test.user@example.com';
+  }
+
+  if (lower.includes('subject')) {
+    return 'Test Support Subject';
+  }
+
+  if (lower.includes('message')) {
+    return 'This is a generated test message for template preview.';
+  }
+
+  if (lower.includes('name')) {
+    return 'Test User';
+  }
+
+  if (lower.includes('timestamp') || lower.includes('time') || lower.includes('date')) {
+    return new Date().toLocaleString('en-US', {
+      dateStyle: 'long',
+      timeStyle: 'short',
+    });
+  }
+
+  if (lower.includes('ip')) {
+    return '192.168.1.100';
+  }
+
+  return `Test ${varName}`;
+}
+
 /**
  * POST /api/admin/email-templates/[id]/test
  * Send test email using template
@@ -74,11 +111,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     };
 
     // Add default test variables
-    const testVariables = {
+    const testVariables: Record<string, string | number | boolean | null | undefined> = {
       username: authResult.user.username,
       email: authResult.user.email,
       firstName: authResult.user.firstName || authResult.user.username,
       lastName: authResult.user.lastName || '',
+      name: authResult.user.firstName || authResult.user.username,
+      subject: `Test email for ${template.name}`,
+      message: 'This is a generated test email body. Update variables in the template editor as needed.',
       verificationUrl: `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=test-token-123`,
       resetUrl: `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=test-token-456`,
       timestamp: new Date().toLocaleString('en-US', {
@@ -93,6 +133,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const requiredVars = Array.isArray(template.requiredVariables)
       ? (template.requiredVariables as string[])
       : [];
+
+    // Auto-fill any missing required variables with safe sample values so all defaults can be tested.
+    for (const requiredVar of requiredVars) {
+      const currentValue = testVariables[requiredVar];
+      if (currentValue === undefined || currentValue === null || currentValue === '') {
+        testVariables[requiredVar] = buildTestValueForVariable(requiredVar);
+      }
+    }
 
     const validation = validateVariables(requiredVars, testVariables);
 

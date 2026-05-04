@@ -2,6 +2,7 @@
 
 > Last Updated: 2026-05-03 22:25:33 EDT
 > Scope: Step 1 execution record, production cutover status, and remaining validation tasks
+> Full recreation runbook: `docs/setup/EMAIL_SYSTEM_RECREATION_PLAN.md`
 
 ## Execution Record (What Was Done)
 

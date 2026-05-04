@@ -251,4 +251,11 @@ Continue Security Review and implimentations
 
 **_ issue _**
 
-- /register the create account web page doubles as create account for iOS. Input errors need to highlight issues with red strokes to focus user attention. Currently gray with vague toast and no input field focus. I experienced this through iOS create account.
+- /register the create account web page doubles as create account for iOS.
+- When the user input is incorrect or needs a change ie; user name already exsists, the text field must be highlighted with a red stroke. this action focuses the user attension. Check the error handling and focus for /register.
+
+**_ issue _**
+
+- registration emails are not reaching test users in some cases. gmail for example is fine. Corporate emails are being hung up or missing all together.
+- I am sending these emails from resend.com account, production. I have verified resend.com is sending them.
+- Review how emails are generated, what email it states they are coming from and suggest improvement to the email structure to help these confirmation emails get to their intended user.

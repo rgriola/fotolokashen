@@ -1,17 +1,40 @@
 /**
  * Email Template System
- * Beautiful, responsive HTML email templates for Fotolokashen
+ * Consistent, responsive HTML email templates for Fotolokashen
  */
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-const BRAND_COLOR = '#4285f4';
+const SUPPORT_EMAIL = process.env.EMAIL_REPLY_TO || process.env.EMAIL_FROM_ADDRESS || 'support@fotolokashen.com';
 const BRAND_NAME = 'Fotolokashen';
 
+const COLORS = {
+  pageBackground: '#f5f5f5',
+  cardBackground: '#ffffff',
+  footerBackground: '#f8fafc',
+  border: '#dbe3ec',
+  borderStrong: '#c5d1de',
+  primary: '#0f172b',
+  primarySoft: '#1f2937',
+  text: '#111111',
+  muted: '#62748e',
+  buttonPrimary: '#0f172b',
+  buttonSecondaryBg: '#ffffff',
+  buttonSecondaryText: '#0f172b',
+  info: '#3b82f6',
+  infoSoft: '#e9f2ff',
+  success: '#10b981',
+  successSoft: '#e8faf3',
+  warning: '#f59e0b',
+  warningSoft: '#fff6e6',
+  danger: '#dc2626',
+  dangerSoft: '#fdecec',
+};
+
 /**
- * Base email template wrapper
- * Provides consistent styling and responsive layout
+ * Base email template wrapper.
+ * Keeps a strong visual alignment with app surfaces and typography.
  */
-function emailWrapper(content: string): string {
+function emailWrapper(content: string, preheader = `${BRAND_NAME} notification`): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -22,62 +45,56 @@ function emailWrapper(content: string): string {
   <title>${BRAND_NAME}</title>
   <!--[if mso]>
   <style type="text/css">
-    body, table, td {font-family: Arial, Helvetica, sans-serif !important;}
+    body, table, td, p, a, h1, h2, h3, h4 {font-family: Arial, Helvetica, sans-serif !important;}
   </style>
   <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-  <!-- Email Container -->
-  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
+<body style="margin: 0; padding: 0; background-color: ${COLORS.pageBackground}; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: ${COLORS.text};">
+  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; mso-hide: all;">
+    ${preheader}
+  </div>
+
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: ${COLORS.pageBackground};">
     <tr>
-      <td style="padding: 40px 20px;">
-        <!-- Main Content Card -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-          <!-- Header -->
+      <td align="center" style="padding: 24px 12px;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 640px; margin: 0 auto; background-color: ${COLORS.cardBackground}; border: 1px solid ${COLORS.border}; border-radius: 16px; overflow: hidden;">
           <tr>
-            <td style="background: linear-gradient(135deg, ${BRAND_COLOR} 0%, #5a67d8 100%); padding: 40px 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.5px;">
-                📍 ${BRAND_NAME}
-              </h1>
-              <p style="margin: 8px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
-              Coordinate with Purpose
-              </p>
-            </td>
-          </tr>
-          
-          <!-- Content -->
-          <tr>
-            <td style="padding: 40px;">
-              ${content}
-            </td>
-          </tr>
-          
-          <!-- Footer -->
-          <tr>
-            <td style="padding: 30px 40px; background-color: #f8f9fa; border-radius: 0 0 8px 8px; border-top: 1px solid #e9ecef;">
+            <td style="background-color: ${COLORS.primary}; padding: 28px 32px 22px;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
-                  <td style="text-align: center;">
-                    <p style="margin: 0 0 12px; color: #6c757d; font-size: 13px;">
-                      © ${new Date().getFullYear()} ${BRAND_NAME}. All rights reserved.
+                  <td align="left">
+                    <p style="margin: 0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #f5f5f5; opacity: 0.85;">
+                      Production Location Platform
                     </p>
-                    <p style="margin: 0; color: #6c757d; font-size: 12px;">
-                      <a href="${APP_URL}" style="color: ${BRAND_COLOR}; text-decoration: none;">Visit Website</a>
-                      &nbsp;•&nbsp;
-                      <a href="mailto:admin@fotolokashen.com" style="color: ${BRAND_COLOR}; text-decoration: none;">Contact Support</a>
-                    </p>
+                    <h1 style="margin: 10px 0 0; color: #f5f5f5; font-size: 28px; line-height: 1.2; font-weight: 700; letter-spacing: -0.4px;">
+                      ${BRAND_NAME}
+                    </h1>
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
-        </table>
-        
-        <!-- Footer Note -->
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 20px auto 0;">
+
           <tr>
-            <td style="text-align: center; color: #6c757d; font-size: 11px; line-height: 16px;">
-              This is an automated message. Please do not reply to this email.
+            <td style="padding: 32px;">
+              ${content}
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 24px 32px 28px; background-color: ${COLORS.footerBackground}; border-top: 1px solid ${COLORS.border};">
+              <p style="margin: 0 0 12px; color: ${COLORS.muted}; font-size: 13px; line-height: 1.6;">
+                Need help? Reach us at
+                <a href="mailto:${SUPPORT_EMAIL}" style="color: ${COLORS.primary}; text-decoration: none;">${SUPPORT_EMAIL}</a>.
+              </p>
+              <p style="margin: 0; color: ${COLORS.muted}; font-size: 12px; line-height: 1.6;">
+                <a href="${APP_URL}" style="color: ${COLORS.primary}; text-decoration: none;">Open ${BRAND_NAME}</a>
+                &nbsp;|&nbsp;
+                <a href="${APP_URL}/privacy-policy" style="color: ${COLORS.primary}; text-decoration: none;">Privacy Policy</a>
+              </p>
+              <p style="margin: 10px 0 0; color: ${COLORS.muted}; font-size: 12px; line-height: 1.6;">
+                Copyright ${new Date().getFullYear()} ${BRAND_NAME}. Automated message.
+              </p>
             </td>
           </tr>
         </table>
@@ -90,15 +107,19 @@ function emailWrapper(content: string): string {
 }
 
 /**
- * Button component for emails
+ * Button component for emails.
  */
 function emailButton(url: string, text: string, style: 'primary' | 'secondary' = 'primary'): string {
-  const bgColor = style === 'primary' ? BRAND_COLOR : '#6c757d';
+  const isPrimary = style === 'primary';
+  const bgColor = isPrimary ? COLORS.buttonPrimary : COLORS.buttonSecondaryBg;
+  const textColor = isPrimary ? '#f5f5f5' : COLORS.buttonSecondaryText;
+  const border = isPrimary ? 'none' : `1px solid ${COLORS.primary}`;
+
   return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 24px 0;">
       <tr>
-        <td style="border-radius: 6px; background-color: ${bgColor};">
-          <a href="${url}" target="_blank" style="display: inline-block; padding: 14px 32px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px;">
+        <td style="border-radius: 10px; background-color: ${bgColor}; border: ${border};">
+          <a href="${url}" target="_blank" style="display: inline-block; padding: 12px 24px; font-size: 15px; line-height: 1.2; font-weight: 600; color: ${textColor}; text-decoration: none; border-radius: 10px;">
             ${text}
           </a>
         </td>
@@ -108,14 +129,14 @@ function emailButton(url: string, text: string, style: 'primary' | 'secondary' =
 }
 
 /**
- * Alert box component
+ * Highlight box component.
  */
 function alertBox(type: 'info' | 'warning' | 'success' | 'danger', content: string): string {
   const colors = {
-    info: { bg: '#cfe2ff', border: '#0d6efd', icon: 'ℹ️' },
-    warning: { bg: '#fff3cd', border: '#ffc107', icon: '⚠️' },
-    success: { bg: '#d1e7dd', border: '#198754', icon: '✅' },
-    danger: { bg: '#f8d7da', border: '#dc3545', icon: '🚨' },
+    info: { bg: COLORS.infoSoft, border: COLORS.info, text: '#1e3a8a', label: 'Info' },
+    warning: { bg: COLORS.warningSoft, border: COLORS.warning, text: '#92400e', label: 'Security Notice' },
+    success: { bg: COLORS.successSoft, border: COLORS.success, text: '#065f46', label: 'Update' },
+    danger: { bg: COLORS.dangerSoft, border: COLORS.danger, text: '#7f1d1d', label: 'Action Required' },
   };
 
   const color = colors[type];
@@ -123,12 +144,48 @@ function alertBox(type: 'info' | 'warning' | 'success' | 'danger', content: stri
   return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
       <tr>
-        <td style="background-color: ${color.bg}; border-left: 4px solid ${color.border}; padding: 16px; border-radius: 4px;">
-          <p style="margin: 0; color: #212529; font-size: 14px; line-height: 1.6;">
-            <strong>${color.icon} ${content}</strong>
+        <td style="background-color: ${color.bg}; border-left: 4px solid ${color.border}; padding: 14px 16px; border-radius: 8px;">
+          <p style="margin: 0; color: ${color.text}; font-size: 14px; line-height: 1.6;">
+            <strong>${color.label}:</strong> ${content}
           </p>
         </td>
       </tr>
+    </table>
+  `;
+}
+
+/**
+ * Plain URL block for clients that do not render buttons.
+ */
+function urlBlock(url: string): string {
+  return `
+    <p style="margin: 8px 0 0; color: ${COLORS.muted}; font-size: 13px; line-height: 1.6;">
+      If the button does not work, copy and paste this URL:
+    </p>
+    <p style="margin: 8px 0 0; padding: 12px; border: 1px solid ${COLORS.border}; border-radius: 8px; background-color: ${COLORS.footerBackground}; color: ${COLORS.primarySoft}; font-size: 12px; line-height: 1.6; word-break: break-all; font-family: 'Courier New', monospace;">
+      ${url}
+    </p>
+  `;
+}
+
+/**
+ * Key/value details block for event metadata.
+ */
+function detailsTable(rows: Array<{ label: string; value: string }>): string {
+  const rowsHtml = rows
+    .map(
+      ({ label, value }) => `
+        <tr>
+          <td style="padding: 8px 10px 8px 0; width: 140px; color: ${COLORS.muted}; font-size: 13px; line-height: 1.5; vertical-align: top;">${label}</td>
+          <td style="padding: 8px 0; color: ${COLORS.text}; font-size: 14px; line-height: 1.5; border-bottom: 1px solid ${COLORS.border};">${value}</td>
+        </tr>
+      `
+    )
+    .join('');
+
+  return `
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0; border: 1px solid ${COLORS.border}; border-radius: 10px; background-color: ${COLORS.footerBackground}; padding: 12px 14px;">
+      ${rowsHtml}
     </table>
   `;
 }
@@ -138,36 +195,30 @@ function alertBox(type: 'info' | 'warning' | 'success' | 'danger', content: stri
  */
 export function verificationEmailTemplate(username: string, verificationUrl: string): string {
   const content = `
-    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
-      Verify your email address
+    <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.3px;">
+      Confirm your email address
     </h2>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
+
+    <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
       Hi <strong>${username}</strong>,
     </p>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      A new ${BRAND_NAME} account was created with this email address.
-      Confirm your email to activate the account.
+
+    <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
+      A new ${BRAND_NAME} account was created with this email address. Confirm your email to activate access.
     </p>
-    
-    ${emailButton(verificationUrl, 'Verify Email Address', 'primary')}
-    
-    <p style="margin: 24px 0 8px; color: #6c757d; font-size: 14px; line-height: 1.6;">
-      Or copy-paste this link into your browser:
-    </p>
-    <p style="margin: 0 0 16px; padding: 12px; background-color: #f8f9fa; border-radius: 4px; color: #495057; font-size: 13px; word-break: break-all; font-family: 'Courier New', monospace;">
-      ${verificationUrl}
-    </p>
-    
-    ${alertBox('info', 'This verification link will expire in 30 minutes for security purposes.')}
-    
-    <p style="margin: 24px 0 0; color: #6c757d; font-size: 14px; line-height: 1.6;">
-      If you did not create an account with ${BRAND_NAME}, you can safely ignore this email.
+
+    ${emailButton(verificationUrl, 'Confirm Email', 'primary')}
+
+    ${urlBlock(verificationUrl)}
+
+    ${alertBox('info', 'For security, this link expires in 30 minutes.')}
+
+    <p style="margin: 18px 0 0; color: ${COLORS.muted}; font-size: 14px; line-height: 1.7;">
+      If you did not sign up, you can safely ignore this message.
     </p>
   `;
 
-  return emailWrapper(content);
+  return emailWrapper(content, 'Confirm your email to activate your account.');
 }
 
 /**
@@ -175,24 +226,30 @@ export function verificationEmailTemplate(username: string, verificationUrl: str
  */
 export function welcomeToEmailTemplate(username: string): string {
   const content = `
-    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
-      Email confirmed
+    <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.3px;">
+      Welcome to ${BRAND_NAME}
     </h2>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      Hi <strong>${username}</strong>,
+
+    <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
+      Hi <strong>${username}</strong>, your email is confirmed and your account is ready.
     </p>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      Now try to set up a new location with photos and info for your specific needs. Add photos, locations, create projects or teams. Invite your crew and start producing some great stuff.
+
+    <p style="margin: 0 0 12px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
+      Start fast with your production workflow:
     </p>
-  
-    <p style="margin: 24px 0 0; color: #6c757d; font-size: 14px; line-height: 1.6;">
-      If you didn't create an account with ${BRAND_NAME}, you can safely ignore this email.
-    </p>
+
+    <ul style="margin: 0 0 14px; padding-left: 20px; color: ${COLORS.text}; font-size: 15px; line-height: 1.8;">
+      <li>Save your first location with notes and tags</li>
+      <li>Upload reference photos and organize context</li>
+      <li>Share location links with your team</li>
+    </ul>
+
+    ${emailButton(`${APP_URL}/locations`, 'Open Locations', 'primary')}
+
+    ${alertBox('success', 'Your account is active and ready for production use.')}
   `;
 
-  return emailWrapper(content);
+  return emailWrapper(content, 'Your account is active. Start creating locations now.');
 }
 
 /**
@@ -200,50 +257,39 @@ export function welcomeToEmailTemplate(username: string): string {
  */
 export function passwordResetEmailTemplate(username: string, resetUrl: string): string {
   const content = `
-    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
-      🔐 Password Reset Request
+    <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.3px;">
+      Reset your password
     </h2>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
+
+    <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
       Hi <strong>${username}</strong>,
     </p>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      We received a request to reset your password. Click the button below to create a new password:
+
+    <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
+      We received a request to reset your password. Use the button below to create a new password.
     </p>
-    
+
     ${emailButton(resetUrl, 'Reset Password', 'primary')}
-    
-    <p style="margin: 24px 0 8px; color: #6c757d; font-size: 14px; line-height: 1.6;">
-      Or copy and paste this link into your browser:
-    </p>
-    <p style="margin: 0 0 16px; padding: 12px; background-color: #f8f9fa; border-radius: 4px; color: #495057; font-size: 13px; word-break: break-all; font-family: 'Courier New', monospace;">
-      ${resetUrl}
-    </p>
-    
-    ${alertBox('warning', 'This link will expire in 15 minutes for security purposes.')}
-    
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
+
+    ${urlBlock(resetUrl)}
+
+    ${alertBox('warning', 'This reset link expires in 15 minutes.')}
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
       <tr>
-        <td style="background-color: #f8f9fa; padding: 20px; border-radius: 6px; border: 1px solid #dee2e6;">
-          <p style="margin: 0 0 12px; color: #212529; font-size: 14px; font-weight: 600;">
-            🛡️ Security Tips:
-          </p>
-          <ul style="margin: 0; padding-left: 20px; color: #495057; font-size: 14px; line-height: 1.8;">
+        <td style="border: 1px solid ${COLORS.borderStrong}; border-radius: 10px; background-color: ${COLORS.footerBackground}; padding: 14px 16px;">
+          <p style="margin: 0 0 10px; color: ${COLORS.primary}; font-size: 14px; font-weight: 700;">Security reminders</p>
+          <ul style="margin: 0; padding-left: 20px; color: ${COLORS.text}; font-size: 14px; line-height: 1.8;">
             <li>Never share this link with anyone</li>
-            <li>We will never ask for your password via email</li>
-            <li>If you didn't request this, please ignore this email</li>
+            <li>We never ask for passwords by email</li>
+            <li>If this was not you, ignore this email</li>
           </ul>
         </td>
       </tr>
     </table>
-    
-    <p style="margin: 24px 0 0; color: #6c757d; font-size: 14px; line-height: 1.6;">
-      If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.
-    </p>
   `;
 
-  return emailWrapper(content);
+  return emailWrapper(content, 'Use this secure link to reset your password.');
 }
 
 /**
@@ -254,47 +300,35 @@ export function passwordChangedEmailTemplate(
   timestamp: string,
   ipAddress: string | null
 ): string {
+  const rows = [{ label: 'Changed at', value: timestamp }];
+
+  if (ipAddress) {
+    rows.push({
+      label: 'IP address',
+      value: `<span style="font-family: 'Courier New', monospace; background-color: #e2e8f0; padding: 1px 6px; border-radius: 5px;">${ipAddress}</span>`,
+    });
+  }
+
   const content = `
-    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
-      ✅ Password Successfully Changed
+    <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.3px;">
+      Password updated
     </h2>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      Hi <strong>${username}</strong>,
+
+    <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
+      Hi <strong>${username}</strong>, your password was changed successfully.
     </p>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      Your password was successfully changed on <strong>${timestamp}</strong>.
-    </p>
-    
-    ${ipAddress ? `
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
-        <tr>
-          <td style="background-color: #f8f9fa; padding: 16px; border-radius: 4px;">
-            <p style="margin: 0; color: #495057; font-size: 14px;">
-              <strong>IP Address:</strong> <code style="background-color: #e9ecef; padding: 2px 6px; border-radius: 3px; font-family: 'Courier New', monospace;">${ipAddress}</code>
-            </p>
-          </td>
-        </tr>
-      </table>
-    ` : ''}
-    
-    ${alertBox('success', 'If you made this change, no further action is needed. All active sessions have been logged out for your security.')}
-    
-    ${alertBox('danger', `If you did NOT make this change:<br><br>
-      <ol style="margin: 8px 0; padding-left: 20px;">
-        <li>Someone may have unauthorized access to your account</li>
-        <li>Contact our support team immediately at <a href="mailto:admin@fotolokashen.com" style="color: #dc3545;">admin@fotolokashen.com</a></li>
-        <li>We recommend securing your email account as well</li>
-      </ol>
-    `)}
-    
-    <p style="margin: 24px 0 0; color: #6c757d; font-size: 13px; line-height: 1.6;">
-      This is an automated security notification to keep your account safe.
-    </p>
+
+    ${detailsTable(rows)}
+
+    ${alertBox('success', 'If this was you, no further action is needed. Active sessions were signed out for security.')}
+
+    ${alertBox(
+      'danger',
+      `If this was not you, secure your account immediately:<ol style="margin: 8px 0 0; padding-left: 20px;"><li>Reset your password now</li><li>Secure your email account</li><li>Contact support at <a href="mailto:${SUPPORT_EMAIL}" style="color: ${COLORS.danger}; text-decoration: none;">${SUPPORT_EMAIL}</a></li></ol>`
+    )}
   `;
 
-  return emailWrapper(content);
+  return emailWrapper(content, 'Your password has been changed. Review this activity now.');
 }
 
 /**
@@ -302,52 +336,40 @@ export function passwordChangedEmailTemplate(
  */
 export function accountDeletionEmailTemplate(username: string, email: string): string {
   const content = `
-    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
-      Account Deletion Confirmation
+    <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.3px;">
+      Account deletion confirmation
     </h2>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
+
+    <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
       Hi <strong>${username}</strong>,
     </p>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      We have successfully deleted your account <strong>${email}</strong> from ${BRAND_NAME}.
+
+    <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
+      We deleted account <strong>${email}</strong> from ${BRAND_NAME}.
     </p>
-    
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
       <tr>
-        <td style="background-color: #f8f9fa; border-left: 4px solid #6c757d; padding: 20px; border-radius: 4px;">
-          <p style="margin: 0 0 12px; color: #212529; font-size: 15px; font-weight: 600;">
-            📦 What was deleted:
-          </p>
-          <ul style="margin: 0; padding-left: 20px; color: #495057; font-size: 14px; line-height: 1.8;">
-            <li>Your profile and account information</li>
-            <li>All uploaded photos and images</li>
-            <li>All locations and saved places</li>
-            <li>All session data and preferences</li>
-            <li>All production notes and metadata</li>
+        <td style="border: 1px solid ${COLORS.borderStrong}; border-radius: 10px; background-color: ${COLORS.footerBackground}; padding: 14px 16px;">
+          <p style="margin: 0 0 10px; color: ${COLORS.primary}; font-size: 14px; font-weight: 700;">Removed data</p>
+          <ul style="margin: 0; padding-left: 20px; color: ${COLORS.text}; font-size: 14px; line-height: 1.8;">
+            <li>Profile and account details</li>
+            <li>Uploaded photos and assets</li>
+            <li>Saved locations and notes</li>
+            <li>Session and preference data</li>
           </ul>
         </td>
       </tr>
     </table>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      We're sorry to see you go! If you change your mind, you're always welcome to create a new account.
+
+    <p style="margin: 0 0 14px; color: ${COLORS.muted}; font-size: 14px; line-height: 1.7;">
+      If you deleted this account by mistake, you can register again anytime.
     </p>
-    
+
     ${emailButton(`${APP_URL}/register`, 'Create New Account', 'secondary')}
-    
-    <p style="margin: 24px 0 0; color: #6c757d; font-size: 14px; line-height: 1.6;">
-      If you have any questions or feedback, please don't hesitate to reach out to us at 
-      <a href="mailto:admin@fotolokashen.com" style="color: ${BRAND_COLOR}; text-decoration: none;">admin@fotolokashen.com</a>.
-    </p>
-    
-    <p style="margin: 16px 0 0; color: #495057; font-size: 15px; font-weight: 500;">
-      - The ${BRAND_NAME} Team
-    </p>
   `;
 
-  return emailWrapper(content);
+  return emailWrapper(content, 'Your account was deleted from Fotolokashen.');
 }
 
 /**
@@ -366,55 +388,31 @@ export function publicSupportRequestTemplate(
   });
 
   const content = `
-    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
-      📬 New Support Request
+    <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 24px; line-height: 1.25; font-weight: 700; letter-spacing: -0.2px;">
+      New public support request
     </h2>
-    
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
-      <tr>
-        <td style="background-color: #f8f9fa; padding: 24px; border-radius: 8px;">
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-            <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; width: 120px; color: #495057;">From:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">${name}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Email:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
-                <a href="mailto:${email}" style="color: ${BRAND_COLOR}; text-decoration: none;">${email}</a>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Subject:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">${subject}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; font-weight: 600; color: #495057;">Received:</td>
-              <td style="padding: 8px 0; color: #6c757d; font-size: 14px;">${timestamp}</td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-    
-    <h3 style="margin: 24px 0 12px; color: #212529; font-size: 18px; font-weight: 600;">
-      Message:
+
+    ${detailsTable([
+      { label: 'From', value: name },
+      { label: 'Email', value: `<a href="mailto:${email}" style="color: ${COLORS.primary}; text-decoration: none;">${email}</a>` },
+      { label: 'Subject', value: subject },
+      { label: 'Received', value: timestamp },
+    ])}
+
+    <h3 style="margin: 20px 0 8px; color: ${COLORS.primary}; font-size: 17px; line-height: 1.3; font-weight: 700;">
+      Message
     </h3>
-    
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0;">
       <tr>
-        <td style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; color: #212529; font-size: 15px; line-height: 1.6;">
+        <td style="background-color: ${COLORS.footerBackground}; border: 1px solid ${COLORS.border}; border-radius: 10px; padding: 14px 16px; white-space: pre-wrap; word-break: break-word; color: ${COLORS.text}; font-size: 14px; line-height: 1.7;">
 ${message}
         </td>
       </tr>
     </table>
-    
-    <p style="margin: 24px 0 0; color: #6c757d; font-size: 13px; text-align: center;">
-      This message was sent via the Fotolokashen Public Support Form
-    </p>
   `;
 
-  return emailWrapper(content);
+  return emailWrapper(content, `New public support request: ${subject}`);
 }
 
 /**
@@ -434,59 +432,32 @@ export function memberSupportRequestTemplate(
   });
 
   const content = `
-    <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
-      📬 Member Support Request
+    <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 24px; line-height: 1.25; font-weight: 700; letter-spacing: -0.2px;">
+      New member support request
     </h2>
-    
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
-      <tr>
-        <td style="background-color: #f8f9fa; padding: 24px; border-radius: 8px;">
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-            <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; width: 120px; color: #495057;">From:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">${name}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Username:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">@${username}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Email:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6;">
-                <a href="mailto:${email}" style="color: ${BRAND_COLOR}; text-decoration: none;">${email}</a>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; font-weight: 600; color: #495057;">Subject:</td>
-              <td style="padding: 8px 0; border-bottom: 1px solid #dee2e6; color: #212529;">${subject}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; font-weight: 600; color: #495057;">Received:</td>
-              <td style="padding: 8px 0; color: #6c757d; font-size: 14px;">${timestamp}</td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-    
-    <h3 style="margin: 24px 0 12px; color: #212529; font-size: 18px; font-weight: 600;">
-      Message:
+
+    ${detailsTable([
+      { label: 'From', value: name },
+      { label: 'Username', value: `@${username}` },
+      { label: 'Email', value: `<a href="mailto:${email}" style="color: ${COLORS.primary}; text-decoration: none;">${email}</a>` },
+      { label: 'Subject', value: subject },
+      { label: 'Received', value: timestamp },
+    ])}
+
+    <h3 style="margin: 20px 0 8px; color: ${COLORS.primary}; font-size: 17px; line-height: 1.3; font-weight: 700;">
+      Message
     </h3>
-    
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0;">
       <tr>
-        <td style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; color: #212529; font-size: 15px; line-height: 1.6;">
+        <td style="background-color: ${COLORS.footerBackground}; border: 1px solid ${COLORS.border}; border-radius: 10px; padding: 14px 16px; white-space: pre-wrap; word-break: break-word; color: ${COLORS.text}; font-size: 14px; line-height: 1.7;">
 ${message}
         </td>
       </tr>
     </table>
-    
-    <p style="margin: 24px 0 0; color: #6c757d; font-size: 13px; text-align: center;">
-      This message was sent via the Fotolokashen Member Support Form
-    </p>
   `;
 
-  return emailWrapper(content);
+  return emailWrapper(content, `New member support request: ${subject}`);
 }
 
 /**
@@ -494,46 +465,34 @@ ${message}
  */
 export function supportConfirmationTemplate(name: string, subject: string): string {
   const content = `
-    <h2 style="margin: 0 0 16px; color: #10b981; font-size: 24px; font-weight: 600;">
-      ✅ Support Request Received
+    <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 24px; line-height: 1.25; font-weight: 700; letter-spacing: -0.2px;">
+      We received your support request
     </h2>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      Hi <strong>${name}</strong>,
+
+    <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
+      Hi <strong>${name}</strong>, thanks for contacting ${BRAND_NAME} support.
     </p>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      Thank you for contacting ${BRAND_NAME} support! We've received your message regarding:
+
+    <p style="margin: 0 0 10px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
+      We logged your request with this subject:
     </p>
-    
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 0 0 18px;">
       <tr>
-        <td style="background-color: #f8f9fa; border-left: 4px solid ${BRAND_COLOR}; padding: 20px; border-radius: 4px;">
-          <p style="margin: 0; color: #212529; font-size: 16px; font-weight: 600;">
-            ${subject}
-          </p>
+        <td style="background-color: ${COLORS.footerBackground}; border: 1px solid ${COLORS.border}; border-left: 4px solid ${COLORS.primary}; border-radius: 10px; padding: 12px 14px; color: ${COLORS.text}; font-size: 15px; font-weight: 600; line-height: 1.6;">
+          ${subject}
         </td>
       </tr>
     </table>
-    
-    <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      Our support team will review your message and get back to you within <strong>24-48 hours</strong>.
+
+    <p style="margin: 0 0 10px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
+      Our team usually responds within <strong>24 to 48 hours</strong>.
     </p>
-    
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 24px 0;">
-      <tr>
-        <td style="background-color: #e7f3ff; border-left: 4px solid #0ea5e9; padding: 20px; border-radius: 4px;">
-          <p style="margin: 0; color: #0369a1; font-size: 14px; line-height: 1.6;">
-            💡 <strong>Tip:</strong> If you have any additional information to add, simply reply to this email and we'll include it with your support request.
-          </p>
-        </td>
-      </tr>
-    </table>
-    
-    <p style="margin: 24px 0 0; color: #495057; font-size: 15px; font-weight: 500;">
-      - The ${BRAND_NAME} Support Team
-    </p>
+
+    ${alertBox('info', 'If you need to add details, reply to this email and we will include your update in the same thread.')}
+
+    ${emailButton(`${APP_URL}/member-support`, 'Open Support Center', 'secondary')}
   `;
 
-  return emailWrapper(content);
+  return emailWrapper(content, 'Your support request has been received.');
 }
