@@ -20,7 +20,7 @@ async function seedEmailTemplates() {
       name: 'Email Verification',
       description: 'Email sent to new users to verify their email address',
       category: 'system',
-      subject: 'Confirm your email address',
+      subject: 'Verify your email address for Fotolokashen',
       htmlBody: verificationEmailTemplate('{{username}}', '{{verificationUrl}}'),
       requiredVariables: ['username', 'verificationUrl'],
       isDefault: true,

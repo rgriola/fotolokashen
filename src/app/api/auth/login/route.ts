@@ -150,7 +150,19 @@ export async function POST(request: NextRequest) {
         });
         
         // Send new verification email
-        await sendVerificationEmail(user.email, newToken, user.username);
+        const verificationEmailSent = await sendVerificationEmail(user.email, newToken, user.username);
+        if (!verificationEmailSent) {
+          return NextResponse.json(
+            {
+              error: 'Email not verified. We could not send a new verification link right now. Please try again shortly.',
+              code: 'EMAIL_RESEND_FAILED',
+              requiresVerification: true,
+              email: user.email,
+              tokenResent: false,
+            },
+            { status: 503 }
+          );
+        }
         
         return NextResponse.json(
           {

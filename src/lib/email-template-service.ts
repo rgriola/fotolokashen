@@ -564,7 +564,19 @@ export async function revertToVersion(
 export async function getRenderedEmail(
   key: string,
   variables: TemplateVariables
-): Promise<{ subject: string; html: string; templateId?: number } | null> {
+): Promise<{ subject: string; html: string; text?: string; previewText?: string; templateId?: number } | null> {
+  const renderPlainTextFromHtml = (html: string): string =>
+    html
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/\s+/g, ' ')
+      .trim();
+
   // Try database template first
   const dbTemplate = await getEmailTemplate(key);
   
@@ -585,10 +597,18 @@ export async function getRenderedEmail(
 
     const html = await renderTemplate(dbTemplate.htmlBody, variables);
     const subject = await renderTemplate(dbTemplate.subject, variables);
+    const text = dbTemplate.textBody
+      ? await renderTemplate(dbTemplate.textBody, variables)
+      : renderPlainTextFromHtml(html);
+    const previewText = dbTemplate.previewText
+      ? await renderTemplate(dbTemplate.previewText, variables)
+      : undefined;
 
     return {
       subject,
       html,
+      text,
+      previewText,
       templateId: dbTemplate.id,
     };
   }
@@ -604,16 +624,24 @@ export async function getRenderedEmail(
 
   // Get subject from hard-coded defaults
   const subjectMap: Record<string, string> = {
-    verification: 'Confirm your email address',
+    verification: 'Verify your email address for Fotolokashen',
     welcome: 'Email Confirmed - Welcome to Fotolokashen!',
     password_reset: 'Reset your password',
     password_changed: 'Your Password Was Changed',
     account_deletion: 'We deleted your Fotolokashen account',
   };
 
+  const previewMap: Record<string, string> = {
+    verification: 'Verify your email address to activate your account.',
+    password_reset: 'Reset your password using the secure link in this email.',
+    welcome: 'Your email is confirmed and your account is ready.',
+  };
+
   return {
     subject: subjectMap[key] || 'Notification from Fotolokashen',
     html: hardCodedHtml,
+    text: renderPlainTextFromHtml(hardCodedHtml),
+    previewText: previewMap[key],
   };
 }
 

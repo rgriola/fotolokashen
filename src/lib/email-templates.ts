@@ -139,7 +139,7 @@ function alertBox(type: 'info' | 'warning' | 'success' | 'danger', content: stri
 export function verificationEmailTemplate(username: string, verificationUrl: string): string {
   const content = `
     <h2 style="margin: 0 0 16px; color: #212529; font-size: 24px; font-weight: 600;">
-      Verification Email 🎉
+      Verify your email address
     </h2>
     
     <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
@@ -147,10 +147,11 @@ export function verificationEmailTemplate(username: string, verificationUrl: str
     </p>
     
     <p style="margin: 0 0 16px; color: #495057; font-size: 16px; line-height: 1.6;">
-      You are registered! Now click the link and confirming your email. We're excited to have you on board.
+      A new ${BRAND_NAME} account was created with this email address.
+      Confirm your email to activate the account.
     </p>
     
-    ${emailButton(verificationUrl, '✓ Verify Email Address', 'primary')}
+    ${emailButton(verificationUrl, 'Verify Email Address', 'primary')}
     
     <p style="margin: 24px 0 8px; color: #6c757d; font-size: 14px; line-height: 1.6;">
       Or copy-paste this link into your browser:
@@ -162,7 +163,7 @@ export function verificationEmailTemplate(username: string, verificationUrl: str
     ${alertBox('info', 'This verification link will expire in 30 minutes for security purposes.')}
     
     <p style="margin: 24px 0 0; color: #6c757d; font-size: 14px; line-height: 1.6;">
-      If you didn't create an account with ${BRAND_NAME}, you can safely ignore this email.
+      If you did not create an account with ${BRAND_NAME}, you can safely ignore this email.
     </p>
   `;
 

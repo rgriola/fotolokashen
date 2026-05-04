@@ -173,7 +173,10 @@ export async function POST(request: NextRequest) {
     try {
       // Pass platform so the verification link can redirect back to the native app
       const platform = deviceType === 'mobile-browser-ios' ? 'ios' : undefined;
-      await sendVerificationEmail(email, verificationToken, username, platform);
+      const verificationEmailSent = await sendVerificationEmail(email, verificationToken, username, platform);
+      if (!verificationEmailSent) {
+        console.error('[Auth/Register] Verification email was not accepted by provider for:', email);
+      }
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError);
       // Continue with registration even if email fails

@@ -43,17 +43,48 @@ function getResendClient(): Resend {
  * @param to - Recipient email address
  * @param subject - Email subject
  * @param html - Email HTML content
- * @param templateId - Optional template ID for logging
+ * @param options - Optional send options (templateId, text, previewText, replyTo)
  * @returns Promise<boolean> - Success status
  */
+interface SendEmailOptions {
+  templateId?: number;
+  text?: string;
+  previewText?: string;
+  replyTo?: string;
+}
+
+function injectPreviewText(html: string, previewText?: string): string {
+  if (!previewText?.trim()) {
+    return html;
+  }
+
+  const escapedPreview = previewText
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  const hiddenPreview = `<div style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;max-height:0;max-width:0;overflow:hidden;mso-hide:all;">${escapedPreview}</div>`;
+
+  if (/<body[^>]*>/i.test(html)) {
+    return html.replace(/<body([^>]*)>/i, `<body$1>${hiddenPreview}`);
+  }
+
+  return `${hiddenPreview}${html}`;
+}
+
 async function sendEmail(
   to: string,
   subject: string,
   html: string,
-  templateId?: number
+  options: SendEmailOptions = {}
 ): Promise<boolean> {
+  const { templateId, text, previewText, replyTo } = options;
   const fromName = env.EMAIL_FROM_NAME;
   const fromAddress = env.EMAIL_FROM_ADDRESS;
+  const replyToAddress = replyTo || env.EMAIL_REPLY_TO || fromAddress;
+  const htmlWithPreview = injectPreviewText(html, previewText);
 
   try {
     console.log(`[Email] Attempting send — mode: ${EMAIL_MODE}, to: ${to}, subject: "${subject}"`);
@@ -62,27 +93,29 @@ async function sendEmail(
       from: `${fromName} <${fromAddress}>`,
       to,
       subject,
-      html,
+      html: htmlWithPreview,
+      ...(text ? { text } : {}),
+      ...(replyToAddress ? { replyTo: replyToAddress } : {}),
     });
+    const resendId = result?.data?.id || 'unknown';
     
-    console.log(`✅ Email sent to ${to}: ${subject} (Resend ID: ${result?.data?.id || 'unknown'})`);
+    console.log(`✅ Email sent to ${to}: ${subject} (Resend ID: ${resendId}, Reply-To: ${replyToAddress})`);
     
-    // Log to database if template ID provided
-    if (templateId) {
-      try {
-        await prisma.emailLog.create({
-          data: {
-            templateId,
-            to,
-            subject,
-            status: 'sent',
-            sentAt: new Date(),
-          },
-        });
-      } catch (logError) {
-        console.error('Failed to log email to database:', logError);
-        // Don't fail the email send if logging fails
-      }
+    // Log all sends so webhook lifecycle events can map back to provider message IDs.
+    try {
+      await prisma.emailLog.create({
+        data: {
+          ...(templateId !== undefined ? { templateId } : {}),
+          to,
+          subject,
+          status: 'sent',
+          sentAt: new Date(),
+          errorMessage: resendId !== 'unknown' ? `provider=resend; messageId=${resendId}` : undefined,
+        },
+      });
+    } catch (logError) {
+      console.error('Failed to log email to database:', logError);
+      // Don't fail the email send if logging fails.
     }
     
     return true;
@@ -90,22 +123,20 @@ async function sendEmail(
     console.error(`❌ Email send FAILED — mode: ${EMAIL_MODE}, to: ${to}, subject: "${subject}"`);
     console.error('   Error details:', error);
     
-    // Log failure to database if template ID provided
-    if (templateId) {
-      try {
-        await prisma.emailLog.create({
-          data: {
-            templateId,
-            to,
-            subject,
-            status: 'failed',
-            sentAt: new Date(),
-            errorMessage: error instanceof Error ? error.message : 'Unknown error',
-          },
-        });
-      } catch (logError) {
-        console.error('Failed to log email error to database:', logError);
-      }
+    // Log all failures for traceability and delivery debugging.
+    try {
+      await prisma.emailLog.create({
+        data: {
+          ...(templateId !== undefined ? { templateId } : {}),
+          to,
+          subject,
+          status: 'failed',
+          sentAt: new Date(),
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        },
+      });
+    } catch (logError) {
+      console.error('Failed to log email error to database:', logError);
     }
     
     return false;
@@ -135,7 +166,7 @@ export async function sendVerificationEmail(
     console.log('📧 VERIFICATION EMAIL (Development Mode)');
     console.log('='.repeat(80));
     console.log(`To: ${email}`);
-    console.log(`Subject: Please confirm your registration`);
+    console.log(`Subject: Verify your email address for Fotolokashen`);
     console.log(`\nHi ${username},\n`);
     console.log(`Click the link below to verify your email:\n`);
     console.log(`🔗 ${verificationUrl}\n`);
@@ -153,7 +184,11 @@ export async function sendVerificationEmail(
       });
       
       if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, rendered.templateId);
+        return sendEmail(email, rendered.subject, rendered.html, {
+          templateId: rendered.templateId,
+          text: rendered.text,
+          previewText: rendered.previewText,
+        });
       }
     } catch (error) {
       console.warn('Failed to render database template, falling back to hard-coded template:', error);
@@ -161,10 +196,26 @@ export async function sendVerificationEmail(
   }
 
   // Fallback to hard-coded template
+  const verificationSubject = 'Verify your email address for Fotolokashen';
+  const verificationText = [
+    `Hi ${username},`,
+    '',
+    'A new Fotolokashen account was created with this email address.',
+    'Verify your email to activate the account:',
+    verificationUrl,
+    '',
+    'This link expires in 30 minutes.',
+    'If you did not create this account, you can ignore this email.',
+  ].join('\n');
+
   return sendEmail(
     email,
-    'Please confirm your registration',
-    verificationEmailTemplate(username, verificationUrl)
+    verificationSubject,
+    verificationEmailTemplate(username, verificationUrl),
+    {
+      text: verificationText,
+      previewText: 'Verify your email address to activate your account.',
+    }
   );
 }
 
@@ -200,7 +251,11 @@ export async function sendWelcomeEmail(
       });
       
       if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, rendered.templateId);
+        return sendEmail(email, rendered.subject, rendered.html, {
+          templateId: rendered.templateId,
+          text: rendered.text,
+          previewText: rendered.previewText,
+        });
       }
     } catch (error) {
       console.warn('Failed to render database template, falling back to hard-coded template:', error);
@@ -254,7 +309,11 @@ export async function sendPasswordResetEmail(
       });
       
       if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, rendered.templateId);
+        return sendEmail(email, rendered.subject, rendered.html, {
+          templateId: rendered.templateId,
+          text: rendered.text,
+          previewText: rendered.previewText,
+        });
       }
     } catch (error) {
       console.warn('Failed to render database template, falling back to hard-coded template:', error);
@@ -326,7 +385,11 @@ export async function sendPasswordChangedEmail(
       });
       
       if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, rendered.templateId);
+        return sendEmail(email, rendered.subject, rendered.html, {
+          templateId: rendered.templateId,
+          text: rendered.text,
+          previewText: rendered.previewText,
+        });
       }
     } catch (error) {
       console.warn('Failed to render database template, falling back to hard-coded template:', error);
@@ -376,7 +439,11 @@ export async function sendAccountDeletionEmail(
       });
       
       if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, rendered.templateId);
+        return sendEmail(email, rendered.subject, rendered.html, {
+          templateId: rendered.templateId,
+          text: rendered.text,
+          previewText: rendered.previewText,
+        });
       }
     } catch (error) {
       console.warn('Failed to render database template, falling back to hard-coded template:', error);

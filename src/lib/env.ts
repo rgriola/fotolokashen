@@ -69,6 +69,22 @@ const envSchema = z.object({
         .optional()
         .describe('Resend API key (required when EMAIL_SERVICE=resend)'),
 
+    RESEND_WEBHOOK_SECRET: z
+        .string()
+        .optional()
+        .describe('Resend webhook signing secret for webhook signature verification'),
+
+    RESEND_INBOUND_FORWARD_TO: z
+        .string()
+        .optional()
+        .describe('Optional comma-separated inbox recipients for forwarding email.received events'),
+
+    RESEND_INBOUND_FORWARD_FROM: z
+        .string()
+        .email('RESEND_INBOUND_FORWARD_FROM must be a valid email')
+        .optional()
+        .describe('Optional sender address used when forwarding inbound emails'),
+
     // SMTP Configuration (for Mailtrap in development)
     EMAIL_HOST: z
         .string()
@@ -106,6 +122,12 @@ const envSchema = z.object({
         .string()
         .email('EMAIL_FROM_ADDRESS must be a valid email')
         .describe('Email sender address'),
+
+    EMAIL_REPLY_TO: z
+        .string()
+        .email('EMAIL_REPLY_TO must be a valid email')
+        .optional()
+        .describe('Optional reply-to address for transactional emails'),
 
     // ============================================
     // Application URLs

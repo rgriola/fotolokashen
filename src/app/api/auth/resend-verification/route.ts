@@ -70,7 +70,10 @@ export async function POST(request: NextRequest) {
         });
 
         // Send verification email
-        await sendVerificationEmail(user.email, user.username, verificationToken);
+        const emailSent = await sendVerificationEmail(user.email, verificationToken, user.username);
+        if (!emailSent) {
+            return apiError('Failed to send verification email. Please try again shortly.', 503, 'EMAIL_SEND_FAILED');
+        }
 
         // Update rate limit
         recentAttempts.push(now);
@@ -79,7 +82,7 @@ export async function POST(request: NextRequest) {
         return apiResponse({
             message: 'Verification email sent successfully. Please check your inbox.',
         });
-    } catch (error: any) {
+    } catch (error) {
         console.error('Error resending verification email:', error);
         return apiError('Failed to resend verification email', 500, 'RESEND_ERROR');
     }

@@ -602,6 +602,82 @@ model EmailLog {
   @@map("email_logs")
 }
 
+model InboundEmail {
+  id Int @id @default(autoincrement())
+
+  // Provider identifiers
+  providerEmailId   String  @unique
+  providerMessageId String?
+
+  // Sender / recipient envelope
+  fromRaw     String
+  fromEmail   String?
+  fromName    String?
+  toCsv       String  @db.Text
+  toJson      Json
+  ccCsv       String? @db.Text
+  ccJson      Json?
+  bccCsv      String? @db.Text
+  bccJson     Json?
+  replyToCsv  String? @db.Text
+  replyToJson Json?
+
+  // Message content
+  subject    String
+  textBody   String? @db.Text
+  htmlBody   String? @db.Text
+  headers    Json?
+  threadId   String?
+  inReplyTo  String?
+  references String? @db.Text
+
+  // Raw source metadata
+  rawDownloadUrl String?
+  rawExpiresAt   DateTime?
+
+  // Forwarding status for support inbox workflows
+  forwardConfigured Boolean @default(false)
+  forwardStatus     String?
+  forwardedToCsv    String? @db.Text
+  forwardedToJson   Json?
+  forwardedFrom     String?
+  forwardProviderId String?
+  forwardError      String? @db.Text
+
+  // Lifecycle
+  receivedAt DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  attachments InboundEmailAttachment[]
+
+  @@index([receivedAt])
+  @@index([fromEmail])
+  @@index([subject])
+  @@index([forwardStatus])
+  @@map("inbound_emails")
+}
+
+model InboundEmailAttachment {
+  id Int @id @default(autoincrement())
+
+  inboundEmailId Int
+
+  providerAttachmentId String
+  filename             String?
+  size                 Int?
+  contentType          String?
+  contentId            String?
+  contentDisposition   String?
+
+  inboundEmail InboundEmail @relation(fields: [inboundEmailId], references: [id], onDelete: Cascade)
+
+  @@unique([inboundEmailId, providerAttachmentId])
+  @@index([inboundEmailId])
+  @@index([providerAttachmentId])
+  @@map("inbound_email_attachments")
+}
+
 // ============================================================================
 // LOCATION GROUPS & CUSTOM TYPES
 // ============================================================================
