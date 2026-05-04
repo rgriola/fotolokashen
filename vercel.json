@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/inbound-email-forward-alert",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 12 * * *"
     }
   ],
   "github": {
