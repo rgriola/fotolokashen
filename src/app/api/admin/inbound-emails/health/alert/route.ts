@@ -1,156 +1,34 @@
 import { NextRequest } from 'next/server';
 import { apiError, apiResponse, requireAuth } from '@/lib/api-middleware';
 import { canAccessAdminPanel } from '@/lib/permissions';
-import prisma from '@/lib/prisma';
-import { env } from '@/lib/env';
+import {
+  buildInboundForwardSlackText,
+  getInboundAlertSlackWebhookUrl,
+  INBOUND_ALERT_DEFAULT_FAILURE_LIMIT,
+  INBOUND_ALERT_DEFAULT_WINDOW_HOURS,
+  INBOUND_ALERT_MAX_FAILURE_LIMIT,
+  INBOUND_ALERT_MAX_WINDOW_HOURS,
+  loadInboundForwardSnapshot,
+  parsePositiveInt,
+  sendSlackAlert,
+} from '@/lib/inbound-email-alerts';
 
-const DEFAULT_WINDOW_HOURS = 24;
-const MAX_WINDOW_HOURS = 7 * 24;
-const DEFAULT_FAILURE_LIMIT = 10;
-const MAX_FAILURE_LIMIT = 50;
-
-interface FailedForwardSample {
-  id: number;
-  subject: string;
-  fromRaw: string;
-  toCsv: string;
-  receivedAt: string;
-  forwardStatus: string | null;
-  forwardError: string | null;
-}
-
-interface FailedForwardSnapshot {
-  generatedAt: string;
-  windowHours: number;
-  shouldAlert: boolean;
-  metrics: {
-    inboundReceived: number;
-    forwardFailed: number;
-    forwardNotConfigured: number;
-  };
-  samples: FailedForwardSample[];
-}
-
-function parsePositiveInt(value: string | null | undefined, fallback: number, max: number): number {
-  if (!value) {
-    return fallback;
+function extractBearerToken(req: NextRequest): string | null {
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
   }
 
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed) || parsed <= 0) {
-    return fallback;
-  }
-
-  return Math.min(parsed, max);
-}
-
-function cleanSingleLine(value: string | null | undefined): string {
-  if (!value) {
-    return '';
-  }
-
-  return value.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function buildSlackText(snapshot: FailedForwardSnapshot): string {
-  const lines: string[] = [];
-  const level = snapshot.shouldAlert ? ':warning:' : ':white_check_mark:';
-
-  lines.push(`${level} Inbound Email Health (${snapshot.windowHours}h)`);
-  lines.push(`Generated: ${snapshot.generatedAt}`);
-  lines.push(`Inbound received: ${snapshot.metrics.inboundReceived}`);
-  lines.push(`Forward failed: ${snapshot.metrics.forwardFailed}`);
-  lines.push(`Forward not configured: ${snapshot.metrics.forwardNotConfigured}`);
-
-  if (snapshot.samples.length > 0) {
-    lines.push('Recent failed/not-configured samples:');
-    for (const sample of snapshot.samples) {
-      const subject = cleanSingleLine(sample.subject) || '(no subject)';
-      const recipient = cleanSingleLine(sample.toCsv) || 'unknown recipient';
-      const status = cleanSingleLine(sample.forwardStatus) || 'unknown';
-      const error = cleanSingleLine(sample.forwardError) || 'none';
-      lines.push(`- #${sample.id} [${status}] to ${recipient} | ${subject} | error: ${error}`);
-    }
-  }
-
-  return lines.join('\n');
-}
-
-async function loadSnapshot(windowHours: number, sampleLimit: number): Promise<FailedForwardSnapshot> {
-  const now = new Date();
-  const since = new Date(now.getTime() - windowHours * 60 * 60 * 1000);
-
-  const [inboundReceived, forwardFailed, forwardNotConfigured, samples] = await Promise.all([
-    prisma.inboundEmail.count({
-      where: {
-        receivedAt: { gte: since },
-      },
-    }),
-    prisma.inboundEmail.count({
-      where: {
-        receivedAt: { gte: since },
-        forwardStatus: 'failed',
-      },
-    }),
-    prisma.inboundEmail.count({
-      where: {
-        receivedAt: { gte: since },
-        forwardStatus: 'not_configured',
-      },
-    }),
-    prisma.inboundEmail.findMany({
-      where: {
-        receivedAt: { gte: since },
-        OR: [{ forwardStatus: 'failed' }, { forwardStatus: 'not_configured' }],
-      },
-      orderBy: {
-        receivedAt: 'desc',
-      },
-      take: sampleLimit,
-      select: {
-        id: true,
-        subject: true,
-        fromRaw: true,
-        toCsv: true,
-        receivedAt: true,
-        forwardStatus: true,
-        forwardError: true,
-      },
-    }),
-  ]);
-
-  return {
-    generatedAt: now.toISOString(),
-    windowHours,
-    shouldAlert: forwardFailed > 0 || forwardNotConfigured > 0,
-    metrics: {
-      inboundReceived,
-      forwardFailed,
-      forwardNotConfigured,
-    },
-    samples: samples.map((sample) => ({
-      ...sample,
-      receivedAt: sample.receivedAt.toISOString(),
-    })),
-  };
-}
-
-async function sendSlackAlert(webhookUrl: string, text: string): Promise<void> {
-  const response = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ text }),
-  });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`Slack alert send failed (${response.status}): ${body.slice(0, 200)}`);
-  }
+  return authHeader.slice(7).trim() || null;
 }
 
 async function requireAdminAccess(req: NextRequest) {
+  const cronSecret = process.env.CRON_SECRET || process.env.INBOUND_ALERT_CRON_TOKEN;
+  const bearerToken = extractBearerToken(req);
+  if (cronSecret && bearerToken && bearerToken === cronSecret) {
+    return { ok: true as const, actor: 'cron' as const };
+  }
+
   const authResult = await requireAuth(req);
 
   if (!authResult.authorized || !authResult.user) {
@@ -161,7 +39,7 @@ async function requireAdminAccess(req: NextRequest) {
     return { ok: false as const, response: apiError('Admin access required', 403) };
   }
 
-  return { ok: true as const };
+  return { ok: true as const, actor: 'admin' as const };
 }
 
 /**
@@ -176,11 +54,19 @@ export async function GET(req: NextRequest) {
 
   try {
     const searchParams = req.nextUrl.searchParams;
-    const windowHours = parsePositiveInt(searchParams.get('windowHours'), DEFAULT_WINDOW_HOURS, MAX_WINDOW_HOURS);
-    const sampleLimit = parsePositiveInt(searchParams.get('limit'), DEFAULT_FAILURE_LIMIT, MAX_FAILURE_LIMIT);
+    const windowHours = parsePositiveInt(
+      searchParams.get('windowHours'),
+      INBOUND_ALERT_DEFAULT_WINDOW_HOURS,
+      INBOUND_ALERT_MAX_WINDOW_HOURS
+    );
+    const sampleLimit = parsePositiveInt(
+      searchParams.get('limit'),
+      INBOUND_ALERT_DEFAULT_FAILURE_LIMIT,
+      INBOUND_ALERT_MAX_FAILURE_LIMIT
+    );
 
-    const snapshot = await loadSnapshot(windowHours, sampleLimit);
-    const slackConfigured = Boolean(env.SLACK_WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL);
+    const snapshot = await loadInboundForwardSnapshot(windowHours, sampleLimit);
+    const slackConfigured = Boolean(getInboundAlertSlackWebhookUrl());
 
     return apiResponse({
       ...snapshot,
@@ -209,19 +95,19 @@ export async function POST(req: NextRequest) {
 
     const windowHours = parsePositiveInt(
       typeof body?.windowHours === 'number' ? String(body.windowHours) : undefined,
-      DEFAULT_WINDOW_HOURS,
-      MAX_WINDOW_HOURS
+      INBOUND_ALERT_DEFAULT_WINDOW_HOURS,
+      INBOUND_ALERT_MAX_WINDOW_HOURS
     );
     const sampleLimit = parsePositiveInt(
       typeof body?.limit === 'number' ? String(body.limit) : undefined,
-      DEFAULT_FAILURE_LIMIT,
-      MAX_FAILURE_LIMIT
+      INBOUND_ALERT_DEFAULT_FAILURE_LIMIT,
+      INBOUND_ALERT_MAX_FAILURE_LIMIT
     );
     const dryRun = Boolean(body?.dryRun);
     const force = Boolean(body?.force);
 
-    const snapshot = await loadSnapshot(windowHours, sampleLimit);
-    const slackWebhookUrl = env.SLACK_WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL;
+    const snapshot = await loadInboundForwardSnapshot(windowHours, sampleLimit);
+    const slackWebhookUrl = getInboundAlertSlackWebhookUrl();
 
     if (!snapshot.shouldAlert && !force) {
       return apiResponse({
@@ -236,7 +122,7 @@ export async function POST(req: NextRequest) {
       return apiError('SLACK_WEBHOOK_URL is not configured', 503, 'ALERT_CHANNEL_NOT_CONFIGURED');
     }
 
-    const slackText = buildSlackText(snapshot);
+    const slackText = buildInboundForwardSlackText(snapshot);
 
     if (dryRun) {
       return apiResponse({

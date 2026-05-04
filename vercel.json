@@ -1,5 +1,11 @@
 {
   "buildCommand": "npm run build:production",
+  "crons": [
+    {
+      "path": "/api/cron/inbound-email-forward-alert",
+      "schedule": "*/30 * * * *"
+    }
+  ],
   "github": {
     "silent": false
   },
