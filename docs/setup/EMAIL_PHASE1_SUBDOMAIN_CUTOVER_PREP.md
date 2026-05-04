@@ -1,6 +1,6 @@
 # Email Phase 1 Subdomain Cutover Preparation
 
-> Last Updated: 2026-05-03 20:54:21 EDT
+> Last Updated: 2026-05-03 22:25:33 EDT
 > Scope: Step 1 execution record, production cutover status, and remaining validation tasks
 
 ## Execution Record (What Was Done)
@@ -31,11 +31,17 @@
 ## Remaining Tasks
 
 1. Run deliverability matrix tests:
-   - Gmail
+   - Gmail ✅
    - Outlook
-   - Corporate mailbox target
+   - Corporate mailbox target (deferred)
 2. Confirm webhook lifecycle for test sends (`email.sent`, `email.delivered`).
-3. Track confirmation-email outcomes for corporate recipients over next validation window.
+3. Track confirmation-email outcomes for corporate recipients over next validation window (deferred).
+
+## Current Validation Update
+
+1. Gmail path is confirmed working for transactional flow.
+2. Corporate mailbox validation is deferred temporarily while remaining email hardening work continues.
+3. Outlook is the next non-corporate deliverability target before revisiting corporate mailbox rules.
 
 ## Controlled Pass Results (Completed)
 

@@ -228,6 +228,20 @@ function getEventMetadataLine(
   return metadataParts.join('; ');
 }
 
+function hasRecordedLifecycleEvent(
+  errorMessage: string | null | undefined,
+  messageId: string,
+  eventType: EmailWebhookEvent['type']
+): boolean {
+  if (!errorMessage) {
+    return false;
+  }
+
+  return errorMessage
+    .split('\n')
+    .some((line) => line.includes(`messageId=${messageId}`) && line.includes(`event=${eventType}`));
+}
+
 async function maybeForwardInboundEmail(
   resend: Resend,
   event: EmailWebhookEvent
@@ -510,6 +524,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (existingLog) {
+    if (hasRecordedLifecycleEvent(existingLog.errorMessage, messageId, event.type)) {
+      return apiResponse({ received: true, duplicate: true, duplicateReason: 'event_already_recorded', status });
+    }
+
     const mergedMetadata = existingLog.errorMessage
       ? `${existingLog.errorMessage}\n${metadataLine}`
       : metadataLine;

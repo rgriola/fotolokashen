@@ -1,7 +1,7 @@
 # Email System Agent Plan - Foundation and Next Phases
 
-> Last Updated: 2026-05-03 20:54:21 EDT
-> Status: Phase 1 in progress (monitoring slice implemented, subdomain sender cutover active, controlled pass delivered, corporate deliverability validation pending)
+> Last Updated: 2026-05-03 22:25:33 EDT
+> Status: Phase 1 in progress (monitoring slice implemented, subdomain sender cutover active, controlled pass delivered, Gmail validated, corporate deliverability deferred)
 
 ## Purpose
 
@@ -37,6 +37,12 @@ This plan tracks the email system recovery and improvement effort. The first mil
 1. A forwarding failure was correctly captured when forward-from used an unverified domain.
 2. After changing forward-from to a verified sender domain and redeploying, forwarding status moved to ok.
 3. Gmail to support mailbox test succeeded and appeared in Admin Inbox.
+
+## Current Deliverability Validation State
+
+1. Gmail transactional delivery validated by live user confirmation.
+2. Corporate mailbox delivery remains inconsistent and is intentionally deferred for now.
+3. Next mailbox target before returning to corporate: Outlook matrix validation.
 
 ## New Deliverability Note (Corporate Mail)
 
@@ -74,13 +80,16 @@ This plan tracks the email system recovery and improvement effort. The first mil
 - [x] Monitoring and alerting (slice 1)
   - Added admin health endpoint for 24h inbound and forwarding metrics
   - Added Admin Inbox health card with warning/healthy status and quick filters
+- [x] Secrets and environment safety (slice 1)
+   - Confirmed `EMAIL_FROM_ADDRESS` and `EMAIL_REPLY_TO` configured in Production
+   - Added Preview/main scoped values for `EMAIL_FROM_ADDRESS` and `EMAIL_REPLY_TO`
+- [x] Webhook robustness (slice 1)
+   - Added duplicate lifecycle guard in `/api/webhooks/resend` to skip replayed events already recorded for the same message/event pair
 - [ ] Deliverability and sender-domain segmentation
   - Evaluate migration to dedicated sending subdomain (mail.fotolokashen.com)
   - Keep inbound receiving on dedicated receiving path to avoid reputation coupling
-  - Validate confirmation email deliverability to corporate domains after cutover
-  - Cutover complete; controlled pass delivered; validation matrix in progress
-- [ ] Secrets and environment safety
-- [ ] Webhook robustness
+   - Validate confirmation email deliverability to Outlook and corporate domains after cutover
+   - Cutover complete; controlled pass delivered; Gmail validated; remaining matrix in progress
 - [ ] Data quality and retention
 - [ ] Monitoring and alerting (slice 2: alert channel)
 
