@@ -1,14 +1,23 @@
-# fotolokashen - Project Status
+## fotolokashen - Project Status
 
-**Last Updated**: 2026-05-04 00:22 EDT
+**Last Updated**: 2026-05-08 12:25 EDT
 **Production URL**: https://fotolokashen.com  
-**Status**: ✅ Live in Production | 📱 iOS App v1.5.1
+**Status**: ✅ Live in Production | 📱 iOS App v1.6.0
+
 
 ## Current Focus
 
 ### 🎯 Recent Completions (May 2026)
 
-1. ✅ **Admin Email Template Test UX + Reliability Enhancements**
+1. ✅ **iOS Pipeline Hardening + Bug Fixes (v1.6.0)** — May 8, 2026
+   - EXIF preservation via raw `Data` capture path (ISO, aperture, lens metadata intact)
+   - Camera UX: flip camera button + Apple-style flash control (Auto/On/Off, yellow when active)
+   - Library race condition resolved: `TaskGroup` parallel loading + deferred dismissal + `PhotoLoadingOverlay`
+   - Transition overlay for Camera→Library flow eliminates abrupt dismissal
+   - `useNewPhotoPipeline = true` activates `PhotoPipelineCoordinator` + `PhotoUploadQueue`
+   - Bug fix: `details` field (Create form) now round-trips correctly to Edit view
+
+2. ✅ **Admin Email Template Test UX + Reliability Enhancements**
    - Added Test Variables modal on `/admin/email-templates/[id]/edit` so super admins can edit required test values before sending
    - Added custom variable key/value support for testing non-required placeholders and payload preview with remove action for custom entries
    - Improved test send error surfacing in editor UI so backend error messages are shown directly (instead of a generic failure toast)
@@ -137,17 +146,20 @@
 - ✅ **Profile Management Enhancements** - Username/email change, avatar/banner editing
 - ✅ **Privacy & Visibility System** - Granular privacy controls
 
-### 📱 iOS Companion App (v1.5.1)
+### 📱 iOS Companion App (v1.6.0)
 
 **Status**: Active Development  
 **Location**: `/fotolokashen-ios/` workspace
 
-- **Tech Stack**: SwiftUI (iOS 16+), MVVM + Shared Store, Swift Concurrency
-- **Core Features**: Camera-first workflow, GPS tagging, offline support (iOS 17+)
+- **Tech Stack**: SwiftUI (iOS 16+), MVVM + Shared Store, Swift Concurrency, AVFoundation, PhotosUI
+- **Core Features**: Camera-first workflow (flip + flash + EXIF), GPS tagging, offline support (iOS 17+), multi-photo sessions
+- **Upload Pipeline**: `PhotoPipelineCoordinator` → `PhotoCompressionService` → `PhotoUploadQueue` (concurrent, retry-capable). Feature-flagged; active in production config.
 - **Social Features**: Follow/unfollow, public profiles, friends' locations on map, people search
-- **Backend Integration**: OAuth2 + PKCE authentication, secure server-mediated uploads
-- **Recent Milestones**: v1.5.0 Profile & Settings restructure and v1.5.1 OAuth login/register reliability fixes
-- **Recent Refactors**: Extracted `GeocodingService`, `LocationDetailSubviews`, `ProfileHeaderComponents` — all files under 500-line SwiftLint threshold
+- **Backend Integration**: OAuth2 + PKCE (`prefersEphemeralWebBrowserSession = true`), secure server-mediated uploads
+- **Recent Milestones**: v1.6.0 pipeline hardening, EXIF preservation, camera UX (flip/flash), library race condition fix, `details` field edit bug fix
+- **Test Coverage**: Unit tests for `PhotoUploadQueue`, `PhotoCompressionService`, ViewModels, `APIClient` (Phases 4a–4d)
+- **Observability**: `dlog()` routes through `os.Logger` in debug builds
+
 
 ---
 
