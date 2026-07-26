@@ -43,7 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PhotoGallery } from "../locations/PhotoGallery";
 import type { Location } from "@/types/location";
-import { getOptimizedAvatarUrl } from "@/lib/imagekit";
+import { getOptimizedAvatarUrl } from "@/lib/storage";
 
 interface LocationDetailPanelProps {
     location: Location;

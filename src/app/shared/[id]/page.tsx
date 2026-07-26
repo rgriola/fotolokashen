@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import SharedLocationClient from './SharedLocationClient';
-import { getPhotoUrl } from '@/lib/imagekit';
+import { getPhotoUrl } from '@/lib/storage';
 
 interface SharedLocationPageProps {
   params: Promise<{ id: string }>;

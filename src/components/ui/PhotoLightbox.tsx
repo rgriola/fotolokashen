@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getPhotoUrl } from "@/lib/imagekit";
+import { getPhotoUrl } from "@/lib/storage";
 
 import { VisuallyHidden } from "@/components/ui/visually-hidden";
 

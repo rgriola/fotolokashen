@@ -1,10 +1,10 @@
 import { NextRequest } from 'next/server';
-import ImageKit from 'imagekit';
+import { getImageKitAuthParams } from '@/lib/storage';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
 
 /**
  * GET /api/imagekit/auth
- * Generate ImageKit authentication parameters for client-side uploads
+ * Generate storage authentication parameters for client-side direct uploads
  */
 export async function GET(request: NextRequest) {
     try {
@@ -15,23 +15,11 @@ export async function GET(request: NextRequest) {
             return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
         }
 
-        // Initialize ImageKit
-        const imagekit = new ImageKit({
-            publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || '',
-            privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
-            urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
-        });
+        const authParams = getImageKitAuthParams();
 
-        // Generate authentication parameters
-        const authenticationParameters = imagekit.getAuthenticationParameters();
-
-        return apiResponse({
-            ...authenticationParameters,
-            publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
-            urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
-        });
+        return apiResponse(authParams);
     } catch (error: any) {
-        console.error('Error generating ImageKit auth:', error);
+        console.error('Error generating storage auth params:', error);
         return apiError('Failed to generate authentication', 500, 'AUTH_ERROR');
     }
 }

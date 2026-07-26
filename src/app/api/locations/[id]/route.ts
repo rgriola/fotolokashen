@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
 import { canEditLocation, canDeleteUserSave } from '@/lib/permissions';
 import { sanitizeUserInput, sanitizeArray } from '@/lib/sanitize';
-import { attachPhotoSizes } from '@/lib/imagekit';
+import { attachPhotoSizes } from '@/lib/storage';
 
 /**
  * GET /api/locations/[id]

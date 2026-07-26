@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
-import { uploadToImageKit, deleteFromImageKit } from '@/lib/imagekit';
+import { uploadToImageKit, deleteFromImageKit } from '@/lib/storage';
 import prisma from '@/lib/prisma';
 import { FOLDER_PATHS, FILE_SIZE_LIMITS } from '@/lib/constants/upload';
 import { scanFile } from '@/lib/virus-scan';

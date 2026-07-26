@@ -27,7 +27,7 @@ import { UnsavedChangesBanner } from "@/components/locations/UnsavedChangesBanne
 import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/location-constants";
 import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR } from "@/lib/form-constants";
 import { Location, UserSave } from "@/types/location";
-import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit";
+import { IMAGEKIT_URL_ENDPOINT } from "@/lib/storage";
 import { useAuth } from "@/lib/auth-context";
 import { useImproveDescription } from "@/hooks/useImproveDescription";
 import Image from "next/image";

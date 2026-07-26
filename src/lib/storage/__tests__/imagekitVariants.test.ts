@@ -3,7 +3,7 @@ import {
     getPhotoVariants,
     attachPhotoSizes,
     IMAGEKIT_URL_ENDPOINT,
-} from '@/lib/imagekit';
+} from '@/lib/storage';
 
 describe('getPhotoVariants', () => {
     const filePath = '/development/users/123/photos/abc.jpg';

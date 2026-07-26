@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
 import Image from 'next/image';
-import { getPhotoUrl } from '@/lib/imagekit';
+import { getPhotoUrl } from '@/lib/storage';
 import Link from 'next/link';
 import { MapPin, Calendar, Star, ExternalLink, Clock, DollarSign, Phone, AlertCircle, Sunrise, ParkingSquare, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiError } from '@/lib/api-middleware';
-import { getPhotoVariants } from '@/lib/imagekit';
+import { getPhotoVariants } from '@/lib/storage';
 import { normalizeUsername } from '@/lib/username-utils';
 
 /**

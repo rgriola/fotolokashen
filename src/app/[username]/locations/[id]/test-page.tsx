@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
-import { getImageKitUrl } from '@/lib/imagekit';
+import { getImageKitUrl } from '@/lib/storage';
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin, Calendar, Star, ArrowLeft } from 'lucide-react';

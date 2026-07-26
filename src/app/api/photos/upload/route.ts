@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
-import { uploadToImageKit, getPhotoVariants } from '@/lib/imagekit';
+import { uploadToImageKit, getPhotoVariants } from '@/lib/storage';
 import { scanFile } from '@/lib/virus-scan';
 import { sanitizeText } from '@/lib/sanitize';
 import { FILE_SIZE_LIMITS, FOLDER_PATHS } from '@/lib/constants/upload';

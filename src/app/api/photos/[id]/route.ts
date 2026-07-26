@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
-import ImageKit from 'imagekit';
+import { deleteFromImageKit } from '@/lib/storage';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
 
 /**
@@ -40,18 +40,11 @@ export async function DELETE(
             return apiError('You do not have permission to delete this photo', 403, 'FORBIDDEN');
         }
 
-        // Delete from ImageKit
-        try {
-            const imagekit = new ImageKit({
-                publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || '',
-                privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
-                urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
-            });
-
-            await imagekit.deleteFile(photo.imagekitFileId);
-        } catch (error: any) {
-            console.error('Error deleting from ImageKit:', error);
-            // Continue with database deletion even if ImageKit deletion fails
+        // Delete from storage (ImageKit CDN today)
+        const deleteResult = await deleteFromImageKit(photo.imagekitFileId);
+        if (!deleteResult.success) {
+            console.error('Error deleting from storage:', deleteResult.error);
+            // Continue with database deletion even if storage deletion fails
         }
 
         // Delete from database

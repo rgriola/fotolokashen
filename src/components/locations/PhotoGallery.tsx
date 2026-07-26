@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Star, Info, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getPhotoUrl } from "@/lib/imagekit";
+import { getPhotoUrl } from "@/lib/storage";
 import { PhotoLightbox } from "@/components/ui/PhotoLightbox";
 import Image from "next/image";
 import type { Photo } from "@/types/location";

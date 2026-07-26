@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { TOAST } from '@/lib/constants/messages';
 import { Camera, User, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
-import { getOptimizedAvatarUrl } from '@/lib/imagekit';
+import { getOptimizedAvatarUrl } from '@/lib/storage';
 import Image from 'next/image';
 import { ImageEditor } from './ImageEditor';
 import { FILE_SIZE_LIMITS } from '@/lib/constants/upload';
