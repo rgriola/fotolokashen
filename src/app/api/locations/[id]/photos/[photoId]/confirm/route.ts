@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
+import { deleteFromImageKit } from '@/lib/storage';
+import { scanFile } from '@/lib/virus-scan';
 
 /**
  * POST /api/locations/[id]/photos/[photoId]/confirm
@@ -72,6 +74,68 @@ export async function POST(
             // Remove the first part (account name)
             imagekitFilePath = '/' + pathParts.slice(1).join('/');
         }
+
+        // ── Virus scan ────────────────────────────────────────────────────────
+        // Direct client-to-storage uploads bypass the server-mediated pipeline,
+        // so we fetch the uploaded file back from the CDN and scan it here
+        // before persisting the confirmed record.
+        const fileName = imagekitFilePath.split('/').filter(Boolean).pop() ?? 'uploaded-file';
+
+        let fileBuffer: Buffer;
+        try {
+            const fileResponse = await fetch(imagekitUrl);
+            if (!fileResponse.ok) {
+                console.error(`[Confirm Upload] Failed to fetch file for scanning (HTTP ${fileResponse.status})`);
+                await deleteFromImageKit(imagekitFileId).catch(() => {});
+                await prisma.photo.delete({ where: { id: photoId } });
+                return apiError('Failed to verify uploaded file', 500);
+            }
+            fileBuffer = Buffer.from(await fileResponse.arrayBuffer());
+        } catch (fetchError) {
+            console.error('[Confirm Upload] Fetch error during scan:', fetchError);
+            await deleteFromImageKit(imagekitFileId).catch(() => {});
+            await prisma.photo.delete({ where: { id: photoId } });
+            return apiError('Failed to verify uploaded file', 500);
+        }
+
+        const scanResult = await scanFile(fileBuffer, fileName);
+
+        if (scanResult.isInfected) {
+            console.error(`[Confirm Upload] 🚨 INFECTED file detected: ${fileName}`, scanResult.viruses);
+
+            // Remove from storage
+            await deleteFromImageKit(imagekitFileId).catch((err: unknown) =>
+                console.error('[Confirm Upload] Failed to delete infected file from storage:', err)
+            );
+
+            // Remove the pending Photo row
+            await prisma.photo.delete({ where: { id: photoId } });
+
+            // Audit trail
+            await prisma.securityLog.create({
+                data: {
+                    userId: authResult.user.id,
+                    eventType: 'PHOTO_UPLOAD_BLOCKED',
+                    metadata: {
+                        viruses: scanResult.viruses,
+                        filename: fileName,
+                        directUpload: true,
+                        locationId,
+                        photoId,
+                    },
+                    ipAddress: request.headers.get('x-forwarded-for') ?? 'unknown',
+                },
+            });
+
+            return apiError(
+                scanResult.error ?? 'File failed security scan',
+                400,
+                'SECURITY_VIOLATION'
+            );
+        }
+
+        console.log(`[Confirm Upload] ✅ File clean: ${fileName}`);
+        // ─────────────────────────────────────────────────────────────────────
 
         // Update photo record with ImageKit details
         const updatedPhoto = await prisma.photo.update({
