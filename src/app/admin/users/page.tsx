@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Users, MailIcon, Inbox } from 'lucide-react';
+import { Users, Inbox } from 'lucide-react';
 import { AdminRoute } from '@/components/auth/AdminRoute';
 import { UserManagementTable } from '@/components/admin/UserManagementTable';
 
@@ -30,14 +30,6 @@ export default function AdminUsersPage() {
                         >
                             <Users className="w-4 h-4 mr-2" />
                             Users
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            onClick={() => router.push('/admin/email-templates')}
-                            className="rounded-b-none"
-                        >
-                            <MailIcon className="w-4 h-4 mr-2" />
-                            Email Templates
                         </Button>
                         <Button
                             variant="ghost"

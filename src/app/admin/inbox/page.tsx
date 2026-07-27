@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Inbox, MailIcon, Paperclip, RefreshCw, Search, Users } from 'lucide-react';
+import { Inbox, Paperclip, RefreshCw, Search, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface InboundEmailListItem {
@@ -332,14 +332,6 @@ export default function AdminInboxPage() {
             >
               <Users className="w-4 h-4 mr-2" />
               Users
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/admin/email-templates')}
-              className="rounded-b-none"
-            >
-              <MailIcon className="w-4 h-4 mr-2" />
-              Email Templates
             </Button>
             <Button variant="ghost" className="rounded-b-none border-b-2 border-primary">
               <Inbox className="w-4 h-4 mr-2" />

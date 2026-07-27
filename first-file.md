@@ -32,7 +32,6 @@ Lets work on your recomendations;
 First create a storage abstraction github branch then implement your plan to update it. Once it is tested and merged we will work on the virus-scan gap, the after the email.
 
 The storage adapter abstraction then fix the virus-scan gap. We will tackle the Email plan after the above is cleanly implemented.
-
-Create a sto
-
 Email;
+
+July 27

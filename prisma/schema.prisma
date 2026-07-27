@@ -94,9 +94,6 @@ model User {
   followers                    UserFollow[]             @relation("Followers")
   oauthAuthorizationCodes      OAuthAuthorizationCode[]
   oauthRefreshTokens           OAuthRefreshToken[]
-  createdTemplates             EmailTemplate[]          @relation("TemplateCreator")
-  updatedTemplates             EmailTemplate[]          @relation("TemplateUpdater")
-  createdTemplateVersions      EmailTemplateVersion[]   @relation("VersionCreator")
   locationGroups               LocationGroup[]
   customGroupTypes             UserGroupType[]
 
@@ -498,87 +495,6 @@ model OAuthRefreshToken {
   @@map("oauth_refresh_tokens")
 }
 
-// ============================================================================
-// EMAIL TEMPLATES SYSTEM
-// ============================================================================
-
-model EmailTemplate {
-  id Int @id @default(autoincrement())
-
-  // Template Identity
-  key         String  @unique // e.g., 'verification', 'password_reset', 'welcome'
-  name        String // Display name: "Email Verification Template"
-  description String? // Purpose of this template
-  category    String  @default("system") // 'system', 'notification', 'campaign'
-
-  // Email Content
-  subject     String // Email subject line
-  htmlBody    String  @db.Text // Full HTML template
-  textBody    String? @db.Text // Plain text fallback
-  previewText String? // Email preview text (first line in inbox)
-
-  // Customization
-  brandColor          String  @default("#4285f4")
-  headerGradientStart String  @default("#4285f4")
-  headerGradientEnd   String  @default("#5a67d8")
-  buttonColor         String  @default("#4285f4")
-  headerImageUrl      String? // Optional header image URL
-
-  // Template Variables (JSON array of required variables)
-  requiredVariables Json @default("[]")
-
-  // Status & Versioning
-  isActive  Boolean   @default(true)
-  version   Int       @default(1)
-  isDefault Boolean   @default(false) // System default templates
-  deletedAt DateTime? // Soft delete timestamp
-
-  // Metadata
-  createdBy Int?
-  updatedBy Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  creator   User?                  @relation("TemplateCreator", fields: [createdBy], references: [id], onDelete: SetNull)
-  updater   User?                  @relation("TemplateUpdater", fields: [updatedBy], references: [id], onDelete: SetNull)
-  versions  EmailTemplateVersion[]
-  usageLogs EmailLog[]
-
-  @@index([key])
-  @@index([category])
-  @@index([isActive])
-  @@index([deletedAt])
-  @@map("email_templates")
-}
-
-model EmailTemplateVersion {
-  id         Int @id @default(autoincrement())
-  templateId Int
-
-  // Version Info
-  version    Int
-  changeNote String? // What changed in this version
-
-  // Snapshot of Content
-  subject       String
-  htmlBody      String  @db.Text
-  textBody      String? @db.Text
-  customization Json // Store all color/style settings
-
-  // Metadata
-  createdBy Int?
-  createdAt DateTime @default(now())
-
-  // Relations
-  template EmailTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  creator  User?         @relation("VersionCreator", fields: [createdBy], references: [id], onDelete: SetNull)
-
-  @@index([templateId])
-  @@index([version])
-  @@map("email_template_versions")
-}
-
 model EmailLog {
   id Int @id @default(autoincrement())
 
@@ -591,9 +507,6 @@ model EmailLog {
   // Metadata
   sentAt       DateTime @default(now())
   errorMessage String?  @db.Text
-
-  // Relations
-  template EmailTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
 
   @@index([templateId])
   @@index([to])
