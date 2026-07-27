@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
 import { canEditLocation, canDeleteUserSave } from '@/lib/permissions';
 import { sanitizeUserInput, sanitizeArray } from '@/lib/sanitize';
-import { attachPhotoSizes } from '@/lib/imagekit';
+import { attachPhotoSizes, deleteFromImageKit } from '@/lib/storage';
 
 /**
  * GET /api/locations/[id]
@@ -388,21 +388,14 @@ export async function DELETE(
 
         // CASCADE DELETE: If user is creator and it's the last save, delete everything
         if (isCreator && isLastSave) {
-            // Step 1: Delete photos from ImageKit
+            // Step 1: Delete photos from storage
             if (userSave.location.photos.length > 0) {
-                const ImageKit = (await import('imagekit')).default;
-                const imagekit = new ImageKit({
-                    publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY || '',
-                    privateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
-                    urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || '',
-                });
-
                 for (const photo of userSave.location.photos) {
                     try {
-                        await imagekit.deleteFile(photo.imagekitFileId);
+                        await deleteFromImageKit(photo.imagekitFileId);
                     } catch (error: unknown) {
                         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-                        console.error(`Failed to delete photo ${photo.id} from ImageKit: ${errorMessage}`);
+                        console.error(`Failed to delete photo ${photo.id} from storage: ${errorMessage}`);
                     }
                 }
             }

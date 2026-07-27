@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import prisma from '@/lib/prisma';
 import { normalizeUsername } from '@/lib/username-utils';
-// import { getImageKitUrl } from '@/lib/imagekit';
+// import { getImageKitUrl } from '@/lib/storage';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';

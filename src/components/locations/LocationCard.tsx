@@ -16,7 +16,7 @@ import {
 import type { Location } from "@/types/location";
 import { useState, memo } from "react";
 import { useRouter } from "next/navigation";
-import { getPhotoUrl, getOptimizedAvatarUrl } from "@/lib/imagekit";
+import { getPhotoUrl, getOptimizedAvatarUrl } from "@/lib/storage";
 import { TYPE_COLOR_MAP } from "@/lib/location-constants";
 
 // Get Google Maps API key for static images

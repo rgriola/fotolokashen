@@ -1,30 +1,12 @@
 import { NextRequest } from 'next/server';
 import { requireAdmin, apiResponse, apiError } from '@/lib/api-middleware';
 import prisma from '@/lib/prisma';
-import ImageKit from 'imagekit';
+import { deleteFromImageKit, deleteImageKitFolder } from '@/lib/storage';
 import { sendAccountDeletionEmail } from '@/lib/email';
 import { getUserRootFolder } from '@/lib/constants/upload';
 
 // Runtime config for edge/node
 export const runtime = 'nodejs';
-
-// Initialize ImageKit only if we have the keys
-function getImageKit() {
-    const publicKey = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY;
-    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
-    const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
-    
-    if (!publicKey || !privateKey || !urlEndpoint) {
-        console.warn('[ImageKit] Missing environment variables, CDN deletion will be skipped');
-        return null;
-    }
-    
-    return new ImageKit({
-        publicKey,
-        privateKey,
-        urlEndpoint,
-    });
-}
 
 /**
  * DELETE /api/admin/users/[id]
@@ -95,31 +77,30 @@ export async function DELETE(
             return apiError('User not found', 404);
         }
 
-        // Delete photos from ImageKit CDN
-        const imagekit = getImageKit();
-        if (imagekit && user.uploadedPhotos.length > 0) {
-            console.log(`[DeleteUser] Deleting ${user.uploadedPhotos.length} photos from ImageKit...`);
-            
+        // Delete photos from storage (ImageKit CDN today)
+        if (user.uploadedPhotos.length > 0) {
+            console.log(`[DeleteUser] Deleting ${user.uploadedPhotos.length} photos from storage...`);
+
             // Delete individual photo files
             for (const photo of user.uploadedPhotos) {
-                try {
-                    await imagekit.deleteFile(photo.imagekitFileId);
-                    console.log(`[DeleteUser] Deleted photo ${photo.id} from ImageKit`);
-                } catch (error) {
-                    console.error(`[DeleteUser] Failed to delete photo ${photo.id} from ImageKit:`, error);
+                const result = await deleteFromImageKit(photo.imagekitFileId);
+                if (result.success) {
+                    console.log(`[DeleteUser] Deleted photo ${photo.id} from storage`);
+                } else {
+                    console.error(`[DeleteUser] Failed to delete photo ${photo.id} from storage:`, result.error);
                     // Continue even if CDN deletion fails
                 }
             }
-            
-            // Delete the user's entire folder from ImageKit
+
+            // Delete the user's entire folder from storage
             // Uses environment-aware path: /production/users/{userId}/ or /development/users/{userId}/
-            try {
-                const userFolderPath = getUserRootFolder(userId);
-                console.log(`[DeleteUser] Attempting to delete user folder: ${userFolderPath}`);
-                await imagekit.deleteFolder(userFolderPath);
-                console.log(`[DeleteUser] Deleted user folder ${userFolderPath} from ImageKit`);
-            } catch (error) {
-                console.error(`[DeleteUser] Failed to delete user folder from ImageKit:`, error);
+            const userFolderPath = getUserRootFolder(userId);
+            console.log(`[DeleteUser] Attempting to delete user folder: ${userFolderPath}`);
+            const folderResult = await deleteImageKitFolder(userFolderPath);
+            if (folderResult.success) {
+                console.log(`[DeleteUser] Deleted user folder ${userFolderPath} from storage`);
+            } else {
+                console.error(`[DeleteUser] Failed to delete user folder from storage:`, folderResult.error);
                 // Continue even if folder deletion fails (might not exist or already empty)
             }
         }

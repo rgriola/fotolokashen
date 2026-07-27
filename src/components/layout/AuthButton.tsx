@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { canAccessAdminPanel } from "@/lib/permissions";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getOptimizedAvatarUrl } from "@/lib/imagekit";
+import { getOptimizedAvatarUrl } from "@/lib/storage";
 import {
     DropdownMenu,
     DropdownMenuContent,

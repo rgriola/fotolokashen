@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth, parseBoundsFilter, USER_SUMMARY_SELECT } from '@/lib/api-middleware';
-import { attachPhotoSizes } from '@/lib/imagekit';
+import { attachPhotoSizes } from '@/lib/storage';
 
 /**
  * GET /api/v1/locations/public

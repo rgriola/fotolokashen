@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
-import { generateSignedUploadUrl } from '@/lib/imagekit';
+import { generateSignedUploadUrl } from '@/lib/storage';
 import { FILE_SIZE_LIMITS } from '@/lib/constants/upload';
 
 /**

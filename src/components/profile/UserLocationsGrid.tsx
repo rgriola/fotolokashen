@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { getPhotoUrl } from "@/lib/imagekit";
+import { getPhotoUrl } from "@/lib/storage";
 
 interface LocationPhoto {
   id: number;

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { apiResponse, apiError, requireAuth } from '@/lib/api-middleware';
-import { getImageKitUrl, getPhotoVariants } from '@/lib/imagekit';
+import { getImageKitUrl, getPhotoVariants } from '@/lib/storage';
 
 /**
  * GET /api/locations/[id]/photos

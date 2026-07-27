@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getPhotoUrl, getOptimizedAvatarUrl } from "@/lib/imagekit";
+import { getPhotoUrl, getOptimizedAvatarUrl } from "@/lib/storage";
 import { useState } from "react";
 import { toast } from "sonner";
 import { TOAST } from "@/lib/constants/messages";

@@ -4,7 +4,7 @@ import { apiResponse, apiError, requireAuth, withAuth, parseBoundsFilter } from 
 import { VALIDATION_CONFIG } from '@/lib/validation-config';
 import { sanitizeUserInput, sanitizeArray } from '@/lib/sanitize';
 import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
-import { attachPhotoSizes } from '@/lib/imagekit';
+import { attachPhotoSizes } from '@/lib/storage';
 import type { PublicUser } from '@/types/user';
 
 /**
