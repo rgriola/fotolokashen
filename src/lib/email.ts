@@ -1,12 +1,12 @@
 import { Resend } from 'resend';
 import {
+  EMAIL_SUBJECTS,
   verificationEmailTemplate,
   passwordResetEmailTemplate,
   passwordChangedEmailTemplate,
   accountDeletionEmailTemplate,
   welcomeToEmailTemplate,
-} from './email-templates';
-import { getRenderedEmail } from './email-template-service';
+} from './email-content';
 import { prisma } from './prisma';
 import { env } from './env';
 
@@ -14,8 +14,6 @@ import { env } from './env';
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
 const EMAIL_MODE = env.EMAIL_MODE;
 const EMAIL_API_KEY = env.EMAIL_API_KEY;
-const USE_DB_TEMPLATES = process.env.USE_DB_TEMPLATES !== 'false'; // Default: true
-
 // Production safety guard: catch misconfigured EMAIL_MODE before any emails are attempted
 if (process.env.NODE_ENV === 'production' && EMAIL_MODE !== 'production') {
   console.error(
@@ -174,29 +172,7 @@ export async function sendVerificationEmail(
     return true;
   }
 
-  // Try to get template from database first
-  if (USE_DB_TEMPLATES) {
-    try {
-      const rendered = await getRenderedEmail('verification', {
-        username,
-        verificationUrl,
-        email,
-      });
-      
-      if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, {
-          templateId: rendered.templateId,
-          text: rendered.text,
-          previewText: rendered.previewText,
-        });
-      }
-    } catch (error) {
-      console.warn('Failed to render database template, falling back to hard-coded template:', error);
-    }
-  }
-
-  // Fallback to hard-coded template
-  const verificationSubject = 'Verify your email address for Fotolokashen';
+  const verificationSubject = EMAIL_SUBJECTS.verification;
   const verificationText = [
     `Hi ${username},`,
     '',
@@ -242,30 +218,9 @@ export async function sendWelcomeEmail(
     return true;
   }
 
-  // Try to get template from database first
-  if (USE_DB_TEMPLATES) {
-    try {
-      const rendered = await getRenderedEmail('welcome', {
-        username,
-        email,
-      });
-      
-      if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, {
-          templateId: rendered.templateId,
-          text: rendered.text,
-          previewText: rendered.previewText,
-        });
-      }
-    } catch (error) {
-      console.warn('Failed to render database template, falling back to hard-coded template:', error);
-    }
-  }
-
-  // Fallback to hard-coded template
   return sendEmail(
     email,
-    'Email Confirmed - Welcome to Fotolokashen!',
+    EMAIL_SUBJECTS.welcome,
     welcomeToEmailTemplate(username)
   );
 }
@@ -299,31 +254,9 @@ export async function sendPasswordResetEmail(
     return true;
   }
 
-  // Try to get template from database first
-  if (USE_DB_TEMPLATES) {
-    try {
-      const rendered = await getRenderedEmail('password_reset', {
-        username,
-        resetUrl,
-        email,
-      });
-      
-      if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, {
-          templateId: rendered.templateId,
-          text: rendered.text,
-          previewText: rendered.previewText,
-        });
-      }
-    } catch (error) {
-      console.warn('Failed to render database template, falling back to hard-coded template:', error);
-    }
-  }
-
-  // Fallback to hard-coded template
   return sendEmail(
     email,
-    'Reset your password',
+    EMAIL_SUBJECTS.password_reset,
     passwordResetEmailTemplate(username, resetUrl)
   );
 }
@@ -373,33 +306,9 @@ export async function sendPasswordChangedEmail(
     return true;
   }
 
-  // Try to get template from database first
-  if (USE_DB_TEMPLATES) {
-    try {
-      const rendered = await getRenderedEmail('password_changed', {
-        username,
-        timestamp: formattedTime,
-        ipAddress: ipAddress || 'Unknown',
-        timezone,
-        email,
-      });
-      
-      if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, {
-          templateId: rendered.templateId,
-          text: rendered.text,
-          previewText: rendered.previewText,
-        });
-      }
-    } catch (error) {
-      console.warn('Failed to render database template, falling back to hard-coded template:', error);
-    }
-  }
-
-  // Fallback to hard-coded template
   return sendEmail(
     email,
-    'Your Password Was Changed',
+    EMAIL_SUBJECTS.password_changed,
     passwordChangedEmailTemplate(username, formattedTime, ipAddress)
   );
 }
@@ -430,30 +339,9 @@ export async function sendAccountDeletionEmail(
     return true;
   }
 
-  // Try to get template from database first
-  if (USE_DB_TEMPLATES) {
-    try {
-      const rendered = await getRenderedEmail('account_deletion', {
-        username,
-        email,
-      });
-      
-      if (rendered) {
-        return sendEmail(email, rendered.subject, rendered.html, {
-          templateId: rendered.templateId,
-          text: rendered.text,
-          previewText: rendered.previewText,
-        });
-      }
-    } catch (error) {
-      console.warn('Failed to render database template, falling back to hard-coded template:', error);
-    }
-  }
-
-  // Fallback to hard-coded template
   return sendEmail(
     email,
-    'We deleted your Fotolokashen account',
+    EMAIL_SUBJECTS.account_deletion,
     accountDeletionEmailTemplate(username, email)
   );
 }
