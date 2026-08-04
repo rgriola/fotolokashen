@@ -5,7 +5,7 @@ import { Resend } from 'resend';
 
 // Environment variables
 const EMAIL_API_KEY = process.env.EMAIL_API_KEY;
-const SUPPORT_EMAIL = 'rodczaro@gmail.com';
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
 
 // Initialize Resend client
 let resendClient: Resend | null = null;
