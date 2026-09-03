@@ -8,44 +8,17 @@ const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
 
 // Validation constants
 const VALIDATION = {
-  name: { min: 2, max: 100 },
-  email: { max: 254 },
   subject: { min: 5, max: 200 },
   message: { min: 10, max: 2000 },
-  holdDuration: { min: 3000 }, // 3 seconds minimum
 };
 
-// Email regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 interface SupportRequest {
-  name: string;
-  email: string;
   subject: string;
   message: string;
 }
 
 function validateRequest(body: SupportRequest): string | null {
-  const { name, email, subject, message } = body;
-
-  // Name validation
-  if (!name || typeof name !== 'string') {
-    return 'Name is required';
-  }
-  if (name.length < VALIDATION.name.min || name.length > VALIDATION.name.max) {
-    return `Name must be between ${VALIDATION.name.min} and ${VALIDATION.name.max} characters`;
-  }
-
-  // Email validation
-  if (!email || typeof email !== 'string') {
-    return 'Email is required';
-  }
-  if (email.length > VALIDATION.email.max) {
-    return 'Email is too long';
-  }
-  if (!EMAIL_REGEX.test(email)) {
-    return 'Please enter a valid email address';
-  }
+  const { subject, message } = body;
 
   // Subject validation
   if (!subject || typeof subject !== 'string') {
@@ -191,6 +164,10 @@ export async function POST(request: NextRequest) {
 
     const user = auth.user;
 
+    if (!user.emailVerified) {
+      return apiError('Verify your email before contacting support.', 403, 'EMAIL_NOT_VERIFIED');
+    }
+
     // Rate limiting: 5 requests per hour for authenticated users
     const rateLimitResult = await rateLimit(request, {
       limit: 5,
@@ -221,7 +198,9 @@ export async function POST(request: NextRequest) {
       return apiError(validationError, 400, 'VALIDATION_ERROR');
     }
 
-    const { name, email, subject, message } = body;
+    const { subject, message } = body;
+    const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username;
+    const email = user.email;
 
     // Send emails
     try {
@@ -230,7 +209,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Send support request email to admin
-      await sendEmail(
+      const supportNotificationSent = await sendEmail(
         SUPPORT_EMAIL,
         `[Member Support] ${subject}`,
         createSupportEmailHtml(name, email, subject, message, user.username),
@@ -238,11 +217,15 @@ export async function POST(request: NextRequest) {
       );
 
       // Send confirmation email to member
-      await sendEmail(
+      const confirmationSent = await sendEmail(
         email,
         'Your Support Request Has Been Received',
         createConfirmationEmailHtml(name, subject)
       );
+
+      if (!supportNotificationSent || !confirmationSent) {
+        return apiError('Failed to send message. Please try again later.', 502, 'EMAIL_SEND_ERROR');
+      }
 
       console.log(`✅ Member support email sent from ${email} (@${user.username}): ${subject}`);
 

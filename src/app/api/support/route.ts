@@ -5,6 +5,7 @@ import { sendEmail } from '@/lib/email';
 
 // Environment variables
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
+const PUBLIC_SUPPORT_ENABLED = process.env.PUBLIC_SUPPORT_ENABLED === 'true';
 
 // Validation constants
 const VALIDATION = {
@@ -144,6 +145,10 @@ ${sanitizeInput(message)}
  * Submit a support request
  */
 export async function POST(request: NextRequest) {
+  if (!PUBLIC_SUPPORT_ENABLED) {
+    return apiError('Not found', 404, 'NOT_FOUND');
+  }
+
   try {
     // Rate limiting: 3 requests per hour per IP
     const rateLimitResult = await rateLimit(request, {
@@ -183,12 +188,16 @@ export async function POST(request: NextRequest) {
         return apiError('Support email not configured', 500, 'CONFIG_ERROR');
       }
 
-      await sendEmail(
+      const sent = await sendEmail(
         SUPPORT_EMAIL,
         `[Support] ${subject}`,
         createEmailHtml(name, email, subject, message),
         { replyTo: email }
       );
+
+      if (!sent) {
+        return apiError('Failed to send message. Please try again later.', 502, 'EMAIL_SEND_ERROR');
+      }
 
       console.log(`✅ Support email sent from ${email}: ${subject}`);
 
@@ -215,6 +224,10 @@ export async function POST(request: NextRequest) {
  * Health check for the support endpoint
  */
 export async function GET() {
+  if (!PUBLIC_SUPPORT_ENABLED) {
+    return apiError('Not found', 404, 'NOT_FOUND');
+  }
+
   return apiResponse({
     status: 'ok',
     message: 'Support endpoint is available',
