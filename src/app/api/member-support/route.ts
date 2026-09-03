@@ -1,24 +1,10 @@
 import { NextRequest } from 'next/server';
 import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
 import { rateLimit } from '@/lib/rate-limit';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 
 // Environment variables
-const EMAIL_API_KEY = process.env.EMAIL_API_KEY;
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
-
-// Initialize Resend client
-let resendClient: Resend | null = null;
-
-function getResendClient(): Resend {
-  if (!resendClient && EMAIL_API_KEY) {
-    resendClient = new Resend(EMAIL_API_KEY);
-  }
-  if (!resendClient) {
-    throw new Error('Email service not configured');
-  }
-  return resendClient;
-}
 
 // Validation constants
 const VALIDATION = {
@@ -239,26 +225,24 @@ export async function POST(request: NextRequest) {
 
     // Send emails
     try {
-      const resend = getResendClient();
-      const fromName = process.env.EMAIL_FROM_NAME || 'Fotolokashen Support';
-      const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'noreply@fotolokashen.com';
+      if (!SUPPORT_EMAIL) {
+        return apiError('Support email not configured', 500, 'CONFIG_ERROR');
+      }
 
       // Send support request email to admin
-      await resend.emails.send({
-        from: `${fromName} <${fromAddress}>`,
-        to: SUPPORT_EMAIL,
-        replyTo: email,
-        subject: `[Member Support] ${subject}`,
-        html: createSupportEmailHtml(name, email, subject, message, user.username),
-      });
+      await sendEmail(
+        SUPPORT_EMAIL,
+        `[Member Support] ${subject}`,
+        createSupportEmailHtml(name, email, subject, message, user.username),
+        { replyTo: email }
+      );
 
       // Send confirmation email to member
-      await resend.emails.send({
-        from: `${fromName} <${fromAddress}>`,
-        to: email,
-        subject: 'Your Support Request Has Been Received',
-        html: createConfirmationEmailHtml(name, subject),
-      });
+      await sendEmail(
+        email,
+        'Your Support Request Has Been Received',
+        createConfirmationEmailHtml(name, subject)
+      );
 
       console.log(`✅ Member support email sent from ${email} (@${user.username}): ${subject}`);
 

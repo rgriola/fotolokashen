@@ -1,24 +1,10 @@
 import { NextRequest } from 'next/server';
 import { apiResponse, apiError } from '@/lib/api-middleware';
 import { rateLimit } from '@/lib/rate-limit';
-import { Resend } from 'resend';
+import { sendEmail } from '@/lib/email';
 
 // Environment variables
-const EMAIL_API_KEY = process.env.EMAIL_API_KEY;
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
-
-// Initialize Resend client
-let resendClient: Resend | null = null;
-
-function getResendClient(): Resend {
-  if (!resendClient && EMAIL_API_KEY) {
-    resendClient = new Resend(EMAIL_API_KEY);
-  }
-  if (!resendClient) {
-    throw new Error('Email service not configured');
-  }
-  return resendClient;
-}
 
 // Validation constants
 const VALIDATION = {
@@ -193,17 +179,16 @@ export async function POST(request: NextRequest) {
 
     // Send email
     try {
-      const resend = getResendClient();
-      const fromName = process.env.EMAIL_FROM_NAME || 'Fotolokashen Support';
-      const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'noreply@fotolokashen.com';
+      if (!SUPPORT_EMAIL) {
+        return apiError('Support email not configured', 500, 'CONFIG_ERROR');
+      }
 
-      await resend.emails.send({
-        from: `${fromName} <${fromAddress}>`,
-        to: SUPPORT_EMAIL,
-        replyTo: email,
-        subject: `[Support] ${subject}`,
-        html: createEmailHtml(name, email, subject, message),
-      });
+      await sendEmail(
+        SUPPORT_EMAIL,
+        `[Support] ${subject}`,
+        createEmailHtml(name, email, subject, message),
+        { replyTo: email }
+      );
 
       console.log(`✅ Support email sent from ${email}: ${subject}`);
 

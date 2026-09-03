@@ -49,6 +49,27 @@ interface SendEmailOptions {
   text?: string;
   previewText?: string;
   replyTo?: string;
+  headers?: Record<string, string>;
+}
+
+/** Strip HTML tags and decode common entities to produce a plain-text fallback. */
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/?(div|tr|li|h[1-6])[^>]*>/gi, '\n')
+    .replace(/<a[^>]+href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, '$2 ($1)')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 function injectPreviewText(html: string, previewText?: string): string {
@@ -72,17 +93,27 @@ function injectPreviewText(html: string, previewText?: string): string {
   return `${hiddenPreview}${html}`;
 }
 
-async function sendEmail(
+export async function sendEmail(
   to: string,
   subject: string,
   html: string,
   options: SendEmailOptions = {}
 ): Promise<boolean> {
-  const { templateId, text, previewText, replyTo } = options;
+  const { templateId, text, previewText, replyTo, headers: extraHeaders } = options;
   const fromName = env.EMAIL_FROM_NAME;
   const fromAddress = env.EMAIL_FROM_ADDRESS;
   const replyToAddress = replyTo || env.EMAIL_REPLY_TO || fromAddress;
   const htmlWithPreview = injectPreviewText(html, previewText);
+  const plainText = text || htmlToPlainText(htmlWithPreview);
+
+  // Headers that improve deliverability with corporate mail filters (Microsoft 365, Proofpoint)
+  const deliverabilityHeaders: Record<string, string> = {
+    'Precedence': 'transactional',
+    'X-Auto-Response-Suppress': 'OOF, AutoReply',
+    'List-Unsubscribe': `<mailto:${replyToAddress}?subject=unsubscribe>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    ...extraHeaders,
+  };
 
   try {
     console.log(`[Email] Attempting send — mode: ${EMAIL_MODE}, to: ${to}, subject: "${subject}"`);
@@ -92,7 +123,8 @@ async function sendEmail(
       to,
       subject,
       html: htmlWithPreview,
-      ...(text ? { text } : {}),
+      text: plainText,
+      headers: deliverabilityHeaders,
       ...(replyToAddress ? { replyTo: replyToAddress } : {}),
     });
     const resendId = result?.data?.id || 'unknown';
