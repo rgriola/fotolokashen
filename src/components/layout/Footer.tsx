@@ -56,14 +56,6 @@ export function Footer() {
                                     Help & FAQ
                                 </Link>
                             </li>
-                            <li>
-                                <Link
-                                    href="/support"
-                                    className="text-muted-foreground hover:text-primary transition-colors"
-                                >
-                                    Contact Support
-                                </Link>
-                            </li>
                         </ul>
                     </div>
 
