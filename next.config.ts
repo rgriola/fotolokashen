@@ -1,20 +1,19 @@
 import type { NextConfig } from "next";
 
 // Validate environment variables at build/startup time
-import './src/lib/env';
-
+import "./src/lib/env";
 
 const nextConfig: NextConfig = {
   // Skip type-checking during builds — already runs in the IDE
   // This can save 15-30 seconds on each build
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 
   // Exclude problematic packages from server components bundle
   // exifr and its dependencies (jsdom, parse5) should only run on the client
   // isomorphic-dompurify uses jsdom which has ES Module issues in serverless
-  serverExternalPackages: ['exifr', 'jsdom', 'parse5', 'isomorphic-dompurify'],
+  serverExternalPackages: ["exifr", "jsdom", "parse5", "isomorphic-dompurify"],
 
   // Turbopack is default in Next.js 16 - empty config silences webpack migration warning
   turbopack: {},
@@ -24,13 +23,13 @@ const nextConfig: NextConfig = {
     if (isServer) {
       config.externals = [
         ...(config.externals || []),
-        'exifr',
-        'jsdom',
-        'parse5',
-        'canvas',
-        'bufferutil',
-        'utf-8-validate',
-        'isomorphic-dompurify',
+        "exifr",
+        "jsdom",
+        "parse5",
+        "canvas",
+        "bufferutil",
+        "utf-8-validate",
+        "isomorphic-dompurify",
       ];
     }
     return config;
@@ -39,13 +38,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'ik.imagekit.io',
-        pathname: '/rgriola/**',
+        protocol: "https",
+        hostname: "ik.imagekit.io",
+        pathname: "/rgriola/**",
       },
       {
-        protocol: 'https',
-        hostname: 'maps.googleapis.com',
+        protocol: "https",
+        hostname: "maps.googleapis.com",
       },
     ],
   },
@@ -65,43 +64,46 @@ const nextConfig: NextConfig = {
       "base-uri 'self'",
       "form-action 'self'",
       "frame-ancestors 'self' https://vercel.live https://tweakcn.com",
-      ...(process.env.NODE_ENV === 'production' ? ["upgrade-insecure-requests"] : []),
-    ].join('; ');
+      ...(process.env.NODE_ENV === "production"
+        ? ["upgrade-insecure-requests"]
+        : []),
+    ].join("; ");
 
     const headers = [
       {
         // Apply to all routes
-        source: '/:path*',
+        source: "/:path*",
         headers: [
           // Prevent clickjacking attacks
           // Allow framing from tweakcn.com
           {
-            key: 'X-Frame-Options',
-            value: 'SAMEORIGIN', // Changed from DENY to allow framing in some contexts, CSP will handle the rest
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN", // Changed from DENY to allow framing in some contexts, CSP will handle the rest
           },
           // Prevent MIME type sniffing
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           // Enable browser XSS protection
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
           },
           // Control referrer information
           {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin",
           },
           // Permissions Policy (formerly Feature Policy)
           {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()',
+            key: "Permissions-Policy",
+            value:
+              "camera=(), microphone=(), geolocation=(self), interest-cohort=()",
           },
           // Content Security Policy (CSP)
           {
-            key: 'Content-Security-Policy',
+            key: "Content-Security-Policy",
             value: cspDirectives,
           },
         ],
@@ -109,13 +111,13 @@ const nextConfig: NextConfig = {
     ];
 
     // Add HSTS only in production
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env.NODE_ENV === "production") {
       headers.push({
-        source: '/:path*',
+        source: "/:path*",
         headers: [
           {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains; preload',
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
           },
         ],
       });
@@ -126,5 +128,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
-

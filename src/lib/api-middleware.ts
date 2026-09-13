@@ -1,38 +1,38 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from './auth';
-import prisma from './prisma';
-import type { PublicUser } from '@/types/user';
+import { NextRequest, NextResponse } from "next/server";
+import { verifyToken } from "./auth";
+import prisma from "./prisma";
+import type { PublicUser } from "@/types/user";
 
 /**
  * Prisma select object for fetching public user fields.
  * Use this anywhere you need to select user data without exposing sensitive fields.
  */
 export const USER_PUBLIC_SELECT = {
-    id: true,
-    email: true,
-    username: true,
-    firstName: true,
-    lastName: true,
-    emailVerified: true,
-    isActive: true,
-    isAdmin: true,
-    role: true,
-    avatar: true,
-    bannerImage: true,
-    city: true,
-    state: true,
-    country: true,
-    dateOfBirth: true,
-    language: true,
-    timezone: true,
-    emailNotifications: true,
-    gpsPermission: true,
-    gpsPermissionUpdated: true,
-    homeLocationName: true,
-    homeLocationLat: true,
-    homeLocationLng: true,
-    homeLocationUpdated: true,
-    createdAt: true,
+  id: true,
+  email: true,
+  username: true,
+  firstName: true,
+  lastName: true,
+  emailVerified: true,
+  isActive: true,
+  isAdmin: true,
+  role: true,
+  avatar: true,
+  bannerImage: true,
+  city: true,
+  state: true,
+  country: true,
+  dateOfBirth: true,
+  language: true,
+  timezone: true,
+  emailNotifications: true,
+  gpsPermission: true,
+  gpsPermissionUpdated: true,
+  homeLocationName: true,
+  homeLocationLat: true,
+  homeLocationLng: true,
+  homeLocationUpdated: true,
+  createdAt: true,
 } as const;
 
 /**
@@ -40,18 +40,18 @@ export const USER_PUBLIC_SELECT = {
  * Use when you only need display fields, not the full profile.
  */
 export const USER_SUMMARY_SELECT = {
-    id: true,
-    username: true,
-    firstName: true,
-    lastName: true,
-    avatar: true,
+  id: true,
+  username: true,
+  firstName: true,
+  lastName: true,
+  avatar: true,
 } as const;
 
 /**
  * Standardized API response format
  */
 export function apiResponse(data: unknown, status: number = 200) {
-    return NextResponse.json(data, { status });
+  return NextResponse.json(data, { status });
 }
 
 /**
@@ -60,45 +60,47 @@ export function apiResponse(data: unknown, status: number = 200) {
  * a PublicUser (dates as ISO strings).
  */
 export function serializeUser(user: Record<string, unknown>): PublicUser {
-    return {
-        ...user,
-        dateOfBirth: user.dateOfBirth
-            ? (user.dateOfBirth instanceof Date
-                ? user.dateOfBirth.toISOString().split('T')[0]
-                : user.dateOfBirth)
-            : null,
-        gpsPermissionUpdated: (user.gpsPermissionUpdated as Date | null)?.toISOString() || null,
-        homeLocationUpdated: (user.homeLocationUpdated as Date | null)?.toISOString() || null,
-        createdAt: (user.createdAt as Date).toISOString(),
-    } as PublicUser;
+  return {
+    ...user,
+    dateOfBirth: user.dateOfBirth
+      ? user.dateOfBirth instanceof Date
+        ? user.dateOfBirth.toISOString().split("T")[0]
+        : user.dateOfBirth
+      : null,
+    gpsPermissionUpdated:
+      (user.gpsPermissionUpdated as Date | null)?.toISOString() || null,
+    homeLocationUpdated:
+      (user.homeLocationUpdated as Date | null)?.toISOString() || null,
+    createdAt: (user.createdAt as Date).toISOString(),
+  } as PublicUser;
 }
 
 /**
  * Standardized API error response
  */
 export function apiError(message: string, status: number = 500, code?: string) {
-    return NextResponse.json(
-        {
-            error: message,
-            code: code || `ERROR_${status}`,
-        },
-        { status }
-    );
+  return NextResponse.json(
+    {
+      error: message,
+      code: code || `ERROR_${status}`,
+    },
+    { status },
+  );
 }
 
 /**
  * Extract JWT token from request cookies or Authorization header
  */
 function extractToken(request: NextRequest): string | null {
-    // Try to get from Authorization header
-    const authHeader = request.headers.get('authorization');
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        return authHeader.substring(7);
-    }
+  // Try to get from Authorization header
+  const authHeader = request.headers.get("authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    return authHeader.substring(7);
+  }
 
-    // Try to get from cookies
-    const token = request.cookies.get('auth_token')?.value;
-    return token || null;
+  // Try to get from cookies
+  const token = request.cookies.get("auth_token")?.value;
+  return token || null;
 }
 
 /**
@@ -106,82 +108,82 @@ function extractToken(request: NextRequest): string | null {
  * Verifies JWT token and attaches user data to request
  */
 export async function requireAuth(request: NextRequest): Promise<{
-    authorized: boolean;
-    user?: PublicUser;
-    error?: string;
+  authorized: boolean;
+  user?: PublicUser;
+  error?: string;
 }> {
-    const token = extractToken(request);
+  const token = extractToken(request);
 
-    if (!token) {
-        return {
-            authorized: false,
-            error: 'No token provided',
-        };
+  if (!token) {
+    return {
+      authorized: false,
+      error: "No token provided",
+    };
+  }
+
+  const decoded = verifyToken(token);
+  if (!decoded) {
+    return {
+      authorized: false,
+      error: "Invalid or expired token",
+    };
+  }
+
+  // CRITICAL SECURITY: Validate that session exists in database
+  try {
+    const session = await prisma.session.findFirst({
+      where: {
+        token: token,
+        expiresAt: { gte: new Date() }, // Session not expired
+      },
+    });
+
+    if (!session) {
+      return {
+        authorized: false,
+        error: "Session expired or invalid",
+      };
+    }
+  } catch (error) {
+    console.error("[requireAuth] Session validation error:", error);
+    return {
+      authorized: false,
+      error: "Session validation failed",
+    };
+  }
+
+  // Fetch user from database — also confirms they exist, are active, and not deleted
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId, deletedAt: null },
+      select: USER_PUBLIC_SELECT,
+    });
+
+    if (!user) {
+      return {
+        authorized: false,
+        error: "User not found",
+      };
     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
-        return {
-            authorized: false,
-            error: 'Invalid or expired token',
-        };
+    if (!user.isActive) {
+      return {
+        authorized: false,
+        error: "Account is deactivated",
+      };
     }
 
-    // CRITICAL SECURITY: Validate that session exists in database
-    try {
-        const session = await prisma.session.findFirst({
-            where: {
-                token: token,
-                expiresAt: { gte: new Date() }, // Session not expired
-            },
-        });
-
-        if (!session) {
-            return {
-                authorized: false,
-                error: 'Session expired or invalid',
-            };
-        }
-    } catch (error) {
-        console.error('[requireAuth] Session validation error:', error);
-        return {
-            authorized: false,
-            error: 'Session validation failed',
-        };
-    }
-
-    // Fetch user from database — also confirms they exist, are active, and not deleted
-    try {
-        const user = await prisma.user.findUnique({
-            where: { id: decoded.userId, deletedAt: null },
-            select: USER_PUBLIC_SELECT,
-        });
-
-        if (!user) {
-            return {
-                authorized: false,
-                error: 'User not found',
-            };
-        }
-
-        if (!user.isActive) {
-            return {
-                authorized: false,
-                error: 'Account is deactivated',
-            };
-        }
-
-        return {
-            authorized: true,
-            user: serializeUser(user),
-        };
-    } catch (error) {
-        console.error('Error fetching user in requireAuth:', error);
-        return {
-            authorized: false,
-            error: 'Authentication failed',
-        };
-    }
+    return {
+      authorized: true,
+      user: serializeUser(user),
+    };
+  } catch (error) {
+    console.error("Error fetching user in requireAuth:", error);
+    return {
+      authorized: false,
+      error: "Authentication failed",
+    };
+  }
 }
 
 /**
@@ -189,66 +191,70 @@ export async function requireAuth(request: NextRequest): Promise<{
  * Returns user data if authenticated, null otherwise
  */
 export async function getAuthUser(
-    request: NextRequest
+  request: NextRequest,
 ): Promise<PublicUser | null> {
-    const result = await requireAuth(request);
-    return result.authorized && result.user ? result.user : null;
+  const result = await requireAuth(request);
+  return result.authorized && result.user ? result.user : null;
 }
 
 /**
  * Require admin access
  */
 export async function requireAdmin(request: NextRequest): Promise<{
-    authorized: boolean;
-    user?: PublicUser;
-    error?: string;
+  authorized: boolean;
+  user?: PublicUser;
+  error?: string;
 }> {
-    const authResult = await requireAuth(request);
+  const authResult = await requireAuth(request);
 
-    if (!authResult.authorized) {
-        return authResult;
-    }
-
-    if (!authResult.user?.isAdmin) {
-        return {
-            authorized: false,
-            error: 'Admin access required',
-        };
-    }
-
+  if (!authResult.authorized) {
     return authResult;
+  }
+
+  if (!authResult.user?.isAdmin) {
+    return {
+      authorized: false,
+      error: "Admin access required",
+    };
+  }
+
+  return authResult;
 }
 
 /**
  * Set authentication cookie
  */
-export function setAuthCookie(response: NextResponse, token: string, maxAge?: number) {
-    response.cookies.set({
-        name: 'auth_token',
-        value: token,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: maxAge || 60 * 60 * 24 * 7, // 7 days default
-        path: '/',
-    });
-    return response;
+export function setAuthCookie(
+  response: NextResponse,
+  token: string,
+  maxAge?: number,
+) {
+  response.cookies.set({
+    name: "auth_token",
+    value: token,
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: maxAge || 60 * 60 * 24 * 7, // 7 days default
+    path: "/",
+  });
+  return response;
 }
 
 /**
  * Clear authentication cookie
  */
 export function clearAuthCookie(response: NextResponse) {
-    response.cookies.set({
-        name: 'auth_token',
-        value: '',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 0,
-        path: '/',
-    });
-    return response;
+  response.cookies.set({
+    name: "auth_token",
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 0,
+    path: "/",
+  });
+  return response;
 }
 
 // ──────────────────────────────────────────────
@@ -267,21 +273,32 @@ type RouteContext = { params: Promise<Record<string, string>> };
  *       return apiResponse(data);
  *   });
  */
-export function withAuth(
-    handler: (request: NextRequest, user: PublicUser, context?: RouteContext) => Promise<NextResponse>
+export function withAuth<C extends RouteContext = RouteContext>(
+  handler: (
+    request: NextRequest,
+    user: PublicUser,
+    context: C,
+  ) => Promise<NextResponse>,
 ) {
-    return async (request: NextRequest, context?: RouteContext): Promise<NextResponse> => {
-        try {
-            const authResult = await requireAuth(request);
-            if (!authResult.authorized || !authResult.user) {
-                return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
-            }
-            return await handler(request, authResult.user, context);
-        } catch (error) {
-            console.error(`[withAuth] Unhandled error on ${request.method} ${request.nextUrl.pathname}:`, error);
-            return apiError('Internal server error', 500);
-        }
-    };
+  return async (request: NextRequest, context: C): Promise<NextResponse> => {
+    try {
+      const authResult = await requireAuth(request);
+      if (!authResult.authorized || !authResult.user) {
+        return apiError(
+          authResult.error || "Authentication required",
+          401,
+          "UNAUTHORIZED",
+        );
+      }
+      return await handler(request, authResult.user, context);
+    } catch (error) {
+      console.error(
+        `[withAuth] Unhandled error on ${request.method} ${request.nextUrl.pathname}:`,
+        error,
+      );
+      return apiError("Internal server error", 500);
+    }
+  };
 }
 
 /**
@@ -295,17 +312,27 @@ export function withAuth(
  *   });
  */
 export function withOptionalAuth(
-    handler: (request: NextRequest, user: PublicUser | null, context?: RouteContext) => Promise<NextResponse>
+  handler: (
+    request: NextRequest,
+    user: PublicUser | null,
+    context?: RouteContext,
+  ) => Promise<NextResponse>,
 ) {
-    return async (request: NextRequest, context?: RouteContext): Promise<NextResponse> => {
-        try {
-            const user = await getAuthUser(request);
-            return await handler(request, user, context);
-        } catch (error) {
-            console.error(`[withOptionalAuth] Unhandled error on ${request.method} ${request.nextUrl.pathname}:`, error);
-            return apiError('Internal server error', 500);
-        }
-    };
+  return async (
+    request: NextRequest,
+    context?: RouteContext,
+  ): Promise<NextResponse> => {
+    try {
+      const user = await getAuthUser(request);
+      return await handler(request, user, context);
+    } catch (error) {
+      console.error(
+        `[withOptionalAuth] Unhandled error on ${request.method} ${request.nextUrl.pathname}:`,
+        error,
+      );
+      return apiError("Internal server error", 500);
+    }
+  };
 }
 
 /**
@@ -317,20 +344,34 @@ export function withOptionalAuth(
  *   });
  */
 export function withAdmin(
-    handler: (request: NextRequest, user: PublicUser, context?: RouteContext) => Promise<NextResponse>
+  handler: (
+    request: NextRequest,
+    user: PublicUser,
+    context?: RouteContext,
+  ) => Promise<NextResponse>,
 ) {
-    return async (request: NextRequest, context?: RouteContext): Promise<NextResponse> => {
-        try {
-            const authResult = await requireAdmin(request);
-            if (!authResult.authorized || !authResult.user) {
-                return apiError(authResult.error || 'Admin access required', 403, 'FORBIDDEN');
-            }
-            return await handler(request, authResult.user, context);
-        } catch (error) {
-            console.error(`[withAdmin] Unhandled error on ${request.method} ${request.nextUrl.pathname}:`, error);
-            return apiError('Internal server error', 500);
-        }
-    };
+  return async (
+    request: NextRequest,
+    context?: RouteContext,
+  ): Promise<NextResponse> => {
+    try {
+      const authResult = await requireAdmin(request);
+      if (!authResult.authorized || !authResult.user) {
+        return apiError(
+          authResult.error || "Admin access required",
+          403,
+          "FORBIDDEN",
+        );
+      }
+      return await handler(request, authResult.user, context);
+    } catch (error) {
+      console.error(
+        `[withAdmin] Unhandled error on ${request.method} ${request.nextUrl.pathname}:`,
+        error,
+      );
+      return apiError("Internal server error", 500);
+    }
+  };
 }
 
 // ──────────────────────────────────────────────
@@ -338,8 +379,8 @@ export function withAdmin(
 // ──────────────────────────────────────────────
 
 export interface BoundsFilter {
-    lat: { gte: number; lte: number };
-    lng: { gte: number; lte: number };
+  lat: { gte: number; lte: number };
+  lng: { gte: number; lte: number };
 }
 
 /**
@@ -352,39 +393,41 @@ export interface BoundsFilter {
  * Returns null when no bounds param is present.
  * Throws a descriptive string on malformed input (caller should return apiError).
  */
-export function parseBoundsFilter(searchParams: URLSearchParams): BoundsFilter | null {
-    const boundsParam = searchParams.get('bounds');
-    if (!boundsParam) return null;
+export function parseBoundsFilter(
+  searchParams: URLSearchParams,
+): BoundsFilter | null {
+  const boundsParam = searchParams.get("bounds");
+  if (!boundsParam) return null;
 
-    // Try JSON format first
-    if (boundsParam.startsWith('{')) {
-        try {
-            const bounds = JSON.parse(boundsParam);
-            if (
-                typeof bounds.south !== 'number' ||
-                typeof bounds.north !== 'number' ||
-                typeof bounds.west !== 'number' ||
-                typeof bounds.east !== 'number'
-            ) {
-                throw new Error('Missing required bounds fields');
-            }
-            return {
-                lat: { gte: bounds.south, lte: bounds.north },
-                lng: { gte: bounds.west, lte: bounds.east },
-            };
-        } catch {
-            throw 'Invalid bounds JSON — expected {"south","north","west","east"}';
-        }
+  // Try JSON format first
+  if (boundsParam.startsWith("{")) {
+    try {
+      const bounds = JSON.parse(boundsParam);
+      if (
+        typeof bounds.south !== "number" ||
+        typeof bounds.north !== "number" ||
+        typeof bounds.west !== "number" ||
+        typeof bounds.east !== "number"
+      ) {
+        throw new Error("Missing required bounds fields");
+      }
+      return {
+        lat: { gte: bounds.south, lte: bounds.north },
+        lng: { gte: bounds.west, lte: bounds.east },
+      };
+    } catch {
+      throw 'Invalid bounds JSON — expected {"south","north","west","east"}';
     }
+  }
 
-    // CSV format: lat1,lng1,lat2,lng2
-    const parts = boundsParam.split(',').map(Number);
-    if (parts.length !== 4 || parts.some(isNaN)) {
-        throw 'Invalid bounds — expected lat1,lng1,lat2,lng2';
-    }
-    const [lat1, lng1, lat2, lng2] = parts;
-    return {
-        lat: { gte: Math.min(lat1, lat2), lte: Math.max(lat1, lat2) },
-        lng: { gte: Math.min(lng1, lng2), lte: Math.max(lng1, lng2) },
-    };
+  // CSV format: lat1,lng1,lat2,lng2
+  const parts = boundsParam.split(",").map(Number);
+  if (parts.length !== 4 || parts.some(isNaN)) {
+    throw "Invalid bounds — expected lat1,lng1,lat2,lng2";
+  }
+  const [lat1, lng1, lat2, lng2] = parts;
+  return {
+    lat: { gte: Math.min(lat1, lat2), lte: Math.max(lat1, lat2) },
+    lng: { gte: Math.min(lng1, lng2), lte: Math.max(lng1, lng2) },
+  };
 }

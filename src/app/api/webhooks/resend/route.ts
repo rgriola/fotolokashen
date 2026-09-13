@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { Resend, type WebhookEventPayload } from "resend";
+import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { apiError, apiResponse } from "@/lib/api-middleware";
 import { env } from "@/lib/env";
@@ -420,16 +421,17 @@ async function persistInboundEmail(
     toCsv: joinRecipients(toRecipients),
     toJson: toRecipients,
     ccCsv: ccRecipients.length > 0 ? joinRecipients(ccRecipients) : null,
-    ccJson: ccRecipients.length > 0 ? ccRecipients : null,
+    ccJson: ccRecipients.length > 0 ? ccRecipients : Prisma.DbNull,
     bccCsv: bccRecipients.length > 0 ? joinRecipients(bccRecipients) : null,
-    bccJson: bccRecipients.length > 0 ? bccRecipients : null,
+    bccJson: bccRecipients.length > 0 ? bccRecipients : Prisma.DbNull,
     replyToCsv:
       replyToRecipients.length > 0 ? joinRecipients(replyToRecipients) : null,
-    replyToJson: replyToRecipients.length > 0 ? replyToRecipients : null,
+    replyToJson:
+      replyToRecipients.length > 0 ? replyToRecipients : Prisma.DbNull,
     subject: inboundEmail.subject,
     textBody: inboundEmail.text,
     htmlBody: inboundEmail.html,
-    headers: inboundEmail.headers,
+    headers: inboundEmail.headers ?? Prisma.DbNull,
     threadId,
     inReplyTo,
     references,
@@ -448,7 +450,9 @@ async function persistInboundEmail(
         ? joinRecipients(forwardResult.toRecipients)
         : null,
     forwardedToJson:
-      forwardResult.toRecipients.length > 0 ? forwardResult.toRecipients : null,
+      forwardResult.toRecipients.length > 0
+        ? forwardResult.toRecipients
+        : Prisma.DbNull,
     forwardedFrom: forwardResult.fromAddress,
     forwardProviderId: forwardResult.forwardProviderId,
     forwardError: forwardResult.error,
