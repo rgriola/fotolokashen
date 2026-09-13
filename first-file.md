@@ -202,3 +202,34 @@ console.log(
   data.map((e) => e.id),
 );
 ```
+
+> > > > TO DO Sept 13 >>>>
+> > > > Other suggestions, all code-side
+
+Suppression list.
+
+You handle email.bounced and email.complained events but nothing stops the next send. One hard bounce to a dead address is fine; repeated sends to it is how domains get blocked.
+
+Add a suppressedEmail table, write to it on hard bounce/complaint, and check it at the top of sendEmail(). Return 200 before processing.
+
+The webhook currently does signature verification, a Resend API fetch, and several Prisma writes before responding. Resend retries on timeout, so a slow DB turns one email into duplicates. Verify the signature, respond, then process.
+
+Replace the dedupe hack.
+
+emailLog.findFirst({ where: { errorMessage: { contains: \webhookId=${id}` } } })is a full-tableLIKEscan on every event and can't be made atomic.
+
+Add realproviderMessageIdandwebhookEventId` columns with a unique index.
+
+Upgrade the SDK. You're on resend@6.6.0;
+webhooks.verify() and emails.receiving.\* are only fully supported from 6.14.0.
+
+Rotate EMAIL_API_KEY and RESEND_WEBHOOK_SECRET — both appeared in this chat.
+
+Handle the unsubscribe mailbox.
+
+Your List-Unsubscribe header points at mailto:support@fotolokashen.com?subject=unsubscribe. That now reaches a real inbox, but nothing acts on it. Either process it via the inbound webhook or switch the header to a URL endpoint.
+
+Test with Resend's sandbox addresses — delivered@resend.dev, bounced@resend.dev, complained@resend.dev. Never test bounces against real Gmail addresses.
+
+In two weeks, when you touch DNS again
+Move both DMARC records from p=none to p=quarantine once the rua reports look clean, and drop include:amazonses.com from the root SPF since nothing sends from the root anymore.
