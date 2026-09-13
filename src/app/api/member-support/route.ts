@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
-import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
-import { rateLimit } from '@/lib/rate-limit';
-import { sendEmail } from '@/lib/email';
+import { NextRequest } from "next/server";
+import { requireAuth, apiResponse, apiError } from "@/lib/api-middleware";
+import { rateLimit } from "@/lib/rate-limit";
+import { sendEmail } from "@/lib/email";
 
 // Environment variables
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
@@ -21,18 +21,24 @@ function validateRequest(body: SupportRequest): string | null {
   const { subject, message } = body;
 
   // Subject validation
-  if (!subject || typeof subject !== 'string') {
-    return 'Subject is required';
+  if (!subject || typeof subject !== "string") {
+    return "Subject is required";
   }
-  if (subject.length < VALIDATION.subject.min || subject.length > VALIDATION.subject.max) {
+  if (
+    subject.length < VALIDATION.subject.min ||
+    subject.length > VALIDATION.subject.max
+  ) {
     return `Subject must be between ${VALIDATION.subject.min} and ${VALIDATION.subject.max} characters`;
   }
 
   // Message validation
-  if (!message || typeof message !== 'string') {
-    return 'Message is required';
+  if (!message || typeof message !== "string") {
+    return "Message is required";
   }
-  if (message.length < VALIDATION.message.min || message.length > VALIDATION.message.max) {
+  if (
+    message.length < VALIDATION.message.min ||
+    message.length > VALIDATION.message.max
+  ) {
     return `Message must be between ${VALIDATION.message.min} and ${VALIDATION.message.max} characters`;
   }
 
@@ -41,18 +47,24 @@ function validateRequest(body: SupportRequest): string | null {
 
 function sanitizeInput(input: string): string {
   return input
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
     .trim();
 }
 
-function createSupportEmailHtml(name: string, email: string, subject: string, message: string, username?: string): string {
-  const timestamp = new Date().toLocaleString('en-US', {
-    timeZone: 'America/New_York',
-    dateStyle: 'full',
-    timeStyle: 'long',
+function createSupportEmailHtml(
+  name: string,
+  email: string,
+  subject: string,
+  message: string,
+  username?: string,
+): string {
+  const timestamp = new Date().toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    dateStyle: "full",
+    timeStyle: "long",
   });
 
   return `
@@ -74,12 +86,16 @@ function createSupportEmailHtml(name: string, email: string, subject: string, me
         <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; font-weight: bold; width: 120px;">From:</td>
         <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">${sanitizeInput(name)}</td>
       </tr>
-      ${username ? `
+      ${
+        username
+          ? `
       <tr>
         <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; font-weight: bold;">Username:</td>
         <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">@${sanitizeInput(username)}</td>
       </tr>
-      ` : ''}
+      `
+          : ""
+      }
       <tr>
         <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef; font-weight: bold;">Email:</td>
         <td style="padding: 10px 0; border-bottom: 1px solid #e9ecef;">
@@ -159,28 +175,32 @@ export async function POST(request: NextRequest) {
     // Require authentication
     const auth = await requireAuth(request);
     if (!auth.authorized || !auth.user) {
-      return apiError(auth.error || 'Unauthorized', 401, 'UNAUTHORIZED');
+      return apiError(auth.error || "Unauthorized", 401, "UNAUTHORIZED");
     }
 
     const user = auth.user;
 
     if (!user.emailVerified) {
-      return apiError('Verify your email before contacting support.', 403, 'EMAIL_NOT_VERIFIED');
+      return apiError(
+        "Verify your email before contacting support.",
+        403,
+        "EMAIL_NOT_VERIFIED",
+      );
     }
 
     // Rate limiting: 5 requests per hour for authenticated users
     const rateLimitResult = await rateLimit(request, {
       limit: 5,
       windowMs: 60 * 60 * 1000, // 1 hour
-      keyPrefix: 'member-support',
+      keyPrefix: "member-support",
     });
 
     if (!rateLimitResult.allowed) {
       const retryMinutes = Math.ceil(rateLimitResult.retryAfter / 60000);
       return apiError(
-        `Too many support requests. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        `Too many support requests. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? "" : "s"}.`,
         429,
-        'RATE_LIMIT_EXCEEDED'
+        "RATE_LIMIT_EXCEEDED",
       );
     }
 
@@ -189,23 +209,25 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return apiError('Invalid request body', 400, 'INVALID_JSON');
+      return apiError("Invalid request body", 400, "INVALID_JSON");
     }
 
     // Validate request
     const validationError = validateRequest(body);
     if (validationError) {
-      return apiError(validationError, 400, 'VALIDATION_ERROR');
+      return apiError(validationError, 400, "VALIDATION_ERROR");
     }
 
     const { subject, message } = body;
-    const name = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.username;
+    const name =
+      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+      user.username;
     const email = user.email;
 
     // Send emails
     try {
       if (!SUPPORT_EMAIL) {
-        return apiError('Support email not configured', 500, 'CONFIG_ERROR');
+        return apiError("Support email not configured", 500, "CONFIG_ERROR");
       }
 
       // Send support request email to admin
@@ -213,36 +235,43 @@ export async function POST(request: NextRequest) {
         SUPPORT_EMAIL,
         `[Member Support] ${subject}`,
         createSupportEmailHtml(name, email, subject, message, user.username),
-        { replyTo: email }
+        { replyTo: email },
       );
 
       // Send confirmation email to member
       const confirmationSent = await sendEmail(
         email,
-        'Your Support Request Has Been Received',
-        createConfirmationEmailHtml(name, subject)
+        "We Received Your Support Request",
+        createConfirmationEmailHtml(name, subject),
       );
 
       if (!supportNotificationSent || !confirmationSent) {
-        return apiError('Failed to send message. Please try again later.', 502, 'EMAIL_SEND_ERROR');
+        return apiError(
+          "Failed to send message. Please try again later.",
+          502,
+          "EMAIL_SEND_ERROR",
+        );
       }
 
-      console.log(`✅ Member support email sent from ${email} (@${user.username}): ${subject}`);
+      console.log(
+        `✅ Member support email sent from ${email} (@${user.username}): ${subject}`,
+      );
 
       return apiResponse({
         success: true,
-        message: 'Your message has been sent successfully! Check your email for confirmation.',
+        message:
+          "Your message has been sent successfully! Check your email for confirmation.",
       });
     } catch (emailError) {
-      console.error('❌ Member support email error:', emailError);
+      console.error("❌ Member support email error:", emailError);
       return apiError(
-        'Failed to send message. Please try again later.',
+        "Failed to send message. Please try again later.",
         500,
-        'EMAIL_SEND_ERROR'
+        "EMAIL_SEND_ERROR",
       );
     }
   } catch (error) {
-    console.error('Member support API error:', error);
-    return apiError('An unexpected error occurred', 500, 'INTERNAL_ERROR');
+    console.error("Member support API error:", error);
+    return apiError("An unexpected error occurred", 500, "INTERNAL_ERROR");
   }
 }
