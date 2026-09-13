@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
       return apiResponse({
         success: true,
         message:
-          "Your message has been sent successfully! Check your email for confirmation.",
+          "Your message is on the way.\nCheck your email for confirmation.",
       });
     } catch (emailError) {
       console.error("❌ Member support email error:", emailError);

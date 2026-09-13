@@ -6,48 +6,54 @@
  * that will be removed in Phase 2 of the email simplification.
  */
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-const SUPPORT_EMAIL = process.env.EMAIL_REPLY_TO || process.env.EMAIL_FROM_ADDRESS || 'support@fotolokashen.com';
-const BRAND_NAME = 'Fotolokashen';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+const SUPPORT_EMAIL =
+  process.env.EMAIL_REPLY_TO ||
+  process.env.EMAIL_FROM_ADDRESS ||
+  "support@fotolokashen.com";
+const BRAND_NAME = "Fotolokashen";
 
 // ── Subject lines ─────────────────────────────────────────────────────────────
 
 export const EMAIL_SUBJECTS = {
-  verification:     'Verify your email address for Fotolokashen',
-  welcome:          'Email Confirmed - Welcome to Fotolokashen!',
-  password_reset:   'Reset your password',
-  password_changed: 'Your Password Was Changed',
-  account_deletion: 'We deleted your Fotolokashen account',
+  verification: "Verify your email address for Fotolokashen",
+  welcome: "Email Confirmed - Welcome to Fotolokashen!",
+  password_reset: "Reset your password",
+  password_changed: "Your Password Was Changed",
+  account_deletion: "We deleted your Fotolokashen account",
 } as const;
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 
 const COLORS = {
-  pageBackground: '#f5f5f5',
-  cardBackground: '#ffffff',
-  footerBackground: '#f8fafc',
-  border: '#dbe3ec',
-  borderStrong: '#c5d1de',
-  primary: '#0f172b',
-  primarySoft: '#1f2937',
-  text: '#111111',
-  muted: '#62748e',
-  buttonPrimary: '#0f172b',
-  buttonSecondaryBg: '#ffffff',
-  buttonSecondaryText: '#0f172b',
-  info: '#3b82f6',
-  infoSoft: '#e9f2ff',
-  success: '#10b981',
-  successSoft: '#e8faf3',
-  warning: '#f59e0b',
-  warningSoft: '#fff6e6',
-  danger: '#dc2626',
-  dangerSoft: '#fdecec',
+  pageBackground: "#f5f5f5",
+  cardBackground: "#ffffff",
+  footerBackground: "#f8fafc",
+  border: "#dbe3ec",
+  borderStrong: "#c5d1de",
+  primary: "#0f172b",
+  primarySoft: "#1f2937",
+  text: "#111111",
+  muted: "#62748e",
+  buttonPrimary: "#0f172b",
+  buttonSecondaryBg: "#ffffff",
+  buttonSecondaryText: "#0f172b",
+  info: "#3b82f6",
+  infoSoft: "#e9f2ff",
+  success: "#10b981",
+  successSoft: "#e8faf3",
+  warning: "#f59e0b",
+  warningSoft: "#fff6e6",
+  danger: "#dc2626",
+  dangerSoft: "#fdecec",
 };
 
 // ── Layout primitives ─────────────────────────────────────────────────────────
 
-function emailWrapper(content: string, preheader = `${BRAND_NAME} notification`): string {
+function emailWrapper(
+  content: string,
+  preheader = `${BRAND_NAME} notification`,
+): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -119,11 +125,15 @@ function emailWrapper(content: string, preheader = `${BRAND_NAME} notification`)
   `.trim();
 }
 
-function emailButton(url: string, text: string, style: 'primary' | 'secondary' = 'primary'): string {
-  const isPrimary = style === 'primary';
+function emailButton(
+  url: string,
+  text: string,
+  style: "primary" | "secondary" = "primary",
+): string {
+  const isPrimary = style === "primary";
   const bgColor = isPrimary ? COLORS.buttonPrimary : COLORS.buttonSecondaryBg;
-  const textColor = isPrimary ? '#f5f5f5' : COLORS.buttonSecondaryText;
-  const border = isPrimary ? 'none' : `1px solid ${COLORS.primary}`;
+  const textColor = isPrimary ? "#f5f5f5" : COLORS.buttonSecondaryText;
+  const border = isPrimary ? "none" : `1px solid ${COLORS.primary}`;
 
   return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 24px 0;">
@@ -138,12 +148,35 @@ function emailButton(url: string, text: string, style: 'primary' | 'secondary' =
   `;
 }
 
-function alertBox(type: 'info' | 'warning' | 'success' | 'danger', content: string): string {
+function alertBox(
+  type: "info" | "warning" | "success" | "danger",
+  content: string,
+): string {
   const colors = {
-    info:    { bg: COLORS.infoSoft,    border: COLORS.info,    text: '#1e3a8a', label: 'Info' },
-    warning: { bg: COLORS.warningSoft, border: COLORS.warning, text: '#92400e', label: 'Security Notice' },
-    success: { bg: COLORS.successSoft, border: COLORS.success, text: '#065f46', label: 'Update' },
-    danger:  { bg: COLORS.dangerSoft,  border: COLORS.danger,  text: '#7f1d1d', label: 'Action Required' },
+    info: {
+      bg: COLORS.infoSoft,
+      border: COLORS.info,
+      text: "#1e3a8a",
+      label: "Info",
+    },
+    warning: {
+      bg: COLORS.warningSoft,
+      border: COLORS.warning,
+      text: "#92400e",
+      label: "Security Notice",
+    },
+    success: {
+      bg: COLORS.successSoft,
+      border: COLORS.success,
+      text: "#065f46",
+      label: "Update",
+    },
+    danger: {
+      bg: COLORS.dangerSoft,
+      border: COLORS.danger,
+      text: "#7f1d1d",
+      label: "Action Required",
+    },
   };
   const color = colors[type];
 
@@ -179,9 +212,9 @@ function detailsTable(rows: Array<{ label: string; value: string }>): string {
           <td style="padding: 8px 10px 8px 0; width: 140px; color: ${COLORS.muted}; font-size: 13px; line-height: 1.5; vertical-align: top;">${label}</td>
           <td style="padding: 8px 0; color: ${COLORS.text}; font-size: 14px; line-height: 1.5; border-bottom: 1px solid ${COLORS.border};">${value}</td>
         </tr>
-      `
+      `,
     )
-    .join('');
+    .join("");
 
   return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0; border: 1px solid ${COLORS.border}; border-radius: 10px; background-color: ${COLORS.footerBackground}; padding: 12px 14px;">
@@ -192,7 +225,10 @@ function detailsTable(rows: Array<{ label: string; value: string }>): string {
 
 // ── Transactional email templates ─────────────────────────────────────────────
 
-export function verificationEmailTemplate(username: string, verificationUrl: string): string {
+export function verificationEmailTemplate(
+  username: string,
+  verificationUrl: string,
+): string {
   const content = `
     <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.3px;">
       Confirm your email address
@@ -206,18 +242,18 @@ export function verificationEmailTemplate(username: string, verificationUrl: str
       A new ${BRAND_NAME} account was created with this email address. Confirm your email to activate access.
     </p>
 
-    ${emailButton(verificationUrl, 'Confirm Email', 'primary')}
+    ${emailButton(verificationUrl, "Confirm Email", "primary")}
 
     ${urlBlock(verificationUrl)}
 
-    ${alertBox('info', 'For security, this link expires in 30 minutes.')}
+    ${alertBox("info", "For security, this link expires in 30 minutes.")}
 
     <p style="margin: 18px 0 0; color: ${COLORS.muted}; font-size: 14px; line-height: 1.7;">
       If you did not sign up, you can safely ignore this message.
     </p>
   `;
 
-  return emailWrapper(content, 'Confirm your email to activate your account.');
+  return emailWrapper(content, "Confirm your email to activate your account.");
 }
 
 export function welcomeToEmailTemplate(username: string): string {
@@ -240,15 +276,21 @@ export function welcomeToEmailTemplate(username: string): string {
       <li>Share location links with your team</li>
     </ul>
 
-    ${emailButton(`${APP_URL}/locations`, 'Open Locations', 'primary')}
+    ${emailButton(`${APP_URL}/locations`, "Open Locations", "primary")}
 
-    ${alertBox('success', 'Your account is active and ready for production use.')}
+    ${alertBox("success", "Your account is active and ready for production use.")}
   `;
 
-  return emailWrapper(content, 'Your account is active. Start creating locations now.');
+  return emailWrapper(
+    content,
+    "Your account is active. Start creating locations now.",
+  );
 }
 
-export function passwordResetEmailTemplate(username: string, resetUrl: string): string {
+export function passwordResetEmailTemplate(
+  username: string,
+  resetUrl: string,
+): string {
   const content = `
     <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.3px;">
       Reset your password
@@ -262,11 +304,11 @@ export function passwordResetEmailTemplate(username: string, resetUrl: string): 
       We received a request to reset your password. Use the button below to create a new password.
     </p>
 
-    ${emailButton(resetUrl, 'Reset Password', 'primary')}
+    ${emailButton(resetUrl, "Reset Password", "primary")}
 
     ${urlBlock(resetUrl)}
 
-    ${alertBox('warning', 'This reset link expires in 15 minutes.')}
+    ${alertBox("warning", "This reset link expires in 15 minutes.")}
 
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
       <tr>
@@ -282,19 +324,19 @@ export function passwordResetEmailTemplate(username: string, resetUrl: string): 
     </table>
   `;
 
-  return emailWrapper(content, 'Use this secure link to reset your password.');
+  return emailWrapper(content, "Use this secure link to reset your password.");
 }
 
 export function passwordChangedEmailTemplate(
   username: string,
   timestamp: string,
-  ipAddress: string | null
+  ipAddress: string | null,
 ): string {
-  const rows = [{ label: 'Changed at', value: timestamp }];
+  const rows = [{ label: "Changed at", value: timestamp }];
 
   if (ipAddress) {
     rows.push({
-      label: 'IP address',
+      label: "IP address",
       value: `<span style="font-family: 'Courier New', monospace; background-color: #e2e8f0; padding: 1px 6px; border-radius: 5px;">${ipAddress}</span>`,
     });
   }
@@ -310,18 +352,24 @@ export function passwordChangedEmailTemplate(
 
     ${detailsTable(rows)}
 
-    ${alertBox('success', 'If this was you, no further action is needed. Active sessions were signed out for security.')}
+    ${alertBox("success", "If this was you, no further action is needed. Active sessions were signed out for security.")}
 
     ${alertBox(
-      'danger',
-      `If this was not you, secure your account immediately:<ol style="margin: 8px 0 0; padding-left: 20px;"><li>Reset your password now</li><li>Secure your email account</li><li>Contact support at <a href="mailto:${SUPPORT_EMAIL}" style="color: ${COLORS.danger}; text-decoration: none;">${SUPPORT_EMAIL}</a></li></ol>`
+      "danger",
+      `If this was not you, secure your account immediately:<ol style="margin: 8px 0 0; padding-left: 20px;"><li>Reset your password now</li><li>Secure your email account</li><li>Contact support at <a href="mailto:${SUPPORT_EMAIL}" style="color: ${COLORS.danger}; text-decoration: none;">${SUPPORT_EMAIL}</a></li></ol>`,
     )}
   `;
 
-  return emailWrapper(content, 'Your password has been changed. Review this activity now.');
+  return emailWrapper(
+    content,
+    "Your password has been changed. Review this activity now.",
+  );
 }
 
-export function accountDeletionEmailTemplate(username: string, email: string): string {
+export function accountDeletionEmailTemplate(
+  username: string,
+  email: string,
+): string {
   const content = `
     <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.3px;">
       Account deletion confirmation
@@ -353,22 +401,22 @@ export function accountDeletionEmailTemplate(username: string, email: string): s
       If you deleted this account by mistake, you can register again anytime.
     </p>
 
-    ${emailButton(`${APP_URL}/register`, 'Create New Account', 'secondary')}
+    ${emailButton(`${APP_URL}/register`, "Create New Account", "secondary")}
   `;
 
-  return emailWrapper(content, 'Your account was deleted from Fotolokashen.');
+  return emailWrapper(content, "Your account was deleted from Fotolokashen.");
 }
 
 export function publicSupportRequestTemplate(
   name: string,
   email: string,
   subject: string,
-  message: string
+  message: string,
 ): string {
-  const timestamp = new Date().toLocaleString('en-US', {
-    timeZone: 'America/New_York',
-    dateStyle: 'full',
-    timeStyle: 'long',
+  const timestamp = new Date().toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    dateStyle: "full",
+    timeStyle: "long",
   });
 
   const content = `
@@ -377,10 +425,13 @@ export function publicSupportRequestTemplate(
     </h2>
 
     ${detailsTable([
-      { label: 'From',     value: name },
-      { label: 'Email',    value: `<a href="mailto:${email}" style="color: ${COLORS.primary}; text-decoration: none;">${email}</a>` },
-      { label: 'Subject',  value: subject },
-      { label: 'Received', value: timestamp },
+      { label: "From", value: name },
+      {
+        label: "Email",
+        value: `<a href="mailto:${email}" style="color: ${COLORS.primary}; text-decoration: none;">${email}</a>`,
+      },
+      { label: "Subject", value: subject },
+      { label: "Received", value: timestamp },
     ])}
 
     <h3 style="margin: 20px 0 8px; color: ${COLORS.primary}; font-size: 17px; line-height: 1.3; font-weight: 700;">
@@ -404,12 +455,12 @@ export function memberSupportRequestTemplate(
   email: string,
   subject: string,
   message: string,
-  username: string
+  username: string,
 ): string {
-  const timestamp = new Date().toLocaleString('en-US', {
-    timeZone: 'America/New_York',
-    dateStyle: 'full',
-    timeStyle: 'long',
+  const timestamp = new Date().toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    dateStyle: "full",
+    timeStyle: "long",
   });
 
   const content = `
@@ -418,11 +469,14 @@ export function memberSupportRequestTemplate(
     </h2>
 
     ${detailsTable([
-      { label: 'From',     value: name },
-      { label: 'Username', value: `@${username}` },
-      { label: 'Email',    value: `<a href="mailto:${email}" style="color: ${COLORS.primary}; text-decoration: none;">${email}</a>` },
-      { label: 'Subject',  value: subject },
-      { label: 'Received', value: timestamp },
+      { label: "From", value: name },
+      { label: "Username", value: `@${username}` },
+      {
+        label: "Email",
+        value: `<a href="mailto:${email}" style="color: ${COLORS.primary}; text-decoration: none;">${email}</a>`,
+      },
+      { label: "Subject", value: subject },
+      { label: "Received", value: timestamp },
     ])}
 
     <h3 style="margin: 20px 0 8px; color: ${COLORS.primary}; font-size: 17px; line-height: 1.3; font-weight: 700;">
@@ -441,7 +495,10 @@ ${message}
   return emailWrapper(content, `New member support request: ${subject}`);
 }
 
-export function supportConfirmationTemplate(name: string, subject: string): string {
+export function supportConfirmationTemplate(
+  name: string,
+  subject: string,
+): string {
   const content = `
     <h2 style="margin: 0 0 14px; color: ${COLORS.primary}; font-size: 24px; line-height: 1.25; font-weight: 700; letter-spacing: -0.2px;">
       We received your support request
@@ -467,10 +524,10 @@ export function supportConfirmationTemplate(name: string, subject: string): stri
       Our team usually responds within <strong>24 to 48 hours</strong>.
     </p>
 
-    ${alertBox('info', 'If you need to add details, reply to this email and we will include your update in the same thread.')}
+    ${alertBox("info", "If you need to add details, reply to this email and we will include your update in the same thread.")}
 
-    ${emailButton(`${APP_URL}/member-support`, 'Open Support Center', 'secondary')}
+    ${emailButton(`${APP_URL}/member-support`, "Open Support Center", "secondary")}
   `;
 
-  return emailWrapper(content, 'Your support request has been received.');
+  return emailWrapper(content, "Your support request has been received.");
 }

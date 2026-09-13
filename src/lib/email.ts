@@ -360,7 +360,7 @@ export async function sendPasswordChangedEmail(
       console.log(`IP Address: ${ipAddress}`);
     }
     console.log(
-      `\nIf you didn't make this change, contact: admin@fotolokashen.com`,
+      `\nIf you didn't make this change, contact: support@fotolokashen.com`,
     );
     console.log("=".repeat(80) + "\n");
     return true;
