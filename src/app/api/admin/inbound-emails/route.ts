@@ -1,10 +1,15 @@
-import { NextRequest } from 'next/server';
-import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
-import { canAccessAdminPanel } from '@/lib/permissions';
-import prisma from '@/lib/prisma';
-import { env } from '@/lib/env';
+import { NextRequest } from "next/server";
+import { requireAuth, apiResponse, apiError } from "@/lib/api-middleware";
+import { canAccessAdminPanel } from "@/lib/permissions";
+import prisma from "@/lib/prisma";
+import { env } from "@/lib/env";
 
-const FORWARD_STATUS_VALUES = new Set(['all', 'ok', 'failed', 'not_configured']);
+const FORWARD_STATUS_VALUES = new Set([
+  "all",
+  "ok",
+  "failed",
+  "not_configured",
+]);
 
 /**
  * GET /api/admin/inbound-emails
@@ -14,50 +19,72 @@ export async function GET(req: NextRequest) {
   const authResult = await requireAuth(req);
 
   if (!authResult.authorized || !authResult.user) {
-    return apiError('Unauthorized', 401);
+    return apiError("Unauthorized", 401);
   }
 
   if (!canAccessAdminPanel(authResult.user)) {
-    return apiError('Admin access required', 403);
+    return apiError("Admin access required", 403);
   }
 
   try {
     const { searchParams } = new URL(req.url);
 
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get('perPage') || '20', 10)));
-    const search = (searchParams.get('search') || '').trim();
-    const supportOnly = searchParams.get('supportOnly') !== 'false';
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const perPage = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("perPage") || "20", 10)),
+    );
+    const search = (searchParams.get("search") || "").trim();
+    const supportOnly = searchParams.get("supportOnly") !== "false";
 
-    const requestedForwardStatus = (searchParams.get('forwardStatus') || 'all').toLowerCase();
+    const requestedForwardStatus = (
+      searchParams.get("forwardStatus") || "all"
+    ).toLowerCase();
     const forwardStatus = FORWARD_STATUS_VALUES.has(requestedForwardStatus)
       ? requestedForwardStatus
-      : 'all';
+      : "all";
 
-    const configuredSupportAddress = (env.EMAIL_REPLY_TO || process.env.EMAIL_REPLY_TO || '').trim().toLowerCase();
+    const configuredSupportAddress = (
+      env.EMAIL_REPLY_TO ||
+      process.env.EMAIL_REPLY_TO ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+    // Workspace forwards support@<domain> into Resend's inbound subdomain, so stored
+    // recipients carry a mail. prefix that the configured address does not.
+    const supportAddressVariants = configuredSupportAddress
+      ? Array.from(
+          new Set([
+            configuredSupportAddress,
+            configuredSupportAddress.replace(/@(?!mail\.)/, "@mail."),
+          ]),
+        )
+      : [];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const andConditions: any[] = [];
 
     if (supportOnly) {
-      if (configuredSupportAddress) {
+      if (supportAddressVariants.length > 0) {
         andConditions.push({
-          OR: [
-            { toCsv: { contains: configuredSupportAddress, mode: 'insensitive' } },
-            { forwardedToCsv: { contains: configuredSupportAddress, mode: 'insensitive' } },
-          ],
+          OR: supportAddressVariants.flatMap((address) => [
+            { toCsv: { contains: address, mode: "insensitive" } },
+            { forwardedToCsv: { contains: address, mode: "insensitive" } },
+          ]),
         });
       } else {
         andConditions.push({
           OR: [
-            { toCsv: { contains: 'support@', mode: 'insensitive' } },
-            { subject: { contains: 'support', mode: 'insensitive' } },
+            { toCsv: { contains: "support@", mode: "insensitive" } },
+            { subject: { contains: "support", mode: "insensitive" } },
           ],
         });
       }
     }
 
-    if (forwardStatus !== 'all') {
+    if (forwardStatus !== "all") {
       andConditions.push({
         forwardStatus,
       });
@@ -66,12 +93,12 @@ export async function GET(req: NextRequest) {
     if (search) {
       andConditions.push({
         OR: [
-          { fromRaw: { contains: search, mode: 'insensitive' } },
-          { fromEmail: { contains: search, mode: 'insensitive' } },
-          { fromName: { contains: search, mode: 'insensitive' } },
-          { toCsv: { contains: search, mode: 'insensitive' } },
-          { subject: { contains: search, mode: 'insensitive' } },
-          { textBody: { contains: search, mode: 'insensitive' } },
+          { fromRaw: { contains: search, mode: "insensitive" } },
+          { fromEmail: { contains: search, mode: "insensitive" } },
+          { fromName: { contains: search, mode: "insensitive" } },
+          { toCsv: { contains: search, mode: "insensitive" } },
+          { subject: { contains: search, mode: "insensitive" } },
+          { textBody: { contains: search, mode: "insensitive" } },
         ],
       });
     }
@@ -84,7 +111,7 @@ export async function GET(req: NextRequest) {
       prisma.inboundEmail.findMany({
         where,
         orderBy: {
-          receivedAt: 'desc',
+          receivedAt: "desc",
         },
         skip: (page - 1) * perPage,
         take: perPage,
@@ -132,7 +159,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching inbound emails:', error);
-    return apiError('Failed to fetch inbound emails', 500);
+    console.error("Error fetching inbound emails:", error);
+    return apiError("Failed to fetch inbound emails", 500);
   }
 }
