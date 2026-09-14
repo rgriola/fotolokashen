@@ -1,149 +1,167 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Environment Variable Validation Schema
- * 
+ *
  * This validates all required environment variables at startup.
  * If any are missing or invalid, the app will fail to start with a clear error message.
  */
 
 const envSchema = z.object({
-    // ============================================
-    // Node Environment
-    // ============================================
-    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  // ============================================
+  // Node Environment
+  // ============================================
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
 
-    // ============================================
-    // Database
-    // ============================================
-    // Support both standard DATABASE_URL and Vercel Postgres POSTGRES_PRISMA_URL
-    // We allow empty strings or undefined to pass initial validation, but the refine block below ensures at least one is valid
-    DATABASE_URL: z.string().url().or(z.literal('')).optional(),
-    POSTGRES_PRISMA_URL: z.string().url().or(z.literal('')).optional(),
+  // ============================================
+  // Database
+  // ============================================
+  // Support both standard DATABASE_URL and Vercel Postgres POSTGRES_PRISMA_URL
+  // We allow empty strings or undefined to pass initial validation, but the refine block below ensures at least one is valid
+  DATABASE_URL: z.string().url().or(z.literal("")).optional(),
+  POSTGRES_PRISMA_URL: z.string().url().or(z.literal("")).optional(),
 
-    // ============================================
-    // Authentication & Security
-    // ============================================
-    JWT_SECRET: z
-        .string()
-        .min(32, 'JWT_SECRET must be at least 32 characters for security')
-        .describe('Secret key for JWT token generation'),
+  // ============================================
+  // Authentication & Security
+  // ============================================
+  JWT_SECRET: z
+    .string()
+    .min(32, "JWT_SECRET must be at least 32 characters for security")
+    .describe("Secret key for JWT token generation"),
 
-    // ============================================
-    // Google Maps API
-    // ============================================
-    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z
-        .string()
-        .min(1, 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is required')
-        .describe('Google Maps JavaScript API key'),
+  // ============================================
+  // Google Maps API
+  // ============================================
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: z
+    .string()
+    .min(1, "NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is required")
+    .describe("Google Maps JavaScript API key"),
 
-    // ============================================
-    // ImageKit (Image CDN)
-    // ============================================
-    NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY: z
-        .string()
-        .min(1, 'NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY is required')
-        .describe('ImageKit public key (safe to expose to client)'),
+  // ============================================
+  // ImageKit (Image CDN)
+  // ============================================
+  NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY: z
+    .string()
+    .min(1, "NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY is required")
+    .describe("ImageKit public key (safe to expose to client)"),
 
-    IMAGEKIT_PRIVATE_KEY: z
-        .string()
-        .min(1, 'IMAGEKIT_PRIVATE_KEY is required')
-        .describe('ImageKit private key (server-side only)'),
+  IMAGEKIT_PRIVATE_KEY: z
+    .string()
+    .min(1, "IMAGEKIT_PRIVATE_KEY is required")
+    .describe("ImageKit private key (server-side only)"),
 
-    IMAGEKIT_URL_ENDPOINT: z
-        .string()
-        .url('IMAGEKIT_URL_ENDPOINT must be a valid URL')
-        .describe('ImageKit CDN URL endpoint'),
+  IMAGEKIT_URL_ENDPOINT: z
+    .string()
+    .url("IMAGEKIT_URL_ENDPOINT must be a valid URL")
+    .describe("ImageKit CDN URL endpoint"),
 
-    // ============================================
-    // Email Service (Resend/Mailtrap)
-    // ============================================
-    EMAIL_SERVICE: z
-        .enum(['mailtrap', 'resend'])
-        .default('mailtrap')
-        .describe('Email service provider (mailtrap for dev, resend for production)'),
+  // ============================================
+  // Email Service (Resend/Mailtrap)
+  // ============================================
+  EMAIL_SERVICE: z
+    .enum(["mailtrap", "resend"])
+    .default("mailtrap")
+    .describe(
+      "Email service provider (mailtrap for dev, resend for production)",
+    ),
 
-    // Resend API (for production)
-    EMAIL_API_KEY: z
-        .string()
-        .optional()
-        .describe('Resend API key (required when EMAIL_SERVICE=resend)'),
+  // Resend API (for production)
+  EMAIL_API_KEY: z
+    .string()
+    .optional()
+    .describe("Resend API key (required when EMAIL_SERVICE=resend)"),
 
-    RESEND_WEBHOOK_SECRET: z
-        .string()
-        .optional()
-        .describe('Resend webhook signing secret for webhook signature verification'),
+  RESEND_WEBHOOK_SECRET: z
+    .string()
+    .optional()
+    .describe(
+      "Resend webhook signing secret for webhook signature verification",
+    ),
 
-    RESEND_INBOUND_FORWARD_TO: z
-        .string()
-        .optional()
-        .describe('Optional comma-separated inbox recipients for forwarding email.received events'),
+  RESEND_INBOUND_FORWARD_TO: z
+    .string()
+    .optional()
+    .describe(
+      "Optional comma-separated inbox recipients for forwarding email.received events",
+    ),
 
-    RESEND_INBOUND_FORWARD_FROM: z
-        .string()
-        .email('RESEND_INBOUND_FORWARD_FROM must be a valid email')
-        .optional()
-        .describe('Optional sender address used when forwarding inbound emails'),
+  RESEND_INBOUND_FORWARD_FROM: z
+    .string()
+    .email("RESEND_INBOUND_FORWARD_FROM must be a valid email")
+    .optional()
+    .describe("Optional sender address used when forwarding inbound emails"),
 
-    // SMTP Configuration (for Mailtrap in development)
-    EMAIL_HOST: z
-        .string()
-        .optional()
-        .describe('SMTP host (required when EMAIL_SERVICE=mailtrap)'),
+  // SMTP Configuration (for Mailtrap in development)
+  EMAIL_HOST: z
+    .string()
+    .optional()
+    .describe("SMTP host (required when EMAIL_SERVICE=mailtrap)"),
 
-    EMAIL_PORT: z
-        .string()
-        .optional()
-        .describe('SMTP port (required when EMAIL_SERVICE=mailtrap)'),
+  EMAIL_PORT: z
+    .string()
+    .optional()
+    .describe("SMTP port (required when EMAIL_SERVICE=mailtrap)"),
 
-    EMAIL_USER: z
-        .string()
-        .optional()
-        .describe('SMTP username (required when EMAIL_SERVICE=mailtrap)'),
+  EMAIL_USER: z
+    .string()
+    .optional()
+    .describe("SMTP username (required when EMAIL_SERVICE=mailtrap)"),
 
-    EMAIL_PASS: z
-        .string()
-        .optional()
-        .describe('SMTP password (required when EMAIL_SERVICE=mailtrap)'),
+  EMAIL_PASS: z
+    .string()
+    .optional()
+    .describe("SMTP password (required when EMAIL_SERVICE=mailtrap)"),
 
-    // Common Email Configuration
-    EMAIL_MODE: z
-        .enum(['development', 'production'])
-        .default('development')
-        .describe('Email mode (development logs to console, production sends emails)'),
+  // Common Email Configuration
+  EMAIL_MODE: z
+    .enum(["development", "production"])
+    .default("development")
+    .describe(
+      "Email mode (development logs to console, production sends emails)",
+    ),
 
+  EMAIL_FROM_NAME: z
+    .string()
+    .default("fotolokashen")
+    .describe("Email sender name"),
 
-    EMAIL_FROM_NAME: z
-        .string()
-        .default('fotolokashen')
-        .describe('Email sender name'),
+  EMAIL_FROM_ADDRESS: z
+    .string()
+    .email("EMAIL_FROM_ADDRESS must be a valid email")
+    .describe("Email sender address"),
 
-    EMAIL_FROM_ADDRESS: z
-        .string()
-        .email('EMAIL_FROM_ADDRESS must be a valid email')
-        .describe('Email sender address'),
+  EMAIL_REPLY_TO: z
+    .string()
+    .email("EMAIL_REPLY_TO must be a valid email")
+    .optional()
+    .describe("Optional reply-to address for transactional emails"),
 
-    EMAIL_REPLY_TO: z
-        .string()
-        .email('EMAIL_REPLY_TO must be a valid email')
-        .optional()
-        .describe('Optional reply-to address for transactional emails'),
+  // Never suppressed — see isProtectedAddress() in lib/email-suppression.ts
+  SUPPORT_EMAIL: z
+    .string()
+    .email("SUPPORT_EMAIL must be a valid email")
+    .optional()
+    .describe(
+      "Internal support inbox that receives support ticket notifications",
+    ),
 
-    // ============================================
-    // Application URLs
-    // ============================================
-    NEXT_PUBLIC_APP_URL: z
-        .string()
-        .url('NEXT_PUBLIC_APP_URL must be a valid URL')
-        .describe('Application base URL'),
-
+  // ============================================
+  // Application URLs
+  // ============================================
+  NEXT_PUBLIC_APP_URL: z
+    .string()
+    .url("NEXT_PUBLIC_APP_URL must be a valid URL")
+    .describe("Application base URL"),
 });
 
 /**
  * Additional runtime environment schema
  * These are optional or have defaults
  */
-const runtimeEnvSchema = envSchema.extend({
+const runtimeEnvSchema = envSchema
+  .extend({
     // Optional: Slack Integration
     SLACK_WEBHOOK_URL: z.string().url().optional(),
     SLACK_BOT_TOKEN: z.string().optional(),
@@ -156,46 +174,66 @@ const runtimeEnvSchema = envSchema.extend({
 
     // Optional: Analytics
     GOOGLE_ANALYTICS_ID: z.string().optional(),
-}).superRefine((data, ctx) => {
+  })
+  .superRefine((data, ctx) => {
     // Prevent EMAIL_MODE=development in a real production deployment.
     // Note: `next build` always sets NODE_ENV=production even locally,
     // so we also check for VERCEL env var to avoid blocking local builds.
     const isVercelDeployment = !!process.env.VERCEL;
-    if (isVercelDeployment && data.NODE_ENV === 'production' && data.EMAIL_MODE === 'development') {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'EMAIL_MODE must be "production" when deployed to Vercel. Emails will NOT be sent otherwise!',
-            path: ['EMAIL_MODE'],
-        });
+    if (
+      isVercelDeployment &&
+      data.NODE_ENV === "production" &&
+      data.EMAIL_MODE === "development"
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'EMAIL_MODE must be "production" when deployed to Vercel. Emails will NOT be sent otherwise!',
+        path: ["EMAIL_MODE"],
+      });
     }
 
     // Require EMAIL_API_KEY when EMAIL_MODE=production (Resend needs it to send)
-    if (data.EMAIL_MODE === 'production' && !data.EMAIL_API_KEY) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'EMAIL_API_KEY is required when EMAIL_MODE is "production". Set your Resend API key.',
-            path: ['EMAIL_API_KEY'],
-        });
+    if (data.EMAIL_MODE === "production" && !data.EMAIL_API_KEY) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'EMAIL_API_KEY is required when EMAIL_MODE is "production". Set your Resend API key.',
+        path: ["EMAIL_API_KEY"],
+      });
     }
-});
+
+    // Without SUPPORT_EMAIL the suppression allowlist cannot protect the support
+    // inbox, so a single bounce there would silently stop all ticket notifications.
+    if (data.EMAIL_MODE === "production" && !data.SUPPORT_EMAIL) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'SUPPORT_EMAIL is required when EMAIL_MODE is "production". It receives support tickets and is protected from suppression.',
+        path: ["SUPPORT_EMAIL"],
+      });
+    }
+  });
 
 /**
  * Validate environment variables
- * 
+ *
  * @throws {Error} If validation fails
  */
 function validateEnv() {
-    try {
-        const parsed = runtimeEnvSchema.parse(process.env);
-        return parsed;
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            const missingVars = error.issues.map((err: z.ZodIssue) => {
-                const path = err.path.join('.');
-                return `  ❌ ${path}: ${err.message}`;
-            }).join('\n');
+  try {
+    const parsed = runtimeEnvSchema.parse(process.env);
+    return parsed;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const missingVars = error.issues
+        .map((err: z.ZodIssue) => {
+          const path = err.path.join(".");
+          return `  ❌ ${path}: ${err.message}`;
+        })
+        .join("\n");
 
-            const errorMessage = `
+      const errorMessage = `
 ╔════════════════════════════════════════════════════════════════╗
 ║                                                                ║
 ║  ⚠️  ENVIRONMENT VARIABLE VALIDATION FAILED                    ║
@@ -214,16 +252,18 @@ ${missingVars}
 🔗 Learn more: https://nextjs.org/docs/app/building-your-application/configuring/environment-variables
 `;
 
-            console.error(errorMessage);
-            throw new Error('Environment validation failed. Check the error message above.');
-        }
-        throw error;
+      console.error(errorMessage);
+      throw new Error(
+        "Environment validation failed. Check the error message above.",
+      );
     }
+    throw error;
+  }
 }
 
 /**
  * Validated and type-safe environment variables
- * 
+ *
  * Usage:
  * ```typescript
  * import { env } from '@/lib/env';
@@ -241,23 +281,23 @@ export type Env = z.infer<typeof envSchema>;
 /**
  * Check if running in production
  */
-export const isProduction = env.NODE_ENV === 'production';
+export const isProduction = env.NODE_ENV === "production";
 
 /**
  * Check if running in development
  */
-export const isDevelopment = env.NODE_ENV === 'development';
+export const isDevelopment = env.NODE_ENV === "development";
 
 /**
  * Check if running in test
  */
-export const isTest = env.NODE_ENV === 'test';
+export const isTest = env.NODE_ENV === "test";
 
 /**
  * Helper to get optional environment variable with type safety
  */
 export function getOptionalEnv(key: string): string | undefined {
-    return process.env[key];
+  return process.env[key];
 }
 
 /**
@@ -265,11 +305,11 @@ export function getOptionalEnv(key: string): string | undefined {
  * Useful for feature flags
  */
 export function isFeatureEnabled(feature: string): boolean {
-    const envVar = process.env[`FEATURE_${feature.toUpperCase()}`];
-    return envVar === 'true' || envVar === '1';
+  const envVar = process.env[`FEATURE_${feature.toUpperCase()}`];
+  return envVar === "true" || envVar === "1";
 }
 
 // Log successful validation in development
 if (isDevelopment) {
-    console.log('✅ Environment variables validated successfully');
+  console.log("✅ Environment variables validated successfully");
 }

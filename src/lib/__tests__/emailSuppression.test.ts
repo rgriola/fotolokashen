@@ -91,6 +91,16 @@ describe("isProtectedAddress", () => {
     expect(isProtectedAddress(replyTo.toUpperCase())).toBe(true);
   });
 
+  it("returns true for the configured support address in mixed case", () => {
+    const supportEmail = process.env.SUPPORT_EMAIL;
+    if (!supportEmail) {
+      throw new Error(
+        "SUPPORT_EMAIL must be set for this test to be meaningful",
+      );
+    }
+    expect(isProtectedAddress(supportEmail.toUpperCase())).toBe(true);
+  });
+
   it("returns false for an unrelated address", () => {
     expect(isProtectedAddress("someone-unrelated@example.com")).toBe(false);
   });

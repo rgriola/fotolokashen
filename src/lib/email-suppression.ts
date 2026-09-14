@@ -25,7 +25,7 @@ export function normalizeEmail(email: string): string {
 
 export function isProtectedAddress(email: string): boolean {
   const normalized = normalizeEmail(email);
-  const protectedAddresses = [env.EMAIL_REPLY_TO, process.env.SUPPORT_EMAIL]
+  const protectedAddresses = [env.EMAIL_REPLY_TO, env.SUPPORT_EMAIL]
     .filter((address): address is string => Boolean(address))
     .map(normalizeEmail);
 
