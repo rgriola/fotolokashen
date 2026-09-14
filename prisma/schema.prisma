@@ -504,6 +504,9 @@ model EmailLog {
   subject    String
   status     String // 'sent', 'failed', 'queued'
 
+  // Provider identifiers
+  providerEmailId String? // Resend `email_id`; links webhook lifecycle events back to this row
+
   // Metadata
   sentAt       DateTime @default(now())
   errorMessage String?  @db.Text
@@ -512,7 +515,24 @@ model EmailLog {
   @@index([to])
   @@index([sentAt])
   @@index([status])
+  @@index([providerEmailId])
   @@map("email_logs")
+}
+
+// One row per processed provider webhook delivery. Replaces the previous
+// substring scan over EmailLog.errorMessage for retry/duplicate detection.
+model EmailWebhookEvent {
+  id Int @id @default(autoincrement())
+
+  webhookEventId  String @unique // svix-id header of the delivery
+  providerEmailId String // Resend `email_id` the event refers to
+  eventType       String // e.g. email.delivered, email.bounced
+
+  receivedAt DateTime @default(now())
+
+  @@index([providerEmailId, eventType])
+  @@index([receivedAt])
+  @@map("email_webhook_events")
 }
 
 model EmailSuppression {

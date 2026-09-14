@@ -71,6 +71,7 @@ async function logEmailEvent(
   subject: string,
   templateId: number | undefined,
   errorMessage: string | undefined,
+  providerEmailId?: string,
 ): Promise<void> {
   try {
     await prisma.emailLog.create({
@@ -79,6 +80,7 @@ async function logEmailEvent(
         to,
         subject,
         status,
+        providerEmailId,
         sentAt: new Date(),
         errorMessage,
       },
@@ -228,7 +230,10 @@ export async function sendEmail(
       to,
       subject,
       templateId,
-      resendId !== "unknown" ? `provider=resend; messageId=${resendId}` : undefined,
+      resendId !== "unknown"
+        ? `provider=resend; messageId=${resendId}`
+        : undefined,
+      resendId !== "unknown" ? resendId : undefined,
     );
 
     return true;

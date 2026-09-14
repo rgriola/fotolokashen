@@ -254,22 +254,47 @@ function getEventMetadataLine(
   return metadataParts.join("; ");
 }
 
-function hasRecordedLifecycleEvent(
-  errorMessage: string | null | undefined,
-  messageId: string,
+// True when this exact delivery, or this message/event-type pair, has already
+// been processed. Both lookups are indexed — see model EmailWebhookEvent.
+async function isDuplicateEvent(
+  webhookEventId: string,
+  providerEmailId: string,
   eventType: EmailWebhookEvent["type"],
-): boolean {
-  if (!errorMessage) {
-    return false;
-  }
+): Promise<boolean> {
+  const [sameDelivery, sameLifecycleEvent] = await Promise.all([
+    prisma.emailWebhookEvent.findUnique({
+      where: { webhookEventId },
+      select: { id: true },
+    }),
+    prisma.emailWebhookEvent.findFirst({
+      where: { providerEmailId, eventType },
+      select: { id: true },
+    }),
+  ]);
 
-  return errorMessage
-    .split("\n")
-    .some(
-      (line) =>
-        line.includes(`messageId=${messageId}`) &&
-        line.includes(`event=${eventType}`),
-    );
+  return Boolean(sameDelivery || sameLifecycleEvent);
+}
+
+// Records a processed delivery. A unique-constraint violation here means a
+// concurrent retry won the race, which is the outcome we wanted anyway.
+async function recordWebhookEvent(
+  webhookEventId: string,
+  providerEmailId: string,
+  eventType: EmailWebhookEvent["type"],
+): Promise<void> {
+  try {
+    await prisma.emailWebhookEvent.create({
+      data: { webhookEventId, providerEmailId, eventType },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return;
+    }
+    console.error("[ResendWebhook] Failed to record webhook event:", error);
+  }
 }
 
 async function maybeForwardInboundEmail(
@@ -574,16 +599,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const duplicateWebhook = await prisma.emailLog.findFirst({
-    where: {
-      errorMessage: {
-        contains: `webhookId=${id}`,
-      },
-    },
-    select: { id: true },
-  });
-
-  if (duplicateWebhook) {
+  if (await isDuplicateEvent(id, messageId, event.type)) {
     return apiResponse({ received: true, duplicate: true });
   }
 
@@ -606,28 +622,13 @@ export async function POST(request: NextRequest) {
   ]);
 
   const existingLog = await prisma.emailLog.findFirst({
-    where: {
-      errorMessage: {
-        contains: `messageId=${messageId}`,
-      },
-    },
+    where: { providerEmailId: messageId },
     orderBy: {
       sentAt: "desc",
     },
   });
 
   if (existingLog) {
-    if (
-      hasRecordedLifecycleEvent(existingLog.errorMessage, messageId, event.type)
-    ) {
-      return apiResponse({
-        received: true,
-        duplicate: true,
-        duplicateReason: "event_already_recorded",
-        status,
-      });
-    }
-
     const mergedMetadata = existingLog.errorMessage
       ? `${existingLog.errorMessage}\n${metadataLine}`
       : metadataLine;
@@ -640,6 +641,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await recordWebhookEvent(id, messageId, event.type);
     await applySuppressionFromEvent(event, id, eventData.to);
 
     return apiResponse({ received: true, updated: true, status });
@@ -653,11 +655,13 @@ export async function POST(request: NextRequest) {
       to: recipient,
       subject,
       status,
+      providerEmailId: messageId,
       sentAt: parseEventDate(event.created_at),
       errorMessage: metadataLine,
     },
   });
 
+  await recordWebhookEvent(id, messageId, event.type);
   await applySuppressionFromEvent(event, id, eventData.to);
 
   return apiResponse({ received: true, created: true, status });
