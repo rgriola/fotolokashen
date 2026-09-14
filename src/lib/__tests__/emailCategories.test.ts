@@ -174,3 +174,27 @@ describe("sendEmail — source-level guard on security wrappers", () => {
     },
   );
 });
+
+describe("sendEmail — deliverability headers", () => {
+  it("does not set List-Unsubscribe or List-Unsubscribe-Post headers", async () => {
+    await sendEmail("user@example.com", "Subject", "<p>hi</p>", {
+      category: "transactional",
+    });
+
+    expect(resendSend).toHaveBeenCalledTimes(1);
+    const sendArgs = resendSend.mock.calls[0][0] as { headers: Record<string, string> };
+    expect(sendArgs.headers).not.toHaveProperty("List-Unsubscribe");
+    expect(sendArgs.headers).not.toHaveProperty("List-Unsubscribe-Post");
+  });
+
+  it("still passes through caller-supplied extra headers", async () => {
+    await sendEmail("user@example.com", "Subject", "<p>hi</p>", {
+      category: "transactional",
+      headers: { "X-Custom-Header": "custom-value" },
+    });
+
+    expect(resendSend).toHaveBeenCalledTimes(1);
+    const sendArgs = resendSend.mock.calls[0][0] as { headers: Record<string, string> };
+    expect(sendArgs.headers).toMatchObject({ "X-Custom-Header": "custom-value" });
+  });
+});

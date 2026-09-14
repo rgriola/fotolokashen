@@ -187,11 +187,14 @@ export async function sendEmail(
   const plainText = text || htmlToPlainText(htmlWithPreview);
 
   // Headers that improve deliverability with corporate mail filters (Microsoft 365, Proofpoint)
+  // Note: List-Unsubscribe / List-Unsubscribe-Post are intentionally omitted.
+  // All mail sent by this app is transactional (security notices, receipts,
+  // support replies) — there is no bulk/marketing mail and no unsubscribe
+  // preference center, so advertising one-click unsubscribe here would be
+  // misleading. See docs/planning/EMAIL_SUPPRESSION_IMPLEMENTATION_PLAN_2026-09-13.md §4.
   const deliverabilityHeaders: Record<string, string> = {
     Precedence: "transactional",
     "X-Auto-Response-Suppress": "OOF, AutoReply",
-    "List-Unsubscribe": `<mailto:${replyToAddress}?subject=unsubscribe>`,
-    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     ...extraHeaders,
   };
 
