@@ -235,7 +235,7 @@ export async function POST(request: NextRequest) {
         SUPPORT_EMAIL,
         `[Member Support] ${subject}`,
         createSupportEmailHtml(name, email, subject, message, user.username),
-        { replyTo: email },
+        { replyTo: email, category: "transactional" },
       );
 
       // Send confirmation email to member
@@ -243,6 +243,7 @@ export async function POST(request: NextRequest) {
         email,
         "We Received Your Support Request",
         createConfirmationEmailHtml(name, subject),
+        { category: "transactional" },
       );
 
       if (!supportNotificationSent || !confirmationSent) {

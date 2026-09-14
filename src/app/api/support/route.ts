@@ -191,7 +191,8 @@ export async function POST(request: NextRequest) {
       const sent = await sendEmail(
         SUPPORT_EMAIL,
         `[Support] ${subject}`,
-        createEmailHtml(name, email, subject, message)
+        createEmailHtml(name, email, subject, message),
+        { category: "transactional" }
       );
 
       if (!sent) {

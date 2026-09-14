@@ -9,6 +9,13 @@ import {
 } from "./email-content";
 import { prisma } from "./prisma";
 import { env } from "./env";
+import {
+  getSuppression,
+  isBlocked,
+  normalizeEmail,
+  type EmailCategory,
+  type SuppressionReason,
+} from "./email-suppression";
 
 // Environment variables — using validated env to prevent silent defaults
 const APP_URL = env.NEXT_PUBLIC_APP_URL;
@@ -54,6 +61,31 @@ interface SendEmailOptions {
   previewText?: string;
   replyTo?: string;
   headers?: Record<string, string>;
+  category?: EmailCategory; // defaults to "notification" — the most restrictive class
+}
+
+/** Best-effort EmailLog write; a logging failure must never fail the send itself. */
+async function logEmailEvent(
+  status: "sent" | "failed" | "suppressed",
+  to: string,
+  subject: string,
+  templateId: number | undefined,
+  errorMessage: string | undefined,
+): Promise<void> {
+  try {
+    await prisma.emailLog.create({
+      data: {
+        ...(templateId !== undefined ? { templateId } : {}),
+        to,
+        subject,
+        status,
+        sentAt: new Date(),
+        errorMessage,
+      },
+    });
+  } catch (logError) {
+    console.error(`Failed to log email (${status}) to database:`, logError);
+  }
 }
 
 /** Strip HTML tags and decode common entities to produce a plain-text fallback. */
@@ -109,7 +141,45 @@ export async function sendEmail(
     previewText,
     replyTo,
     headers: extraHeaders,
+    category = "notification",
   } = options;
+  const normalizedTo = normalizeEmail(to);
+
+  const suppression = await getSuppression(normalizedTo);
+  if (suppression && isBlocked(category, suppression.reason as SuppressionReason)) {
+    console.warn(
+      `[Email] Suppressed send — to: ${to}, category: ${category}, reason: ${suppression.reason}`,
+    );
+    await logEmailEvent(
+      "suppressed",
+      to,
+      subject,
+      templateId,
+      `suppressed; reason=${suppression.reason}; category=${category}`,
+    );
+    return false;
+  }
+
+  if (category === "notification") {
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedTo },
+      select: { emailNotifications: true },
+    });
+    if (user && !user.emailNotifications) {
+      console.warn(
+        `[Email] Suppressed send — to: ${to}, reason: user disabled email notifications`,
+      );
+      await logEmailEvent(
+        "suppressed",
+        to,
+        subject,
+        templateId,
+        `suppressed; reason=user_preference; category=notification`,
+      );
+      return false;
+    }
+  }
+
   const fromName = env.EMAIL_FROM_NAME;
   const fromAddress = env.EMAIL_FROM_ADDRESS;
   const replyToAddress = replyTo || env.EMAIL_REPLY_TO || fromAddress;
@@ -150,24 +220,13 @@ export async function sendEmail(
     );
 
     // Log all sends so webhook lifecycle events can map back to provider message IDs.
-    try {
-      await prisma.emailLog.create({
-        data: {
-          ...(templateId !== undefined ? { templateId } : {}),
-          to,
-          subject,
-          status: "sent",
-          sentAt: new Date(),
-          errorMessage:
-            resendId !== "unknown"
-              ? `provider=resend; messageId=${resendId}`
-              : undefined,
-        },
-      });
-    } catch (logError) {
-      console.error("Failed to log email to database:", logError);
-      // Don't fail the email send if logging fails.
-    }
+    await logEmailEvent(
+      "sent",
+      to,
+      subject,
+      templateId,
+      resendId !== "unknown" ? `provider=resend; messageId=${resendId}` : undefined,
+    );
 
     return true;
   } catch (error) {
@@ -177,21 +236,13 @@ export async function sendEmail(
     console.error("   Error details:", error);
 
     // Log all failures for traceability and delivery debugging.
-    try {
-      await prisma.emailLog.create({
-        data: {
-          ...(templateId !== undefined ? { templateId } : {}),
-          to,
-          subject,
-          status: "failed",
-          sentAt: new Date(),
-          errorMessage:
-            error instanceof Error ? error.message : "Unknown error",
-        },
-      });
-    } catch (logError) {
-      console.error("Failed to log email error to database:", logError);
-    }
+    await logEmailEvent(
+      "failed",
+      to,
+      subject,
+      templateId,
+      error instanceof Error ? error.message : "Unknown error",
+    );
 
     return false;
   }
@@ -247,6 +298,7 @@ export async function sendVerificationEmail(
     {
       text: verificationText,
       previewText: "Verify your email address to activate your account.",
+      category: "security",
     },
   );
 }
@@ -280,6 +332,7 @@ export async function sendWelcomeEmail(
     email,
     EMAIL_SUBJECTS.welcome,
     welcomeToEmailTemplate(username),
+    { category: "transactional" },
   );
 }
 
@@ -316,6 +369,7 @@ export async function sendPasswordResetEmail(
     email,
     EMAIL_SUBJECTS.password_reset,
     passwordResetEmailTemplate(username, resetUrl),
+    { category: "security" },
   );
 }
 
@@ -370,6 +424,7 @@ export async function sendPasswordChangedEmail(
     email,
     EMAIL_SUBJECTS.password_changed,
     passwordChangedEmailTemplate(username, formattedTime, ipAddress),
+    { category: "security" },
   );
 }
 
@@ -403,6 +458,7 @@ export async function sendAccountDeletionEmail(
     email,
     EMAIL_SUBJECTS.account_deletion,
     accountDeletionEmailTemplate(username, email),
+    { category: "security" },
   );
 }
 
@@ -449,7 +505,9 @@ export async function sendEmailChangeVerification(
     <p>If you didn't request this change, please ignore this email.</p>
   `;
 
-  return sendEmail(newEmail, "Verify Your New Email Address", html);
+  return sendEmail(newEmail, "Verify Your New Email Address", html, {
+    category: "security",
+  });
 }
 
 /**
@@ -498,7 +556,9 @@ export async function sendEmailChangeAlert(
     <p>If you didn't request this change, we recommend changing your password immediately.</p>
   `;
 
-  return sendEmail(oldEmail, "⚠️ Email Change Request", html);
+  return sendEmail(oldEmail, "⚠️ Email Change Request", html, {
+    category: "security",
+  });
 }
 
 /**
@@ -554,5 +614,5 @@ export async function sendEmailChangeConfirmation(
       <p>If you didn't make this change, please contact support immediately.</p>
     `;
 
-  return sendEmail(email, "Email Changed", html);
+  return sendEmail(email, "Email Changed", html, { category: "security" });
 }
