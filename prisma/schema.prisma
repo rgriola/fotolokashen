@@ -515,6 +515,21 @@ model EmailLog {
   @@map("email_logs")
 }
 
+model EmailSuppression {
+  id     Int     @id @default(autoincrement())
+  email  String  @unique // always normalized: trimmed + lowercased
+  reason String // hard_bounce | complaint | provider_suppressed | manual
+  detail String? @db.Text
+  source String? // provider message id, webhook id, or admin user id
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([reason])
+  @@index([createdAt])
+  @@map("email_suppressions")
+}
+
 model InboundEmail {
   id Int @id @default(autoincrement())
 
