@@ -1,19 +1,25 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { AdminRoute } from '@/components/auth/AdminRoute';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { AdminRoute } from "@/components/auth/AdminRoute";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -21,9 +27,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Inbox, Paperclip, RefreshCw, Search, Users } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/table";
+import {
+  Inbox,
+  Paperclip,
+  RefreshCw,
+  Search,
+  Users,
+  MailX,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface InboundEmailListItem {
   id: number;
@@ -100,7 +113,7 @@ interface InboxResponse {
 interface InboxHealthResponse {
   windowHours: number;
   generatedAt: string;
-  status: 'healthy' | 'warning';
+  status: "healthy" | "warning";
   metrics: {
     inboundReceived: number;
     forwardOk: number;
@@ -130,7 +143,7 @@ interface InboundAlertResponse {
   };
 }
 
-type ForwardFilter = 'all' | 'ok' | 'failed' | 'not_configured';
+type ForwardFilter = "all" | "ok" | "failed" | "not_configured";
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString();
@@ -138,7 +151,7 @@ function formatDateTime(value: string): string {
 
 function formatFileSize(size: number | null): string {
   if (size === null || Number.isNaN(size)) {
-    return 'Unknown size';
+    return "Unknown size";
   }
 
   if (size < 1024) {
@@ -153,16 +166,28 @@ function formatFileSize(size: number | null): string {
 }
 
 function ForwardStatusBadge({ status }: { status: string | null }) {
-  if (status === 'ok') {
-    return <Badge className="border-success/20 bg-success/10 text-success">Forwarded</Badge>;
+  if (status === "ok") {
+    return (
+      <Badge className="border-success/20 bg-success/10 text-success">
+        Forwarded
+      </Badge>
+    );
   }
 
-  if (status === 'failed') {
-    return <Badge className="border-destructive/20 bg-destructive/10 text-destructive">Failed</Badge>;
+  if (status === "failed") {
+    return (
+      <Badge className="border-destructive/20 bg-destructive/10 text-destructive">
+        Failed
+      </Badge>
+    );
   }
 
-  if (status === 'not_configured') {
-    return <Badge className="border-warning/20 bg-warning/10 text-warning">Not Configured</Badge>;
+  if (status === "not_configured") {
+    return (
+      <Badge className="border-warning/20 bg-warning/10 text-warning">
+        Not Configured
+      </Badge>
+    );
   }
 
   return <Badge variant="secondary">Unknown</Badge>;
@@ -173,7 +198,9 @@ export default function AdminInboxPage() {
 
   const [items, setItems] = useState<InboundEmailListItem[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [selectedEmail, setSelectedEmail] = useState<InboundEmailDetail | null>(null);
+  const [selectedEmail, setSelectedEmail] = useState<InboundEmailDetail | null>(
+    null,
+  );
   const [health, setHealth] = useState<InboxHealthResponse | null>(null);
 
   const [isLoadingList, setIsLoadingList] = useState(true);
@@ -181,8 +208,8 @@ export default function AdminInboxPage() {
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isSendingAlert, setIsSendingAlert] = useState(false);
 
-  const [search, setSearch] = useState('');
-  const [forwardFilter, setForwardFilter] = useState<ForwardFilter>('all');
+  const [search, setSearch] = useState("");
+  const [forwardFilter, setForwardFilter] = useState<ForwardFilter>("all");
   const [supportOnly, setSupportOnly] = useState(true);
 
   const [page, setPage] = useState(1);
@@ -195,19 +222,19 @@ export default function AdminInboxPage() {
 
       const params = new URLSearchParams({
         page: String(page),
-        perPage: '20',
+        perPage: "20",
         search,
         forwardStatus: forwardFilter,
-        supportOnly: supportOnly ? 'true' : 'false',
+        supportOnly: supportOnly ? "true" : "false",
       });
 
       const [response, healthResponse] = await Promise.all([
         fetch(`/api/admin/inbound-emails?${params.toString()}`),
-        fetch('/api/admin/inbound-emails/health'),
+        fetch("/api/admin/inbound-emails/health"),
       ]);
 
       if (!response.ok) {
-        throw new Error('Failed to load inbound inbox');
+        throw new Error("Failed to load inbound inbox");
       }
 
       const data = (await response.json()) as InboxResponse;
@@ -229,8 +256,8 @@ export default function AdminInboxPage() {
         setSelectedId(data.items[0]?.id || null);
       }
     } catch (error) {
-      console.error('Failed to fetch inbound inbox:', error);
-      toast.error('Failed to load inbox');
+      console.error("Failed to fetch inbound inbox:", error);
+      toast.error("Failed to load inbox");
       setHealth(null);
     } finally {
       setIsLoadingList(false);
@@ -243,14 +270,14 @@ export default function AdminInboxPage() {
       setIsLoadingDetail(true);
       const response = await fetch(`/api/admin/inbound-emails/${id}`);
       if (!response.ok) {
-        throw new Error('Failed to load inbound email detail');
+        throw new Error("Failed to load inbound email detail");
       }
 
       const data = await response.json();
       setSelectedEmail(data.email as InboundEmailDetail);
     } catch (error) {
-      console.error('Failed to fetch inbound email detail:', error);
-      toast.error('Failed to load email detail');
+      console.error("Failed to fetch inbound email detail:", error);
+      toast.error("Failed to load email detail");
       setSelectedEmail(null);
     } finally {
       setIsLoadingDetail(false);
@@ -261,10 +288,10 @@ export default function AdminInboxPage() {
     try {
       setIsSendingAlert(true);
 
-      const response = await fetch('/api/admin/inbound-emails/health/alert', {
-        method: 'POST',
+      const response = await fetch("/api/admin/inbound-emails/health/alert", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           windowHours: health?.windowHours || 24,
@@ -275,20 +302,27 @@ export default function AdminInboxPage() {
       const data = (await response.json()) as InboundAlertResponse;
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send alert');
+        throw new Error(data.error || "Failed to send alert");
       }
 
       if (data.skipped) {
-        toast.message(data.reason || 'No alert sent because no failures were detected.');
+        toast.message(
+          data.reason || "No alert sent because no failures were detected.",
+        );
         return;
       }
 
       const failed = data.snapshot?.metrics.forwardFailed ?? 0;
       const notConfigured = data.snapshot?.metrics.forwardNotConfigured ?? 0;
-      toast.success(`Slack alert sent (failed: ${failed}, not configured: ${notConfigured}).`);
+      toast.success(
+        `Slack alert sent (failed: ${failed}, not configured: ${notConfigured}).`,
+      );
     } catch (error) {
-      console.error('Failed to send forwarding alert:', error);
-      const message = error instanceof Error ? error.message : 'Failed to send forwarding alert';
+      console.error("Failed to send forwarding alert:", error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to send forwarding alert";
       toast.error(message);
     } finally {
       setIsSendingAlert(false);
@@ -309,33 +343,48 @@ export default function AdminInboxPage() {
 
   const selectedSummary = useMemo(
     () => items.find((item) => item.id === selectedId) || null,
-    [items, selectedId]
+    [items, selectedId],
   );
 
   return (
     <AdminRoute>
       <div className="container max-w-7xl mx-auto py-6 px-4 space-y-4">
         <div className="mb-4 flex items-center gap-2 text-sm">
-          <span className="font-semibold text-muted-foreground">Admin Panel</span>
+          <span className="font-semibold text-muted-foreground">
+            Admin Panel
+          </span>
           <span className="text-muted-foreground">/</span>
           <span className="font-semibold">Inbox</span>
           <span className="text-muted-foreground">—</span>
-          <span className="text-muted-foreground">Inbound support emails and forward health</span>
+          <span className="text-muted-foreground">
+            Inbound support emails and forward health
+          </span>
         </div>
 
         <div className="mb-4">
           <div className="flex gap-2 border-b">
             <Button
               variant="ghost"
-              onClick={() => router.push('/admin/users')}
+              onClick={() => router.push("/admin/users")}
               className="rounded-b-none"
             >
               <Users className="w-4 h-4 mr-2" />
               Users
             </Button>
-            <Button variant="ghost" className="rounded-b-none border-b-2 border-primary">
+            <Button
+              variant="ghost"
+              className="rounded-b-none border-b-2 border-primary"
+            >
               <Inbox className="w-4 h-4 mr-2" />
               Inbox
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/admin/email-suppressions")}
+              className="rounded-b-none"
+            >
+              <MailX className="w-4 h-4 mr-2" />
+              Suppressions
             </Button>
           </div>
         </div>
@@ -344,26 +393,31 @@ export default function AdminInboxPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Email Health (24h)</CardTitle>
             <CardDescription>
-              Monitor inbound volume and forwarding outcomes for quick issue detection.
+              Monitor inbound volume and forwarding outcomes for quick issue
+              detection.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {isLoadingHealth ? (
-              <p className="text-sm text-muted-foreground">Loading health metrics...</p>
+              <p className="text-sm text-muted-foreground">
+                Loading health metrics...
+              </p>
             ) : !health ? (
-              <p className="text-sm text-muted-foreground">Health metrics unavailable.</p>
+              <p className="text-sm text-muted-foreground">
+                Health metrics unavailable.
+              </p>
             ) : (
               <>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Status:</span>
                   <Badge
                     className={
-                      health.status === 'healthy'
-                        ? 'border-success/20 bg-success/10 text-success'
-                        : 'border-warning/20 bg-warning/10 text-warning'
+                      health.status === "healthy"
+                        ? "border-success/20 bg-success/10 text-success"
+                        : "border-warning/20 bg-warning/10 text-warning"
                     }
                   >
-                    {health.status === 'healthy' ? 'Healthy' : 'Warning'}
+                    {health.status === "healthy" ? "Healthy" : "Warning"}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     Updated {formatDateTime(health.generatedAt)}
@@ -372,30 +426,47 @@ export default function AdminInboxPage() {
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="rounded-md border p-3 bg-card">
-                    <p className="text-xs text-muted-foreground">Inbound Received</p>
-                    <p className="text-xl font-semibold">{health.metrics.inboundReceived}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Inbound Received
+                    </p>
+                    <p className="text-xl font-semibold">
+                      {health.metrics.inboundReceived}
+                    </p>
                   </div>
                   <div className="rounded-md border p-3 bg-card">
                     <p className="text-xs text-muted-foreground">Forward OK</p>
-                    <p className="text-xl font-semibold text-success">{health.metrics.forwardOk}</p>
+                    <p className="text-xl font-semibold text-success">
+                      {health.metrics.forwardOk}
+                    </p>
                   </div>
                   <div className="rounded-md border p-3 bg-card">
-                    <p className="text-xs text-muted-foreground">Forward Failed</p>
-                    <p className="text-xl font-semibold text-destructive">{health.metrics.forwardFailed}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Forward Failed
+                    </p>
+                    <p className="text-xl font-semibold text-destructive">
+                      {health.metrics.forwardFailed}
+                    </p>
                   </div>
                   <div className="rounded-md border p-3 bg-card">
-                    <p className="text-xs text-muted-foreground">Not Configured</p>
-                    <p className="text-xl font-semibold text-warning">{health.metrics.forwardNotConfigured}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Not Configured
+                    </p>
+                    <p className="text-xl font-semibold text-warning">
+                      {health.metrics.forwardNotConfigured}
+                    </p>
                   </div>
                 </div>
 
                 {health.lastInbound ? (
                   <div className="text-sm">
-                    <span className="font-medium">Last inbound:</span>{' '}
-                    {formatDateTime(health.lastInbound.receivedAt)} to {health.lastInbound.toCsv || 'Unknown recipient'}
+                    <span className="font-medium">Last inbound:</span>{" "}
+                    {formatDateTime(health.lastInbound.receivedAt)} to{" "}
+                    {health.lastInbound.toCsv || "Unknown recipient"}
                   </div>
                 ) : (
-                  <div className="text-sm text-muted-foreground">No inbound messages found yet.</div>
+                  <div className="text-sm text-muted-foreground">
+                    No inbound messages found yet.
+                  </div>
                 )}
 
                 <div className="flex flex-wrap gap-2">
@@ -405,7 +476,7 @@ export default function AdminInboxPage() {
                     size="sm"
                     onClick={() => {
                       setPage(1);
-                      setForwardFilter('failed');
+                      setForwardFilter("failed");
                     }}
                   >
                     Show Failed
@@ -416,7 +487,7 @@ export default function AdminInboxPage() {
                     size="sm"
                     onClick={() => {
                       setPage(1);
-                      setForwardFilter('not_configured');
+                      setForwardFilter("not_configured");
                     }}
                   >
                     Show Not Configured
@@ -427,7 +498,7 @@ export default function AdminInboxPage() {
                     size="sm"
                     onClick={() => {
                       setPage(1);
-                      setForwardFilter('all');
+                      setForwardFilter("all");
                     }}
                   >
                     Clear Forward Filter
@@ -440,7 +511,7 @@ export default function AdminInboxPage() {
                       void sendForwardAlert();
                     }}
                   >
-                    {isSendingAlert ? 'Sending Alert...' : 'Send Slack Alert'}
+                    {isSendingAlert ? "Sending Alert..." : "Send Slack Alert"}
                   </Button>
                 </div>
               </>
@@ -452,7 +523,8 @@ export default function AdminInboxPage() {
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Inbound Mailbox</CardTitle>
             <CardDescription>
-              View received support emails and forwarding outcomes from Resend inbound events.
+              View received support emails and forwarding outcomes from Resend
+              inbound events.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -490,18 +562,22 @@ export default function AdminInboxPage() {
 
               <Button
                 type="button"
-                variant={supportOnly ? 'default' : 'outline'}
+                variant={supportOnly ? "default" : "outline"}
                 onClick={() => {
                   setPage(1);
                   setSupportOnly((previous) => !previous);
                 }}
               >
-                {supportOnly ? 'Support-only On' : 'Support-only Off'}
+                {supportOnly ? "Support-only On" : "Support-only Off"}
               </Button>
 
               <div className="flex-1" />
 
-              <Button type="button" variant="outline" onClick={() => fetchList()}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fetchList()}
+              >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Refresh
               </Button>
@@ -528,7 +604,10 @@ export default function AdminInboxPage() {
                     </TableRow>
                   ) : items.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell
+                        colSpan={6}
+                        className="text-center py-8 text-muted-foreground"
+                      >
                         No inbound emails matched your filters.
                       </TableCell>
                     </TableRow>
@@ -537,19 +616,28 @@ export default function AdminInboxPage() {
                       <TableRow
                         key={item.id}
                         onClick={() => setSelectedId(item.id)}
-                        className={`cursor-pointer ${selectedId === item.id ? 'bg-accent/30' : ''}`}
+                        className={`cursor-pointer ${selectedId === item.id ? "bg-accent/30" : ""}`}
                       >
                         <TableCell className="text-xs text-muted-foreground">
                           {formatDateTime(item.receivedAt)}
                         </TableCell>
-                        <TableCell className="max-w-60 truncate" title={item.fromRaw}>
+                        <TableCell
+                          className="max-w-60 truncate"
+                          title={item.fromRaw}
+                        >
                           {item.fromName || item.fromEmail || item.fromRaw}
                         </TableCell>
-                        <TableCell className="max-w-56 truncate" title={item.toCsv}>
-                          {item.toCsv || 'Unknown recipient'}
+                        <TableCell
+                          className="max-w-56 truncate"
+                          title={item.toCsv}
+                        >
+                          {item.toCsv || "Unknown recipient"}
                         </TableCell>
-                        <TableCell className="max-w-72 truncate" title={item.subject}>
-                          {item.subject || '(no subject)'}
+                        <TableCell
+                          className="max-w-72 truncate"
+                          title={item.subject}
+                        >
+                          {item.subject || "(no subject)"}
                         </TableCell>
                         <TableCell>
                           <ForwardStatusBadge status={item.forwardStatus} />
@@ -572,14 +660,18 @@ export default function AdminInboxPage() {
                 <Button
                   variant="outline"
                   disabled={page <= 1}
-                  onClick={() => setPage((previous) => Math.max(1, previous - 1))}
+                  onClick={() =>
+                    setPage((previous) => Math.max(1, previous - 1))
+                  }
                 >
                   Previous
                 </Button>
                 <Button
                   variant="outline"
                   disabled={page >= totalPages}
-                  onClick={() => setPage((previous) => Math.min(totalPages, previous + 1))}
+                  onClick={() =>
+                    setPage((previous) => Math.min(totalPages, previous + 1))
+                  }
                 >
                   Next
                 </Button>
@@ -594,63 +686,83 @@ export default function AdminInboxPage() {
             <CardDescription>
               {selectedSummary
                 ? `Inbound message ${selectedSummary.providerEmailId}`
-                : 'Select an email row to inspect full content'}
+                : "Select an email row to inspect full content"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!selectedId ? (
-              <p className="text-sm text-muted-foreground">No email selected.</p>
+              <p className="text-sm text-muted-foreground">
+                No email selected.
+              </p>
             ) : isLoadingDetail ? (
-              <p className="text-sm text-muted-foreground">Loading email detail...</p>
+              <p className="text-sm text-muted-foreground">
+                Loading email detail...
+              </p>
             ) : !selectedEmail ? (
-              <p className="text-sm text-muted-foreground">Unable to load selected email.</p>
+              <p className="text-sm text-muted-foreground">
+                Unable to load selected email.
+              </p>
             ) : (
               <div className="space-y-4">
                 <div className="grid gap-2 text-sm">
                   <div>
-                    <span className="font-medium">From:</span> {selectedEmail.fromRaw}
+                    <span className="font-medium">From:</span>{" "}
+                    {selectedEmail.fromRaw}
                   </div>
                   <div>
-                    <span className="font-medium">To:</span> {selectedEmail.toCsv || 'Unknown recipient'}
+                    <span className="font-medium">To:</span>{" "}
+                    {selectedEmail.toCsv || "Unknown recipient"}
                   </div>
                   {selectedEmail.replyToCsv ? (
                     <div>
-                      <span className="font-medium">Reply-To:</span> {selectedEmail.replyToCsv}
+                      <span className="font-medium">Reply-To:</span>{" "}
+                      {selectedEmail.replyToCsv}
                     </div>
                   ) : null}
                   <div>
-                    <span className="font-medium">Subject:</span> {selectedEmail.subject || '(no subject)'}
+                    <span className="font-medium">Subject:</span>{" "}
+                    {selectedEmail.subject || "(no subject)"}
                   </div>
                   <div>
-                    <span className="font-medium">Received:</span> {formatDateTime(selectedEmail.receivedAt)}
+                    <span className="font-medium">Received:</span>{" "}
+                    {formatDateTime(selectedEmail.receivedAt)}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">forwardConfigured:</span>
                     <Badge
                       className={
                         selectedEmail.forwardConfigured
-                          ? 'border-success/20 bg-success/10 text-success'
-                          : 'border-warning/20 bg-warning/10 text-warning'
+                          ? "border-success/20 bg-success/10 text-success"
+                          : "border-warning/20 bg-warning/10 text-warning"
                       }
                     >
-                      {selectedEmail.forwardConfigured ? 'true' : 'false'}
+                      {selectedEmail.forwardConfigured ? "true" : "false"}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">forwardStatus:</span>
                     <ForwardStatusBadge status={selectedEmail.forwardStatus} />
                     <span className="text-xs text-muted-foreground">
-                      {selectedEmail.forwardStatus || 'null'}
+                      {selectedEmail.forwardStatus || "null"}
                     </span>
                   </div>
                   <div>
-                    <span className="font-medium">forwardedToCsv:</span> {selectedEmail.forwardedToCsv || 'None'}
+                    <span className="font-medium">forwardedToCsv:</span>{" "}
+                    {selectedEmail.forwardedToCsv || "None"}
                   </div>
                   <div>
-                    <span className="font-medium">forwardedFrom:</span> {selectedEmail.forwardedFrom || 'None'}
+                    <span className="font-medium">forwardedFrom:</span>{" "}
+                    {selectedEmail.forwardedFrom || "None"}
                   </div>
-                  <div className={selectedEmail.forwardError ? 'text-destructive' : 'text-muted-foreground'}>
-                    <span className="font-medium">forwardError:</span> {selectedEmail.forwardError || 'None'}
+                  <div
+                    className={
+                      selectedEmail.forwardError
+                        ? "text-destructive"
+                        : "text-muted-foreground"
+                    }
+                  >
+                    <span className="font-medium">forwardError:</span>{" "}
+                    {selectedEmail.forwardError || "None"}
                   </div>
                 </div>
 
@@ -660,14 +772,22 @@ export default function AdminInboxPage() {
                     Attachments ({selectedEmail.attachments.length})
                   </h4>
                   {selectedEmail.attachments.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No attachments.</p>
+                    <p className="text-sm text-muted-foreground">
+                      No attachments.
+                    </p>
                   ) : (
                     <div className="space-y-2">
                       {selectedEmail.attachments.map((attachment) => (
-                        <div key={attachment.id} className="rounded-md border p-3 text-sm bg-card">
-                          <p className="font-medium">{attachment.filename || 'Unnamed file'}</p>
+                        <div
+                          key={attachment.id}
+                          className="rounded-md border p-3 text-sm bg-card"
+                        >
+                          <p className="font-medium">
+                            {attachment.filename || "Unnamed file"}
+                          </p>
                           <p className="text-muted-foreground">
-                            {attachment.contentType || 'Unknown type'} • {formatFileSize(attachment.size)}
+                            {attachment.contentType || "Unknown type"} •{" "}
+                            {formatFileSize(attachment.size)}
                           </p>
                         </div>
                       ))}
@@ -679,7 +799,7 @@ export default function AdminInboxPage() {
                   <h4 className="font-medium mb-2">Text Body</h4>
                   <div className="rounded-md border bg-muted/40 p-3 max-h-80 overflow-y-auto">
                     <pre className="whitespace-pre-wrap text-sm">
-                      {selectedEmail.textBody || 'No text body available.'}
+                      {selectedEmail.textBody || "No text body available."}
                     </pre>
                   </div>
                 </div>
@@ -688,7 +808,9 @@ export default function AdminInboxPage() {
                   <div>
                     <h4 className="font-medium mb-2">HTML Body (raw)</h4>
                     <div className="rounded-md border bg-muted/40 p-3 max-h-64 overflow-y-auto">
-                      <pre className="whitespace-pre-wrap text-xs">{selectedEmail.htmlBody}</pre>
+                      <pre className="whitespace-pre-wrap text-xs">
+                        {selectedEmail.htmlBody}
+                      </pre>
                     </div>
                   </div>
                 ) : null}
