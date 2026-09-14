@@ -51,6 +51,31 @@ export function classifyBounce(bounce: {
   return null;
 }
 
+// Maps a Resend webhook lifecycle event to a suppression to record, if any.
+export function suppressionFromEvent(
+  eventType: string,
+  data: { bounce?: { type?: string; subType?: string; message?: string } },
+): { reason: SuppressionReason; detail?: string } | null {
+  if (eventType === "email.bounced") {
+    const reason = classifyBounce(data.bounce ?? {});
+    if (!reason) return null;
+    const detail = [data.bounce?.subType, data.bounce?.message]
+      .filter(Boolean)
+      .join(": ");
+    return { reason, detail: detail || undefined };
+  }
+
+  if (eventType === "email.complained") {
+    return { reason: "complaint" };
+  }
+
+  if (eventType === "email.suppressed") {
+    return { reason: "provider_suppressed" };
+  }
+
+  return null;
+}
+
 export async function getSuppression(
   email: string,
 ): Promise<EmailSuppression | null> {

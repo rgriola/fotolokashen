@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { apiError, apiResponse } from "@/lib/api-middleware";
 import { env } from "@/lib/env";
+import { suppressEmail, suppressionFromEvent } from "@/lib/email-suppression";
 
 let resendClient: Resend | null = null;
 
@@ -562,6 +563,7 @@ export async function POST(request: NextRequest) {
     email_id?: string;
     to?: string[];
     subject?: string;
+    bounce?: { type?: string; subType?: string; message?: string };
   };
   const messageId = eventData.email_id;
   if (!messageId) {
@@ -638,6 +640,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    await applySuppressionFromEvent(event, id, eventData.to);
+
     return apiResponse({ received: true, updated: true, status });
   }
 
@@ -654,5 +658,40 @@ export async function POST(request: NextRequest) {
     },
   });
 
+  await applySuppressionFromEvent(event, id, eventData.to);
+
   return apiResponse({ received: true, created: true, status });
+}
+
+// Writes suppression records from lifecycle events (permanent bounce, spam
+// complaint, provider suppression). Never throws — a failure here must not
+// turn a processed webhook into a non-200 response (Resend would retry and
+// duplicate EmailLog rows).
+async function applySuppressionFromEvent(
+  event: EmailWebhookEvent,
+  webhookId: string,
+  recipients: string[] | undefined,
+): Promise<void> {
+  if (!recipients || recipients.length === 0) return;
+
+  const suppression = suppressionFromEvent(
+    event.type,
+    event.data as { bounce?: { type?: string; subType?: string; message?: string } },
+  );
+  if (!suppression) return;
+
+  try {
+    await Promise.all(
+      recipients.map((email) =>
+        suppressEmail({
+          email,
+          reason: suppression.reason,
+          detail: suppression.detail,
+          source: `webhookId=${webhookId}`,
+        }),
+      ),
+    );
+  } catch (error) {
+    console.error("[ResendWebhook] Failed to write suppression record:", error);
+  }
 }

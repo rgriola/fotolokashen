@@ -4,6 +4,7 @@ import {
   isBlocked,
   classifyBounce,
   isProtectedAddress,
+  suppressionFromEvent,
 } from "@/lib/email-suppression";
 
 describe("normalizeEmail", () => {
@@ -92,5 +93,51 @@ describe("isProtectedAddress", () => {
 
   it("returns false for an unrelated address", () => {
     expect(isProtectedAddress("someone-unrelated@example.com")).toBe(false);
+  });
+});
+
+describe("suppressionFromEvent", () => {
+  it('email.bounced with a permanent bounce returns reason "hard_bounce"', () => {
+    expect(
+      suppressionFromEvent("email.bounced", {
+        bounce: { type: "Permanent", subType: "General" },
+      }),
+    ).toEqual({ reason: "hard_bounce", detail: "General" });
+  });
+
+  it("email.bounced with a transient bounce returns null", () => {
+    expect(
+      suppressionFromEvent("email.bounced", {
+        bounce: { type: "Transient" },
+      }),
+    ).toBeNull();
+  });
+
+  it("email.bounced with no bounce object returns null", () => {
+    expect(suppressionFromEvent("email.bounced", {})).toBeNull();
+  });
+
+  it('email.complained returns reason "complaint"', () => {
+    expect(suppressionFromEvent("email.complained", {})).toEqual({
+      reason: "complaint",
+    });
+  });
+
+  it('email.suppressed returns reason "provider_suppressed"', () => {
+    expect(suppressionFromEvent("email.suppressed", {})).toEqual({
+      reason: "provider_suppressed",
+    });
+  });
+
+  it("email.delivered returns null", () => {
+    expect(suppressionFromEvent("email.delivered", {})).toBeNull();
+  });
+
+  it("email.opened returns null", () => {
+    expect(suppressionFromEvent("email.opened", {})).toBeNull();
+  });
+
+  it("email.delivery_delayed returns null", () => {
+    expect(suppressionFromEvent("email.delivery_delayed", {})).toBeNull();
   });
 });
