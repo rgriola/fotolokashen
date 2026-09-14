@@ -3,7 +3,18 @@ import { Prisma } from "@prisma/client";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-const { verifyMock } = vi.hoisted(() => ({ verifyMock: vi.fn() }));
+const { verifyMock, afterCallbacks } = vi.hoisted(() => ({
+  verifyMock: vi.fn(),
+  afterCallbacks: [] as Promise<unknown>[],
+}));
+
+// Capture after() callbacks so the post-response work can be awaited in tests.
+vi.mock("next/server", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/server")>()),
+  after: (callback: () => unknown) => {
+    afterCallbacks.push(Promise.resolve(callback()));
+  },
+}));
 
 vi.mock("resend", () => ({
   Resend: class {
@@ -43,6 +54,7 @@ vi.mock("@/lib/prisma", () => {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
     },
     emailLog: {
       findFirst: vi.fn(),
@@ -86,12 +98,23 @@ function mockVerifiedEvent(type = "email.delivered") {
   });
 }
 
+/** Awaits the work the handler deferred until after the response. */
+async function flushAfter() {
+  await Promise.all(afterCallbacks.splice(0));
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
+  afterCallbacks.length = 0;
   mockVerifiedEvent();
-  vi.mocked(prisma.emailWebhookEvent.findUnique).mockResolvedValue(null as never);
-  vi.mocked(prisma.emailWebhookEvent.findFirst).mockResolvedValue(null as never);
+  vi.mocked(prisma.emailWebhookEvent.findUnique).mockResolvedValue(
+    null as never,
+  );
+  vi.mocked(prisma.emailWebhookEvent.findFirst).mockResolvedValue(
+    null as never,
+  );
   vi.mocked(prisma.emailWebhookEvent.create).mockResolvedValue({} as never);
+  vi.mocked(prisma.emailWebhookEvent.update).mockResolvedValue({} as never);
   vi.mocked(prisma.emailLog.findFirst).mockResolvedValue(null as never);
   vi.mocked(prisma.emailLog.create).mockResolvedValue({} as never);
   vi.mocked(prisma.emailLog.update).mockResolvedValue({} as never);
@@ -153,6 +176,7 @@ describe("Resend webhook — EmailLog correlation", () => {
     } as never);
 
     const res = await POST(makeRequest());
+    await flushAfter();
 
     expect(prisma.emailLog.findFirst).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -162,21 +186,22 @@ describe("Resend webhook — EmailLog correlation", () => {
     expect(prisma.emailLog.update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 42 } }),
     );
-    await expect(res.json()).resolves.toMatchObject({ updated: true });
+    await expect(res.json()).resolves.toMatchObject({ accepted: true });
   });
 
   it("stores providerEmailId when creating a log for an unknown message", async () => {
     const res = await POST(makeRequest());
+    await flushAfter();
 
     expect(prisma.emailLog.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ providerEmailId: PROVIDER_EMAIL_ID }),
       }),
     );
-    await expect(res.json()).resolves.toMatchObject({ created: true });
+    await expect(res.json()).resolves.toMatchObject({ accepted: true });
   });
 
-  it("records the processed delivery so a retry is deduped", async () => {
+  it("claims the delivery before acknowledging so a retry is deduped", async () => {
     await POST(makeRequest());
 
     expect(prisma.emailWebhookEvent.create).toHaveBeenCalledWith({
@@ -188,7 +213,7 @@ describe("Resend webhook — EmailLog correlation", () => {
     });
   });
 
-  it("still returns 200 when a concurrent retry already recorded the delivery", async () => {
+  it("treats a concurrent claim as a duplicate and does no further work", async () => {
     vi.mocked(prisma.emailWebhookEvent.create).mockRejectedValue(
       new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
         code: "P2002",
@@ -197,7 +222,37 @@ describe("Resend webhook — EmailLog correlation", () => {
     );
 
     const res = await POST(makeRequest());
+    await flushAfter();
 
     expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({ duplicate: true });
+    expect(prisma.emailLog.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("Resend webhook — acknowledge before processing", () => {
+  it("returns 200 even when post-response processing throws", async () => {
+    vi.mocked(prisma.emailLog.create).mockRejectedValue(
+      new Error("database unavailable") as never,
+    );
+
+    const res = await POST(makeRequest());
+    await flushAfter();
+
+    expect(res.status).toBe(200);
+  });
+
+  it("persists the failure against the claimed delivery", async () => {
+    vi.mocked(prisma.emailLog.create).mockRejectedValue(
+      new Error("database unavailable") as never,
+    );
+
+    await POST(makeRequest());
+    await flushAfter();
+
+    expect(prisma.emailWebhookEvent.update).toHaveBeenCalledWith({
+      where: { webhookEventId: WEBHOOK_ID },
+      data: { processingError: "database unavailable" },
+    });
   });
 });

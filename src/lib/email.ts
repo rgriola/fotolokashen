@@ -148,7 +148,10 @@ export async function sendEmail(
   const normalizedTo = normalizeEmail(to);
 
   const suppression = await getSuppression(normalizedTo);
-  if (suppression && isBlocked(category, suppression.reason as SuppressionReason)) {
+  if (
+    suppression &&
+    isBlocked(category, suppression.reason as SuppressionReason)
+  ) {
     console.warn(
       `[Email] Suppressed send — to: ${to}, category: ${category}, reason: ${suppression.reason}`,
     );

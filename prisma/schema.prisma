@@ -528,6 +528,10 @@ model EmailWebhookEvent {
   providerEmailId String // Resend `email_id` the event refers to
   eventType       String // e.g. email.delivered, email.bounced
 
+  // The handler acknowledges with 200 before processing, so the provider will
+  // not retry. This is the durable record of a post-acknowledgement failure.
+  processingError String? @db.Text
+
   receivedAt DateTime @default(now())
 
   @@index([providerEmailId, eventType])

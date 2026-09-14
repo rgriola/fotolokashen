@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { Resend, type WebhookEventPayload } from "resend";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
@@ -275,25 +275,52 @@ async function isDuplicateEvent(
   return Boolean(sameDelivery || sameLifecycleEvent);
 }
 
-// Records a processed delivery. A unique-constraint violation here means a
-// concurrent retry won the race, which is the outcome we wanted anyway.
+// Claims a delivery for processing. Returns false when another invocation
+// already claimed it, which is how concurrent retries are resolved.
 async function recordWebhookEvent(
   webhookEventId: string,
   providerEmailId: string,
   eventType: EmailWebhookEvent["type"],
-): Promise<void> {
+): Promise<boolean> {
   try {
     await prisma.emailWebhookEvent.create({
       data: { webhookEventId, providerEmailId, eventType },
     });
+    return true;
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      return;
+      return false;
     }
     console.error("[ResendWebhook] Failed to record webhook event:", error);
+    return false;
+  }
+}
+
+// The response has already been sent by the time processing fails, so the
+// failure is persisted rather than surfaced through the status code.
+async function recordProcessingFailure(
+  webhookEventId: string,
+  error: unknown,
+): Promise<void> {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error("[ResendWebhook] Event processing failed:", {
+    webhookEventId,
+    message,
+  });
+
+  try {
+    await prisma.emailWebhookEvent.update({
+      where: { webhookEventId },
+      data: { processingError: message.slice(0, 2000) },
+    });
+  } catch (updateError) {
+    console.error(
+      "[ResendWebhook] Failed to persist processing error:",
+      updateError,
+    );
   }
 }
 
@@ -603,7 +630,36 @@ export async function POST(request: NextRequest) {
     return apiResponse({ received: true, duplicate: true });
   }
 
+  // Claim the delivery before acknowledging, so a retry that arrives while this
+  // invocation is still working is rejected as a duplicate rather than racing it.
+  if (!(await recordWebhookEvent(id, messageId, event.type))) {
+    return apiResponse({ received: true, duplicate: true });
+  }
+
   const status = mapEventStatus(event.type);
+
+  // Acknowledge now and do the slow work (inbound forwarding, attachment
+  // persistence) after the response. Resend's delivery window is short, and a
+  // timeout there would retry the whole event.
+  after(async () => {
+    try {
+      await processEmailEvent(resend, event, id, messageId, status, eventData);
+    } catch (error) {
+      await recordProcessingFailure(id, error);
+    }
+  });
+
+  return apiResponse({ received: true, accepted: true, status });
+}
+
+async function processEmailEvent(
+  resend: Resend,
+  event: EmailWebhookEvent,
+  webhookId: string,
+  messageId: string,
+  status: string,
+  eventData: { to?: string[]; subject?: string },
+): Promise<void> {
   const inboundForward = await maybeForwardInboundEmail(resend, event);
   if (inboundForward.attempted && !inboundForward.forwarded) {
     console.error("[ResendWebhook] Inbound forward failed", {
@@ -616,7 +672,7 @@ export async function POST(request: NextRequest) {
     event,
     inboundForward,
   );
-  const metadataLine = getEventMetadataLine(event, id, [
+  const metadataLine = getEventMetadataLine(event, webhookId, [
     ...inboundForward.metadata,
     ...inboundPersistenceMetadata,
   ]);
@@ -640,31 +696,20 @@ export async function POST(request: NextRequest) {
         errorMessage: mergedMetadata,
       },
     });
-
-    await recordWebhookEvent(id, messageId, event.type);
-    await applySuppressionFromEvent(event, id, eventData.to);
-
-    return apiResponse({ received: true, updated: true, status });
+  } else {
+    await prisma.emailLog.create({
+      data: {
+        to: eventData.to?.[0] || "unknown",
+        subject: eventData.subject || `Resend webhook event: ${event.type}`,
+        status,
+        providerEmailId: messageId,
+        sentAt: parseEventDate(event.created_at),
+        errorMessage: metadataLine,
+      },
+    });
   }
 
-  const recipient = eventData.to?.[0] || "unknown";
-  const subject = eventData.subject || `Resend webhook event: ${event.type}`;
-
-  await prisma.emailLog.create({
-    data: {
-      to: recipient,
-      subject,
-      status,
-      providerEmailId: messageId,
-      sentAt: parseEventDate(event.created_at),
-      errorMessage: metadataLine,
-    },
-  });
-
-  await recordWebhookEvent(id, messageId, event.type);
-  await applySuppressionFromEvent(event, id, eventData.to);
-
-  return apiResponse({ received: true, created: true, status });
+  await applySuppressionFromEvent(event, webhookId, eventData.to);
 }
 
 // Writes suppression records from lifecycle events (permanent bounce, spam
@@ -680,7 +725,9 @@ async function applySuppressionFromEvent(
 
   const suppression = suppressionFromEvent(
     event.type,
-    event.data as { bounce?: { type?: string; subType?: string; message?: string } },
+    event.data as {
+      bounce?: { type?: string; subType?: string; message?: string };
+    },
   );
   if (!suppression) return;
 
