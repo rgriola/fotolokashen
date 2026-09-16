@@ -35,6 +35,7 @@ import {
   Search,
   Users,
   MailX,
+  Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -385,6 +386,14 @@ export default function AdminInboxPage() {
             >
               <MailX className="w-4 h-4 mr-2" />
               Suppressions
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/admin/email-preview")}
+              className="rounded-b-none"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Email Preview
             </Button>
           </div>
         </div>

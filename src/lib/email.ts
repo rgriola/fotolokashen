@@ -305,7 +305,7 @@ export async function sendVerificationEmail(
   return sendEmail(
     email,
     verificationSubject,
-    verificationEmailTemplate(username, verificationUrl),
+    verificationEmailTemplate(username, verificationUrl, email),
     {
       text: verificationText,
       previewText: "Verify your email address to activate your account.",

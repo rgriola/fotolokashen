@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Users, Inbox, MailX } from "lucide-react";
+import { Users, Inbox, MailX, Mail } from "lucide-react";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { UserManagementTable } from "@/components/admin/UserManagementTable";
 
@@ -50,6 +50,14 @@ export default function AdminUsersPage() {
             >
               <MailX className="w-4 h-4 mr-2" />
               Suppressions
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/admin/email-preview")}
+              className="rounded-b-none"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Email Preview
             </Button>
           </div>
         </div>

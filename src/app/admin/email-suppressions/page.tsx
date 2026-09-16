@@ -29,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Inbox, MailX, Users } from "lucide-react";
+import { Inbox, Mail, MailX, Users } from "lucide-react";
 import { toast } from "sonner";
 
 interface EmailSuppressionItem {
@@ -247,6 +247,14 @@ export default function AdminEmailSuppressionsPage() {
             >
               <MailX className="w-4 h-4 mr-2" />
               Suppressions
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/admin/email-preview")}
+              className="rounded-b-none"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Email Preview
             </Button>
           </div>
         </div>
