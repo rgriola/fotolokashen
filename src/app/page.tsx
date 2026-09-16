@@ -19,14 +19,14 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative overflow-hidden h-screen flex flex-col">
+      <section className="relative overflow-hidden flex flex-col">
         {/* Background Image Layer */}
         <div className="absolute inset-0 opacity-90">
           <Image
             src="/images/landing/hero/hero-background.jpg"
             alt="Hero background"
             fill
-            className="object-cover"
+            className="object-cover object-top"
             priority
             sizes="100vw"
           />
@@ -34,8 +34,8 @@ export default function Home() {
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-linear-to-br from-primary/80 via-social/80 to-primary/80" />
 
-        {/* Content - 50px below the header */}
-        <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 pt-[50px]">
+        {/* Content - 50px below the header, 25px above Features */}
+        <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 pt-[50px] pb-[25px]">
           <div className="mx-auto max-w-3xl text-center w-full">
             {/* Logo */}
             <div className="mb-6 flex justify-center">
