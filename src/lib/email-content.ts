@@ -98,12 +98,8 @@ font-family: Arial, Helvetica, sans-serif !important; color: ${COLORS.text};">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
                   <td align="left">
-                    <p style="margin: 0; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #f5f5f5; opacity: 0.85;">
-                      Production Knowledge 
-                    </p>
-                    <h1 style="margin: 10px 0 0; color: #f5f5f5; font-size: 28px; line-height: 1.2; font-weight: 700; letter-spacing: -0.4px;">
-                      ${BRAND_NAME}
-                    </h1>
+                    <!-- alt text is the fallback when images are blocked -->
+                    <img src="${APP_URL}/logo.png" alt="${BRAND_NAME} - Production Knowledge" width="300" height="79" style="display: block; border: 0; outline: none; text-decoration: none; height: auto; max-width: 216px; font-size: 20px; font-weight: 700; color: #f5f5f5;">
                   </td>
                 </tr>
               </table>
