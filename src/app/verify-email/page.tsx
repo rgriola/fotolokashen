@@ -180,7 +180,7 @@ function VerifyEmailPageInner() {
   }, [shouldRedirect, countdown, router, platform, autoLoginToken]);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-screen flex items-start justify-center overflow-hidden">
       {/* Background Image Layer */}
       <div className="absolute inset-0 opacity-90">
         <Image
@@ -198,8 +198,8 @@ function VerifyEmailPageInner() {
       <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
       <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-social/20 blur-3xl animate-pulse" />
 
-      {/* Content */}
-      <div className="relative z-10 max-w-md w-full mx-4">
+      {/* Content — 50px below the header */}
+      <div className="relative z-10 max-w-md w-full mx-4 pt-[50px]">
         {/* Logo */}
         <div className="mb-6 flex justify-center">
           <Image
