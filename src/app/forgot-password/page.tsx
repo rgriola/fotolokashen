@@ -1,47 +1,47 @@
-import Image from 'next/image';
-import { Suspense } from 'react';
-import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
+import Image from "next/image";
+import { Suspense } from "react";
+import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 
 export default function ForgotPasswordPage() {
-    return (
-        <div className="relative flex min-h-screen flex-col overflow-hidden">
-            {/* Background Image Layer */}
-            <div className="absolute inset-0 opacity-90">
-                <Image
-                    src="/images/landing/hero/forgot-hero-bg.jpg"
-                    alt="Forgot password background"
-                    fill
-                    className="object-cover"
-                    priority
-                    sizes="100vw"
-                />
-            </div>
-            {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-social/80 to-primary/80" />
+  return (
+    <div className="relative flex min-h-screen flex-col overflow-hidden">
+      {/* Background Image Layer */}
+      <div className="absolute inset-0 opacity-90">
+        <Image
+          src="/images/landing/hero/forgot-hero-bg.jpg"
+          alt="Forgot password background"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+      </div>
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-social/80 to-primary/80" />
 
-            {/* Animated Gradient Blur Effects */}
-            <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
-            <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-social/20 blur-3xl animate-pulse" />
+      {/* Animated Gradient Blur Effects */}
+      <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
+      <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-social/20 blur-3xl animate-pulse" />
 
-            {/* Content - 25px from header with consistent padding */}
-            <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 mt-[25px] flex-1 flex items-start md:items-center">
-                <div className="w-full">
-                    {/* Logo */}
-                    <div className="mb-6 flex justify-center">
-                        <Image
-                            src="/logo.png"
-                            alt="fotolokashen"
-                            width={1200}
-                            height={196}
-                            className="w-auto h-16 sm:h-20"
-                            priority
-                        />
-                    </div>
-                    <Suspense fallback={null}>
-                        <ForgotPasswordForm />
-                    </Suspense>
-                </div>
-            </div>
+      {/* Content - 25px from header with consistent padding */}
+      <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 mt-[25px] flex-1 flex items-start md:items-center">
+        <div className="w-full">
+          {/* Logo */}
+          <div className="mb-6 flex justify-center">
+            <Image
+              src="/logo.png"
+              alt="Fotolokashen"
+              width={1800}
+              height={332}
+              className="w-auto h-16 sm:h-20"
+              priority
+            />
+          </div>
+          <Suspense fallback={null}>
+            <ForgotPasswordForm />
+          </Suspense>
         </div>
-    );
+      </div>
+    </div>
+  );
 }

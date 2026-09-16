@@ -34,8 +34,8 @@ const COLORS = {
   border: "#dbe3ec",
   borderStrong: "#c5d1de",
 
-  primary: "#4F46E5",
-  primarySoft: "#1f2937",
+  primary: "#5038F5", // brand color
+  primarySoft: "#6253C2", // mono step down
 
   text: "#111111",
   muted: "#111111",

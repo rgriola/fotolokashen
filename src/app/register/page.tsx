@@ -1,5 +1,5 @@
-import Image from 'next/image';
-import { RegisterForm } from '@/components/auth/RegisterForm';
+import Image from "next/image";
+import { RegisterForm } from "@/components/auth/RegisterForm";
 
 interface RegisterPageProps {
   searchParams: Promise<{
@@ -8,7 +8,9 @@ interface RegisterPageProps {
   }>;
 }
 
-export default async function RegisterPage({ searchParams }: RegisterPageProps) {
+export default async function RegisterPage({
+  searchParams,
+}: RegisterPageProps) {
   const params = await searchParams;
   const { returnUrl, message } = params;
 
@@ -32,16 +34,16 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
       <div className="absolute -top-24 right-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl animate-pulse" />
       <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-social/20 blur-3xl animate-pulse" />
 
-      {/* Content — full height on mobile, centered on sm+ */}
-      <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 flex-1 flex items-center justify-center py-4 sm:py-8">
+      {/* Content — 50px below the header, horizontally centered */}
+      <div className="relative z-10 w-full px-4 md:px-6 lg:px-8 flex-1 flex items-start justify-center pt-[50px] pb-4 sm:pb-8">
         <div className="w-full max-w-md">
           {/* Logo — hidden on mobile, visible on sm+ */}
           <div className="hidden sm:flex mb-6 justify-center">
             <Image
               src="/logo.png"
-              alt="fotolokashen"
-              width={1200}
-              height={196}
+              alt="Fotolokashen"
+              width={1800}
+              height={332}
               className="w-auto h-16 sm:h-20"
               priority
             />

@@ -25,7 +25,11 @@ export function HeroCTA() {
 
   if (user) {
     return (
-      <Button size="lg" asChild className="bg-linear-to-r from-primary to-social hover:from-primary/90 hover:to-social text-white shadow-lg shadow-primary/50 max-w-50 w-full">
+      <Button
+        size="lg"
+        asChild
+        className="bg-linear-to-r from-primary to-social hover:from-primary/90 hover:to-social text-white shadow-lg shadow-primary/50 max-w-50 w-full"
+      >
         <Link href="/map">
           <MapPin className="mr-2 h-5 w-5" />
           Open Map
@@ -36,12 +40,18 @@ export function HeroCTA() {
 
   return (
     <>
-      <Button size="lg" asChild className="bg-linear-to-r from-primary to-social hover:from-primary/90 hover:to-social text-white shadow-lg shadow-primary/50 max-w-45 w-full">
+      <Button
+        size="lg"
+        asChild
+        className="bg-linear-to-r from-primary to-social hover:from-primary/90 hover:to-social text-white shadow-lg shadow-primary/50 max-w-45 w-full"
+      >
         <Link href="/register">Get Started</Link>
       </Button>
+      {/* 
       <Button size="lg" variant="outline" asChild className="bg-white/10 backdrop-blur-sm text-white border-white/30 hover:bg-white/20 max-w-45 w-full">
         <Link href="/login">Sign In</Link>
       </Button>
+      */}
     </>
   );
 }
@@ -62,11 +72,10 @@ export function BottomCTA() {
             Ready to Build Your Location Library?
           </h2>
           <p className="mb-8 text-lg text-muted-foreground">
-            Join your crew on fotolokashen. Capture your first location in minutes &mdash; your team&apos;s institutional knowledge starts here.
+            Join your crew on fotolokashen. Capture your first location in
+            minutes &mdash; your team&apos;s institutional knowledge starts
+            here.
           </p>
-          <Button size="lg" asChild>
-            <Link href="/register">Get Started Free</Link>
-          </Button>
         </div>
       </div>
     </section>

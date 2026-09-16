@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { MapPin, ExternalLink, Smartphone, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import Image from "next/image";
+import { MapPin, ExternalLink, Smartphone, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface SharedPhoto {
   id: number;
@@ -27,7 +27,10 @@ interface SharedLocationClientProps {
   appUrl: string;
 }
 
-export default function SharedLocationClient({ location, appUrl }: SharedLocationClientProps) {
+export default function SharedLocationClient({
+  location,
+  appUrl,
+}: SharedLocationClientProps) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [appOpenAttempted, setAppOpenAttempted] = useState(false);
 
@@ -55,8 +58,9 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
       <header className="bg-white dark:bg-card border-b border-border dark:border-border px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
+            {/* Square mark, not the wordmark — this header is bg-white and logo.png is a white wordmark */}
             <Image
-              src="/images/logo.png"
+              src="/AppIcon.png"
               alt="fotolokashen"
               width={28}
               height={28}
@@ -95,8 +99,8 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
                     onClick={() => setCurrentPhotoIndex(idx)}
                     className={`w-2 h-2 rounded-full transition-all ${
                       idx === currentPhotoIndex
-                        ? 'bg-white scale-110'
-                        : 'bg-white/50 hover:bg-white/75'
+                        ? "bg-white scale-110"
+                        : "bg-white/50 hover:bg-white/75"
                     }`}
                     aria-label={`Photo ${idx + 1}`}
                   />
@@ -107,7 +111,10 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
             {/* Type badge */}
             {location.type && (
               <div className="absolute top-3 left-3">
-                <Badge variant="secondary" className="bg-black/50 text-white border-0 text-xs">
+                <Badge
+                  variant="secondary"
+                  className="bg-black/50 text-white border-0 text-xs"
+                >
                   {location.type}
                 </Badge>
               </div>
@@ -119,7 +126,7 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
         {!hasPhotos && (
           <div className="relative rounded-xl overflow-hidden h-48 bg-muted">
             <Image
-              src={`https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=15&size=600x300&scale=2&markers=color:red%7C${location.lat},${location.lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}`}
+              src={`https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=15&size=600x300&scale=2&markers=color:red%7C${location.lat},${location.lng}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}`}
               alt={`Map of ${location.name}`}
               fill
               className="object-cover"
@@ -127,7 +134,10 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
             />
             {location.type && (
               <div className="absolute top-3 left-3">
-                <Badge variant="secondary" className="bg-black/50 text-white border-0 text-xs">
+                <Badge
+                  variant="secondary"
+                  className="bg-black/50 text-white border-0 text-xs"
+                >
                   {location.type}
                 </Badge>
               </div>
@@ -137,9 +147,7 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
 
         {/* Location info */}
         <div className="bg-white dark:bg-card rounded-xl p-4 shadow-sm border border-border dark:border-border space-y-3">
-          <h1 className="text-xl font-bold text-foreground">
-            {location.name}
-          </h1>
+          <h1 className="text-xl font-bold text-foreground">{location.name}</h1>
 
           {location.address && (
             <div className="flex items-start gap-2 text-muted-foreground">
@@ -164,7 +172,8 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
             View on fotolokashen
           </h2>
           <p className="text-sm text-muted-foreground">
-            Add production notes, annotate with crew details, and share with your team.
+            Add production notes, annotate with crew details, and share with
+            your team.
           </p>
 
           <div className="flex flex-col gap-2">
@@ -175,7 +184,7 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
 
             {appOpenAttempted && (
               <p className="text-xs text-center text-muted-foreground">
-                Don&apos;t have the app?{' '}
+                Don&apos;t have the app?{" "}
                 <a
                   href={`${appUrl}/login`}
                   className="text-primary dark:text-primary underline"
@@ -197,7 +206,7 @@ export default function SharedLocationClient({ location, appUrl }: SharedLocatio
         {/* Footer */}
         <div className="text-center text-xs text-muted-foreground dark:text-muted-foreground py-4">
           <p>Shared via fotolokashen</p>
-          <p className="mt-1">Production Location Intelligence</p>
+          <p className="mt-1">Production Knowledge</p>
         </div>
       </main>
     </div>

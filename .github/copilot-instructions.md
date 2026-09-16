@@ -106,14 +106,14 @@ You are assisting with the **fotolokashen** project, this platform allows profes
 
 Base heading and body styles are defined in `globals.css @layer base` — do not re-declare them per-component:
 
-| Element              | Style                               | Use for               |
-| -------------------- | ----------------------------------- | --------------------- |
-| `h1`                 | `text-2xl font-bold tracking-tight` | Page titles           |
-| `h2`                 | `text-xl font-semibold`             | Section headers       |
-| `h3`                 | `text-lg font-semibold`             | Sub-sections          |
-| `h4`                 | `text-base font-semibold`           | Labels / card headers |
-| `p`                  | `text-sm`                           | Body text             |
-| `small` / `.caption` | `text-xs text-muted-foreground`     | Metadata, timestamps  |
+| Element              | Style                                    | Use for               |
+| -------------------- | ---------------------------------------- | --------------------- |
+| `h1`                 | `text-2xl font-bold tracking-tight` 24px | Page titles           |
+| `h2`                 | `text-xl font-semibold` 20px             | Section headers       |
+| `h3`                 | `text-lg font-semibold` 18px             | Sub-sections          |
+| `h4`                 | `text-base font-semibold` 16px           | Labels / card headers |
+| `p`                  | `text-sm` 14px (base)                    | Body text             |
+| `small` / `.caption` | `text-xs text-muted-foreground`          | Metadata, timestamps  |
 
 **Weight rules:**
 

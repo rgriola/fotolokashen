@@ -9,7 +9,6 @@ import { LayoutWrapper } from "@/components/layout/LayoutWrapper";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Script from "next/script";
 
-
 const tagline = "Production Location Intelligence";
 
 const geistSans = Geist({
@@ -23,18 +22,30 @@ const geistMono = Geist_Mono({
 });
 
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: 'cover', // Support safe area insets
+  viewportFit: "cover", // Support safe area insets
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://fotolokashen.com'),
-  title: `fotolokashen | ${tagline}`,
-  description: "The location intelligence platform for production crews. Capture locations in the field, annotate with production notes, and share your crew's collective knowledge — searchable on any device.",
-  keywords: ["location scouting", "production planning", "media production", "film locations", "photography locations", "crew management", "location intelligence", "field production"],
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || "https://fotolokashen.com",
+  ),
+  title: `Fotolokashen | ${tagline}`,
+  description:
+    "The location intelligence platform for production crews. Capture locations in the field, annotate with production notes, and share your crew's collective knowledge — searchable on any device.",
+  keywords: [
+    "location scouting",
+    "production planning",
+    "media production",
+    "film locations",
+    "photography locations",
+    "crew management",
+    "location intelligence",
+    "field production",
+  ],
   authors: [{ name: "fotolokashen" }],
 
   // Open Graph (Facebook, LinkedIn, Discord, etc.)
@@ -43,8 +54,9 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://fotolokashen.com",
     siteName: "fotolokashen",
-    title: `fotolokashen | ${tagline}`,
-    description: "Production Location Intelligence. Capture, annotate, and share production locations — never re-learn the same location twice.",
+    title: `Fotolokashen | ${tagline}`,
+    description:
+      "Production Location Intelligence. Capture, annotate, and share production locations — never re-learn the same location twice.",
     images: [
       {
         url: "/og-image.png", // Static image in public folder
@@ -60,8 +72,9 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@fotolokashen", // Your Twitter handle if you have one
     creator: "@fotolokashen",
-    title: `fotolokashen | ${tagline}`,
-    description: "Production Location Intelligence. Capture, annotate, and share production locations — never re-learn the same location twice.",
+    title: `Fotolokashen | ${tagline}`,
+    description:
+      "Production Location Intelligence. Capture, annotate, and share production locations — never re-learn the same location twice.",
     images: ["/og-image.png"],
   },
 
@@ -104,11 +117,13 @@ export default function RootLayout({
           <Toaster position="top-center" />
         </Providers>
         <SpeedInsights />
-        {process.env.NODE_ENV !== 'production' && (
-          <Script src="https://tweakcn.com/live-preview.min.js" strategy="lazyOnload" />
+        {process.env.NODE_ENV !== "production" && (
+          <Script
+            src="https://tweakcn.com/live-preview.min.js"
+            strategy="lazyOnload"
+          />
         )}
       </body>
     </html>
   );
 }
-

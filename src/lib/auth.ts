@@ -1,11 +1,11 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import type { PublicUser } from '@/types/user';
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import type { PublicUser } from "@/types/user";
 
 const JWT_SECRET = process.env.JWT_SECRET!; // env.ts validates this exists at startup — no fallback
-const JWT_EXPIRY = '7d'; // 7 days
-const JWT_EXPIRY_REMEMBER_ME = '30d'; // 30 days
+const JWT_EXPIRY = "7d"; // 7 days
+const JWT_EXPIRY_REMEMBER_ME = "30d"; // 30 days
 const SALT_ROUNDS = 10;
 
 /**
@@ -14,7 +14,7 @@ const SALT_ROUNDS = 10;
  * @returns Promise<string> - Hashed password
  */
 export async function hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, SALT_ROUNDS);
+  return bcrypt.hash(password, SALT_ROUNDS);
 }
 
 /**
@@ -24,10 +24,10 @@ export async function hashPassword(password: string): Promise<string> {
  * @returns Promise<boolean> - True if passwords match
  */
 export async function comparePassword(
-    password: string,
-    hash: string
+  password: string,
+  hash: string,
 ): Promise<boolean> {
-    return bcrypt.compare(password, hash);
+  return bcrypt.compare(password, hash);
 }
 
 /**
@@ -37,22 +37,22 @@ export async function comparePassword(
  * @returns string - JWT token
  */
 export function generateToken(
-    user: PublicUser,
-    rememberMe: boolean = false
+  user: PublicUser,
+  rememberMe: boolean = false,
 ): string {
-    const payload = {
-        userId: user.id,
-        email: user.email,
-        username: user.username,
-        isAdmin: user.isAdmin,
-        role: user.role,
-        avatar: user.avatar,
-        bannerImage: user.bannerImage,
-    };
+  const payload = {
+    userId: user.id,
+    email: user.email,
+    username: user.username,
+    isAdmin: user.isAdmin,
+    role: user.role,
+    avatar: user.avatar,
+    bannerImage: user.bannerImage,
+  };
 
-    return jwt.sign(payload, JWT_SECRET, {
-        expiresIn: rememberMe ? JWT_EXPIRY_REMEMBER_ME : JWT_EXPIRY,
-    });
+  return jwt.sign(payload, JWT_SECRET, {
+    expiresIn: rememberMe ? JWT_EXPIRY_REMEMBER_ME : JWT_EXPIRY,
+  });
 }
 
 /**
@@ -60,15 +60,15 @@ export function generateToken(
  * Must stay in sync with the payload object in generateToken().
  */
 export interface JWTPayload {
-    userId: number;
-    email: string;
-    username: string;
-    isAdmin: boolean;
-    role: string;
-    avatar: string | null;
-    bannerImage: string | null;
-    iat?: number;
-    exp?: number;
+  userId: number;
+  email: string;
+  username: string;
+  isAdmin: boolean;
+  role: string;
+  avatar: string | null;
+  bannerImage: string | null;
+  iat?: number;
+  exp?: number;
 }
 
 /**
@@ -77,12 +77,12 @@ export interface JWTPayload {
  * @returns Decoded token payload or null if invalid
  */
 export function verifyToken(token: string): JWTPayload | null {
-    try {
-        return jwt.verify(token, JWT_SECRET) as JWTPayload;
-    } catch (error) {
-        console.error('Token verification failed:', error);
-        return null;
-    }
+  try {
+    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    return null;
+  }
 }
 
 /**
@@ -90,7 +90,7 @@ export function verifyToken(token: string): JWTPayload | null {
  * @returns string - Random token
  */
 export function generateVerificationToken(): string {
-    return crypto.randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString("hex");
 }
 
 /**
@@ -98,7 +98,7 @@ export function generateVerificationToken(): string {
  * @returns string - Random token
  */
 export function generatePasswordResetToken(): string {
-    return crypto.randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString("hex");
 }
 
 /**
@@ -107,7 +107,7 @@ export function generatePasswordResetToken(): string {
  * On verification, hash the incoming token and compare to the stored hash.
  */
 export function hashToken(token: string): string {
-    return crypto.createHash('sha256').update(token).digest('hex');
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
 
 /**
@@ -115,7 +115,7 @@ export function hashToken(token: string): string {
  * @returns Date - Expiry date
  */
 export function getResetTokenExpiry(): Date {
-    const expiry = new Date();
-    expiry.setHours(expiry.getHours() + 1);
-    return expiry;
+  const expiry = new Date();
+  expiry.setHours(expiry.getHours() + 1);
+  return expiry;
 }
