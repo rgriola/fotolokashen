@@ -4,8 +4,13 @@ import crypto from "crypto";
 import type { PublicUser } from "@/types/user";
 
 const JWT_SECRET = process.env.JWT_SECRET!; // env.ts validates this exists at startup — no fallback
-const JWT_EXPIRY = "7d"; // 7 days
-const JWT_EXPIRY_REMEMBER_ME = "30d"; // 30 days
+
+/**
+ * Access-token lifetime. Session rows and OAuth `expires_in` must be derived from
+ * these so a token can never outlive the session row that validates it.
+ */
+export const JWT_EXPIRY_SECONDS = 7 * 24 * 60 * 60; // 7 days
+export const JWT_EXPIRY_REMEMBER_ME_SECONDS = 30 * 24 * 60 * 60; // 30 days
 const SALT_ROUNDS = 10;
 
 /**
@@ -51,7 +56,7 @@ export function generateToken(
   };
 
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: rememberMe ? JWT_EXPIRY_REMEMBER_ME : JWT_EXPIRY,
+    expiresIn: rememberMe ? JWT_EXPIRY_REMEMBER_ME_SECONDS : JWT_EXPIRY_SECONDS,
   });
 }
 

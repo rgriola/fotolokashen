@@ -1,17 +1,22 @@
-import { NextRequest } from 'next/server';
-import { requireAuth, apiError, apiResponse } from '@/lib/api-middleware';
-import prisma from '@/lib/prisma';
+import { NextRequest } from "next/server";
+import {
+  requireAuth,
+  apiError,
+  apiResponse,
+  authErrorResponse,
+} from "@/lib/api-middleware";
+import prisma from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
+  { params }: { params: Promise<{ username: string }> },
 ) {
   try {
     // Authenticate user
     const authResult = await requireAuth(request);
-    
+
     if (!authResult.authorized || !authResult.user) {
-      return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
+      return authErrorResponse(authResult);
     }
 
     const currentUser = authResult.user;
@@ -25,14 +30,14 @@ export async function GET(
       where: {
         username: {
           equals: normalizedUsername,
-          mode: 'insensitive'
-        }
+          mode: "insensitive",
+        },
       },
-      select: { id: true, username: true }
+      select: { id: true, username: true },
     });
 
     if (!targetUser) {
-      return apiError('User not found', 404, 'USER_NOT_FOUND');
+      return apiError("User not found", 404, "USER_NOT_FOUND");
     }
 
     // Check both directions of follow relationship
@@ -41,28 +46,27 @@ export async function GET(
         where: {
           followerId_followingId: {
             followerId: currentUser.id,
-            followingId: targetUser.id
-          }
-        }
+            followingId: targetUser.id,
+          },
+        },
       }),
       prisma.userFollow.findUnique({
         where: {
           followerId_followingId: {
             followerId: targetUser.id,
-            followingId: currentUser.id
-          }
-        }
-      })
+            followingId: currentUser.id,
+          },
+        },
+      }),
     ]);
 
     return apiResponse({
       isFollowing: !!isFollowing,
       isFollowedBy: !!isFollowedBy,
-      followedAt: isFollowing?.createdAt.toISOString() || null
+      followedAt: isFollowing?.createdAt.toISOString() || null,
     });
-
   } catch (error) {
-    console.error('Error checking follow status:', error);
-    return apiError('Failed to check follow status', 500);
+    console.error("Error checking follow status:", error);
+    return apiError("Failed to check follow status", 500);
   }
 }

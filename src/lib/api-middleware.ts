@@ -89,6 +89,23 @@ export function apiError(message: string, status: number = 500, code?: string) {
 }
 
 /**
+ * Build the error response for a failed auth check, preserving the distinction
+ * between "rejected" (401, client should re-authenticate) and "could not verify"
+ * (503, client should retry with the same credentials).
+ */
+export function authErrorResponse(result: {
+  error?: string;
+  status?: number;
+}): NextResponse {
+  const status = result.status ?? 401;
+  return apiError(
+    result.error || "Authentication required",
+    status,
+    status === 503 ? "SERVICE_UNAVAILABLE" : "UNAUTHORIZED",
+  );
+}
+
+/**
  * Extract JWT token from request cookies or Authorization header
  */
 function extractToken(request: NextRequest): string | null {
@@ -104,14 +121,25 @@ function extractToken(request: NextRequest): string | null {
 }
 
 /**
- * Middleware to require authentication for API routes
- * Verifies JWT token and attaches user data to request
+ * Result of an authentication check.
  */
-export async function requireAuth(request: NextRequest): Promise<{
+export type AuthResult = {
   authorized: boolean;
   user?: PublicUser;
   error?: string;
-}> {
+  /**
+   * HTTP status to return when `authorized` is false. 503 means the credentials
+   * could not be verified (infrastructure failure) — not that they were rejected.
+   * Clients must retry rather than discard the session. Defaults to 401.
+   */
+  status?: number;
+};
+
+/**
+ * Middleware to require authentication for API routes
+ * Verifies JWT token and attaches user data to request
+ */
+export async function requireAuth(request: NextRequest): Promise<AuthResult> {
   const token = extractToken(request);
 
   if (!token) {
@@ -148,7 +176,8 @@ export async function requireAuth(request: NextRequest): Promise<{
     console.error("[requireAuth] Session validation error:", error);
     return {
       authorized: false,
-      error: "Session validation failed",
+      error: "Could not verify session",
+      status: 503,
     };
   }
 
@@ -181,7 +210,8 @@ export async function requireAuth(request: NextRequest): Promise<{
     console.error("Error fetching user in requireAuth:", error);
     return {
       authorized: false,
-      error: "Authentication failed",
+      error: "Could not verify user",
+      status: 503,
     };
   }
 }
@@ -200,11 +230,7 @@ export async function getAuthUser(
 /**
  * Require admin access
  */
-export async function requireAdmin(request: NextRequest): Promise<{
-  authorized: boolean;
-  user?: PublicUser;
-  error?: string;
-}> {
+export async function requireAdmin(request: NextRequest): Promise<AuthResult> {
   const authResult = await requireAuth(request);
 
   if (!authResult.authorized) {
@@ -284,11 +310,7 @@ export function withAuth<C extends RouteContext = RouteContext>(
     try {
       const authResult = await requireAuth(request);
       if (!authResult.authorized || !authResult.user) {
-        return apiError(
-          authResult.error || "Authentication required",
-          401,
-          "UNAUTHORIZED",
-        );
+        return authErrorResponse(authResult);
       }
       return await handler(request, authResult.user, context);
     } catch (error) {
@@ -357,6 +379,9 @@ export function withAdmin(
     try {
       const authResult = await requireAdmin(request);
       if (!authResult.authorized || !authResult.user) {
+        if (authResult.status === 503) {
+          return authErrorResponse(authResult);
+        }
         return apiError(
           authResult.error || "Admin access required",
           403,

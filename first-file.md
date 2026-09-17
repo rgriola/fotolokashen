@@ -233,3 +233,117 @@ Test with Resend's sandbox addresses — delivered@resend.dev, bounced@resend.de
 
 In two weeks, when you touch DNS again
 Move both DMARC records from p=none to p=quarantine once the rua reports look clean, and drop include:amazonses.com from the root SPF since nothing sends from the root anymore.
+
+> > > > >
+
+Sept 17 2026
+
+While a user on iOS was uploading a photo to create a location the vercel server kicked this error. The photo was uploaded and the location was created, the user did not see any issues.
+
+Vercel Error Log
+[Photo Upload] Scanning photo_1789670394.jpg for viruses...
+🔍 Initializing ClamAV scanner...
+❌ Failed to initialize ClamAV scanner: Error: connect ECONNREFUSED 127.0.0.1:3310
+at <unknown> (Error: connect ECONNREFUSED 127.0.0.1:3310) {
+errno: -111,
+code: "ECONNREFUSED",
+syscall: "connect",
+address: "127.0.0.1",
+port: 3310
+}
+⚠️ Virus scanning will be DISABLED for this session
+To fix: Ensure ClamAV daemon is running on localhost : 3310
+⚠️ [Virus Scan] ALLOWED photo_1789670394.jpg - Scanner unavailable (fail-open mode)
+[Photo Upload] ✅ File clean: photo_1789670394.jpg
+[Photo Upload] Uploading to ImageKit: /production/users/2/photos/photo-1789670394969-photo_1789670394.jpg
+[Photo Upload] ✅ Upload successful: /production/users/2/photos/photo-1789670394969-photo_1789670394_7iu3QYpXj.jpg
+
+> > >
+
+People Search Issue::
+
+On Web App > Searched "Rod" > 3 accounts were returned but this error was in the logs.
+
+Username search error: Error [PrismaClientKnownRequestError]:
+Invalid `prisma.$queryRaw()` invocation:
+
+Raw query failed. Code: `42883`. Message: `ERROR: function similarity(character varying, text) does not exist
+HINT: No function matches the given name and argument types. You might need to add explicit type casts.`
+at async r (.next/server/chunks/[root-of-the-server]**916d91b1.\_.js:1:1564)
+at async i (.next/server/chunks/[root-of-the-server]**916d91b1._.js:67:1491)
+at async (.next/server/chunks/[root-of-the-server]\_\_916d91b1._.js:67:2128)
+at async (.next/server/chunks/_6850a570._.js:1:75523) {
+code: 'P2010',
+meta: [Object],
+clientVersion: '6.19.3'
+}
+
+> > > > > Another user issue:
+> > > > > on iOS A user was trying to search for a user, the app logged them out. They also reported being logged out unexpectedly after about 5 mins. I had the same experience being unexpectedly logged out after a short period. This problem did not seem to happenm on the web app. Can you trace this issue. I do have logs if that will help.
+
+> > >
+
+Prisma Issue:
+
+Ok lets update the Databaseb_Deployment_Guide & Build_Commands to be correct.
+
+I did know about #1
+
+#2 I believe Vercel only builds Main/Origin the default github branch.
+
+Searched for a user on iOS, then the app logged me out again. the Server showed a 401 at the time. Also I logged out of both the web + iOS then trying to log back into iOS the app showed "Token Exchange Failed" error.
+
+Sep 17 16:50:26.23
+GET
+200
+fotolokashen.com
+/register
+Sep 17 16:50:26.23
+GET
+200
+fotolokashen.com
+/forgot-password
+Sep 17 16:50:26.23
+GET
+401
+fotolokashen.com
+/api/auth/me
+Sep 17 16:50:26.10
+GET
+
+---
+
+fotolokashen.com
+/logo.png
+Sep 17 16:50:26.04
+GET
+
+---
+
+fotolokashen.com
+/images/landing/hero/login-hero-bg.jpg
+Sep 17 16:50:25.86
+GET
+200
+fotolokashen.com
+/login
+Sep 17 16:49:52.51
+GET
+401
+fotolokashen.com
+/api/v1/search/users
+Sep 17 16:49:44.67
+GET
+200
+fotolokashen.com
+/api/v1/users/rgriola/followers
+Sep 17 16:49:34.84
+GET
+200
+fotolokashen.com
+/api/locations/135
+Sep 17 16:49:34.78
+GET
+200
+fotolokashen.com
+/api/locations/138/photos

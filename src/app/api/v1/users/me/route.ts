@@ -1,22 +1,26 @@
 /**
  * Current User API
- * 
+ *
  * GET /api/v1/users/me - Get current user profile
  * PATCH /api/v1/users/me - Update current user profile
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { requireAuth, apiError } from '@/lib/api-middleware';
-import { sanitizeUserInput } from '@/lib/sanitize';
-import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { requireAuth, apiError, authErrorResponse } from "@/lib/api-middleware";
+import { sanitizeUserInput } from "@/lib/sanitize";
+import {
+  rateLimit,
+  RateLimitPresets,
+  addRateLimitHeaders,
+} from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
   try {
     const authResult = await requireAuth(request);
 
     if (!authResult.authorized || !authResult.user) {
-      return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
+      return authErrorResponse(authResult);
     }
 
     const userId = authResult.user.id;
@@ -64,18 +68,15 @@ export async function GET(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({ user });
   } catch (error) {
-    console.error('Get current user error:', error);
+    console.error("Get current user error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
@@ -85,13 +86,13 @@ export async function PATCH(request: NextRequest) {
     // Rate limit: 100 requests per 15 minutes per IP
     const rateLimitResult = await rateLimit(request, {
       ...RateLimitPresets.LENIENT,
-      keyPrefix: 'users-me-patch',
+      keyPrefix: "users-me-patch",
     });
     if (!rateLimitResult.allowed) {
       const response = apiError(
         `Too many requests. Please try again in ${Math.ceil(rateLimitResult.retryAfter / 1000)} seconds.`,
         429,
-        'RATE_LIMIT_EXCEEDED'
+        "RATE_LIMIT_EXCEEDED",
       );
       addRateLimitHeaders(response.headers, rateLimitResult);
       return response;
@@ -100,7 +101,7 @@ export async function PATCH(request: NextRequest) {
     const authResult = await requireAuth(request);
 
     if (!authResult.authorized || !authResult.user) {
-      return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
+      return authErrorResponse(authResult);
     }
 
     const userId = authResult.user.id;
@@ -109,33 +110,45 @@ export async function PATCH(request: NextRequest) {
 
     // Define allowed fields for update
     const allowedFields = [
-      'firstName',
-      'lastName',
-      'bio',
-      'city',
-      'state',
-      'country',
-      'dateOfBirth',
-      'language',
-      'timezone',
-      'emailNotifications',
+      "firstName",
+      "lastName",
+      "bio",
+      "city",
+      "state",
+      "country",
+      "dateOfBirth",
+      "language",
+      "timezone",
+      "emailNotifications",
       // Privacy settings
-      'profileVisibility',
-      'showInSearch',
-      'showLocation',
-      'showSavedLocations',
-      'allowFollowRequests',
+      "profileVisibility",
+      "showInSearch",
+      "showLocation",
+      "showSavedLocations",
+      "allowFollowRequests",
     ];
 
     // Filter out any fields not in allowedFields
     const updateData: Record<string, unknown> = {};
-    const textFields = ['firstName', 'lastName', 'bio', 'city', 'state', 'country', 'language', 'timezone'];
+    const textFields = [
+      "firstName",
+      "lastName",
+      "bio",
+      "city",
+      "state",
+      "country",
+      "language",
+      "timezone",
+    ];
     for (const field of allowedFields) {
       if (field in body) {
-        if (field === 'dateOfBirth') {
+        if (field === "dateOfBirth") {
           // Parse ISO date string to Date object (or null)
           updateData[field] = body[field] ? new Date(body[field]) : null;
-        } else if (textFields.includes(field) && typeof body[field] === 'string') {
+        } else if (
+          textFields.includes(field) &&
+          typeof body[field] === "string"
+        ) {
           updateData[field] = sanitizeUserInput(body[field]);
         } else {
           updateData[field] = body[field];
@@ -144,19 +157,27 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Validate privacy settings values
-    if (updateData.profileVisibility &&
-      !['public', 'followers', 'private'].includes(updateData.profileVisibility as string)) {
+    if (
+      updateData.profileVisibility &&
+      !["public", "followers", "private"].includes(
+        updateData.profileVisibility as string,
+      )
+    ) {
       return NextResponse.json(
-        { error: 'Invalid profileVisibility value' },
-        { status: 400 }
+        { error: "Invalid profileVisibility value" },
+        { status: 400 },
       );
     }
 
-    if (updateData.showSavedLocations &&
-      !['public', 'followers', 'private'].includes(updateData.showSavedLocations as string)) {
+    if (
+      updateData.showSavedLocations &&
+      !["public", "followers", "private"].includes(
+        updateData.showSavedLocations as string,
+      )
+    ) {
       return NextResponse.json(
-        { error: 'Invalid showSavedLocations value' },
-        { status: 400 }
+        { error: "Invalid showSavedLocations value" },
+        { status: 400 },
       );
     }
 
@@ -172,10 +193,13 @@ export async function PATCH(request: NextRequest) {
       timezone: 60,
     };
     for (const [field, max] of Object.entries(fieldMaxLengths)) {
-      if (typeof updateData[field] === 'string' && (updateData[field] as string).length > max) {
+      if (
+        typeof updateData[field] === "string" &&
+        (updateData[field] as string).length > max
+      ) {
         return NextResponse.json(
           { error: `${field} must be ${max} characters or less` },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
@@ -211,10 +235,10 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ user: updatedUser });
   } catch (error) {
-    console.error('Update current user error:', error);
+    console.error("Update current user error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }

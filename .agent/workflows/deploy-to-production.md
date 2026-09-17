@@ -124,7 +124,7 @@ Neon automatically creates a `main` branch for production. You can create additi
 2. Select **Prisma** connection string format
 3. Copy the connection string - it looks like:
    ```
-   postgresql://username:password@ep-cool-star-a4dyxqi4.us-east-2.aws.neon.tech/neondb?sslmode=require
+   postgresql://usernamxxxxxxxxxxxxxxxus-east-2.aws.neon.tech/neondb?sslmode=require
    ```
 4. **IMPORTANT**: Save this securely - it contains credentials!
 

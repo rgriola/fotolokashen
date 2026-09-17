@@ -195,11 +195,48 @@ Each phase should be a separate PR/commit set. Do not start Phase 2 until Phase 
 3. Add unit test `src/lib/storage/__tests__/adapter.test.ts`: verify the adapter implements the full `StorageAdapter` interface shape and that `getPhotoUrl`/`getPhotoVariants` output is byte-identical to the pre-refactor `imagekitVariants.test.ts` expectations (i.e., re-run that existing test file unmodified against the new module path).
 4. No Prisma schema changes in this phase. No behavior change — this is a pure refactor; the existing `mobileApiV1Contract.test.ts` must still pass unmodified (iOS contract unaffected).
 
-### Phase 4 — Photo storage: fix direct-upload virus-scan gap (independent, can run anytime after Phase 3)
+Updated Sept 17 by Claude Sonnet 5.
 
-1. In `/api/locations/[id]/photos/confirm/route.ts`, after confirming the ImageKit upload, enqueue (or synchronously run, if latency budget allows) a virus scan of the uploaded file by fetching it back from the CDN URL and running `scanFile`.
-2. If infected: delete from storage via `deleteFromImageKit`/adapter, delete/mark the `Photo` row, write a `SecurityLog` entry with `eventType: 'PHOTO_UPLOAD_BLOCKED'` (mirrors existing pattern in `/api/photos/upload/route.ts`).
-3. Add unit test: mock `scanFile` to return `isInfected: true`, assert the confirm route rejects and cleans up (adapter `delete` called, `SecurityLog.create` called).
+### Phase 4 — Photo storage: production virus scanning via GCP + quarantine gating (independent, can run anytime after Phase 3)
+
+**Context**: `CLAMAV_HOST`/`CLAMAV_PORT` are unset in Vercel production, so `getClamScan()` always fails to connect (`ECONNREFUSED 127.0.0.1:3310`) and `scanFile()` fails **open** — every upload through `/api/photos/upload` is currently unscanned in production, silently. Separately, `/api/locations/[id]/photos/[photoId]/confirm` never calls `scanFile` at all (client uploads directly to ImageKit with a signed URL). This phase fixes both with one mechanism: a real remote scanner + a quarantine gate so nothing is servable to _other_ users until verified clean.
+
+#### 4a. Stand up the GCP scan service
+
+1. Build a small container: `clamd` (ClamAV daemon) + a thin HTTP wrapper (Node or Python) exposing `POST /scan` (accepts file bytes, returns `{ infected: boolean, viruses: string[] }`).
+2. Deploy to **Cloud Run**, region closest to the Vercel deployment region (minimize cross-cloud latency). Set `min-instances=1` so `clamd` + virus DB stay warm — avoids multi-second cold starts on the upload path.
+3. Add a **Cloud Scheduler + Cloud Run Job** running `freshclam` on a schedule (e.g. every 6h) to keep virus signatures current; write the updated DB to a mounted volume or rebuild/redeploy the revision.
+4. Secure the endpoint: require a shared-secret header (new env var, e.g. `GCP_SCAN_SERVICE_SECRET`) checked by the wrapper, or Cloud Run IAM + signed ID token for stronger auth. Do not leave it publicly callable without auth.
+
+#### 4b. Schema: add scan status gating
+
+1. Add to `prisma/schema.prisma` `Photo` model: `scanStatus String @default("pending")` (`pending | clean | infected`) + index. Migration via `db:push` (dev) then `db:migrate` (prod — additive, non-destructive column, so it doesn't require the destructive-change confirmation checkpoint).
+2. Backfill existing rows to `scanStatus = "clean"` in the same migration (existing photos predate this system and aren't being re-scanned retroactively).
+
+#### 4c. Wire `/api/photos/upload` to the real scanner
+
+1. Replace the local-`clamscan` logic in `src/lib/virus-scan.ts` with an HTTP call to the GCP scan service (`fetch(GCP_SCAN_SERVICE_URL + '/scan', { body: buffer, headers: { 'x-scan-secret': ... } })`), keeping the same `scanFile()` return shape so callers don't change.
+2. Keep `VIRUS_SCAN_FAIL_CLOSED` behavior, but **default it to `true` in production** now that a real scanner exists — a scan-service outage should block uploads, not silently allow them.
+3. This route already scans before the ImageKit upload, so on success set `Photo.scanStatus = 'clean'` at creation time (no quarantine window needed for this path).
+
+#### 4d. Wire the direct-upload `/confirm` route to async scan + quarantine
+
+1. In `/api/locations/[id]/photos/[photoId]/confirm/route.ts`, after confirming the ImageKit upload, create/update the `Photo` row with `scanStatus = 'pending'` and kick off an async call to the GCP scan service (fetch the file back from the CDN URL, POST bytes to `/scan`).
+2. On `clean`: set `scanStatus = 'clean'`.
+3. On `infected`: delete from storage via `deleteFromImageKit`/adapter, delete the `Photo` row, write a `SecurityLog` entry with `eventType: 'PHOTO_UPLOAD_BLOCKED'` (mirrors the existing pattern in `/api/photos/upload/route.ts`).
+4. On scan-service error/timeout: leave `scanStatus = 'pending'` and let a retry job (or the next scheduled sweep) pick it up rather than silently marking clean.
+
+#### 4e. Gate every photo read path on scan status
+
+1. Update the locations feed, public profile, map marker, and `/api/v1/*` mobile endpoints so photo queries filter `WHERE scanStatus = 'clean' OR (scanStatus = 'pending' AND userId = <requesting user>)`. Other users never see a pending/infected photo; the uploader still sees their own immediately (no UX regression for the uploader).
+2. Audit call sites via `grep -r "photos" src/app/api/v1/` and the locations/profile query builders to make sure no path bypasses this filter.
+
+#### 4f. Tests
+
+1. Unit test the scan-service HTTP client (mock `fetch`): clean, infected, and network-error responses each produce the correct `scanFile()` return shape.
+2. Confirm-route test: mock scan result `infected: true`, assert cleanup (adapter `delete` called, `Photo` row removed, `SecurityLog.create` called).
+3. Read-path test: a `pending` photo is excluded from another user's feed/profile query but included in the owner's own query.
+4. Migration check: existing photos backfilled to `scanStatus = 'clean'` don't disappear from any feed after the migration runs.
 
 ### Phase 5 — Photo storage: vendor migration (separate, gated decision — do not start without explicit go-ahead)
 
@@ -209,24 +246,26 @@ Only after: (a) ImageKit pricing conversation resolved, (b) Phase 3 adapter ship
 
 ## 6. Risks & Rollback
 
-| Risk                                                                                           | Mitigation                                                                                                                                                                                                                 |
-| ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Admin has hand-edited email templates in the DB that aren't reflected in `email-templates.ts`  | Export `email_templates` table (`isDefault = false` rows) before Phase 2 destructive migration; manually review with user before dropping tables                                                                           |
-| Removing Handlebars breaks something else that imports it                                      | Grep for `handlebars` usage outside `email-template-service.ts` before removing the dependency                                                                                                                             |
-| Dropping `EmailTemplate`/`EmailTemplateVersion` is irreversible once run against production DB | Treat `db:push`/`migrate` in Phase 2 step 4 as a destructive-action checkpoint — **stop and ask the user for explicit confirmation before running against production**, per this agent's standing operational-safety rules |
-| iOS silently breaks if photo API response field names change during a future storage migration | Never rename `imagekitFileId`/`imagekitFilePath` in API responses without a documented `MOBILE_API_SCHEMAS.md` version bump and coordinated iOS release                                                                    |
-| Client-signed direct photo upload path bypasses virus scanning today                           | Phase 4 closes this gap independent of any vendor decision — treat as its own small security fix, not blocked on Part B's larger vendor question                                                                           |
+| Risk                                                                                                                                                   | Mitigation                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Admin has hand-edited email templates in the DB that aren't reflected in `email-templates.ts`                                                          | Export `email_templates` table (`isDefault = false` rows) before Phase 2 destructive migration; manually review with user before dropping tables                                                                               |
+| Removing Handlebars breaks something else that imports it                                                                                              | Grep for `handlebars` usage outside `email-template-service.ts` before removing the dependency                                                                                                                                 |
+| Dropping `EmailTemplate`/`EmailTemplateVersion` is irreversible once run against production DB                                                         | Treat `db:push`/`migrate` in Phase 2 step 4 as a destructive-action checkpoint — **stop and ask the user for explicit confirmation before running against production**, per this agent's standing operational-safety rules     |
+| iOS silently breaks if photo API response field names change during a future storage migration                                                         | Never rename `imagekitFileId`/`imagekitFilePath` in API responses without a documented `MOBILE_API_SCHEMAS.md` version bump and coordinated iOS release                                                                        |
+| Production uploads are silently unscanned today (`CLAMAV_HOST` unset → fail-open on every upload) and the direct-signed-upload path never scans at all | Phase 4 closes both gaps with one mechanism: a real GCP-hosted scanner + `scanStatus` gate on every read path — treat as its own security fix, not blocked on Part B's vendor question                                         |
+| GCP scan service outage or high latency blocks/delays uploads or leaves photos stuck `pending`                                                         | `min-instances=1` to avoid cold starts; `/api/photos/upload` fails closed (blocks) on scanner error since it gates pre-storage; the async `/confirm` path just stays `pending` and retries rather than failing the user's save |
+| Scan-service endpoint called without auth could be abused (cost, DoS) or spoofed (fake "clean" responses)                                              | Require a shared-secret header or Cloud Run IAM/signed ID token; never expose the endpoint publicly without auth                                                                                                               |
 
 ---
 
 ## 7. Summary of Deliverables Per Phase
 
-| Phase     | Deletes                                                    | Adds                  | Tests added                         |
-| --------- | ---------------------------------------------------------- | --------------------- | ----------------------------------- |
-| 1         | —                                                          | `email-content.ts`    | `emailContent.test.ts`              |
-| 2         | Admin email UI/API, `email-template-service.ts`, DB models | —                     | Updated/removed admin-route tests   |
-| 3         | —                                                          | `src/lib/storage/*`   | `storage/__tests__/adapter.test.ts` |
-| 4         | —                                                          | Scan-on-confirm logic | Confirm-route infected-file test    |
-| 5 (gated) | ImageKit adapter (eventually)                              | New vendor adapter    | New adapter test suite              |
+| Phase     | Deletes                                                    | Adds                                                                                                       | Tests added                                                                     |
+| --------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 1         | —                                                          | `email-content.ts`                                                                                         | `emailContent.test.ts`                                                          |
+| 2         | Admin email UI/API, `email-template-service.ts`, DB models | —                                                                                                          | Updated/removed admin-route tests                                               |
+| 3         | —                                                          | `src/lib/storage/*`                                                                                        | `storage/__tests__/adapter.test.ts`                                             |
+| 4         | Local-`clamscan` connection logic                          | GCP Cloud Run scan service, `Photo.scanStatus`, quarantine gating on all read paths, scan-on-confirm logic | Scan-client unit tests, confirm-route infected-file test, read-path gating test |
+| 5 (gated) | ImageKit adapter (eventually)                              | New vendor adapter                                                                                         | New adapter test suite                                                          |
 
 **Immediate next step**: confirm with the user (a) whether any admin has customized email templates in the DB (check before Phase 2 is destructive), and (b) get an ImageKit pricing quote before committing to Phase 5.

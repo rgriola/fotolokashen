@@ -1,16 +1,21 @@
-import { NextRequest } from 'next/server';
-import { requireAuth, apiError, apiResponse } from '@/lib/api-middleware';
-import prisma from '@/lib/prisma';
+import { NextRequest } from "next/server";
+import {
+  requireAuth,
+  apiError,
+  apiResponse,
+  authErrorResponse,
+} from "@/lib/api-middleware";
+import prisma from "@/lib/prisma";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const authResult = await requireAuth(req);
-    
+
     if (!authResult.authorized || !authResult.user) {
-      return apiError(authResult.error || 'Authentication required', 401, 'UNAUTHORIZED');
+      return authErrorResponse(authResult);
     }
 
     const user = authResult.user;
@@ -19,8 +24,14 @@ export async function PATCH(
     const { visibility } = body;
 
     // Validate visibility value
-    if (!visibility || !['public', 'private', 'followers'].includes(visibility)) {
-      return apiError('Invalid visibility value. Must be public, private, or followers', 400);
+    if (
+      !visibility ||
+      !["public", "private", "followers"].includes(visibility)
+    ) {
+      return apiError(
+        "Invalid visibility value. Must be public, private, or followers",
+        400,
+      );
     }
 
     // Get the location save
@@ -31,12 +42,12 @@ export async function PATCH(
     });
 
     if (!userSave) {
-      return apiError('Location not found', 404);
+      return apiError("Location not found", 404);
     }
 
     // Verify ownership
     if (userSave.userId !== user.id) {
-      return apiError('Forbidden', 403);
+      return apiError("Forbidden", 403);
     }
 
     // Update visibility
@@ -58,7 +69,7 @@ export async function PATCH(
       visibility: updatedSave.visibility,
     });
   } catch (error) {
-    console.error('Error updating visibility:', error);
-    return apiError('Failed to update visibility', 500);
+    console.error("Error updating visibility:", error);
+    return apiError("Failed to update visibility", 500);
   }
 }
