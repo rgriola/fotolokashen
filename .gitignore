@@ -46,6 +46,9 @@ yarn-error.log*
 
 # no sql files
 *.sql
+# ...except Prisma migrations, which must be version-controlled for `migrate deploy`.
+!prisma/migrations/**/*.sql
+!prisma/migrations-archive/**/*.sql
 
 # vercel
 .vercel

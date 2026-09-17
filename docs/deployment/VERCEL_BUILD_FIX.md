@@ -1,5 +1,11 @@
 # Vercel Deployment Fix
 
+> **⚠️ SUPERSEDED — September 17, 2026.** Historical record only. The build
+> command shown below is outdated; current value is
+> `prisma generate && next build`. The dashboard-override warning in this doc is
+> still worth heeding — a Build Command set in Vercel Settings overrides
+> `vercel.json`. See [DATABASE_DEPLOYMENT_GUIDE.md](./DATABASE_DEPLOYMENT_GUIDE.md).
+
 **Issue**: Vercel is not running the custom build command from `vercel.json`
 
 ---
@@ -44,11 +50,13 @@ Since `vercel.json` `buildCommand` is being ignored, configure directly in Verce
 ## Why This Happened
 
 Vercel's build command priority:
+
 1. **Vercel Dashboard Settings** (highest priority)
 2. `vercel.json` `buildCommand`
 3. Framework detection (Next.js = `next build`)
 
 Your `vercel.json` likely isn't being used because:
+
 - Dashboard has an override set, OR
 - `buildCommand` in `vercel.json` requires Vercel CLI v48+ (you have v50.1.6, so this is fine)
 
@@ -70,6 +78,7 @@ Your `vercel.json` likely isn't being used because:
 Your production database needs the migration for `avatarFileId` and `bannerFileId`, but Vercel is only running `next build`, not `prisma migrate deploy`.
 
 **This means:**
+
 - Your code expects `avatarFileId` and `bannerFileId` columns
 - But production database doesn't have them yet
 - App will crash when trying to access those fields

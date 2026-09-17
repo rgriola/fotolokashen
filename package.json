@@ -6,7 +6,7 @@
     "dev": "NODE_OPTIONS='--no-deprecation' next dev",
     "dev:turbo": "next dev --turbo",
     "build": "next build",
-    "build:production": "prisma db push --accept-data-loss && prisma generate && next build",
+    "build:production": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",

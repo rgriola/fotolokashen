@@ -23,14 +23,14 @@ Monitoring       → Sentry
 
 ## 🔗 Quick Links
 
-| Service | URL |
-|---------|-----|
-| **App** | [fotolokashen.com](https://fotolokashen.com) |
-| **Vercel** | [Dashboard](https://vercel.com/dashboard) • [Docs](https://vercel.com/docs) |
-| **Neon** | [Dashboard](https://neon.tech/dashboard) • [Docs](https://neon.tech/docs) |
-| **ImageKit** | [Dashboard](https://imagekit.io/dashboard) • [Docs](https://docs.imagekit.io) |
-| **Resend** | [Dashboard](https://resend.com/overview) • [Docs](https://resend.com/docs) |
-| **Sentry** | [Dashboard](https://sentry.io) • [Docs](https://docs.sentry.io) |
+| Service        | URL                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------ |
+| **App**        | [fotolokashen.com](https://fotolokashen.com)                                         |
+| **Vercel**     | [Dashboard](https://vercel.com/dashboard) • [Docs](https://vercel.com/docs)          |
+| **Neon**       | [Dashboard](https://neon.tech/dashboard) • [Docs](https://neon.tech/docs)            |
+| **ImageKit**   | [Dashboard](https://imagekit.io/dashboard) • [Docs](https://docs.imagekit.io)        |
+| **Resend**     | [Dashboard](https://resend.com/overview) • [Docs](https://resend.com/docs)           |
+| **Sentry**     | [Dashboard](https://sentry.io) • [Docs](https://docs.sentry.io)                      |
 | **Cloudflare** | [Dashboard](https://dash.cloudflare.com) • [Docs](https://developers.cloudflare.com) |
 
 ---
@@ -56,21 +56,25 @@ git push origin main
 
 ### Automatic Database Migrations ✨
 
-**When you push schema changes, Vercel automatically:**
+**When you push schema changes, Vercel does NOT touch the database.**
 
-1. Detects migration files in `prisma/migrations/`
-2. Runs `npm run build:production` (custom build command)
-3. Applies migrations to production database
-4. Generates Prisma Client
-5. Builds your app
+1. Runs `npm run build:production` (custom build command)
+2. Generates Prisma Client
+3. Builds your app
 
-**No manual database updates needed!** Just commit your migrations and push.
+**Migrations are applied by GitHub Actions, not by the build.**
+`.github/workflows/migrate-production.yml` runs `prisma migrate deploy` on every
+push to `main`, in parallel with the Vercel build. Requires a `DATABASE_URL`
+repository secret pointing at the **production** Neon branch. See
+[DATABASE_DEPLOYMENT_GUIDE.md](./DATABASE_DEPLOYMENT_GUIDE.md).
 
 **Build commands:**
-- **Local:** `npm run build` (no migrations, for testing)
-- **Vercel:** `npm run build:production` (with migrations)
+
+- **Local:** `npm run build`
+- **Vercel:** `npm run build:production` (`prisma generate && next build`)
 
 Configured in `vercel.json`:
+
 ```json
 {
   "buildCommand": "npm run build:production"
@@ -160,10 +164,10 @@ model User {
 
 Choose one approach:
 
-| Command | Use Case | Creates Migration File? |
-|---------|----------|------------------------|
-| `npm run db:push` | Quick prototyping, dev-only | ❌ No |
-| `npm run db:migrate` | Production changes | ✅ Yes |
+| Command              | Use Case                    | Creates Migration File? |
+| -------------------- | --------------------------- | ----------------------- |
+| `npm run db:push`    | Quick prototyping, dev-only | ❌ No                   |
+| `npm run db:migrate` | Production changes          | ✅ Yes                  |
 
 **3. Test Locally**
 
@@ -260,6 +264,7 @@ UPDATE users SET "isAdmin" = true WHERE email = 'your@email.com';
 - Automatic cleanup: sessions, locations, photos, saves, security logs
 
 **Protections:**
+
 - Cannot delete own account
 - Requires typing "DELETE" to confirm
 - All actions logged to security_logs
@@ -268,13 +273,13 @@ UPDATE users SET "isAdmin" = true WHERE email = 'your@email.com';
 
 ## 🔧 Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| **Email not sending** | Verify domain in Resend • Check `EMAIL_MODE=production` |
-| **Database connection failed** | Check Vercel Storage connection • Verify `DATABASE_URL` |
-| **Build fails** | Check build logs • Verify all env vars added • Run `npm run build` locally |
-| **Admin menu not showing** | Set `isAdmin=true` in database • Log out/in • Clear cache |
-| **Photos not uploading** | Check ImageKit env vars • Verify `IMAGEKIT_PRIVATE_KEY` |
+| Issue                          | Solution                                                                   |
+| ------------------------------ | -------------------------------------------------------------------------- |
+| **Email not sending**          | Verify domain in Resend • Check `EMAIL_MODE=production`                    |
+| **Database connection failed** | Check Vercel Storage connection • Verify `DATABASE_URL`                    |
+| **Build fails**                | Check build logs • Verify all env vars added • Run `npm run build` locally |
+| **Admin menu not showing**     | Set `isAdmin=true` in database • Log out/in • Clear cache                  |
+| **Photos not uploading**       | Check ImageKit env vars • Verify `IMAGEKIT_PRIVATE_KEY`                    |
 
 ---
 
@@ -293,13 +298,13 @@ UPDATE users SET "isAdmin" = true WHERE email = 'your@email.com';
 
 ### Current Free Tier Usage
 
-| Service | Free Limit | ~1k Users | Upgrade At | Cost |
-|---------|------------|-----------|------------|------|
-| Vercel | 100GB bandwidth | 10-20GB | >100GB/mo | $20/mo |
-| Neon | 256MB storage | 50-100MB | >256MB | $10/mo |
-| Resend | 3k emails | 500-1k | >3k/mo | $20/mo |
-| ImageKit | 20GB bandwidth | 5-10GB | >20GB/mo | $49/mo |
-| Sentry | 5k events | 1-2k | >5k/mo | Free |
+| Service  | Free Limit      | ~1k Users | Upgrade At | Cost   |
+| -------- | --------------- | --------- | ---------- | ------ |
+| Vercel   | 100GB bandwidth | 10-20GB   | >100GB/mo  | $20/mo |
+| Neon     | 256MB storage   | 50-100MB  | >256MB     | $10/mo |
+| Resend   | 3k emails       | 500-1k    | >3k/mo     | $20/mo |
+| ImageKit | 20GB bandwidth  | 5-10GB    | >20GB/mo   | $49/mo |
+| Sentry   | 5k events       | 1-2k      | >5k/mo     | Free   |
 
 **Estimated upgrade point:** ~5-10k active users = ~$100/mo total
 
@@ -399,5 +404,6 @@ git push origin main           # Auto-deploy to preview
 ---
 
 **Need help?** Check the support resources above or review the related docs:
+
 - `IMAGEKIT_CLEANUP_IMPLEMENTATION.md` - Image orphan cleanup
 - `docs/deployment/` - Detailed deployment guides

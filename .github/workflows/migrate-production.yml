@@ -1,0 +1,70 @@
+name: Migrate Production Database
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never cancel a migration mid-flight: an interrupted migration is recorded as
+# failed and blocks every subsequent `migrate deploy` until resolved by hand.
+concurrency:
+  group: migrate-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    name: prisma migrate deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Verify DATABASE_URL secret is set
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is not set. Add the PRODUCTION Neon connection string under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - run: npm ci
+
+      - name: Check pending migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        # Exits non-zero when migrations are pending, which is the normal case here.
+        run: npx prisma migrate status || true
+
+      - name: Apply migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate deploy
+
+      - name: Verify database is up to date
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx prisma migrate status
+
+      - name: Report drift between schema.prisma and the database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          DRIFT=$(npx prisma migrate diff \
+            --from-url "$DATABASE_URL" \
+            --to-schema-datamodel prisma/schema.prisma \
+            --script)
+          if echo "$DRIFT" | grep -q "This is an empty migration"; then
+            echo "✅ No drift." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "⚠️ Drift detected between schema.prisma and production:" >> "$GITHUB_STEP_SUMMARY"
+            printf '```sql\n%s\n```\n' "$DRIFT" >> "$GITHUB_STEP_SUMMARY"
+          fi

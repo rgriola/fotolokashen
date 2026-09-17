@@ -5,6 +5,7 @@ Phase 2A - Days 4-5: Backend search functionality for user discovery.
 ## Overview
 
 The search system enables users to discover other users through multiple search methods:
+
 - **Username search**: Fuzzy matching with typo tolerance
 - **Bio search**: Full-text search across user biographies
 - **Geographic search**: Find users by city/country
@@ -13,6 +14,10 @@ The search system enables users to discover other users through multiple search 
 
 ## Database Setup
 
+> **Status:** Applied to production and the dev branch on September 17, 2026.
+> Owned by the `20260113172222_enable_search_extensions` migration — do not run
+> these statements by hand on a new environment; run `prisma migrate deploy`.
+
 ### PostgreSQL Extensions
 
 The search system requires the `pg_trgm` extension for fuzzy text matching:
@@ -20,6 +25,12 @@ The search system requires the `pg_trgm` extension for fuzzy text matching:
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 ```
+
+Without it, `similarity()` raises Postgres error `42883`
+(`function similarity(character varying, text) does not exist`), which
+`searchByUsername` catches and silently degrades to an `ILIKE` fallback — so the
+failure is invisible in the UI. Check the extension first when fuzzy ranking
+looks wrong.
 
 ### Indexes
 
@@ -38,6 +49,7 @@ CREATE INDEX idx_users_country ON users (country);
 ```
 
 To create these indexes:
+
 ```bash
 npx dotenv -e .env.local -- npx prisma db execute --schema=./prisma/schema.prisma --stdin
 ```
@@ -52,14 +64,14 @@ Search for users across multiple criteria with pagination.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `q` | string | Yes | - | Search query (minimum 2 characters) |
-| `type` | string | No | `all` | Search type: `username`, `bio`, `geo`, `all` |
-| `city` | string | No | - | Filter by city (overrides query for geo search) |
-| `country` | string | No | - | Filter by country (overrides query for geo search) |
-| `limit` | number | No | 20 | Results per page (max 50) |
-| `offset` | number | No | 0 | Pagination offset |
+| Parameter | Type   | Required | Default | Description                                        |
+| --------- | ------ | -------- | ------- | -------------------------------------------------- |
+| `q`       | string | Yes      | -       | Search query (minimum 2 characters)                |
+| `type`    | string | No       | `all`   | Search type: `username`, `bio`, `geo`, `all`       |
+| `city`    | string | No       | -       | Filter by city (overrides query for geo search)    |
+| `country` | string | No       | -       | Filter by country (overrides query for geo search) |
+| `limit`   | number | No       | 20      | Results per page (max 50)                          |
+| `offset`  | number | No       | 0       | Pagination offset                                  |
 
 **Response:**
 
@@ -148,20 +160,16 @@ Get quick username suggestions for typeahead/autocomplete functionality.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `q` | string | Yes | - | Search query (minimum 2 characters) |
-| `limit` | number | No | 10 | Number of suggestions (max 20) |
+| Parameter | Type   | Required | Default | Description                         |
+| --------- | ------ | -------- | ------- | ----------------------------------- |
+| `q`       | string | Yes      | -       | Search query (minimum 2 characters) |
+| `limit`   | number | No       | 10      | Number of suggestions (max 20)      |
 
 **Response:**
 
 ```json
 {
-  "suggestions": [
-    "rodczaro",
-    "robert",
-    "rodrigo"
-  ],
+  "suggestions": ["rodczaro", "robert", "rodrigo"],
   "query": "rod"
 }
 ```
@@ -194,14 +202,16 @@ The backend uses specialized search functions in `src/lib/search-utils.ts`:
 Fuzzy username search using PostgreSQL trigram similarity.
 
 **Features:**
+
 - Handles typos and partial matches
 - Case-insensitive
 - Returns similarity score (0-1)
 - Falls back to ILIKE if pg_trgm not available
 
 **Example:**
+
 ```typescript
-const results = await searchByUsername('joh', 20);
+const results = await searchByUsername("joh", 20);
 // Finds: john, johnny, johan, etc.
 ```
 
@@ -210,14 +220,16 @@ const results = await searchByUsername('joh', 20);
 Full-text search across user biographies.
 
 **Features:**
+
 - Uses PostgreSQL `ts_rank` for relevance scoring
 - Supports multiple keywords (AND operation)
 - English language stemming
 - Falls back to simple contains if index not available
 
 **Example:**
+
 ```typescript
-const results = await searchByBio('travel photography', 20);
+const results = await searchByBio("travel photography", 20);
 // Finds users with bio containing travel-related photography content
 ```
 
@@ -226,13 +238,15 @@ const results = await searchByBio('travel photography', 20);
 Geographic search by city and/or country.
 
 **Features:**
+
 - Case-insensitive matching
 - OR operation (matches either city or country)
 - Sorted by username
 
 **Example:**
+
 ```typescript
-const results = await searchByGeography('Paris', 'France', 20);
+const results = await searchByGeography("Paris", "France", 20);
 // Finds users from Paris, France
 ```
 
@@ -241,11 +255,13 @@ const results = await searchByGeography('Paris', 'France', 20);
 Find users who saved the same location (for future use).
 
 **Features:**
+
 - Excludes current user
 - Only shows public/unlisted saves (respects privacy)
 - Includes save date context
 
 **Example:**
+
 ```typescript
 const results = await searchByLocation(123, 456, 20);
 // Finds users who saved location #123
@@ -256,14 +272,16 @@ const results = await searchByLocation(123, 456, 20);
 Combined search with intelligent ranking and deduplication.
 
 **Features:**
+
 - Runs multiple search types in parallel
 - Deduplicates results by user ID
 - Prioritizes higher match scores
 - Combines username, bio, and geo searches
 
 **Example:**
+
 ```typescript
-const results = await searchUsers('photographer paris', 'all', 20);
+const results = await searchUsers("photographer paris", "all", 20);
 // Searches username, bio, and geography simultaneously
 ```
 
@@ -272,13 +290,15 @@ const results = await searchUsers('photographer paris', 'all', 20);
 Fast autocomplete for usernames.
 
 **Features:**
+
 - Optimized for low latency (<50ms target)
 - Prefix matching with ILIKE
 - Returns just usernames (not full objects)
 
 **Example:**
+
 ```typescript
-const suggestions = await getUsernameSuggestions('joh', 10);
+const suggestions = await getUsernameSuggestions("joh", 10);
 // Returns: ['john', 'johnny', 'jonathan', ...]
 ```
 
@@ -303,6 +323,7 @@ All search queries use database indexes for optimal performance:
 ### Caching Opportunities (Future)
 
 For high-traffic scenarios, consider caching:
+
 - Popular search queries (Redis)
 - Username autocomplete results
 - Geographic filter combinations
@@ -320,6 +341,7 @@ npm run dev
 ```
 
 The test suite covers:
+
 - ✅ Username search
 - ✅ Combined search
 - ✅ Pagination
@@ -389,11 +411,20 @@ curl "http://localhost:3000/api/v1/search/users?q=photographer&type=all"
 
 ## Migration to Production
 
-1. **Enable pg_trgm extension** on production database
-2. **Create search indexes** using provided SQL
+**Completed September 17, 2026.**
+
+1. ~~**Enable pg_trgm extension** on production database~~ ✅
+2. ~~**Create search indexes** using provided SQL~~ ✅
 3. **Test performance** with production data volume
 4. **Monitor query times** and optimize if needed
 5. **Consider caching** for popular searches
+
+The trigram index is declared in `schema.prisma` so Prisma does not treat it as
+drift:
+
+```prisma
+@@index([username(ops: raw("gin_trgm_ops"))], map: "idx_users_username_trgm", type: Gin)
+```
 
 ## Related Documentation
 

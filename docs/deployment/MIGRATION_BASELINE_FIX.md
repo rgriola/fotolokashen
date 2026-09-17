@@ -1,5 +1,10 @@
 # Vercel Migration Fix - Baseline Strategy
 
+> **⚠️ SUPERSEDED — September 17, 2026.** The baseline described here was never
+> carried out as written. Production was instead baselined on September 17, 2026
+> with a generated `0_init` migration, and the build no longer runs migrations at
+> all. See [DATABASE_DEPLOYMENT_GUIDE.md](./DATABASE_DEPLOYMENT_GUIDE.md#migration-history-baseline).
+
 **Issue**: Production database has no migration history (was created with `db push`)
 
 ---
@@ -45,12 +50,14 @@ Since you're already using `db push` locally, keep using it:
 }
 ```
 
-**Pros**: 
+**Pros**:
+
 - Simple, works immediately
 - No migration files needed
 - Matches your current workflow
 
-**Cons**: 
+**Cons**:
+
 - Not ideal for production (no migration history)
 - Can't rollback schema changes
 

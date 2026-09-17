@@ -17,11 +17,13 @@ This guide will walk you through deploying your fotolokashen location discovery 
 ## Phase 1: Email Setup (Resend)
 
 ### 1.1 Create Resend Account
+
 1. Go to https://resend.com
 2. Sign up with GitHub (easiest)
 3. Verify your email address
 
 ### 1.2 Add & Verify Your Domain
+
 1. In Resend dashboard, go to **Domains**
 2. Click **Add Domain**
 3. Enter your domain (e.g., `yourdomain.com`)
@@ -34,6 +36,7 @@ This guide will walk you through deploying your fotolokashen location discovery 
 5. In Resend, click **Verify** - should turn green ✅
 
 ### 1.3 Generate API Key
+
 1. In Resend dashboard, go to **API Keys**
 2. Click **Create API Key**
 3. Name it: `Production - fotolokashen`
@@ -42,6 +45,7 @@ This guide will walk you through deploying your fotolokashen location discovery 
 6. Format: `re_xxxxxxxxxxxxxxxxxxxxx`
 
 ### 1.4 Test Email (Optional)
+
 ```bash
 curl -X POST 'https://api.resend.com/emails' \
   -H 'Authorization: Bearer YOUR_API_KEY' \
@@ -55,6 +59,7 @@ curl -X POST 'https://api.resend.com/emails' \
 ```
 
 **Environment Variables Needed:**
+
 ```bash
 EMAIL_SERVICE="resend"
 EMAIL_API_KEY="re_xxxxxxxxxxxxxxxxxxxxx"  # Your Resend API key
@@ -79,6 +84,7 @@ EMAIL_FROM_NAME="fotolokashen"
 5. Note your **Organization slug** (from URL: sentry.io/organizations/YOUR-ORG/)
 
 **Environment Variables:**
+
 ```bash
 NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
 SENTRY_AUTH_TOKEN=sntrys_your-auth-token
@@ -91,11 +97,13 @@ SENTRY_PROJECT=fotolokashen
 ## Phase 3: Database Setup (Neon)
 
 ### 3.1 Create Neon Account
+
 1. Go to https://neon.tech
 2. Sign up with GitHub (recommended)
 3. Choose the **Free** plan (FREE - 0.5GB storage, 3GB data transfer)
 
 ### 3.2 Create Database
+
 1. Click **Create Project**
 2. Project name: `fotolokashen` (or your preferred name)
 3. Region: Choose closest to your users (e.g., `US East (Ohio)` or `US West (Oregon)`)
@@ -103,12 +111,15 @@ SENTRY_PROJECT=fotolokashen
 5. Click **Create Project**
 
 ### 3.3 Database Branches
+
 Neon automatically creates a `main` branch for production. You can create additional branches for development:
+
 - `main` - Production database
 - `dev` - Development/testing (optional)
 - Feature branches - For schema testing (optional)
 
 ### 3.4 Get Connection String
+
 1. In your Neon project dashboard, find the **Connection Details**
 2. Select **Prisma** connection string format
 3. Copy the connection string - it looks like:
@@ -119,28 +130,38 @@ Neon automatically creates a `main` branch for production. You can create additi
 
 ### 3.5 Set Up Production Database
 
-#### Option A: Push Schema with Prisma (Recommended)
-```bash
-# 1. Update DATABASE_URL in .env.production.local (create if needed)
-DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
+Use migrations. `prisma db push` is for the Neon dev branch only — it writes no
+migration history and its `--accept-data-loss` form can drop columns silently.
 
-# 2. Push your Prisma schema to Neon
-npx prisma db push
-
-# 3. (Optional) Seed with initial data
-npm run db:seed
-```
-
-#### Option B: Run Migrations (if you have migration files)
 ```bash
 # 1. Update DATABASE_URL
 DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require"
 
-# 2. Run migrations
+# 2. Check what is pending
+npx prisma migrate status
+
+# 3. Apply
+npx prisma migrate deploy
+
+# 4. (Optional) Seed with initial data
+npm run db:seed
+```
+
+For a database that already has tables but no `_prisma_migrations` table, baseline
+it first instead of running `0_init` against live data:
+
+```bash
+npx prisma migrate resolve --applied 0_init
 npx prisma migrate deploy
 ```
 
+> The Vercel build does **not** apply migrations. `build:production` is
+> `prisma generate && next build`. On an established project, migrations are
+> applied by `.github/workflows/migrate-production.yml` on push to `main`; the
+> commands above are for first-time setup and manual recovery.
+
 ### 3.6 Enable Connection Pooling (Important for Production)
+
 1. In Neon dashboard, go to your project
 2. Click on **Connection pooling**
 3. Enable pooling for better performance
@@ -148,6 +169,7 @@ npx prisma migrate deploy
 5. Use the pooled connection for production
 
 **Environment Variable Needed:**
+
 ```bash
 DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require&pgbouncer=true"
 ```
@@ -161,12 +183,15 @@ DATABASE_URL="postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=
 Fotolokashen uses ClamAV to scan all uploaded files (avatars, banners, location photos). Choose one of these options:
 
 ### Option A: Cloud ClamAV Service (Recommended)
+
 Use a managed ClamAV API service:
+
 - [ClamAV REST](https://github.com/solita/clamav-rest) - Self-hostable REST API
 - [VirusTotal API](https://www.virustotal.com/gui/home/upload) - Commercial option
 - [Cloudmersive](https://cloudmersive.com/virus-api) - Free tier available
 
 ### Option B: Docker Sidecar (Self-hosted)
+
 If using a container platform (Railway, Render, Fly.io):
 
 ```yaml
@@ -180,7 +205,9 @@ services:
 ```
 
 ### Option C: Separate ClamAV Server
+
 Deploy ClamAV on a small VPS:
+
 ```bash
 # On Ubuntu/Debian server
 sudo apt update && sudo apt install clamav clamav-daemon -y
@@ -195,12 +222,14 @@ sudo systemctl restart clamav-daemon
 ```
 
 **Environment Variables:**
+
 ```bash
 CLAMAV_HOST=your-clamav-server-ip-or-hostname
 CLAMAV_PORT=3310
 ```
 
 **⚠️ Security Notes:**
+
 - NEVER set `DISABLE_VIRUS_SCAN=true` in production
 - Restrict ClamAV server access via firewall (only allow from Vercel IPs)
 - Keep virus definitions updated (automatic with clamav-freshclam)
@@ -210,17 +239,21 @@ CLAMAV_PORT=3310
 ## Phase 5: Vercel Deployment
 
 ### 5.1 Create Vercel Account
+
 1. Go to https://vercel.com
 2. Sign up with GitHub (MUST use same account as your repo)
 3. Skip any onboarding wizards
 
 ### 5.2 Import Project
+
 1. Click **Add New...** → **Project**
 2. Find your `fotolokashen` repository
 3. Click **Import**
 
 ### 5.3 Configure Build Settings
+
 Vercel should auto-detect Next.js. Verify:
+
 - **Framework Preset**: Next.js
 - **Root Directory**: `./` (leave default)
 - **Build Command**: `next build` (auto-detected)
@@ -228,6 +261,7 @@ Vercel should auto-detect Next.js. Verify:
 - **Install Command**: `npm install` (auto-detected)
 
 ### 5.4 Add Environment Variables
+
 Click **Environment Variables** and add ALL of these:
 
 ```bash
@@ -275,18 +309,22 @@ SENTRY_PROJECT=fotolokashen
 ```
 
 #### 🔐 Generate New JWT Secret for Production:
+
 ```bash
 # Run this in your terminal:
 openssl rand -base64 48
 ```
+
 Copy the output and use it as `JWT_SECRET`
 
 ### 5.5 Deploy!
+
 1. Click **Deploy**
 2. Wait 2-3 minutes for build
 3. You'll get a URL like: `https://fotolokashen.vercel.app`
 
 ### 5.6 Test Your Deployment
+
 1. Visit your Vercel URL
 2. Test authentication (sign up/login)
 3. Test map features
@@ -298,12 +336,14 @@ Copy the output and use it as `JWT_SECRET`
 ## Phase 6: Custom Domain Setup (Cloudflare DNS)
 
 ### 6.1 Add Domain to Vercel
+
 1. In Vercel dashboard, select your project
 2. Go to **Settings** → **Domains**
 3. Add your domain (e.g., `app.yourdomain.com`)
 4. Vercel will provide DNS records
 
 ### 6.2 Configure Cloudflare DNS
+
 1. Go to Cloudflare dashboard
 2. Select your domain
 3. Go to **DNS** → **Records**
@@ -317,6 +357,7 @@ Copy the output and use it as `JWT_SECRET`
 5. Wait 5-10 minutes for DNS propagation
 
 ### 6.3 Update Environment Variable
+
 1. In Vercel, go to **Settings** → **Environment Variables**
 2. Update `NEXT_PUBLIC_APP_URL` to your custom domain:
    ```
@@ -326,6 +367,7 @@ Copy the output and use it as `JWT_SECRET`
 4. Redeploy (Settings → Deployments → Click ⋯ → Redeploy)
 
 ### 6.4 Enable Automatic HTTPS
+
 - Vercel + Cloudflare will automatically provision SSL certificates
 - Your site will be HTTPS within 5-10 minutes
 
@@ -334,6 +376,7 @@ Copy the output and use it as `JWT_SECRET`
 ## Phase 7: Verify Email Configuration
 
 ### 7.1 Email Service Setup
+
 Fotolokashen uses Resend for email delivery. Your codebase is already configured:
 
 **Production**: Uses Resend API (configured in Phase 1)
@@ -342,11 +385,11 @@ Fotolokashen uses Resend for email delivery. Your codebase is already configured
 #### Verify your email utility (`src/lib/email.ts`):
 
 ```typescript
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
 // Initialize Resend
-const resend = process.env.EMAIL_API_KEY 
-  ? new Resend(process.env.EMAIL_API_KEY) 
+const resend = process.env.EMAIL_API_KEY
+  ? new Resend(process.env.EMAIL_API_KEY)
   : null;
 
 export async function sendEmail(options: {
@@ -354,7 +397,7 @@ export async function sendEmail(options: {
   subject: string;
   html: string;
 }) {
-  if (process.env.NODE_ENV === 'production' && resend) {
+  if (process.env.NODE_ENV === "production" && resend) {
     // Production: Use Resend
     return await resend.emails.send({
       from: `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM_ADDRESS}>`,
@@ -364,17 +407,19 @@ export async function sendEmail(options: {
     });
   } else {
     // Development: Log to console
-    console.log('📧 Email (Development Mode):', {
+    console.log("📧 Email (Development Mode):", {
       to: options.to,
       subject: options.subject,
-      preview: options.html.substring(0, 100) + '...',
+      preview: options.html.substring(0, 100) + "...",
     });
   }
 }
 ```
 
 ### 7.2 Environment Variables
+
 Your `.env.local` (development):
+
 ```bash
 NODE_ENV=development
 EMAIL_FROM_ADDRESS=noreply@fotolokashen.com
@@ -383,6 +428,7 @@ EMAIL_FROM_NAME=fotolokashen
 ```
 
 Your Vercel production environment variables (already set in Phase 3.4):
+
 ```bash
 NODE_ENV=production
 EMAIL_API_KEY=re_xxxxxxxxxxxxxxxxxxxxx
@@ -395,18 +441,21 @@ EMAIL_FROM_NAME=fotolokashen
 ## Phase 8: Post-Deployment Checklist
 
 ### 8.1 Monitoring Setup
+
 - [ ] Check Vercel dashboard for build errors
 - [ ] Review Vercel Analytics (auto-enabled)
 - [ ] Check Sentry dashboard for runtime errors
 - [ ] Monitor Neon Metrics for database performance and slow queries
 
 ### 8.2 Performance Optimization
+
 - [ ] Enable Vercel Speed Insights (free)
 - [ ] Review Lighthouse scores
 - [ ] Check Core Web Vitals in Vercel dashboard
 - [ ] Test from different locations (use https://webpagetest.org)
 
 ### 8.3 Security
+
 - [ ] Review Vercel Firewall settings
 - [ ] Enable Neon IP Allow lists (if needed for additional security)
 - [ ] Check Cloudflare security settings
@@ -414,6 +463,7 @@ EMAIL_FROM_NAME=fotolokashen
 - [ ] Test authentication flows
 
 ### 8.4 Backup Strategy
+
 - [ ] Neon automatically backs up your database (point-in-time recovery available)
 - [ ] Export manual backup: `pg_dump DATABASE_URL > backup.sql`
 - [ ] Set up branch-based backups for critical changes
@@ -424,17 +474,18 @@ EMAIL_FROM_NAME=fotolokashen
 
 ## 📊 Cost Breakdown (Estimated)
 
-| Service | Plan | Cost | Limits |
-|---------|------|------|--------|
-| **Vercel** | Hobby | $0 | Unlimited deployments, 100GB bandwidth |
-| **Neon** | Free | $0 | 0.5GB storage, 3GB data transfer/month |
-| **Resend** | Free | $0 | 3,000 emails/month, 100/day |
-| **Cloudflare** | Free | $0 | Unlimited bandwidth |
-| **ImageKit** | Free | $0 | 20GB bandwidth, 20GB storage |
-| **Sentry** | Free | $0 | 5K errors/month |
-| **TOTAL** | | **$0/month** | Great for MVP/startup! |
+| Service        | Plan  | Cost         | Limits                                 |
+| -------------- | ----- | ------------ | -------------------------------------- |
+| **Vercel**     | Hobby | $0           | Unlimited deployments, 100GB bandwidth |
+| **Neon**       | Free  | $0           | 0.5GB storage, 3GB data transfer/month |
+| **Resend**     | Free  | $0           | 3,000 emails/month, 100/day            |
+| **Cloudflare** | Free  | $0           | Unlimited bandwidth                    |
+| **ImageKit**   | Free  | $0           | 20GB bandwidth, 20GB storage           |
+| **Sentry**     | Free  | $0           | 5K errors/month                        |
+| **TOTAL**      |       | **$0/month** | Great for MVP/startup!                 |
 
 ### When You'll Need to Upgrade:
+
 - **Vercel Pro ($20/mo)**: Custom domains, analytics, more team members
 - **Neon Pro ($19/mo)**: 10GB storage, unlimited compute hours, more data transfer
 - **Resend Email ($20/mo)**: 50k emails/month
@@ -445,6 +496,7 @@ EMAIL_FROM_NAME=fotolokashen
 ## 🚨 Troubleshooting
 
 ### Build Fails on Vercel
+
 ```bash
 # Check build logs in Vercel dashboard
 # Common issues:
@@ -454,6 +506,7 @@ EMAIL_FROM_NAME=fotolokashen
 ```
 
 ### Database Connection Errors
+
 ```bash
 # Ensure Neon connection string is correct
 # Check SSL settings: ?sslmode=require
@@ -463,6 +516,7 @@ EMAIL_FROM_NAME=fotolokashen
 ```
 
 ### Emails Not Sending
+
 ```bash
 # Verify Resend domain is verified (green checkmark)
 # Check EMAIL_FROM_ADDRESS matches verified domain
@@ -470,6 +524,7 @@ EMAIL_FROM_NAME=fotolokashen
 ```
 
 ### Custom Domain Not Working
+
 ```bash
 # DNS propagation can take up to 48 hours (usually 5-10 min)
 # Check DNS with: dig app.yourdomain.com

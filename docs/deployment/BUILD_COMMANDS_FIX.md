@@ -1,5 +1,10 @@
 # Build Commands Fix - Summary
 
+> **⚠️ SUPERSEDED — September 17, 2026.** Historical record only. The
+> `build:production` command described below is not what ships today. Current
+> value is `prisma generate && next build`. See
+> [DATABASE_DEPLOYMENT_GUIDE.md](./DATABASE_DEPLOYMENT_GUIDE.md).
+
 **Date:** January 13, 2026  
 **Issue:** Local `npm run build` failed when trying to run migrations without DATABASE_URL
 
@@ -8,11 +13,13 @@
 ## Problem
 
 When the build command was:
+
 ```json
 "build": "prisma migrate deploy && prisma generate && next build"
 ```
 
 Running `npm run build` locally failed with:
+
 ```
 Error: Environment variable not found: DATABASE_URL
 ```
@@ -32,11 +39,13 @@ Created **two separate build commands**:
 ```
 
 **Usage:**
+
 ```bash
 npm run build
 ```
 
 **Purpose:**
+
 - Test production build locally
 - No database connection required
 - Fast feedback before pushing
@@ -53,6 +62,7 @@ npm run build
 **Usage:** Automatic (Vercel only)
 
 **Purpose:**
+
 - Apply database migrations
 - Generate Prisma Client
 - Build the app
@@ -151,6 +161,7 @@ git push origin main
 ## Testing
 
 **Local build test:**
+
 ```bash
 npm run build
 ```
@@ -158,6 +169,7 @@ npm run build
 Result: ✅ Success! Build completed in ~12 seconds without requiring DATABASE_URL.
 
 **Production build** (Vercel will run):
+
 ```bash
 npm run build:production
 ```
@@ -169,17 +181,20 @@ This would require DATABASE_URL (only available on Vercel).
 ## Summary
 
 **Before:**
+
 - ❌ `npm run build` required DATABASE_URL
 - ❌ Couldn't test builds locally
 - ❌ Confusing error messages
 
 **After:**
+
 - ✅ `npm run build` works locally (no database needed)
 - ✅ `npm run build:production` used by Vercel (with migrations)
 - ✅ Clear separation of concerns
 - ✅ Automatic migrations still work on deploy
 
 **Commands to remember:**
+
 ```bash
 npm run build              # Local testing (no DB required)
 npm run build:production   # Vercel only (with migrations)

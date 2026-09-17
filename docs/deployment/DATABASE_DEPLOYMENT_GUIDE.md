@@ -1,7 +1,7 @@
 # Database Deployment Guide
 
-**Date:** January 13, 2026  
-**Topic:** Schema changes and automatic production updates
+**Date:** September 17, 2026  
+**Topic:** Schema changes and how they reach production
 
 ---
 
@@ -9,14 +9,13 @@
 
 ### Should `schema.prisma` be in Git?
 
--- npx dotenv -e .env.local -- npx prisma db push --accept-data-loss
-
-
 **YES** ✅ Always commit these files:
+
 - `prisma/schema.prisma` - Source of truth for database structure
 - `prisma/migrations/` - All migration files
 
 **NO** ❌ Never commit these (already in `.gitignore`):
+
 - `node_modules/.prisma/` - Generated Prisma Client
 - `.env` files - Contains secrets
 - `*.tsbuildinfo` - Build cache
@@ -25,18 +24,26 @@
 
 ### Are database migrations automatic?
 
-**YES** ✅ As of January 13, 2026
+**NO** ❌ As of September 17, 2026
 
-When you push code with schema changes, Vercel automatically:
+The Vercel build no longer touches the database at all:
 
 ```bash
 # During build, Vercel runs:
-prisma migrate deploy  # ← Applies migrations to production DB
 prisma generate        # ← Regenerates Prisma Client
-next build            # ← Builds your app
+next build             # ← Builds your app
 ```
 
-**No manual database updates needed!**
+Previously the build ran `prisma db push --accept-data-loss`. That was removed because:
+
+- `--accept-data-loss` could silently drop columns or tables during an unattended CI build
+- The build command applies to **preview deployments too**, so any feature-branch build reshaped the production schema
+- `db push` never executes raw SQL migration files, so extensions, GIN indexes, and backfills were skipped entirely (this is why `pg_trgm` was missing in production for months)
+- The schema changed _before_ `next build` succeeded, and Vercel's instant rollback reverts code but never the database
+
+**Migrations are applied by CI, not by the build.** The
+`.github/workflows/migrate-production.yml` workflow runs `prisma migrate deploy`
+on every push to `main`. See [Applying a Migration to Production](#applying-a-migration-to-production).
 
 ---
 
@@ -59,6 +66,7 @@ npm run db:migrate -- --name add_new_field
 ```
 
 This:
+
 - Creates migration file in `prisma/migrations/`
 - Applies to your local dev database
 - Regenerates Prisma Client
@@ -78,22 +86,68 @@ git commit -m "feat: add newField to User model"
 git push origin main
 ```
 
-### 5. Vercel Handles Production
+### 5. Push
 
-**Automatic process:**
-1. Vercel detects push to GitHub
-2. Runs build command: `prisma migrate deploy && prisma generate && next build`
-3. **Migrations applied to production database** ✅
-4. Prisma Client regenerated
-5. App builds
-6. Preview deployed to merkelvision.com
+```bash
+git push origin main
+```
+
+Two things then happen **in parallel**:
+
+- **GitHub Actions** runs `prisma migrate deploy` against production (seconds)
+- **Vercel** runs `prisma generate && next build` (minutes, database untouched)
+
+The migration finishes long before the build does, and production traffic is not
+switched over until you promote.
 
 ### 6. Promote to Production
 
-After testing preview:
-- Vercel Dashboard → Deployments → Promote to Production
+Check the Actions tab is green, then:
+Vercel Dashboard → Deployments → Promote to Production
 
-**Database is already updated!** No additional steps needed.
+---
+
+## Applying a Migration to Production
+
+### Normal path — automatic
+
+Push to `main`. The **Migrate Production Database** workflow
+(`.github/workflows/migrate-production.yml`) runs:
+
+1. `prisma migrate status` — logs what is pending
+2. `prisma migrate deploy` — applies it
+3. `prisma migrate status` — fails the job if anything is still pending
+4. `prisma migrate diff` — writes a drift report to the job summary
+
+`migrate deploy` is idempotent: with nothing pending it reports
+`No pending migrations to apply.` and exits cleanly, so the workflow is a
+harmless no-op on pushes that contain no migrations.
+
+The job uses `concurrency: migrate-production` with `cancel-in-progress: false`.
+A cancelled migration is recorded as failed and blocks every later
+`migrate deploy` until resolved by hand, so runs queue rather than interrupt.
+
+### Manual fallback
+
+```bash
+DATABASE_URL="<production-url>" npx prisma migrate status
+DATABASE_URL="<production-url>" npx prisma migrate deploy
+```
+
+### Required secret
+
+`DATABASE_URL` under **Settings → Secrets and variables → Actions**, set to the
+**production** Neon branch connection string.
+
+> ⚠️ Your local `.env` and `.env.local` point at the **dev** Neon branch. Copying
+> that value into the secret would silently migrate the wrong database and leave
+> production untouched while CI reports success.
+
+**Ordering rule:** additive changes (new nullable columns, new tables) go to the
+database _first_, then the code — which is what the parallel workflow gives you.
+Destructive changes (dropping a column) go the other way: ship code that stops
+reading it, promote, then drop it in a later migration. Never rename a column in
+place; add, backfill, switch reads, then drop.
 
 ---
 
@@ -102,41 +156,51 @@ After testing preview:
 ### Current Setup
 
 **Local builds** (`npm run build`):
+
 ```json
 "build": "next build"
 ```
+
 - For testing locally before pushing
 - Doesn't run migrations (no DATABASE_URL needed)
 - Fast feedback loop
 
 **Production builds** (`npm run build:production`):
+
 ```json
-"build:production": "prisma migrate deploy && prisma generate && next build"
+"build:production": "prisma generate && next build"
 ```
+
 - Only used by Vercel
-- Applies migrations to production database
+- **Does not touch the database**
 - Configured in `vercel.json`
 
 **Vercel configuration** (`vercel.json`):
+
 ```json
 {
   "buildCommand": "npm run build:production"
 }
 ```
 
+> ⚠️ A Build Command set in the Vercel dashboard (Settings → General → Build &
+> Development Settings) **overrides** `vercel.json`. If schema changes still
+> appear on deploy, check for a dashboard override.
+
 This ensures:
-- ✅ You can test builds locally without database connection
-- ✅ Vercel automatically applies migrations on deploy
-- ✅ Clean separation of concerns
+
+- ✅ Builds are reproducible and side-effect free
+- ✅ Preview deployments cannot alter the production schema
+- ✅ Rolling back code never leaves the database ahead of it
 
 ---
 
 ## Migration Types Comparison
 
-| Command | Use Case | Creates Files? | Auto-Deploy? |
-|---------|----------|----------------|--------------|
-| `npm run db:push` | Quick prototyping (dev only) | ❌ No | ❌ No |
-| `npm run db:migrate` | Production changes | ✅ Yes | ✅ Yes (via build) |
+| Command              | Use Case                            | Creates Files? | Auto-Deploy?                          |
+| -------------------- | ----------------------------------- | -------------- | ------------------------------------- |
+| `npm run db:push`    | Quick prototyping (dev branch only) | ❌ No          | ❌ No                                 |
+| `npm run db:migrate` | Production changes                  | ✅ Yes         | ✅ Yes — via GitHub Actions on `main` |
 
 **For production:** Always use `db:migrate` to create migration files.
 
@@ -150,8 +214,8 @@ This ensures:
 prisma/
   ├── schema.prisma          ← YES (source of truth)
   └── migrations/            ← YES (version history)
-      ├── 20260113_init/
-      ├── 20260113_add_user_fields/
+      ├── 0_init/
+      ├── 20260113172222_enable_search_extensions/
       └── migration_lock.toml
 ```
 
@@ -171,7 +235,7 @@ node_modules/
 
 ### Required Environment Variables
 
-Vercel needs these to run migrations:
+The build itself no longer needs database access, but the running app does:
 
 - `DATABASE_URL` - Auto-added by Vercel Storage ✅
 - All other env vars from `.env.local`
@@ -182,36 +246,43 @@ Vercel needs these to run migrations:
 
 ## Troubleshooting
 
-### "Migration failed during build"
-
-**Check build logs:**
-- Vercel Dashboard → Deployments → Click deployment → View logs
-- Look for Prisma migration errors
-
-**Common fixes:**
-- Ensure `DATABASE_URL` is set in Vercel
-- Check migration files are committed to Git
-- Verify schema is valid: `npx prisma validate`
-
 ### "Production database out of sync"
 
-**Manually apply migrations:**
+This is now the expected failure mode if you deploy code before applying its
+migration. Confirm and fix:
 
 ```bash
-# Get production DATABASE_URL from Vercel
-# Then run locally:
-DATABASE_URL="postgresql://..." npx prisma migrate deploy
+DATABASE_URL="<production-url>" npx prisma migrate status
+DATABASE_URL="<production-url>" npx prisma migrate deploy
 ```
 
-Or use Prisma Studio:
+### "Schema still changes on deploy"
+
+`vercel.json` no longer runs `db push`, so a dashboard Build Command override is
+the likely cause. Check Vercel Dashboard → Settings → General → Build &
+Development Settings.
+
+### "Drift detected" / Prisma wants to drop an index
+
+Raw-SQL objects (extensions, GIN indexes, expression indexes) must also be
+declared in `schema.prisma`, or Prisma treats them as drift and proposes
+dropping them. Example:
+
+```prisma
+@@index([username(ops: raw("gin_trgm_ops"))], map: "idx_users_username_trgm", type: Gin)
+```
+
+Verify with:
 
 ```bash
-npx prisma studio --url="<PRODUCTION_DATABASE_URL>"
+npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --script
+# "-- This is an empty migration." means no drift
 ```
 
 ### "Prisma Client out of date"
 
 After pushing, restart the app:
+
 - Vercel Dashboard → Deployments → Redeploy
 
 ---
@@ -228,31 +299,52 @@ After pushing, restart the app:
 
 ### ❌ DON'T
 
-- Use `db:push` for production (no migration history)
+- Use `db:push` against production (no migration history, and `--accept-data-loss` can drop data)
 - Delete migration files
 - Edit applied migrations (create new ones instead)
 - Skip testing in development
 - Deploy schema changes without code that uses them
+- Create raw-SQL indexes without also declaring them in `schema.prisma`
+
+---
+
+## Migration History Baseline
+
+Production was baselined on **September 17, 2026**. Before that date it had no
+`_prisma_migrations` table at all, because every deploy ran `db push` instead of
+`migrate deploy`.
+
+Current migration history:
+
+```
+prisma/migrations/
+  ├── 0_init/                                  ← baseline: all 26 tables
+  ├── 20260113172222_enable_search_extensions/ ← pg_trgm + search indexes
+  └── migration_lock.toml
+```
+
+`0_init` was generated with `prisma migrate diff --from-empty
+--to-schema-datamodel` and marked as applied on both the dev branch and
+production; it is never actually executed against an existing database.
+
+Superseded and malformed migration folders were moved to
+`prisma/migrations-archive/` — they are retained for reference only and are not
+read by Prisma.
 
 ---
 
 ## Example: Recent Change
 
-**Added:** `avatarFileId` and `bannerFileId` columns
+**Added:** `idx_users_username_trgm` declared in `schema.prisma`
 
 **Steps:**
 
-1. Updated `schema.prisma`
-2. Ran `npm run db:push` (dev only, quick iteration)
-3. Tested locally
-4. Committed schema: `git add prisma/schema.prisma`
+1. Updated `schema.prisma` to declare the GIN index that raw SQL had created
+2. Verified zero drift: `prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --script`
+3. Confirmed `prisma migrate status` → "Database schema is up to date!"
+4. Committed schema + migrations: `git add prisma/`
 5. Pushed: `git push origin main`
-6. Vercel built preview → **Migrations auto-applied** ✅
-7. Tested preview
-8. Promoted to production ✅
-
-**Total time:** ~2 minutes  
-**Manual database work:** Zero 🎉
+6. Vercel built — **database untouched** ✅
 
 ---
 
@@ -262,14 +354,16 @@ After pushing, restart the app:
 **Answer:** YES ✅
 
 **Question:** Are migrations automatic?  
-**Answer:** YES ✅ (as of Jan 13, 2026)
+**Answer:** YES ✅ — but via GitHub Actions, not the Vercel build (as of Sep 17, 2026)
 
 **Workflow:**
-```
-Edit schema → Create migration → Test locally → Push to GitHub → Vercel auto-applies → Test preview → Promote
-```
 
-**No manual database updates required!**
+```
+Edit schema → Create migration → Test locally → Push to main
+   ├─ GitHub Actions: prisma migrate deploy   (database)
+   └─ Vercel:         prisma generate && next build   (code only)
+→ Check Actions is green → Test preview → Promote
+```
 
 ---
 

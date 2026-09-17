@@ -99,6 +99,8 @@ model User {
 
   @@index([city])
   @@index([country])
+  // Backs similarity() lookups in searchByUsername; requires the pg_trgm extension.
+  @@index([username(ops: raw("gin_trgm_ops"))], map: "idx_users_username_trgm", type: Gin)
   @@map("users")
 }
 
