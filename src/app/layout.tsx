@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+//import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Poppins } from "next/font/google";
+
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
@@ -11,13 +13,15 @@ import Script from "next/script";
 
 const tagline = "Production Location Intelligence";
 
-const geistSans = Geist({
+const geistSans = Inter({
   variable: "--font-geist-sans",
+  weight: "400",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = Poppins({
   variable: "--font-geist-mono",
+  weight: "800",
   subsets: ["latin"],
 });
 

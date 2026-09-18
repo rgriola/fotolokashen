@@ -48,7 +48,7 @@ export default function Home() {
                 priority
               />
             </div>
-            <h1 className="mb-6 text-4xl font-bold --tracking-wide sm:text-6xl text-white">
+            <h1 className="mb-6 text-4xl font-bold tracking-wide sm:text-6xl text-white">
               Production Knowledge{" "}
             </h1>
             <p className="mb-8 text-lg sm:text-xl text-secondary text-center">
@@ -72,7 +72,7 @@ export default function Home() {
       <section className="px-4 md:px-6 lg:px-8 py-6">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
+            <h2 className="mb-4 text-3xl font-bold sm:text-4xl">
               Built for Production Crews
             </h2>
             <p className="text-lg text-muted-foreground">
