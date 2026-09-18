@@ -20,7 +20,7 @@ export const EMAIL_SUBJECTS = {
   welcome: "Email Confirmed - Welcome to Fotolokashen!",
   password_reset: "Reset Password",
   password_changed: "Password Updated",
-  account_deletion: "We deleted your Fotolokashen account",
+  account_deletion: "We Deleted Your Fotolokashen Account",
 } as const;
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -35,7 +35,7 @@ const COLORS = {
   borderStrong: "#c5d1de",
 
   primary: "#5038F5", // brand color
-  primarySoft: "#6253C2", // mono step down
+  primarySoft: "#2a1d7f", // mono step down
 
   text: "#111111",
   muted: "#111111",
@@ -57,6 +57,8 @@ const COLORS = {
   danger: "#dc2626",
   dangerSoft: "#fdecec",
   buttonGradientImage: "linear-gradient(#08C745, #379153)",
+
+  headerBgGradientImage: "linear-gradient(#5038F5, #2a1d7f)",
 };
 
 // ── Layout primitives ─────────────────────────────────────────────────────────
@@ -94,12 +96,12 @@ font-family: Arial, Helvetica, sans-serif !important; color: ${COLORS.text};">
       <td align="center" style="padding: 24px 12px;">
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 640px; margin: 0 auto; background-color: ${COLORS.cardBackground}; border: 1px solid ${COLORS.border}; border-radius: 16px; overflow: hidden;">
           <tr>
-            <td style="background-color: ${COLORS.primary}; padding: 28px 32px 22px;">
+            <td style="background-color: ${COLORS.primary}; background-image: ${COLORS.headerBgGradientImage}; padding: 28px 32px 22px;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
                   <td align="left">
                     <!-- alt text is the fallback when images are blocked -->
-                    <img src="${APP_URL}/logo.png" alt="${BRAND_NAME} - Production Knowledge" width="300" height="79" style="display: block; border: 0; outline: none; text-decoration: none; height: auto; max-width: 216px; font-size: 20px; font-weight: 700; color: #f5f5f5;">
+                    <img src="${APP_URL}/logo.png" alt="${BRAND_NAME} - Production Knowledge" width="300" height="78" style="display: block; border: 0; outline: none; text-decoration: none; height: auto; max-width: 280px; font-size: 20px; font-weight: 700; color: #f5f5f5;">
                   </td>
                 </tr>
               </table>
@@ -114,18 +116,29 @@ font-family: Arial, Helvetica, sans-serif !important; color: ${COLORS.text};">
 
           <tr>
             <td style="padding: 24px 32px 28px; background-color: ${COLORS.footerBackground}; border-top: 1px solid ${COLORS.border};">
-              <p style="margin: 0 0 12px; color: ${COLORS.text}; font-size: 13px; line-height: 1.6;">
-                Need help? Reach us at
-                <a href="mailto:${SUPPORT_EMAIL}" style="color: ${COLORS.text}; text-decoration: none;">${SUPPORT_EMAIL}</a>.
-              </p>
-              <p style="margin: 0; color: ${COLORS.text}; font-size: 12px; line-height: 1.6;">
-                <a href="${APP_URL}" style="color: ${COLORS.text}; text-decoration: none;">Open ${BRAND_NAME}</a>
-                &nbsp;|&nbsp;
-                <a href="${APP_URL}/privacy-policy" style="color: ${COLORS.text}; text-decoration: none;">Privacy Policy</a>
-              </p>
-              <p style="margin: 10px 0 0; color: ${COLORS.text}; font-size: 12px; line-height: 1.6;">
-                Copyright ${new Date().getFullYear()} ${BRAND_NAME}. This message is automated. Please do not reply.
-              </p>
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="vertical-align: top;">
+                    <p style="margin: 0 0 12px; color: ${COLORS.text}; font-size: 13px; line-height: 1.6;">
+                      Need help? Reach us at
+                      <a href="mailto:${SUPPORT_EMAIL}" style="color: ${COLORS.text}; text-decoration: none;">${SUPPORT_EMAIL}</a>.
+                    </p>
+                    <p style="margin: 0; color: ${COLORS.text}; font-size: 12px; line-height: 1.6;">
+                      <a href="${APP_URL}" style="color: ${COLORS.text}; text-decoration: none;">Open ${BRAND_NAME}</a>
+                      &nbsp;|&nbsp;
+                      <a href="${APP_URL}/privacy-policy" style="color: ${COLORS.text}; text-decoration: none;">Privacy Policy</a>
+                    </p>
+                    <p style="margin: 10px 0 0; color: ${COLORS.text}; font-size: 12px; line-height: 1.6;">
+                      Copyright ${new Date().getFullYear()} ${BRAND_NAME}. This message is automated. Please do not reply.
+                    </p>
+                  </td>
+                  <td style="vertical-align: top; text-align: right; padding-left: 16px; width: 44px;">
+                    <a href="https://apps.apple.com/us/app/fotolokashen/id6757991683" target="_blank">
+                      <img src="${APP_URL}/AppIcon.png" alt="${BRAND_NAME} - Download on the App Store" width="44" height="44" style="display: block; border: 0; outline: none; text-decoration: none; border-radius: 10px;">
+                    </a>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
         </table>
@@ -137,25 +150,12 @@ font-family: Arial, Helvetica, sans-serif !important; color: ${COLORS.text};">
   `.trim();
 }
 
-function emailButton(
-  url: string,
-  text: string,
-  style: "primary" | "secondary" = "primary",
-): string {
-  const isPrimary = style === "primary";
-  // Solid fallback for clients (e.g. Outlook desktop) that ignore background-image.
-  const bgFallback = isPrimary ? COLORS.successBright : COLORS.successSoft;
-  const textColor = "#ffffff"; // = isPrimary ? "#ffffff" : COLORS.text;
-  const border = isPrimary ? "none" : `1px solid ${COLORS.primary}`;
-  const backgroundImage = isPrimary
-    ? `background-image: ${COLORS.buttonGradientImage};`
-    : "";
-
+function emailButton(url: string, text: string): string {
   return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 24px 0;">
       <tr>
-        <td style="border-radius: 10px; background-color: ${bgFallback}; ${backgroundImage} border: ${border};">
-          <a href="${url}" target="_blank" style="display: inline-block; padding: 12px 24px; font-size: 15px; line-height: 1.2; font-weight: 600; color: ${textColor}; text-decoration: none; border-radius: 10px;">
+        <td style="border-radius: 10px; background-color: ${COLORS.successBright}; background-image: ${COLORS.buttonGradientImage}; border: none;">
+          <a href="${url}" target="_blank" style="display: inline-block; padding: 12px 24px; font-size: 15px; letter-spacing: 0.05em; line-height: 1.2; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 10px;">
             ${text}
           </a>
         </td>
@@ -179,7 +179,7 @@ function alertBox(
       bg: COLORS.warningSoft,
       border: COLORS.warning,
       text: "#92400e",
-      label: "Security Notice:",
+      label: "Note:",
     },
     success: {
       bg: COLORS.successSoft,
@@ -248,22 +248,22 @@ export function verificationEmailTemplate(
 ): string {
   const content = `
     <h2 style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 26px; line-height: 1.25; font-weight: 700; letter-spacing: -0.3px;">
-      Time to confirm your email. 
+      Confirm your email
     </h2>
 
     <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
-      Welcome <strong>${username}</strong>,
+      Hey there <strong>${username}</strong>,
     </p>
 
     <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
-      We created your account with ${BRAND_NAME}.</p>
+      We created your ${BRAND_NAME} account, the next step is to confirm your email below. This link will expire in 30 minutes. </p>
 
       <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
-        <strong>${email}</strong> is your login email.</p>
+        Login: <strong>${email}</strong></p>
 
-    ${alertBox("info", "For security, this link expires in 30 minutes.")}
+    <!-- ${alertBox("info", "For security, this link expires in 30 minutes.")} --> 
 
-    ${emailButton(verificationUrl, "Confirm Email", "primary")}
+    ${emailButton(verificationUrl, "Confirm Email")}
 
     ${urlBlock(verificationUrl)}
 
@@ -290,20 +290,33 @@ export function welcomeToEmailTemplate(username: string): string {
     </p>
 
     <p style="margin: 0 0 12px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
-      Next steps:
+    Start adding Production Knowledge:
     </p>
 
     <ul style="margin: 0 0 14px; padding-left: 20px; color: ${COLORS.text}; font-size: 15px; line-height: 1.8;">
-      <li>Download the app on the app store</li>
-      <li>Upload photos to start a location</li>
-      <li>Add production notes to each location and photo</li>
-      <li>Search for locations</li>
-      <li>Connect and share with your team</li>
+    <li>Add a production spot in snap & save</li>
+    <li>Use a photo to create the location</li>
+    <li>Connect with your team and share those spots</li>
     </ul>
 
-    ${emailButton(`${APP_URL}/locations`, "Fotolokashen", "primary")}
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 0 18px;">
+      <tr>
+        <td style="vertical-align: middle; padding-right: 10px;">
+          <a href="https://apps.apple.com/us/app/fotolokashen/id6757991683" target="_blank">
+            <img src="${APP_URL}/AppIcon.png" alt="${BRAND_NAME} - Download on the App Store" width="44" height="44" style="display: block; border: 0; outline: none; text-decoration: none; border-radius: 10px;">
+          </a>
+        </td>
+        <td style="vertical-align: middle;">
+          <a href="https://apps.apple.com/us/app/fotolokashen/id6757991683" target="_blank" style="color: ${COLORS.text}; font-size: 15px; font-weight: 600; text-decoration: none;">
+            Download for iOS
+          </a>
+        </td>
+      </tr>
+    </table>
 
-    ${alertBox("success", "Your account is active and ready for production use.")}
+    ${emailButton(`${APP_URL}/locations`, "To Fotolokashen")}
+
+    <!-- ${alertBox("success", "Your account is active and ready for production use.")} --> 
   `;
 
   return emailWrapper(
@@ -329,7 +342,7 @@ export function passwordResetEmailTemplate(
       We received a request to reset your password. Use the button below to create a new password.
     </p>
 
-    ${emailButton(resetUrl, "Reset Password", "primary")}
+    ${emailButton(resetUrl, "Reset Password")}
 
     ${urlBlock(resetUrl)}
 
@@ -405,7 +418,7 @@ export function accountDeletionEmailTemplate(
     </p>
 
     <p style="margin: 0 0 14px; color: ${COLORS.text}; font-size: 15px; line-height: 1.7;">
-      We know sometimes things don't click. You are welcome back anytime. We deleted account <strong>${email}</strong> from ${BRAND_NAME}. 
+      We know sometimes things don't click. You are welcome back anytime. We deleted your account: <strong>${email}</strong> from ${BRAND_NAME}. 
     </p>
 
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
