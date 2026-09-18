@@ -8,487 +8,554 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MapPin, X, Navigation, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { TOAST } from "@/lib/constants/messages";
 import { ImageKitUploader } from "@/components/ui/ImageKitUploader";
 import { TagInput } from "@/components/locations/TagInput";
-import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/location-constants";
-import { indoorOutdoorSchema, DEFAULT_INDOOR_OUTDOOR } from "@/lib/form-constants";
+import { TYPE_COLOR_MAP, getAvailableTypes } from "@/lib/map-icon-colors";
+import {
+  indoorOutdoorSchema,
+  DEFAULT_INDOOR_OUTDOOR,
+} from "@/lib/form-constants";
 import { useAuth } from "@/lib/auth-context";
 import { sanitizeUserInput } from "@/lib/sanitize";
 import type { CachedPhoto, UploadedPhotoData } from "@/types/photo-cache";
 
 const saveLocationSchema = z.object({
-    placeId: z.string().min(1, "Place ID is required").max(255),
-    name: z.string()
-        .min(1, "Location name is required")
-        .max(50, "Name must be 50 characters or less")
-        .transform(sanitizeUserInput),
-    address: z.string().max(500).optional(),
-    lat: z.number().min(-90).max(90),
-    lng: z.number().min(-180).max(180),
-    type: z.string().min(1, "Type is required"),
-    indoorOutdoor: indoorOutdoorSchema,
+  placeId: z.string().min(1, "Place ID is required").max(255),
+  name: z
+    .string()
+    .min(1, "Location name is required")
+    .max(50, "Name must be 50 characters or less")
+    .transform(sanitizeUserInput),
+  address: z.string().max(500).optional(),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  type: z.string().min(1, "Type is required"),
+  indoorOutdoor: indoorOutdoorSchema,
 
-    // Address components (read-only from Google, but validate anyway)
-    street: z.string().max(200).optional(),
-    number: z.string().max(50).optional(),
-    city: z.string().max(100).optional(),
-    state: z.string().max(100).optional(),
-    zipcode: z.string().max(20).optional(),
+  // Address components (read-only from Google, but validate anyway)
+  street: z.string().max(200).optional(),
+  number: z.string().max(50).optional(),
+  city: z.string().max(100).optional(),
+  state: z.string().max(100).optional(),
+  zipcode: z.string().max(20).optional(),
 
-    // Production details - User editable
-    productionNotes: z.string()
-        .max(500, "Production notes must be 500 characters or less")
-        .transform(sanitizeUserInput)
-        .optional(),
-    entryPoint: z.string()
-        .max(200, "Entry point must be 200 characters or less")
-        .transform(sanitizeUserInput)
-        .optional(),
-    parking: z.string()
-        .max(200, "Parking info must be 200 characters or less")
-        .transform(sanitizeUserInput)
-        .optional(),
-    access: z.string()
-        .max(200, "Access info must be 200 characters or less")
-        .transform(sanitizeUserInput)
-        .optional(),
+  // Production details - User editable
+  productionNotes: z
+    .string()
+    .max(500, "Production notes must be 500 characters or less")
+    .transform(sanitizeUserInput)
+    .optional(),
+  entryPoint: z
+    .string()
+    .max(200, "Entry point must be 200 characters or less")
+    .transform(sanitizeUserInput)
+    .optional(),
+  parking: z
+    .string()
+    .max(200, "Parking info must be 200 characters or less")
+    .transform(sanitizeUserInput)
+    .optional(),
+  access: z
+    .string()
+    .max(200, "Access info must be 200 characters or less")
+    .transform(sanitizeUserInput)
+    .optional(),
 
-    // User save details - Personal notes, needs validation
-    isFavorite: z.boolean().optional(),
-    personalRating: z.number().min(0).max(5).optional(),
-    color: z.string().max(20).optional(),
+  // User save details - Personal notes, needs validation
+  isFavorite: z.boolean().optional(),
+  personalRating: z.number().min(0).max(5).optional(),
+  color: z.string().max(20).optional(),
 });
 
 type SaveLocationFormData = z.infer<typeof saveLocationSchema>;
 
 interface SaveLocationFormProps {
-    initialData?: Partial<SaveLocationFormData>;
-    onSubmit: (data: any) => void;
-    isPending?: boolean;
-    showPhotoUpload?: boolean; // Toggle photo upload section visibility
-    onUploadingStateChange?: (isUploading: boolean) => void; // Notify parent when uploading photos
+  initialData?: Partial<SaveLocationFormData>;
+  onSubmit: (data: any) => void;
+  isPending?: boolean;
+  showPhotoUpload?: boolean; // Toggle photo upload section visibility
+  onUploadingStateChange?: (isUploading: boolean) => void; // Notify parent when uploading photos
 }
 
 export function SaveLocationForm({
-    initialData,
-    onSubmit,
-    isPending = false,
-    showPhotoUpload = false,
-    onUploadingStateChange,
+  initialData,
+  onSubmit,
+  isPending = false,
+  showPhotoUpload = false,
+  onUploadingStateChange,
 }: SaveLocationFormProps) {
-    const { user } = useAuth();
-    // Check if user has admin or staffer role for extended location types
-    const isAdmin = user?.isAdmin === true || user?.role === 'staffer' || user?.role === 'super_admin';
-    const availableTypes = getAvailableTypes(isAdmin);
-    
-    const [tags, setTags] = useState<string[]>([]);
-    const [cachedPhotos, setCachedPhotos] = useState<CachedPhoto[]>([]);
-    const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
-    
-    // Ref to store upload function from ImageKitUploader
-    const uploadPhotosRef = useRef<(() => Promise<UploadedPhotoData[]>) | null>(null);
-    
-    // Debug: Log when cached photos change
-    useEffect(() => {
-        console.log('[SaveLocationForm] Cached photos changed:', cachedPhotos.length, cachedPhotos);
-    }, [cachedPhotos]);
+  const { user } = useAuth();
+  // Check if user has admin or staffer role for extended location types
+  const isAdmin =
+    user?.isAdmin === true ||
+    user?.role === "staffer" ||
+    user?.role === "super_admin";
+  const availableTypes = getAvailableTypes(isAdmin);
 
-    const form = useForm<SaveLocationFormData>({
-        resolver: zodResolver(saveLocationSchema),
-        defaultValues: {
-            placeId: initialData?.placeId || "",
-            name: initialData?.name || "",
-            address: initialData?.address || "",
-            lat: initialData?.lat || 0,
-            lng: initialData?.lng || 0,
-            type: initialData?.type || "",
-            indoorOutdoor: initialData?.indoorOutdoor || DEFAULT_INDOOR_OUTDOOR,
-            street: initialData?.street || "",
-            number: initialData?.number || "",
-            city: initialData?.city || "",
-            state: initialData?.state || "",
-            zipcode: initialData?.zipcode || "",
-            isFavorite: initialData?.isFavorite || false,
-            personalRating: initialData?.personalRating || 0,
-            color: initialData?.color || "",
-            ...initialData,
-        },
-    });
+  const [tags, setTags] = useState<string[]>([]);
+  const [cachedPhotos, setCachedPhotos] = useState<CachedPhoto[]>([]);
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false);
 
-    // Update form when initialData changes
-    useEffect(() => {
-        if (initialData) {
-            form.reset({
-                placeId: initialData.placeId || "",
-                name: initialData.name || "",
-                address: initialData.address || "",
-                lat: initialData.lat || 0,
-                lng: initialData.lng || 0,
-                type: initialData.type || "",
-                indoorOutdoor: initialData.indoorOutdoor || DEFAULT_INDOOR_OUTDOOR,
-                street: initialData.street || "",
-                number: initialData.number || "",
-                city: initialData.city || "",
-                state: initialData.state || "",
-                zipcode: initialData.zipcode || "",
-                isFavorite: initialData.isFavorite || false,
-                personalRating: initialData.personalRating || 0,
-                color: initialData.color || "",
-                ...initialData,
-            });
-        }
-    }, [initialData, form]);
+  // Ref to store upload function from ImageKitUploader
+  const uploadPhotosRef = useRef<(() => Promise<UploadedPhotoData[]>) | null>(
+    null,
+  );
 
-    // Auto-focus the Location Name field when form opens
-    useEffect(() => {
-        // Small delay to allow the sidebar to finish opening animation
-        const timer = setTimeout(() => {
-            form.setFocus("name");
-        }, 100);
+  // Debug: Log when cached photos change
+  useEffect(() => {
+    console.log(
+      "[SaveLocationForm] Cached photos changed:",
+      cachedPhotos.length,
+      cachedPhotos,
+    );
+  }, [cachedPhotos]);
 
-        return () => clearTimeout(timer);
-    }, [form]);
-    
-    // Cleanup cached photos on unmount (if user closes form without saving)
-    useEffect(() => {
-        return () => {
-            // Cleanup will be handled by ImageKitUploader itself
-            console.log('[SaveLocationForm] Unmounting, ImageKitUploader will handle cleanup');
-        };
-    }, []);
+  const form = useForm<SaveLocationFormData>({
+    resolver: zodResolver(saveLocationSchema),
+    defaultValues: {
+      placeId: initialData?.placeId || "",
+      name: initialData?.name || "",
+      address: initialData?.address || "",
+      lat: initialData?.lat || 0,
+      lng: initialData?.lng || 0,
+      type: initialData?.type || "",
+      indoorOutdoor: initialData?.indoorOutdoor || DEFAULT_INDOOR_OUTDOOR,
+      street: initialData?.street || "",
+      number: initialData?.number || "",
+      city: initialData?.city || "",
+      state: initialData?.state || "",
+      zipcode: initialData?.zipcode || "",
+      isFavorite: initialData?.isFavorite || false,
+      personalRating: initialData?.personalRating || 0,
+      color: initialData?.color || "",
+      ...initialData,
+    },
+  });
 
-    const handleSubmit = async (data: SaveLocationFormData) => {
-        // Ensure color is assigned based on type
-        const finalColor = data.color || TYPE_COLOR_MAP[data.type || ""] || "";
-        const finalIndoorOutdoor = data.indoorOutdoor || DEFAULT_INDOOR_OUTDOOR;
+  // Update form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        placeId: initialData.placeId || "",
+        name: initialData.name || "",
+        address: initialData.address || "",
+        lat: initialData.lat || 0,
+        lng: initialData.lng || 0,
+        type: initialData.type || "",
+        indoorOutdoor: initialData.indoorOutdoor || DEFAULT_INDOOR_OUTDOOR,
+        street: initialData.street || "",
+        number: initialData.number || "",
+        city: initialData.city || "",
+        state: initialData.state || "",
+        zipcode: initialData.zipcode || "",
+        isFavorite: initialData.isFavorite || false,
+        personalRating: initialData.personalRating || 0,
+        color: initialData.color || "",
+        ...initialData,
+      });
+    }
+  }, [initialData, form]);
 
-        let uploadedPhotos: UploadedPhotoData[] | undefined;
+  // Auto-focus the Location Name field when form opens
+  useEffect(() => {
+    // Small delay to allow the sidebar to finish opening animation
+    const timer = setTimeout(() => {
+      form.setFocus("name");
+    }, 100);
 
-        // If photos are enabled and user has cached photos, upload them first
-        if (showPhotoUpload && cachedPhotos.length > 0 && uploadPhotosRef.current) {
-            console.log('[SaveLocationForm] Starting photo upload for', cachedPhotos.length, 'photos');
-            try {
-                setIsUploadingPhotos(true);
-                onUploadingStateChange?.(true);
-                toast.info(TOAST.PHOTO.UPLOADING(cachedPhotos.length));
-                
-                // Upload all cached photos to ImageKit using the function from ImageKitUploader
-                uploadedPhotos = await uploadPhotosRef.current();
-                
-                console.log('[SaveLocationForm] Photos uploaded successfully:', uploadedPhotos);
-                toast.success(TOAST.PHOTO.UPLOAD_SUCCESS(uploadedPhotos.length));
-            } catch (error) {
-                const message = error instanceof Error ? error.message : TOAST.PHOTO.UPLOAD_FAILED;
-                toast.error(message);
-                setIsUploadingPhotos(false);
-                onUploadingStateChange?.(false);
-                return; // Don't proceed with location save if photo upload fails
-            } finally {
-                setIsUploadingPhotos(false);
-                onUploadingStateChange?.(false);
-            }
-        }
+    return () => clearTimeout(timer);
+  }, [form]);
 
-        const submitData = {
-            ...data,
-            color: finalColor,
-            indoorOutdoor: finalIndoorOutdoor,
-            tags: tags.length > 0 ? tags : undefined,
-            photos: uploadedPhotos && uploadedPhotos.length > 0 ? uploadedPhotos : undefined,
-        };
-        
-        console.log('[SaveLocationForm] Submitting with photos:', uploadedPhotos?.length || 0);
+  // Cleanup cached photos on unmount (if user closes form without saving)
+  useEffect(() => {
+    return () => {
+      // Cleanup will be handled by ImageKitUploader itself
+      console.log(
+        "[SaveLocationForm] Unmounting, ImageKitUploader will handle cleanup",
+      );
+    };
+  }, []);
 
-        try {
-            await onSubmit(submitData);
-            
-            // Clear photo cache on successful save (ImageKitUploader will handle this)
-            setCachedPhotos([]);
-        } catch (error) {
-            // Error handling is done by parent, but we keep photos cached
-            console.error('Save location error:', error);
-        }
+  const handleSubmit = async (data: SaveLocationFormData) => {
+    // Ensure color is assigned based on type
+    const finalColor = data.color || TYPE_COLOR_MAP[data.type || ""] || "";
+    const finalIndoorOutdoor = data.indoorOutdoor || DEFAULT_INDOOR_OUTDOOR;
+
+    let uploadedPhotos: UploadedPhotoData[] | undefined;
+
+    // If photos are enabled and user has cached photos, upload them first
+    if (showPhotoUpload && cachedPhotos.length > 0 && uploadPhotosRef.current) {
+      console.log(
+        "[SaveLocationForm] Starting photo upload for",
+        cachedPhotos.length,
+        "photos",
+      );
+      try {
+        setIsUploadingPhotos(true);
+        onUploadingStateChange?.(true);
+        toast.info(TOAST.PHOTO.UPLOADING(cachedPhotos.length));
+
+        // Upload all cached photos to ImageKit using the function from ImageKitUploader
+        uploadedPhotos = await uploadPhotosRef.current();
+
+        console.log(
+          "[SaveLocationForm] Photos uploaded successfully:",
+          uploadedPhotos,
+        );
+        toast.success(TOAST.PHOTO.UPLOAD_SUCCESS(uploadedPhotos.length));
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : TOAST.PHOTO.UPLOAD_FAILED;
+        toast.error(message);
+        setIsUploadingPhotos(false);
+        onUploadingStateChange?.(false);
+        return; // Don't proceed with location save if photo upload fails
+      } finally {
+        setIsUploadingPhotos(false);
+        onUploadingStateChange?.(false);
+      }
+    }
+
+    const submitData = {
+      ...data,
+      color: finalColor,
+      indoorOutdoor: finalIndoorOutdoor,
+      tags: tags.length > 0 ? tags : undefined,
+      photos:
+        uploadedPhotos && uploadedPhotos.length > 0
+          ? uploadedPhotos
+          : undefined,
     };
 
-    // Character count helpers
-    const productionNotesCount = form.watch("productionNotes")?.length || 0;
-
-    return (
-        <form
-            id="save-location-form"
-            onSubmit={form.handleSubmit(handleSubmit, (errors) => {
-                // Auto-focus and scroll to the first error field
-                if (errors.name) {
-                    form.setFocus("name");
-                    document.getElementById("name")?.scrollIntoView({ 
-                        behavior: "smooth", 
-                        block: "center" 
-                    });
-                } else if (errors.type) {
-                    // Type is a Select component, scroll to it
-                    const typeElement = document.getElementById("type");
-                    if (typeElement) {
-                        typeElement.scrollIntoView({ 
-                            behavior: "smooth", 
-                            block: "center" 
-                        });
-                        // Try to focus the Select trigger button
-                        typeElement.focus();
-                    }
-                }
-            })}
-            className="space-y-6"
-        >
-            {/* Photo Upload - Deferred mode (uploads on save) */}
-            {showPhotoUpload && (
-                <div className="space-y-4 pb-4 border-b">
-                    <div className="flex items-center gap-2">
-                        <Camera className="w-4 h-4 text-success" />
-                        <h3 className="text-sm font-semibold">Add Photos Here</h3>
-                        {cachedPhotos.length > 0 && (
-                            <p className="text-xs text-muted-foreground ml-auto">
-                                {cachedPhotos.length} photo(s) ready • Will upload when you save
-                            </p>
-                        )}
-                    </div>
-                    <ImageKitUploader
-                        uploadMode="deferred"
-                        onCachedPhotosChange={setCachedPhotos}
-                        onUploadReady={(uploadFn) => {
-                            uploadPhotosRef.current = uploadFn;
-                        }}
-                        maxPhotos={20}
-                        // maxFileSize uses default from FILE_SIZE_LIMITS.PHOTO (10 MB)
-                    />
-                </div>
-            )}
-
-            {/* Location Fields */}
-            <div className="space-y-4">
-                <div className="space-y-3">
-                    <div>
-                        <Label htmlFor="name" className="pb-2">Location Name *</Label>
-                        <div className="relative">
-                            <Input
-                                id="name"
-                                {...form.register("name")}
-                                placeholder="e.g., Central Park"
-                                className={`focus-visible:ring-success focus-visible:ring-2 pr-8 ${
-                                    form.formState.errors.name 
-                                        ? "border-destructive ring-destructive ring-2" 
-                                        : ""
-                                }`}
-                            />
-                            {form.watch("name") && (
-                                <button
-                                    type="button"
-                                    onClick={() => form.setValue("name", "")}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                    title="Clear"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            )}
-                        </div>
-                        {form.formState.errors.name && (
-                            <p className="text-sm text-destructive mt-1">
-                                {form.formState.errors.name.message}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Type and Rating - Side by Side (MOVED UP) */}
-                    <div className="grid grid-cols-2 gap-3">
-                        {/* Type - Select Dropdown */}
-                        <div className="space-y-2">
-                            <Label htmlFor="type">Type *</Label>
-                            <Select
-                                onValueChange={(value) => {
-                                    form.setValue("type", value);
-                                    form.setValue("color", TYPE_COLOR_MAP[value] || "");
-                                }}
-                                value={form.watch("type") || ""}
-                            >
-                                <SelectTrigger
-                                    id="type"
-                                    className={`focus:ring-success focus:ring-2 w-full min-w-35 ${
-                                        form.formState.errors.type 
-                                            ? "border-destructive ring-destructive" 
-                                            : ""
-                                    }`}
-                                >
-                                    <SelectValue placeholder="Required Info" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {availableTypes.map((type) => (
-                                        <SelectItem key={type} value={type}>
-                                            <div className="flex items-center gap-2">
-                                                <div
-                                                    className="w-3 h-3 rounded-full"
-                                                    style={{ backgroundColor: TYPE_COLOR_MAP[type] }}
-                                                />
-                                                <span>{type}</span>
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {form.formState.errors.type && (
-                                <p className="text-xs text-destructive">
-                                    {form.formState.errors.type.message}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Rating */}
-                        <div className="space-y-2">
-                            <Label htmlFor="personalRating">Rating</Label>
-                            <Select
-                                onValueChange={(value) =>
-                                    form.setValue("personalRating", parseInt(value))
-                                }
-                                defaultValue={form.getValues("personalRating")?.toString()}
-                            >
-                                <SelectTrigger className="w-full min-w-27.5">
-                                    <SelectValue placeholder="Rate" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="0">No rating</SelectItem>
-                                    <SelectItem value="1">⭐</SelectItem>
-                                    <SelectItem value="2">⭐⭐</SelectItem>
-                                    <SelectItem value="3">⭐⭐⭐</SelectItem>
-                                    <SelectItem value="4">⭐⭐⭐⭐</SelectItem>
-                                    <SelectItem value="5">⭐⭐⭐⭐⭐</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* Address and GPS Coordinates Combined */}
-                    <div className="space-y-2">
-                        <Label htmlFor="address" className="text-sm text-muted-foreground">Address</Label>
-                        <div className="p-3 rounded-lg border bg-muted/30">
-                            <div className="flex items-start gap-2">
-                                <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                                <div className="flex-1 space-y-2">
-                                    <p className="text-sm font-medium">
-                                        {form.watch("address") || "Address not available"}
-                                    </p>
-                                    {form.watch("lat") != null && form.watch("lng") != null && (
-                                        <div className="flex items-center gap-2">
-                                            <Navigation className="w-3 h-3 text-muted-foreground" />
-                                            <code className="text-xs font-mono text-muted-foreground">
-                                                {form.watch("lat").toFixed(6)}, {form.watch("lng").toFixed(6)}
-                                            </code>
-                                        </div>
-                                    )}
-                                    <p className="text-xs text-muted-foreground">
-                                        From Google Maps
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Production Details */}
-            <div className="space-y-4">
-                <div className="space-y-3">
-                    <div>
-                        <div className="flex justify-between items-center">
-                            <Label htmlFor="productionNotes" className="pb-2">Production Notes</Label>
-                            <span className="text-xs text-muted-foreground">
-                                {productionNotesCount}/500 characters
-                            </span>
-                        </div>
-                        <Textarea
-                            id="productionNotes"
-                            {...form.register("productionNotes")}
-                            placeholder="Special considerations..."
-                            rows={3}
-                            maxLength={500}
-                            className={form.formState.errors.productionNotes ? "border-destructive ring-destructive ring-2" : ""}
-                        />
-                        {form.formState.errors.productionNotes && (
-                            <p className="text-sm text-destructive mt-1">
-                                {form.formState.errors.productionNotes.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <TagInput tags={tags} onTagsChange={setTags} />
-
-                    <div>
-                        <Label htmlFor="parking" className="pb-2">Parking</Label>
-                        <Input
-                            id="parking"
-                            {...form.register("parking")}
-                            placeholder="Parking info"
-                            className={form.formState.errors.parking ? "border-destructive ring-destructive ring-2" : ""}
-                        />
-                        {form.formState.errors.parking && (
-                            <p className="text-sm text-destructive mt-1">
-                                {form.formState.errors.parking.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <Label htmlFor="entryPoint" className="pb-2">Entry Point</Label>
-                        <Input
-                            id="entryPoint"
-                            {...form.register("entryPoint")}
-                            placeholder="Main entrance"
-                            className={form.formState.errors.entryPoint ? "border-destructive ring-destructive ring-2" : ""}
-                        />
-                        {form.formState.errors.entryPoint && (
-                            <p className="text-sm text-destructive mt-1">
-                                {form.formState.errors.entryPoint.message}
-                            </p>
-                        )}
-                    </div>
-
-                    <div>
-                        <Label htmlFor="access" className="pb-2">Access</Label>
-                        <Input
-                            id="access"
-                            {...form.register("access")}
-                            placeholder="How to access"
-                            className={form.formState.errors.access ? "border-destructive ring-destructive ring-2" : ""}
-                        />
-                        {form.formState.errors.access && (
-                            <p className="text-sm text-destructive mt-1">
-                                {form.formState.errors.access.message}
-                            </p>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* Save Button - Only show when required fields are filled */}
-            {(() => {
-                const name = form.watch('name');
-                const type = form.watch('type');
-                const showSaveButton = Boolean(name && name.trim() && type);
-                
-                return showSaveButton ? (
-                    <div className="pt-4 border-t">
-                        <Button
-                            type="submit"
-                            className="bg-success hover:bg-success/90 text-white"
-                            disabled={isPending}
-                        >
-                            {isPending ? 'Saving Location...' : 'Save Location'}
-                        </Button>
-                    </div>
-                ) : null;
-            })()}
-
-        </form>
+    console.log(
+      "[SaveLocationForm] Submitting with photos:",
+      uploadedPhotos?.length || 0,
     );
+
+    try {
+      await onSubmit(submitData);
+
+      // Clear photo cache on successful save (ImageKitUploader will handle this)
+      setCachedPhotos([]);
+    } catch (error) {
+      // Error handling is done by parent, but we keep photos cached
+      console.error("Save location error:", error);
+    }
+  };
+
+  // Character count helpers
+  const productionNotesCount = form.watch("productionNotes")?.length || 0;
+
+  return (
+    <form
+      id="save-location-form"
+      onSubmit={form.handleSubmit(handleSubmit, (errors) => {
+        // Auto-focus and scroll to the first error field
+        if (errors.name) {
+          form.setFocus("name");
+          document.getElementById("name")?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        } else if (errors.type) {
+          // Type is a Select component, scroll to it
+          const typeElement = document.getElementById("type");
+          if (typeElement) {
+            typeElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+            // Try to focus the Select trigger button
+            typeElement.focus();
+          }
+        }
+      })}
+      className="space-y-6"
+    >
+      {/* Photo Upload - Deferred mode (uploads on save) */}
+      {showPhotoUpload && (
+        <div className="space-y-4 pb-4 border-b">
+          <div className="flex items-center gap-2">
+            <Camera className="w-4 h-4 text-success" />
+            <h3 className="text-sm font-semibold">Add Photos Here</h3>
+            {cachedPhotos.length > 0 && (
+              <p className="text-xs text-muted-foreground ml-auto">
+                {cachedPhotos.length} photo(s) ready • Will upload when you save
+              </p>
+            )}
+          </div>
+          <ImageKitUploader
+            uploadMode="deferred"
+            onCachedPhotosChange={setCachedPhotos}
+            onUploadReady={(uploadFn) => {
+              uploadPhotosRef.current = uploadFn;
+            }}
+            maxPhotos={20}
+            // maxFileSize uses default from FILE_SIZE_LIMITS.PHOTO (10 MB)
+          />
+        </div>
+      )}
+
+      {/* Location Fields */}
+      <div className="space-y-4">
+        <div className="space-y-3">
+          <div>
+            <Label htmlFor="name" className="pb-2">
+              Location Name *
+            </Label>
+            <div className="relative">
+              <Input
+                id="name"
+                {...form.register("name")}
+                placeholder="e.g., Central Park"
+                className={`focus-visible:ring-success focus-visible:ring-2 pr-8 ${
+                  form.formState.errors.name
+                    ? "border-destructive ring-destructive ring-2"
+                    : ""
+                }`}
+              />
+              {form.watch("name") && (
+                <button
+                  type="button"
+                  onClick={() => form.setValue("name", "")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  title="Clear"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            {form.formState.errors.name && (
+              <p className="text-sm text-destructive mt-1">
+                {form.formState.errors.name.message}
+              </p>
+            )}
+          </div>
+
+          {/* Type and Rating - Side by Side (MOVED UP) */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Type - Select Dropdown */}
+            <div className="space-y-2">
+              <Label htmlFor="type">Type *</Label>
+              <Select
+                onValueChange={(value) => {
+                  form.setValue("type", value);
+                  form.setValue("color", TYPE_COLOR_MAP[value] || "");
+                }}
+                value={form.watch("type") || ""}
+              >
+                <SelectTrigger
+                  id="type"
+                  className={`focus:ring-success focus:ring-2 w-full min-w-35 ${
+                    form.formState.errors.type
+                      ? "border-destructive ring-destructive"
+                      : ""
+                  }`}
+                >
+                  <SelectValue placeholder="Required Info" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: TYPE_COLOR_MAP[type] }}
+                        />
+                        <span>{type}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.type && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.type.message}
+                </p>
+              )}
+            </div>
+
+            {/* Rating */}
+            <div className="space-y-2">
+              <Label htmlFor="personalRating">Rating</Label>
+              <Select
+                onValueChange={(value) =>
+                  form.setValue("personalRating", parseInt(value))
+                }
+                defaultValue={form.getValues("personalRating")?.toString()}
+              >
+                <SelectTrigger className="w-full min-w-27.5">
+                  <SelectValue placeholder="Rate" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">No rating</SelectItem>
+                  <SelectItem value="1">⭐</SelectItem>
+                  <SelectItem value="2">⭐⭐</SelectItem>
+                  <SelectItem value="3">⭐⭐⭐</SelectItem>
+                  <SelectItem value="4">⭐⭐⭐⭐</SelectItem>
+                  <SelectItem value="5">⭐⭐⭐⭐⭐</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Address and GPS Coordinates Combined */}
+          <div className="space-y-2">
+            <Label htmlFor="address" className="text-sm text-muted-foreground">
+              Address
+            </Label>
+            <div className="p-3 rounded-lg border bg-muted/30">
+              <div className="flex items-start gap-2">
+                <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <p className="text-sm font-medium">
+                    {form.watch("address") || "Address not available"}
+                  </p>
+                  {form.watch("lat") != null && form.watch("lng") != null && (
+                    <div className="flex items-center gap-2">
+                      <Navigation className="w-3 h-3 text-muted-foreground" />
+                      <code className="text-xs font-mono text-muted-foreground">
+                        {form.watch("lat").toFixed(6)},{" "}
+                        {form.watch("lng").toFixed(6)}
+                      </code>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    From Google Maps
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Production Details */}
+      <div className="space-y-4">
+        <div className="space-y-3">
+          <div>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="productionNotes" className="pb-2">
+                Production Notes
+              </Label>
+              <span className="text-xs text-muted-foreground">
+                {productionNotesCount}/500 characters
+              </span>
+            </div>
+            <Textarea
+              id="productionNotes"
+              {...form.register("productionNotes")}
+              placeholder="Special considerations..."
+              rows={3}
+              maxLength={500}
+              className={
+                form.formState.errors.productionNotes
+                  ? "border-destructive ring-destructive ring-2"
+                  : ""
+              }
+            />
+            {form.formState.errors.productionNotes && (
+              <p className="text-sm text-destructive mt-1">
+                {form.formState.errors.productionNotes.message}
+              </p>
+            )}
+          </div>
+
+          <TagInput tags={tags} onTagsChange={setTags} />
+
+          <div>
+            <Label htmlFor="parking" className="pb-2">
+              Parking
+            </Label>
+            <Input
+              id="parking"
+              {...form.register("parking")}
+              placeholder="Parking info"
+              className={
+                form.formState.errors.parking
+                  ? "border-destructive ring-destructive ring-2"
+                  : ""
+              }
+            />
+            {form.formState.errors.parking && (
+              <p className="text-sm text-destructive mt-1">
+                {form.formState.errors.parking.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="entryPoint" className="pb-2">
+              Entry Point
+            </Label>
+            <Input
+              id="entryPoint"
+              {...form.register("entryPoint")}
+              placeholder="Main entrance"
+              className={
+                form.formState.errors.entryPoint
+                  ? "border-destructive ring-destructive ring-2"
+                  : ""
+              }
+            />
+            {form.formState.errors.entryPoint && (
+              <p className="text-sm text-destructive mt-1">
+                {form.formState.errors.entryPoint.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="access" className="pb-2">
+              Access
+            </Label>
+            <Input
+              id="access"
+              {...form.register("access")}
+              placeholder="How to access"
+              className={
+                form.formState.errors.access
+                  ? "border-destructive ring-destructive ring-2"
+                  : ""
+              }
+            />
+            {form.formState.errors.access && (
+              <p className="text-sm text-destructive mt-1">
+                {form.formState.errors.access.message}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Save Button - Only show when required fields are filled */}
+      {(() => {
+        const name = form.watch("name");
+        const type = form.watch("type");
+        const showSaveButton = Boolean(name && name.trim() && type);
+
+        return showSaveButton ? (
+          <div className="pt-4 border-t">
+            <Button
+              type="submit"
+              className="bg-success hover:bg-success/90 text-white"
+              disabled={isPending}
+            >
+              {isPending ? "Saving Location..." : "Save Location"}
+            </Button>
+          </div>
+        ) : null;
+      })()}
+    </form>
+  );
 }

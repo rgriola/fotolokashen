@@ -41,8 +41,11 @@ yarn-error.log*
 *.env.*
 !.env.example
 
+
+
 # media
 *.psd
+/art/
 
 # no sql files
 *.sql

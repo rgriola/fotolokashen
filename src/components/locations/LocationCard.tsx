@@ -3,568 +3,645 @@
 import Image from "next/image";
 import { Carousel } from "@/components/ui/Carousel";
 import Link from "next/link";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
-    MapPin, Star, Edit, Trash2, Share2, Calendar, Camera,
-    Clock, DollarSign, Phone, User, AlertCircle, Key,
-    Navigation, MapPinned, Shield, Heart, Globe, Lock, Users, Bookmark
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
+  MapPin,
+  Star,
+  Edit,
+  Trash2,
+  Share2,
+  Calendar,
+  Camera,
+  Clock,
+  DollarSign,
+  Phone,
+  User,
+  AlertCircle,
+  Key,
+  Navigation,
+  MapPinned,
+  Shield,
+  Heart,
+  Globe,
+  Lock,
+  Users,
+  Bookmark,
 } from "lucide-react";
 import type { Location } from "@/types/location";
 import { useState, memo } from "react";
 import { useRouter } from "next/navigation";
 import { getPhotoUrl, getOptimizedAvatarUrl } from "@/lib/storage";
-import { TYPE_COLOR_MAP } from "@/lib/location-constants";
+import { TYPE_COLOR_MAP } from "@/lib/map-icon-colors";
 
 // Get Google Maps API key for static images
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
 interface LocationCardProps {
-    location: Location;
-    onEdit?: (location: Location) => void;
-    onDelete?: (id: number) => void;
-    onShare?: (location: Location) => void;
-    onClick?: (location: Location) => void;
-    canEdit?: boolean;
-    isFirstCard?: boolean;
-    source?: 'user' | 'friend' | 'public';
+  location: Location;
+  onEdit?: (location: Location) => void;
+  onDelete?: (id: number) => void;
+  onShare?: (location: Location) => void;
+  onClick?: (location: Location) => void;
+  canEdit?: boolean;
+  isFirstCard?: boolean;
+  source?: "user" | "friend" | "public";
 }
 
 export const LocationCard = memo(function LocationCard({
-    location,
-    onEdit,
-    onDelete,
-    onShare,
-    onClick,
-    canEdit = false,
-    isFirstCard = false,
-    source = 'user',
+  location,
+  onEdit,
+  onDelete,
+  onShare,
+  onClick,
+  canEdit = false,
+  isFirstCard = false,
+  source = "user",
 }: LocationCardProps) {
-    // Removed unused setPhotoError
-    const [mapError, setMapError] = useState(false);
-    const [showAllData, setShowAllData] = useState(false);
-    const router = useRouter();
-    const userSave = location.userSave;
+  // Removed unused setPhotoError
+  const [mapError, setMapError] = useState(false);
+  const [showAllData, setShowAllData] = useState(false);
+  const router = useRouter();
+  const userSave = location.userSave;
 
-    // Helper function to remove country from address
-    const removeCountryFromAddress = (address: string | null): string => {
-        if (!address) return 'No address available';
-        
-        // Remove common country names and variations
-        return address
-            .replace(/, USA$/, '')
-            .replace(/, United States$/, '')
-            .replace(/, US$/, '')
-            .replace(/, United States of America$/, '')
-            .trim();
-    };
+  // Helper function to remove country from address
+  const removeCountryFromAddress = (address: string | null): string => {
+    if (!address) return "No address available";
 
-    // Helper function to get visibility icon
-    const getVisibilityIcon = () => {
-        const visibility = userSave?.visibility || 'public';
-        switch (visibility) {
-            case 'public':
-                return <Globe className="w-3 h-3 ml-1.5" />;
-            case 'private':
-                return <Lock className="w-3 h-3 ml-1.5" />;
-            case 'followers':
-                return <Users className="w-3 h-3 ml-1.5" />;
-            default:
-                return <Globe className="w-3 h-3 ml-1.5" />;
-        }
-    };
+    // Remove common country names and variations
+    return address
+      .replace(/, USA$/, "")
+      .replace(/, United States$/, "")
+      .replace(/, US$/, "")
+      .replace(/, United States of America$/, "")
+      .trim();
+  };
 
-
-    // Gather all photo URLs for carousel
-    const photoUrls: string[] = [];
-    if (location.photos && location.photos.length > 0) {
-        for (const p of location.photos) {
-            if (p.imagekitFilePath) photoUrls.push(getPhotoUrl(p.imagekitFilePath, 'card'));
-        }
+  // Helper function to get visibility icon
+  const getVisibilityIcon = () => {
+    const visibility = userSave?.visibility || "public";
+    switch (visibility) {
+      case "public":
+        return <Globe className="w-3 h-3 ml-1.5" />;
+      case "private":
+        return <Lock className="w-3 h-3 ml-1.5" />;
+      case "followers":
+        return <Users className="w-3 h-3 ml-1.5" />;
+      default:
+        return <Globe className="w-3 h-3 ml-1.5" />;
     }
-    if (location.photoUrls && location.photoUrls.length > 0) {
-        for (const url of location.photoUrls) {
-            if (url) photoUrls.push(url);
-        }
+  };
+
+  // Gather all photo URLs for carousel
+  const photoUrls: string[] = [];
+  if (location.photos && location.photos.length > 0) {
+    for (const p of location.photos) {
+      if (p.imagekitFilePath)
+        photoUrls.push(getPhotoUrl(p.imagekitFilePath, "card"));
     }
-    // Remove duplicates
-    const uniquePhotoUrls = Array.from(new Set(photoUrls));
+  }
+  if (location.photoUrls && location.photoUrls.length > 0) {
+    for (const url of location.photoUrls) {
+      if (url) photoUrls.push(url);
+    }
+  }
+  // Remove duplicates
+  const uniquePhotoUrls = Array.from(new Set(photoUrls));
 
-    // Fallback map image
-    const fallbackMapImage = `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${location.lat},${location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
+  // Fallback map image
+  const fallbackMapImage = `https://maps.googleapis.com/maps/api/staticmap?center=${location.lat},${location.lng}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${location.lat},${location.lng}&key=${GOOGLE_MAPS_API_KEY}`;
 
-    // Get type color for the marker
-    const typeColor = userSave?.color || (location.type ? TYPE_COLOR_MAP[location.type] || "#64748B" : "#64748B");
+  // Get type color for the marker
+  const typeColor =
+    userSave?.color ||
+    (location.type ? TYPE_COLOR_MAP[location.type] || "#64748B" : "#64748B");
 
-    // Generate Google Maps Static API URL as fallback
-    // Docs: https://developers.google.com/maps/documentation/maps-static
-    // Removed unused mapImageUrl
+  // Generate Google Maps Static API URL as fallback
+  // Docs: https://developers.google.com/maps/documentation/maps-static
+  // Removed unused mapImageUrl
 
-    // Navigate to map view at this location or open modal
-    const handleCardClick = (e: React.MouseEvent) => {
-        const target = e.target as HTMLElement;
-        if (target.closest('button') || target.closest('a')) {
-            return;
-        }
-        // Use onClick prop if provided (for modal), otherwise navigate to map
-        if (onClick) {
-            onClick(location);
-        } else {
-            router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17`);
-        }
-    };
+  // Navigate to map view at this location or open modal
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button") || target.closest("a")) {
+      return;
+    }
+    // Use onClick prop if provided (for modal), otherwise navigate to map
+    if (onClick) {
+      onClick(location);
+    } else {
+      router.push(`/map?lat=${location.lat}&lng=${location.lng}&zoom=17`);
+    }
+  };
 
-    return (
-        <Card
-            {...(isFirstCard && { 'data-tour': 'location-card' })}
-            className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary/50 bg-white hover:bg-accent/50 p-0"
-            onClick={handleCardClick}
-        >
-            {/* Image/Carousel Section */}
-            <div className="relative h-56 bg-linear-to-br from-muted to-muted/50 overflow-hidden">
-                {uniquePhotoUrls.length > 0 ? (
-                    <Carousel
-                        images={uniquePhotoUrls}
-                        alt={location.name}
-                        className="h-full w-full"
-                    />
-                ) : !mapError ? (
-                    <Image
-                        src={fallbackMapImage}
-                        alt={`Map of ${location.name}`}
-                        fill
-                        className="object-contain group-hover:scale-105 transition-transform duration-300"
-                        onError={() => {
-                            setMapError(true);
-                        }}
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/10 to-primary/5">
-                        <Camera className="w-20 h-20 text-muted-foreground/30" />
-                    </div>
-                )}
+  return (
+    <Card
+      {...(isFirstCard && { "data-tour": "location-card" })}
+      className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group border-2 hover:border-primary/50 bg-white hover:bg-accent/50 p-0"
+      onClick={handleCardClick}
+    >
+      {/* Image/Carousel Section */}
+      <div className="relative h-56 bg-linear-to-br from-muted to-muted/50 overflow-hidden">
+        {uniquePhotoUrls.length > 0 ? (
+          <Carousel
+            images={uniquePhotoUrls}
+            alt={location.name}
+            className="h-full w-full"
+          />
+        ) : !mapError ? (
+          <Image
+            src={fallbackMapImage}
+            alt={`Map of ${location.name}`}
+            fill
+            className="object-contain group-hover:scale-105 transition-transform duration-300"
+            onError={() => {
+              setMapError(true);
+            }}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/10 to-primary/5">
+            <Camera className="w-20 h-20 text-muted-foreground/30" />
+          </div>
+        )}
 
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
 
-                {/* Action Buttons - Top Left */}
-                <div className="absolute top-2 left-2 flex gap-1.5 z-10">
-                    {/* Edit Button - Always visible, disabled for non-user locations */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                data-tour="location-edit"
-                                variant="secondary"
-                                size="icon"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (source === 'user' && canEdit) {
-                                        onEdit?.(location);
-                                    }
-                                }}
-                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                                disabled={source !== 'user' || !canEdit}
-                            >
-                                <Edit className="w-3.5 h-3.5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="bg-foreground text-background border-border">
-                            <p>{source !== 'user' ? 'You cannot edit this location' : 'Edit location'}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                    
-                    {/* Quick-Save Button - Only for public/friend locations (DISABLED - Future Feature) */}
-                    {source !== 'user' && (
-                        <Button
-                            variant="secondary"
-                            size="icon"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                            }}
-                            className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                            title="Quick-save feature coming soon"
-                            disabled={true}
-                        >
-                            <Bookmark className="w-3.5 h-3.5" />
-                        </Button>
-                    )}
+        {/* Action Buttons - Top Left */}
+        <div className="absolute top-2 left-2 flex gap-1.5 z-10">
+          {/* Edit Button - Always visible, disabled for non-user locations */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                data-tour="location-edit"
+                variant="secondary"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (source === "user" && canEdit) {
+                    onEdit?.(location);
+                  }
+                }}
+                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                disabled={source !== "user" || !canEdit}
+              >
+                <Edit className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="bottom"
+              className="bg-foreground text-background border-border"
+            >
+              <p>
+                {source !== "user"
+                  ? "You cannot edit this location"
+                  : "Edit location"}
+              </p>
+            </TooltipContent>
+          </Tooltip>
 
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                {...(isFirstCard && { 'data-tour': 'location-share' })}
-                                variant="secondary"
-                                size="icon"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onShare?.(location);
-                                }}
-                                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
-                            >
-                                <Share2 className="w-3.5 h-3.5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="bg-foreground text-background border-border">
-                            <p>Share location</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </div>
+          {/* Quick-Save Button - Only for public/friend locations (DISABLED - Future Feature) */}
+          {source !== "user" && (
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+              className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+              title="Quick-save feature coming soon"
+              disabled={true}
+            >
+              <Bookmark className="w-3.5 h-3.5" />
+            </Button>
+          )}
 
-                {/* Top Badges */}
-                <div className="absolute top-2 right-2 flex items-start justify-end gap-2">
-                    {/* Source Badge - Public/Friend */}
-                    {source !== 'user' && (
-                        <Badge
-                            className={`shadow-lg font-semibold ${
-                                source === 'public' 
-                                    ? 'bg-social hover:bg-social/90' 
-                                    : 'bg-primary hover:bg-primary/90'
-                            } text-white border-none`}
-                        >
-                            {source === 'public' ? 'Public' : 'Friend'}
-                        </Badge>
-                    )}
-                    {location.type && (
-                        <Badge
-                            className="shadow-lg font-semibold flex items-center gap-1"
-                            style={{
-                                backgroundColor: typeColor,
-                                color: 'white',
-                                borderColor: typeColor,
-                            }}
-                        >
-                            <span>{location.type}</span>
-                            {getVisibilityIcon()}
-                        </Badge>
-                    )}
-                    {userSave?.isFavorite && (
-                        <div className="bg-destructive text-white p-2 rounded-full shadow-lg">
-                            <Heart className="w-4 h-4 fill-current" />
-                        </div>
-                    )}
-                </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                {...(isFirstCard && { "data-tour": "location-share" })}
+                variant="secondary"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShare?.(location);
+                }}
+                className="h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent
+              side="bottom"
+              className="bg-foreground text-background border-border"
+            >
+              <p>Share location</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
 
-                {/* Photo Count & Status Badges - Bottom Right */}
-                <div className="absolute bottom-3 right-3 flex flex-col gap-2 items-end">
-                    {uniquePhotoUrls.length === 0 && !mapError && (
-                        <div className="bg-primary/100/90 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
-                            <MapPinned className="w-3 h-3" />
-                            Map View
-                        </div>
-                    )}
-                    {((location.photos && location.photos.length > 1) || (location.photoUrls && location.photoUrls.length > 1)) && (
-                        <div className="bg-black/70 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                            <Camera className="w-3 h-3" />
-                            {location.photos?.length || location.photoUrls?.length || 0}
-                        </div>
-                    )}
-                    {location.isPermanent && (
-                        <Badge className="bg-success text-white border-none shadow-lg">
-                            Permanent
-                        </Badge>
-                    )}
-                    {location.permitRequired && (
-                        <Badge className="bg-orange-500 text-white border-none shadow-lg">
-                            <Shield className="w-3 h-3 mr-1" />
-                            Permit
-                        </Badge>
-                    )}
-                </div>
-
-                {/* GPS Coordinates - Above Location Name */}
-                <div className="absolute bottom-14 left-3 right-3">
-                    <div className="text-xs text-white/90 flex items-center gap-1.5 drop-shadow-lg">
-                        <Navigation className="w-3 h-3 text-white" />
-                        <span>{location.lat.toFixed(3)}, {location.lng.toFixed(3)}</span>
-                    </div>
-                </div>
-
-                {/* Location Name */}
-                <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="font-bold text-lg text-white drop-shadow-lg line-clamp-2">
-                        {location.name}
-                    </h3>
-                </div>
+        {/* Top Badges */}
+        <div className="absolute top-2 right-2 flex items-start justify-end gap-2">
+          {/* Source Badge - Public/Friend */}
+          {source !== "user" && (
+            <Badge
+              className={`shadow-lg font-semibold ${
+                source === "public"
+                  ? "bg-social hover:bg-social/90"
+                  : "bg-primary hover:bg-primary/90"
+              } text-white border-none`}
+            >
+              {source === "public" ? "Public" : "Friend"}
+            </Badge>
+          )}
+          {location.type && (
+            <Badge
+              className="shadow-lg font-semibold flex items-center gap-1"
+              style={{
+                backgroundColor: typeColor,
+                color: "white",
+                borderColor: typeColor,
+              }}
+            >
+              <span>{location.type}</span>
+              {getVisibilityIcon()}
+            </Badge>
+          )}
+          {userSave?.isFavorite && (
+            <div className="bg-destructive text-white p-2 rounded-full shadow-lg">
+              <Heart className="w-4 h-4 fill-current" />
             </div>
+          )}
+        </div>
 
-            <CardHeader className="pt-0 pb-3">
-                {/* Main Address */}
-                <div className="text-sm text-black flex items-start gap-2 mb-3">
-                    <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-black" />
-                    <div className="flex-1">
-                        {/* Street Address - Line 1 */}
-                        {(location.street || location.number) ? (
-                            <div className="line-clamp-1">
-                                {location.number && `${location.number} `}{location.street}
-                            </div>
-                        ) : (
-                            <div className="line-clamp-1">
-                                {removeCountryFromAddress(location.address)}
-                            </div>
-                        )}
-                        
-                        {/* City, State ZIP - Line 2 */}
-                        {(location.city || location.state || location.zipcode) && (
-                            <div className="text-muted-foreground">
-                                {location.city}{location.city && location.state && ', '}{location.state} {location.zipcode}
-                            </div>
-                        )}
+        {/* Photo Count & Status Badges - Bottom Right */}
+        <div className="absolute bottom-3 right-3 flex flex-col gap-2 items-end">
+          {uniquePhotoUrls.length === 0 && !mapError && (
+            <div className="bg-primary/100/90 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
+              <MapPinned className="w-3 h-3" />
+              Map View
+            </div>
+          )}
+          {((location.photos && location.photos.length > 1) ||
+            (location.photoUrls && location.photoUrls.length > 1)) && (
+            <div className="bg-black/70 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+              <Camera className="w-3 h-3" />
+              {location.photos?.length || location.photoUrls?.length || 0}
+            </div>
+          )}
+          {location.isPermanent && (
+            <Badge className="bg-success text-white border-none shadow-lg">
+              Permanent
+            </Badge>
+          )}
+          {location.permitRequired && (
+            <Badge className="bg-orange-500 text-white border-none shadow-lg">
+              <Shield className="w-3 h-3 mr-1" />
+              Permit
+            </Badge>
+          )}
+        </div>
+
+        {/* GPS Coordinates - Above Location Name */}
+        <div className="absolute bottom-14 left-3 right-3">
+          <div className="text-xs text-white/90 flex items-center gap-1.5 drop-shadow-lg">
+            <Navigation className="w-3 h-3 text-white" />
+            <span>
+              {location.lat.toFixed(3)}, {location.lng.toFixed(3)}
+            </span>
+          </div>
+        </div>
+
+        {/* Location Name */}
+        <div className="absolute bottom-3 left-3 right-3">
+          <h3 className="font-bold text-lg text-white drop-shadow-lg line-clamp-2">
+            {location.name}
+          </h3>
+        </div>
+      </div>
+
+      <CardHeader className="pt-0 pb-3">
+        {/* Main Address */}
+        <div className="text-sm text-black flex items-start gap-2 mb-3">
+          <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-black" />
+          <div className="flex-1">
+            {/* Street Address - Line 1 */}
+            {location.street || location.number ? (
+              <div className="line-clamp-1">
+                {location.number && `${location.number} `}
+                {location.street}
+              </div>
+            ) : (
+              <div className="line-clamp-1">
+                {removeCountryFromAddress(location.address)}
+              </div>
+            )}
+
+            {/* City, State ZIP - Line 2 */}
+            {(location.city || location.state || location.zipcode) && (
+              <div className="text-muted-foreground">
+                {location.city}
+                {location.city && location.state && ", "}
+                {location.state} {location.zipcode}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Owner Info - For Public/Friend Locations */}
+        {source !== "user" && location.userSave?.user && (
+          <Link
+            href={`/@${location.userSave.user.username}`}
+            className="flex items-center gap-1.5 p-2 rounded-md hover:bg-accent/50 transition-colors border border-border/50"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Avatar className="h-4 w-4">
+              {location.userSave.user.avatar ? (
+                <AvatarImage
+                  src={
+                    getOptimizedAvatarUrl(location.userSave.user.avatar, 32) ||
+                    location.userSave.user.avatar
+                  }
+                  alt={location.userSave.user.username}
+                />
+              ) : null}
+              <AvatarFallback className="text-[8px]">
+                {location.userSave.user.username.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-xs text-muted-foreground">
+              {location.userSave.user.firstName &&
+              location.userSave.user.lastName
+                ? `${location.userSave.user.firstName} ${location.userSave.user.lastName}`
+                : `@${location.userSave.user.username}`}
+            </span>
+          </Link>
+        )}
+      </CardHeader>
+
+      <CardContent className="space-y-3 pt-0 hidden">
+        {/* Hidden content below coordinates */}
+        {/* Production Notes */}
+        {location.productionNotes && (
+          <div className="text-xs bg-primary/10 border border-primary/20 p-2 rounded-md">
+            <p className="font-semibold text-black mb-1">
+              📝 Production Notes:
+            </p>
+            <p className="text-black">{location.productionNotes}</p>
+          </div>
+        )}
+
+        {/* Quick Info Grid */}
+        <div className="grid grid-cols-2 gap-2 text-xs text-black">
+          {location.indoorOutdoor && (
+            <div className="bg-muted/50 px-2 py-1.5 rounded flex items-center gap-1">
+              <MapPinned className="w-3 h-3 text-black" />
+              <span className="font-medium capitalize">
+                {location.indoorOutdoor}
+              </span>
+            </div>
+          )}
+          {location.parking && (
+            <div
+              className="bg-muted/50 px-2 py-1.5 rounded truncate flex items-center gap-1"
+              title={location.parking}
+            >
+              🅿️ <span>{location.parking}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Access & Entry Point */}
+        {location.access && (
+          <div className="text-xs bg-muted/50 px-2 py-1.5 rounded flex items-start gap-2">
+            <Key className="w-3 h-3 mt-0.5 shrink-0 text-black" />
+            <div>
+              <p className="font-medium text-black">Access:</p>
+              <p className="text-black">{location.access}</p>
+            </div>
+          </div>
+        )}
+
+        {location.entryPoint && (
+          <div className="text-xs bg-muted/50 px-2 py-1.5 rounded flex items-start gap-2">
+            <MapPin className="w-3 h-3 mt-0.5 shrink-0 text-black" />
+            <div>
+              <p className="font-medium text-black">Entry Point:</p>
+              <p className="text-black">{location.entryPoint}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Expandable Section for Additional Data */}
+        {(location.bestTimeOfDay ||
+          location.operatingHours ||
+          location.restrictions ||
+          location.contactPerson ||
+          location.contactPhone ||
+          location.permitCost) && (
+          <div className="border-t pt-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs text-black"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowAllData(!showAllData);
+              }}
+            >
+              {showAllData ? "▼ Hide" : "▶ Show"} Additional Details
+            </Button>
+
+            {showAllData && (
+              <div className="mt-3 space-y-2 text-xs">
+                {location.bestTimeOfDay && (
+                  <div className="flex items-start gap-2 bg-muted/30 p-2 rounded">
+                    <Clock className="w-3 h-3 mt-0.5 shrink-0 text-black" />
+                    <div>
+                      <p className="font-medium text-black">Best Time:</p>
+                      <p className="text-black">{location.bestTimeOfDay}</p>
                     </div>
-                </div>
-                
-                {/* Owner Info - For Public/Friend Locations */}
-                {source !== 'user' && location.userSave?.user && (
-                    <Link 
-                        href={`/@${location.userSave.user.username}`}
-                        className="flex items-center gap-1.5 p-2 rounded-md hover:bg-accent/50 transition-colors border border-border/50"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <Avatar className="h-4 w-4">
-                            {location.userSave.user.avatar ? (
-                                <AvatarImage
-                                    src={getOptimizedAvatarUrl(location.userSave.user.avatar, 32) || location.userSave.user.avatar}
-                                    alt={location.userSave.user.username}
-                                />
-                            ) : null}
-                            <AvatarFallback className="text-[8px]">
-                                {location.userSave.user.username.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground">
-                            {location.userSave.user.firstName && location.userSave.user.lastName 
-                                ? `${location.userSave.user.firstName} ${location.userSave.user.lastName}`
-                                : `@${location.userSave.user.username}`
-                            }
-                        </span>
-                    </Link>
-                )}
-            </CardHeader>
-
-            <CardContent className="space-y-3 pt-0 hidden">{/* Hidden content below coordinates */}
-                {/* Production Notes */}
-                {location.productionNotes && (
-                    <div className="text-xs bg-primary/10 border border-primary/20 p-2 rounded-md">
-                        <p className="font-semibold text-black mb-1">📝 Production Notes:</p>
-                        <p className="text-black">{location.productionNotes}</p>
-                    </div>
-                )}
-
-                {/* Quick Info Grid */}
-                <div className="grid grid-cols-2 gap-2 text-xs text-black">
-                    {location.indoorOutdoor && (
-                        <div className="bg-muted/50 px-2 py-1.5 rounded flex items-center gap-1">
-                            <MapPinned className="w-3 h-3 text-black" />
-                            <span className="font-medium capitalize">{location.indoorOutdoor}</span>
-                        </div>
-                    )}
-                    {location.parking && (
-                        <div className="bg-muted/50 px-2 py-1.5 rounded truncate flex items-center gap-1" title={location.parking}>
-                            🅿️ <span>{location.parking}</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Access & Entry Point */}
-                {location.access && (
-                    <div className="text-xs bg-muted/50 px-2 py-1.5 rounded flex items-start gap-2">
-                        <Key className="w-3 h-3 mt-0.5 shrink-0 text-black" />
-                        <div>
-                            <p className="font-medium text-black">Access:</p>
-                            <p className="text-black">{location.access}</p>
-                        </div>
-                    </div>
-                )}
-
-                {location.entryPoint && (
-                    <div className="text-xs bg-muted/50 px-2 py-1.5 rounded flex items-start gap-2">
-                        <MapPin className="w-3 h-3 mt-0.5 shrink-0 text-black" />
-                        <div>
-                            <p className="font-medium text-black">Entry Point:</p>
-                            <p className="text-black">{location.entryPoint}</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Expandable Section for Additional Data */}
-                {(location.bestTimeOfDay || location.operatingHours || location.restrictions ||
-                    location.contactPerson || location.contactPhone || location.permitCost) && (
-                        <div className="border-t pt-3">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full text-xs text-black"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowAllData(!showAllData);
-                                }}
-                            >
-                                {showAllData ? '▼ Hide' : '▶ Show'} Additional Details
-                            </Button>
-
-                            {showAllData && (
-                                <div className="mt-3 space-y-2 text-xs">
-                                    {location.bestTimeOfDay && (
-                                        <div className="flex items-start gap-2 bg-muted/30 p-2 rounded">
-                                            <Clock className="w-3 h-3 mt-0.5 shrink-0 text-black" />
-                                            <div>
-                                                <p className="font-medium text-black">Best Time:</p>
-                                                <p className="text-black">{location.bestTimeOfDay}</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {location.operatingHours && (
-                                        <div className="flex items-start gap-2 bg-muted/30 p-2 rounded">
-                                            <Clock className="w-3 h-3 mt-0.5 shrink-0 text-black" />
-                                            <div>
-                                                <p className="font-medium text-black">Operating Hours:</p>
-                                                <p className="text-black">{location.operatingHours}</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {location.restrictions && (
-                                        <div className="flex items-start gap-2 bg-warning/10 border border-warning/20 p-2 rounded">
-                                            <AlertCircle className="w-3 h-3 mt-0.5 shrink-0 text-black" />
-                                            <div>
-                                                <p className="font-medium text-black">Restrictions:</p>
-                                                <p className="text-black">{location.restrictions}</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {location.contactPerson && (
-                                        <div className="flex items-start gap-2 bg-muted/30 p-2 rounded">
-                                            <User className="w-3 h-3 mt-0.5 shrink-0 text-black" />
-                                            <div>
-                                                <p className="font-medium text-black">Contact:</p>
-                                                <p className="text-black">{location.contactPerson}</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {location.contactPhone && (
-                                        <div className="flex items-start gap-2 bg-muted/30 p-2 rounded">
-                                            <Phone className="w-3 h-3 mt-0.5 shrink-0 text-black" />
-                                            <div>
-                                                <p className="font-medium text-black">Phone:</p>
-                                                <p className="text-black">{location.contactPhone}</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {location.permitCost !== null && location.permitCost !== undefined && (
-                                        <div className="flex items-start gap-2 bg-success/10 border border-success/20 p-2 rounded">
-                                            <DollarSign className="w-3 h-3 mt-0.5 shrink-0 text-black" />
-                                            <div>
-                                                <p className="font-medium text-black">Permit Cost:</p>
-                                                <p className="text-black">
-                                                    {location.permitCost === 0 ? 'Free' : `$${location.permitCost}`}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                {/* Tags */}
-                {userSave?.tags && userSave.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 pt-2">
-                        {userSave.tags.slice(0, 6).map((tag: string, index: number) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                                #{tag}
-                            </Badge>
-                        ))}
-                        {userSave.tags.length > 6 && (
-                            <Badge variant="secondary" className="text-xs font-semibold">
-                                +{userSave.tags.length - 6}
-                            </Badge>
-                        )}
-                    </div>
+                  </div>
                 )}
 
-                {/* Dates Section */}
-                <div className="flex flex-col gap-1 text-xs text-black border-t pt-3">
-                    {userSave?.visitedAt && (
-                        <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3 h-3 text-black" />
-                            <span>Visited: {new Date(userSave.visitedAt).toLocaleDateString()}</span>
-                        </div>
-                    )}
-                    {userSave?.savedAt && (
-                        <div className="flex items-center gap-1.5">
-                            <Star className="w-3 h-3 text-black" />
-                            <span>Saved: {new Date(userSave.savedAt).toLocaleDateString()}</span>
-                        </div>
-                    )}
-                    <div className="flex items-center gap-1.5">
-                        <Clock className="w-3 h-3 text-black" />
-                        <span>Created: {new Date(location.createdAt).toLocaleDateString()}</span>
+                {location.operatingHours && (
+                  <div className="flex items-start gap-2 bg-muted/30 p-2 rounded">
+                    <Clock className="w-3 h-3 mt-0.5 shrink-0 text-black" />
+                    <div>
+                      <p className="font-medium text-black">Operating Hours:</p>
+                      <p className="text-black">{location.operatingHours}</p>
                     </div>
-                    {location.lastModifiedAt && (
-                        <div className="flex items-center gap-1.5">
-                            <Clock className="w-3 h-3 text-black" />
-                            <span>Modified: {new Date(location.lastModifiedAt).toLocaleDateString()}</span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Debug Info (IDs) */}
-                <div className="text-xs text-black/50 font-mono bg-muted/20 px-2 py-1 rounded">
-                    ID: {location.id} | Place: {location.placeId.slice(0, 8)}...
-                </div>
-            </CardContent>
-
-            <CardFooter className="hidden">{/* Action buttons moved to CardHeader */}
-                {canEdit && (
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit?.(location);
-                        }}
-                        className="flex-1"
-                    >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                    </Button>
+                  </div>
                 )}
 
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onShare?.(location);
-                    }}
-                    className={canEdit ? "" : "flex-1"}
-                >
-                    <Share2 className="w-4 h-4 mr-1" />
-                    Share
-                </Button>
+                {location.restrictions && (
+                  <div className="flex items-start gap-2 bg-warning/10 border border-warning/20 p-2 rounded">
+                    <AlertCircle className="w-3 h-3 mt-0.5 shrink-0 text-black" />
+                    <div>
+                      <p className="font-medium text-black">Restrictions:</p>
+                      <p className="text-black">{location.restrictions}</p>
+                    </div>
+                  </div>
+                )}
 
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        if (source === 'user' && canEdit) {
-                            onDelete?.(userSave?.id || location.id);
-                        }
-                    }}
-                    className="text-destructive hover:bg-destructive hover:text-white"
-                    disabled={source !== 'user' || !canEdit}
-                    title={source !== 'user' ? 'You cannot delete this location' : 'Delete location'}
-                >
-                    <Trash2 className="w-4 h-4" />
-                </Button>
-            </CardFooter>
-        </Card>
-    );
+                {location.contactPerson && (
+                  <div className="flex items-start gap-2 bg-muted/30 p-2 rounded">
+                    <User className="w-3 h-3 mt-0.5 shrink-0 text-black" />
+                    <div>
+                      <p className="font-medium text-black">Contact:</p>
+                      <p className="text-black">{location.contactPerson}</p>
+                    </div>
+                  </div>
+                )}
+
+                {location.contactPhone && (
+                  <div className="flex items-start gap-2 bg-muted/30 p-2 rounded">
+                    <Phone className="w-3 h-3 mt-0.5 shrink-0 text-black" />
+                    <div>
+                      <p className="font-medium text-black">Phone:</p>
+                      <p className="text-black">{location.contactPhone}</p>
+                    </div>
+                  </div>
+                )}
+
+                {location.permitCost !== null &&
+                  location.permitCost !== undefined && (
+                    <div className="flex items-start gap-2 bg-success/10 border border-success/20 p-2 rounded">
+                      <DollarSign className="w-3 h-3 mt-0.5 shrink-0 text-black" />
+                      <div>
+                        <p className="font-medium text-black">Permit Cost:</p>
+                        <p className="text-black">
+                          {location.permitCost === 0
+                            ? "Free"
+                            : `$${location.permitCost}`}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tags */}
+        {userSave?.tags && userSave.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 pt-2">
+            {userSave.tags.slice(0, 6).map((tag: string, index: number) => (
+              <Badge key={index} variant="secondary" className="text-xs">
+                #{tag}
+              </Badge>
+            ))}
+            {userSave.tags.length > 6 && (
+              <Badge variant="secondary" className="text-xs font-semibold">
+                +{userSave.tags.length - 6}
+              </Badge>
+            )}
+          </div>
+        )}
+
+        {/* Dates Section */}
+        <div className="flex flex-col gap-1 text-xs text-black border-t pt-3">
+          {userSave?.visitedAt && (
+            <div className="flex items-center gap-1.5">
+              <Calendar className="w-3 h-3 text-black" />
+              <span>
+                Visited: {new Date(userSave.visitedAt).toLocaleDateString()}
+              </span>
+            </div>
+          )}
+          {userSave?.savedAt && (
+            <div className="flex items-center gap-1.5">
+              <Star className="w-3 h-3 text-black" />
+              <span>
+                Saved: {new Date(userSave.savedAt).toLocaleDateString()}
+              </span>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-3 h-3 text-black" />
+            <span>
+              Created: {new Date(location.createdAt).toLocaleDateString()}
+            </span>
+          </div>
+          {location.lastModifiedAt && (
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3 h-3 text-black" />
+              <span>
+                Modified:{" "}
+                {new Date(location.lastModifiedAt).toLocaleDateString()}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Debug Info (IDs) */}
+        <div className="text-xs text-black/50 font-mono bg-muted/20 px-2 py-1 rounded">
+          ID: {location.id} | Place: {location.placeId.slice(0, 8)}...
+        </div>
+      </CardContent>
+
+      <CardFooter className="hidden">
+        {/* Action buttons moved to CardHeader */}
+        {canEdit && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(location);
+            }}
+            className="flex-1"
+          >
+            <Edit className="w-4 h-4 mr-1" />
+            Edit
+          </Button>
+        )}
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            onShare?.(location);
+          }}
+          className={canEdit ? "" : "flex-1"}
+        >
+          <Share2 className="w-4 h-4 mr-1" />
+          Share
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (source === "user" && canEdit) {
+              onDelete?.(userSave?.id || location.id);
+            }
+          }}
+          className="text-destructive hover:bg-destructive hover:text-white"
+          disabled={source !== "user" || !canEdit}
+          title={
+            source !== "user"
+              ? "You cannot delete this location"
+              : "Delete location"
+          }
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </CardFooter>
+    </Card>
+  );
 });

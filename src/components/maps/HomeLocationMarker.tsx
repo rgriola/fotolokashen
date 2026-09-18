@@ -1,35 +1,58 @@
-'use client';
+"use client";
 
-import { OverlayView } from '@react-google-maps/api';
-import { Home } from 'lucide-react';
+import { OverlayView } from "@react-google-maps/api";
+import { HOME_MARKER_COLOR } from "@/lib/map-icon-colors";
 
 interface HomeLocationMarkerProps {
-    position: { lat: number; lng: number };
-    name?: string;
-    onClick?: () => void;
+  position: { lat: number; lng: number };
+  name?: string;
+  onClick?: () => void;
+  color?: string;
 }
 
-export function HomeLocationMarker({ position, onClick }: HomeLocationMarkerProps) {
-    const handleClick = (e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent map click event
-        onClick?.();
-    };
+export function HomeLocationMarker({
+  position,
+  onClick,
+  color = HOME_MARKER_COLOR,
+}: HomeLocationMarkerProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent map click event
+    onClick?.();
+  };
 
-    return (
-        <OverlayView
-            position={position}
-            mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+  return (
+    <OverlayView
+      position={position}
+      mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+    >
+      <div className="relative" style={{ transform: "translate(-50%, -100%)" }}>
+        <svg
+          onClick={handleClick}
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          className={`drop-shadow-md transition-transform ${
+            onClick ? "cursor-pointer hover:scale-110 active:scale-95" : ""
+          }`}
         >
-            <div className="relative" style={{ transform: 'translate(-50%, -100%)' }}>
-                {/* Perfect circle with centered house icon - now clickable */}
-                <div
-                    onClick={handleClick}
-                    className={`w-12 h-12 rounded-full bg-linear-to-br from-orange-500 to-orange-600 shadow-xl border-4 border-white dark:border-border flex items-center justify-center transition-all ${onClick ? 'cursor-pointer hover:scale-110 hover:shadow-2xl active:scale-95' : ''
-                        }`}
-                >
-                    <Home className="w-6 h-6 text-white" />
-                </div>
-            </div>
-        </OverlayView>
-    );
+          {/* House body filled with color; door path stays white so it stays visible against any fill */}
+          <path
+            d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+            fill={color}
+            stroke="#fff"
+            strokeWidth={1}
+          />
+          <path
+            d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"
+            fill="none"
+            stroke="#fff"
+            strokeWidth={1}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
+    </OverlayView>
+  );
 }

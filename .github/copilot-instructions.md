@@ -475,7 +475,6 @@ if (needsConversion(file)) {
 - `useGpsLocation` - Get browser geolocation
 - `useReverseGeocode` - Convert coordinates to address
 - `useImproveDescription` - AI description improvement
-- `useMarkerClusterer` - Google Maps marker clustering
 
 ## Database Schema (Key Models)
 
