@@ -3,12 +3,20 @@
     "apps": [],
     "details": [
       {
-        "appIDs": ["LW5P4PVL96.com.rodczaro.fotolokashen"],
-        "paths": ["/shared/*", "/app/auth-callback"]
+        "appIDs": [
+          "LW5P4PVL96.com.rodczaro.fotolokashen"
+        ],
+        "paths": [
+          "/shared/*",
+          "/*/locations/*",
+          "/app/auth-callback"
+        ]
       }
     ]
   },
   "webcredentials": {
-    "apps": ["LW5P4PVL96.com.rodczaro.fotolokashen"]
+    "apps": [
+      "LW5P4PVL96.com.rodczaro.fotolokashen"
+    ]
   }
 }

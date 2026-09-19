@@ -355,5 +355,12 @@ Title + Close button
 Image : 150 x 150 link to Map + Location Details
 
 Address - link to Map + Location Details
-GPS 
+GPS
 User (who created location) - Link to Profile
+
+> > > > > > Sept 19 2026
+> > > > > > I would like to improve the open graph. For sharing the main site Fotolokashen.com generally it works fine; The issue we need to resolve for sharing specific locations; The location link is included but I would also like the location image + address text to be included.
+
+Can you review what we have currently with open graph and evalute the next steps.
+
+when sharing a location I would like the image for the specfic location + Address + link to the fotolokashen location to be included.
