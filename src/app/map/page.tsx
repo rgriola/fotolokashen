@@ -416,6 +416,7 @@ function MapPageInner() {
                 onViewPublicDetails={handleViewPublicDetails}
                 onViewSavedDetails={handleViewSavedDetails}
                 onSaveLocation={handleSaveFromInfoWindow}
+                onClose={handleInfoWindowCloseWithPanel}
               />
             </InfoWindow>
           )}

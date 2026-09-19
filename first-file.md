@@ -347,3 +347,13 @@ GET
 200
 fotolokashen.com
 /api/locations/138/photos
+
+Panel : 200 x 350 (Container)
+
+Title + Close button
+
+Image : 150 x 150 link to Map + Location Details
+
+Address - link to Map + Location Details
+GPS 
+User (who created location) - Link to Profile

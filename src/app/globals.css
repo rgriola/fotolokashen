@@ -140,6 +140,11 @@
   }
 }
 
+/* Hide Google's default InfoWindow close button - MapInfoWindowContent renders its own, aligned with the title */
+.gm-style-iw-c button.gm-ui-hover-effect {
+  display: none !important;
+}
+
 /* Safe area insets for mobile browsers */
 @layer utilities {
   .pb-safe {

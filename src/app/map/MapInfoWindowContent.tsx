@@ -1,5 +1,8 @@
 "use client";
 
+import Image from "next/image";
+import { Navigation, X } from "lucide-react";
+import { getPhotoUrl } from "@/lib/storage";
 import type { MarkerData } from "./types";
 
 interface MapInfoWindowContentProps {
@@ -7,6 +10,21 @@ interface MapInfoWindowContentProps {
   onViewPublicDetails: () => void;
   onViewSavedDetails: () => void;
   onSaveLocation: () => void;
+  onClose: () => void;
+}
+
+const BLANK_PHOTO = "/blank-photo.png";
+
+function resolvePhotoUrl(marker: MarkerData): string {
+  if (marker.isPublic) {
+    const path = marker.publicLocationRaw?.photos?.[0]?.imagekitFilePath;
+    return path ? getPhotoUrl(path, "thumbnail") : BLANK_PHOTO;
+  }
+  if (marker.userSave) {
+    const path = marker.userSave.location?.photos?.[0]?.imagekitFilePath;
+    return path ? getPhotoUrl(path, "thumbnail") : BLANK_PHOTO;
+  }
+  return marker.data?.photoUrls?.[0] || BLANK_PHOTO;
 }
 
 export function MapInfoWindowContent({
@@ -14,77 +32,97 @@ export function MapInfoWindowContent({
   onViewPublicDetails,
   onViewSavedDetails,
   onSaveLocation,
+  onClose,
 }: MapInfoWindowContentProps) {
+  // Public locations and saved (non-public) locations both link to Map + Location Details
+  const isPublicWithDetails = marker.isPublic && !!marker.publicLocationRaw;
+  const isSavedWithDetails = !!marker.userSave && !marker.isPublic;
+  const hasDetails = isPublicWithDetails || isSavedWithDetails;
+  const handleViewDetails = isPublicWithDetails
+    ? onViewPublicDetails
+    : onViewSavedDetails;
+
+  const creatorUsername = marker.isPublic
+    ? marker.ownerUsername
+    : marker.userSave?.user?.username;
+
+  const photoUrl = resolvePhotoUrl(marker);
+  const photoAlt = marker.data?.name || "Location photo";
+
+  const photo = (
+    <Image
+      src={photoUrl}
+      alt={photoAlt}
+      width={150}
+      height={150}
+      className="w-37.5 h-37.5 rounded object-cover"
+    />
+  );
+
   return (
     <div className="space-y-2">
-      <h3 className="font-semibold text-lg">
-        {marker.data?.name || "Custom Location"}
-      </h3>
-      {marker.data?.address && (
-        <p className="text-sm text-muted-foreground">{marker.data.address}</p>
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="font-semibold text-base truncate">
+          {marker.data?.name || "Custom Location"}
+        </h3>
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="shrink-0 text-muted-foreground hover:text-foreground"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {hasDetails ? (
+        <button onClick={handleViewDetails} className="block">
+          {photo}
+        </button>
+      ) : (
+        photo
       )}
-      {/* Display coordinates */}
-      <p className="text-xs text-muted-foreground font-mono">
-        {marker.position.lat.toFixed(3)}, {marker.position.lng.toFixed(3)}
-      </p>
-      {/* Show owner for public locations */}
-      {marker.isPublic && marker.ownerUsername && (
-        <div className="flex items-center gap-2 mt-2 p-2 bg-social/10 rounded border border-social/20">
-          <div className="text-sm">
-            <span className="text-muted-foreground">Shared by </span>
-            <a
-              href={`/${marker.ownerUsername}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-social hover:text-social hover:underline"
-            >
-              @{marker.ownerUsername}
-            </a>
-          </div>
-        </div>
-      )}
-      {marker.data?.rating && (
-        <div className="flex items-center gap-1">
-          <svg
-            className="w-4 h-4 text-warning"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-          <span className="text-sm font-medium">{marker.data.rating}</span>
-        </div>
-      )}
-      <div className="flex gap-2 mt-2">
-        {/* View Details button for public locations */}
-        {marker.isPublic && marker.publicLocationRaw && (
+
+      {marker.data?.address &&
+        (hasDetails ? (
           <button
-            onClick={onViewPublicDetails}
-            className="px-3 py-1 bg-social text-white text-sm rounded hover:bg-social/90 transition-colors"
+            onClick={handleViewDetails}
+            className="text-sm text-muted-foreground text-left hover:underline"
           >
-            View Details
+            {marker.data.address}
           </button>
-        )}
-        {/* View button for saved locations (not public) */}
-        {marker.userSave && !marker.isPublic && (
-          <button
-            onClick={onViewSavedDetails}
-            className="px-3 py-1 bg-primary text-white text-sm rounded hover:bg-primary/90 transition-colors"
-          >
-            View
-          </button>
-        )}
-        {/* Save button for temporary markers */}
-        {marker.isTemporary && (
+        ) : (
+          <p className="text-sm text-muted-foreground">{marker.data.address}</p>
+        ))}
+
+      {/* GPS coordinates */}
+      <div className="flex items-center gap-1.5">
+        <Navigation className="w-3 h-3 text-muted-foreground shrink-0" />
+        <code className="text-xs text-muted-foreground font-mono">
+          {marker.position.lat.toFixed(3)}, {marker.position.lng.toFixed(3)}
+        </code>
+      </div>
+
+      {/* Location creator - link to profile */}
+      {creatorUsername && (
+        <a
+          href={`/${creatorUsername}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm font-medium text-social hover:underline"
+        >
+          @{creatorUsername}
+        </a>
+      )}
+
+      {/* Temporary (unsaved) markers have no location to link to yet */}
+      {marker.isTemporary && (
+        <div className="flex gap-2 mt-2">
           <button
             onClick={onSaveLocation}
             className="px-3 py-1 bg-primary text-white text-sm rounded hover:bg-primary/90 transition-colors"
           >
             Save
           </button>
-        )}
-        {/* Quick Save button - disabled (feature in development) */}
-        {marker.isTemporary && (
           <button
             disabled
             className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded cursor-not-allowed opacity-60"
@@ -92,8 +130,8 @@ export function MapInfoWindowContent({
           >
             Quick Save
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
