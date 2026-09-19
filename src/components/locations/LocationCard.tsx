@@ -44,7 +44,7 @@ import type { Location } from "@/types/location";
 import { useState, memo } from "react";
 import { useRouter } from "next/navigation";
 import { getPhotoUrl, getOptimizedAvatarUrl } from "@/lib/storage";
-import { TYPE_COLOR_MAP } from "@/lib/map-icon-colors";
+import { TYPE_COLOR_MAP, DEFAULT_MARKER_COLOR } from "@/lib/map-icon-colors";
 
 // Get Google Maps API key for static images
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
@@ -126,7 +126,9 @@ export const LocationCard = memo(function LocationCard({
   // Get type color for the marker
   const typeColor =
     userSave?.color ||
-    (location.type ? TYPE_COLOR_MAP[location.type] || "#64748B" : "#64748B");
+    (location.type
+      ? TYPE_COLOR_MAP[location.type] || DEFAULT_MARKER_COLOR
+      : DEFAULT_MARKER_COLOR);
 
   // Generate Google Maps Static API URL as fallback
   // Docs: https://developers.google.com/maps/documentation/maps-static

@@ -39,6 +39,7 @@ import { TOAST } from "@/lib/constants/messages";
 import { GpsPermissionDialog } from "@/components/maps/GpsPermissionDialog";
 import { GpsWelcomeBanner } from "@/components/maps/GpsWelcomeBanner";
 import { MapControls } from "@/components/maps/MapControls";
+import { DEFAULT_MARKER_COLOR } from "@/lib/map-icon-colors";
 import { FriendsDialog } from "@/components/map/FriendsDialog";
 import { ShareLocationDialog } from "@/components/dialogs/ShareLocationDialog";
 import { MapPin as MapPinIcon, X } from "lucide-react";
@@ -387,7 +388,7 @@ function MapPageInner() {
                 title={marker.data?.name || "Custom location"}
                 onClick={() => handleMarkerClick(marker)}
                 isTemporary={true}
-                color={marker.color || "#EF4444"}
+                color={marker.color || DEFAULT_MARKER_COLOR}
               />
             ))}
 
@@ -399,7 +400,7 @@ function MapPageInner() {
               .map((marker) => ({
                 position: marker.position,
                 title: marker.data?.name || "Saved location",
-                color: marker.color || "#EF4444",
+                color: marker.color || DEFAULT_MARKER_COLOR,
                 onClick: () => handleMarkerClick(marker),
               }))}
           />
