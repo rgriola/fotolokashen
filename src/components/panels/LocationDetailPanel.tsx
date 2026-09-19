@@ -680,7 +680,7 @@ export function LocationDetailPanel({
           {location.userSave?.savedAt && (
             <div className="space-y-2">
               <h3 className="font-semibold text-sm text-muted-foreground">
-                Saved to Collection
+                Saved
               </h3>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-muted-foreground" />

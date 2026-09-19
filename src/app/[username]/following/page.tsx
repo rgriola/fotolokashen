@@ -1,11 +1,11 @@
-import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
-import prisma from '@/lib/prisma';
-import { normalizeUsername } from '@/lib/username-utils';
-import { FollowersList } from '@/components/social';
-import { Button } from '@/components/ui/button';
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { normalizeUsername } from "@/lib/username-utils";
+import { FollowersList } from "@/components/social";
+import { Button } from "@/components/ui/button";
 
 interface FollowingPageProps {
   params: Promise<{ username: string }>;
@@ -13,11 +13,11 @@ interface FollowingPageProps {
 
 async function getUserByUsername(username: string) {
   return await prisma.user.findFirst({
-    where: { 
+    where: {
       username: {
         equals: normalizeUsername(username),
-        mode: 'insensitive'
-      }
+        mode: "insensitive",
+      },
     },
     select: {
       id: true,
@@ -29,19 +29,22 @@ async function getUserByUsername(username: string) {
   });
 }
 
-export async function generateMetadata({ params }: FollowingPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: FollowingPageProps): Promise<Metadata> {
   const { username } = await params;
   const user = await getUserByUsername(username);
 
   if (!user) {
     return {
-      title: 'User Not Found',
+      title: "User Not Found",
     };
   }
 
-  const displayName = user.firstName && user.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user.username;
+  const displayName =
+    user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user.username;
 
   return {
     title: `People ${displayName} (@${user.username}) follows - fotolokashen`,
@@ -57,9 +60,10 @@ export default async function FollowingPage({ params }: FollowingPageProps) {
     notFound();
   }
 
-  const displayName = user.firstName && user.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user.username;
+  const displayName =
+    user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user.username;
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,15 +80,12 @@ export default async function FollowingPage({ params }: FollowingPageProps) {
 
             <h1 className="text-3xl font-bold mb-2">Following</h1>
             <p className="text-muted-foreground">
-              People {displayName} follows
+              Friend {displayName} follows
             </p>
           </div>
 
           {/* Following List */}
-          <FollowersList 
-            username={user.username} 
-            type="following"
-          />
+          <FollowersList username={user.username} type="following" />
         </div>
       </div>
     </div>

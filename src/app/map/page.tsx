@@ -40,7 +40,6 @@ import { GpsPermissionDialog } from "@/components/maps/GpsPermissionDialog";
 import { GpsWelcomeBanner } from "@/components/maps/GpsWelcomeBanner";
 import { MapControls } from "@/components/maps/MapControls";
 import { DEFAULT_MARKER_COLOR } from "@/lib/map-icon-colors";
-import { FriendsDialog } from "@/components/map/FriendsDialog";
 import { ShareLocationDialog } from "@/components/dialogs/ShareLocationDialog";
 import { MapPin as MapPinIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -78,7 +77,6 @@ function MapPageInner() {
   );
   const [showSearchDialog, setShowSearchDialog] = useState(false);
   const [showLocationsPanel, setShowLocationsPanel] = useState(false);
-  const [showFriendsDialog, setShowFriendsDialog] = useState(false);
   const [shareLocation, setShareLocation] = useState<Location | null>(null);
 
   // --- Public Location Detail State ---
@@ -450,7 +448,7 @@ function MapPageInner() {
           onGpsToggle={handleGPSClick}
           onSearchClick={() => setShowSearchDialog(true)}
           hideMobileButton={isSidebarOpen}
-          onFriendsClick={() => setShowFriendsDialog(true)}
+          onFriendsClick={() => router.push("/search")}
           onViewAllClick={handleViewAll}
           onMyLocationsClick={() => setShowLocationsPanel(true)}
           onPublicToggle={(showPublic) => setShowPublicLocations(showPublic)}
@@ -467,7 +465,7 @@ function MapPageInner() {
             <div className="flex items-center justify-between p-3 border-b bg-muted">
               <h3 className="font-semibold text-lg flex items-center gap-2">
                 <MapPinIcon className="w-5 h-5" />
-                My Locations
+                My Spots
               </h3>
               <Button
                 variant="ghost"
@@ -812,12 +810,6 @@ function MapPageInner() {
           </div>
         </div>
       )}
-
-      {/* Friends Dialog */}
-      <FriendsDialog
-        open={showFriendsDialog}
-        onOpenChange={setShowFriendsDialog}
-      />
 
       {/* Share Location Dialog */}
       <ShareLocationDialog

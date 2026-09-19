@@ -145,6 +145,39 @@
   display: none !important;
 }
 
+/* Sonner toast colors per type - Sonner's own [data-sonner-toast][data-styled] rule sets a
+   flat --normal-bg for every type, and it outweighs single Tailwind classes in specificity.
+   The extra ancestor selector here out-specifies that rule so each type gets its own color. */
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] {
+  background: var(--success);
+  border-color: var(--success);
+  color: var(--success-foreground);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] {
+  background: var(--destructive);
+  border-color: var(--destructive);
+  color: var(--destructive-foreground);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="warning"] {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: var(--warning-foreground);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="info"] {
+  background: var(--info);
+  border-color: var(--info);
+  color: var(--info-foreground);
+}
+
+/* Center the title/description block inside each toast */
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-content] {
+  align-items: center;
+  text-align: center;
+}
+
 /* Safe area insets for mobile browsers */
 @layer utilities {
   .pb-safe {

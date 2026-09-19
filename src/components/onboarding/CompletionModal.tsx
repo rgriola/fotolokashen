@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useOnboarding } from './OnboardingProvider';
+import { useOnboarding } from "./OnboardingProvider";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export function CompletionModal() {
   const { showCompletionModal, dismissCompletion } = useOnboarding();
@@ -31,17 +31,19 @@ export function CompletionModal() {
           </DialogTitle>
           <div className="text-center pt-4 space-y-4">
             <p className="text-base">
-              You&apos;ve completed the map tour. Ready to start saving your favorite locations?
+              You&apos;ve completed the map tour. Ready to start saving your
+              favorite locations?
             </p>
-            
+
             {/* Info box about additional tours */}
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-left">
               <p className="text-sm font-medium text-primary mb-2">
                 ℹ️ More Tours Available
               </p>
               <p className="text-xs text-primary">
-                When you visit the <strong>Locations</strong> or <strong>People</strong> pages for the first time, 
-                you&apos;ll see additional guided tours to help you explore those features.
+                When you visit the <strong>Locations</strong> or{" "}
+                <strong>Friends</strong> pages for the first time, you&apos;ll
+                see additional guided tours to help you explore those features.
               </p>
             </div>
 

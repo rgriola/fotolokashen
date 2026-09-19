@@ -1,43 +1,49 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, Eye, Users, Lock, Globe, AlertCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { TOAST } from '@/lib/constants/messages';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Eye, Users, Lock, Globe, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 interface PrivacySettings {
-  profileVisibility: 'public' | 'followers' | 'private';
+  profileVisibility: "public" | "followers" | "private";
   showInSearch: boolean;
   showLocation: boolean;
-  showSavedLocations: 'public' | 'followers' | 'private';
+  showSavedLocations: "public" | "followers" | "private";
   allowFollowRequests: boolean;
 }
 
 export default function PrivacySettingsPanel() {
   const [settings, setSettings] = useState<PrivacySettings>({
-    profileVisibility: 'public',
+    profileVisibility: "public",
     showInSearch: true,
     showLocation: true,
-    showSavedLocations: 'public',
+    showSavedLocations: "public",
     allowFollowRequests: true,
   });
   const [originalSettings, setOriginalSettings] = useState<PrivacySettings>({
-    profileVisibility: 'public',
+    profileVisibility: "public",
     showInSearch: true,
     showLocation: true,
-    showSavedLocations: 'public',
+    showSavedLocations: "public",
     allowFollowRequests: true,
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -51,21 +57,21 @@ export default function PrivacySettingsPanel() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('/api/v1/users/me');
+      const response = await fetch("/api/v1/users/me");
       if (response.ok) {
         const data = await response.json();
         const fetchedSettings = {
-          profileVisibility: data.user.profileVisibility || 'public',
+          profileVisibility: data.user.profileVisibility || "public",
           showInSearch: data.user.showInSearch ?? true,
           showLocation: data.user.showLocation ?? true,
-          showSavedLocations: data.user.showSavedLocations || 'public',
+          showSavedLocations: data.user.showSavedLocations || "public",
           allowFollowRequests: data.user.allowFollowRequests ?? true,
         };
         setSettings(fetchedSettings);
         setOriginalSettings(fetchedSettings);
       }
     } catch (error) {
-      console.error('Failed to fetch privacy settings:', error);
+      console.error("Failed to fetch privacy settings:", error);
       toast.error(TOAST.PROFILE.PRIVACY_LOAD_FAILED);
     } finally {
       setIsLoading(false);
@@ -80,16 +86,22 @@ export default function PrivacySettingsPanel() {
       changedFields.push(`Profile Visibility: ${settings.profileVisibility}`);
     }
     if (settings.showInSearch !== originalSettings.showInSearch) {
-      changedFields.push(`Show in Search: ${settings.showInSearch ? 'Yes' : 'No'}`);
+      changedFields.push(
+        `Show in Search: ${settings.showInSearch ? "Yes" : "No"}`,
+      );
     }
     if (settings.showLocation !== originalSettings.showLocation) {
-      changedFields.push(`Show Location: ${settings.showLocation ? 'Yes' : 'No'}`);
+      changedFields.push(
+        `Show Location: ${settings.showLocation ? "Yes" : "No"}`,
+      );
     }
     if (settings.showSavedLocations !== originalSettings.showSavedLocations) {
       changedFields.push(`Saved Locations: ${settings.showSavedLocations}`);
     }
     if (settings.allowFollowRequests !== originalSettings.allowFollowRequests) {
-      changedFields.push(`Allow Follow Requests: ${settings.allowFollowRequests ? 'Yes' : 'No'}`);
+      changedFields.push(
+        `Allow Follow Requests: ${settings.allowFollowRequests ? "Yes" : "No"}`,
+      );
     }
 
     setChanges(changedFields);
@@ -110,9 +122,9 @@ export default function PrivacySettingsPanel() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const response = await fetch('/api/v1/users/me', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/v1/users/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       });
 
@@ -121,11 +133,15 @@ export default function PrivacySettingsPanel() {
         setOriginalSettings(settings);
       } else {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to update settings');
+        throw new Error(error.error || "Failed to update settings");
       }
     } catch (error) {
-      console.error('Failed to save privacy settings:', error);
-      toast.error(error instanceof Error ? error.message : TOAST.PROFILE.PRIVACY_SAVE_FAILED);
+      console.error("Failed to save privacy settings:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : TOAST.PROFILE.PRIVACY_SAVE_FAILED,
+      );
     } finally {
       setIsSaving(false);
     }
@@ -138,11 +154,11 @@ export default function PrivacySettingsPanel() {
 
   const getVisibilityIcon = (visibility: string) => {
     switch (visibility) {
-      case 'public':
+      case "public":
         return <Globe className="h-4 w-4" />;
-      case 'followers':
+      case "followers":
         return <Users className="h-4 w-4" />;
-      case 'private':
+      case "private":
         return <Lock className="h-4 w-4" />;
       default:
         return <Globe className="h-4 w-4" />;
@@ -151,14 +167,14 @@ export default function PrivacySettingsPanel() {
 
   const getVisibilityDescription = (visibility: string) => {
     switch (visibility) {
-      case 'public':
-        return 'Anyone can view';
-      case 'followers':
-        return 'Only followers can view';
-      case 'private':
-        return 'Only you can view';
+      case "public":
+        return "Anyone can view";
+      case "followers":
+        return "Only followers can view";
+      case "private":
+        return "Only you can view";
       default:
-        return '';
+        return "";
     }
   };
 
@@ -190,7 +206,7 @@ export default function PrivacySettingsPanel() {
             <Label htmlFor="profileVisibility">Who can view your profile</Label>
             <Select
               value={settings.profileVisibility}
-              onValueChange={(value: 'public' | 'followers' | 'private') =>
+              onValueChange={(value: "public" | "followers" | "private") =>
                 setSettings({ ...settings, profileVisibility: value })
               }
             >
@@ -203,7 +219,9 @@ export default function PrivacySettingsPanel() {
                     <Globe className="h-4 w-4" />
                     <div>
                       <div className="font-medium">Public</div>
-                      <div className="text-xs text-muted-foreground">Anyone can view</div>
+                      <div className="text-xs text-muted-foreground">
+                        Anyone can view
+                      </div>
                     </div>
                   </div>
                 </SelectItem>
@@ -212,7 +230,9 @@ export default function PrivacySettingsPanel() {
                     <Users className="h-4 w-4" />
                     <div>
                       <div className="font-medium">Followers Only</div>
-                      <div className="text-xs text-muted-foreground">Only your followers</div>
+                      <div className="text-xs text-muted-foreground">
+                        Only your followers
+                      </div>
                     </div>
                   </div>
                 </SelectItem>
@@ -221,7 +241,9 @@ export default function PrivacySettingsPanel() {
                     <Lock className="h-4 w-4" />
                     <div>
                       <div className="font-medium">Private</div>
-                      <div className="text-xs text-muted-foreground">Only you can view</div>
+                      <div className="text-xs text-muted-foreground">
+                        Only you can view
+                      </div>
                     </div>
                   </div>
                 </SelectItem>
@@ -295,10 +317,12 @@ export default function PrivacySettingsPanel() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="showSavedLocations">Saved locations visibility</Label>
+            <Label htmlFor="showSavedLocations">
+              Saved locations visibility
+            </Label>
             <Select
               value={settings.showSavedLocations}
-              onValueChange={(value: 'public' | 'followers' | 'private') =>
+              onValueChange={(value: "public" | "followers" | "private") =>
                 setSettings({ ...settings, showSavedLocations: value })
               }
             >
@@ -333,14 +357,16 @@ export default function PrivacySettingsPanel() {
                     <Lock className="h-4 w-4" />
                     <div>
                       <div className="font-medium">Private</div>
-                      <div className="text-xs text-muted-foreground">Only you can see</div>
+                      <div className="text-xs text-muted-foreground">
+                        Only you can see
+                      </div>
                     </div>
                   </div>
                 </SelectItem>
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground">
-              Control who can view locations you&apos;ve saved on the map
+              Control who can see your locations.
             </p>
           </div>
         </CardContent>
@@ -362,14 +388,14 @@ export default function PrivacySettingsPanel() {
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Searchable:</span>
-              <Badge variant={settings.showInSearch ? 'default' : 'secondary'}>
-                {settings.showInSearch ? 'Yes' : 'No'}
+              <Badge variant={settings.showInSearch ? "default" : "secondary"}>
+                {settings.showInSearch ? "Yes" : "No"}
               </Badge>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Location visible:</span>
-              <Badge variant={settings.showLocation ? 'default' : 'secondary'}>
-                {settings.showLocation ? 'Yes' : 'No'}
+              <Badge variant={settings.showLocation ? "default" : "secondary"}>
+                {settings.showLocation ? "Yes" : "No"}
               </Badge>
             </div>
             <div className="flex items-center justify-between text-sm">
@@ -397,7 +423,9 @@ export default function PrivacySettingsPanel() {
                 </div>
                 <ul className="text-xs sm:text-sm text-warning dark:text-warning space-y-1 ml-6 sm:ml-0">
                   {changes.slice(0, 3).map((change, i) => (
-                    <li key={i} className="truncate">• {change}</li>
+                    <li key={i} className="truncate">
+                      • {change}
+                    </li>
                   ))}
                   {changes.length > 3 && (
                     <li className="text-warning dark:text-warning">
@@ -428,7 +456,7 @@ export default function PrivacySettingsPanel() {
                       Saving...
                     </>
                   ) : (
-                    'Save Changes'
+                    "Save Changes"
                   )}
                 </Button>
               </div>

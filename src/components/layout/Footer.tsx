@@ -49,7 +49,7 @@ export function Footer() {
                   href="/locations"
                   className="text-muted-foreground hover:text-primary transition-colors"
                 >
-                  My Locations
+                  My Spots
                 </Link>
               </li>
               <li>
