@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Star, Info, Maximize2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getPhotoUrl } from "@/lib/storage";
@@ -13,16 +13,16 @@ interface PhotoGalleryProps {
   photos: Photo[];
   locationName?: string;
   className?: string;
+  showCaption: boolean;
 }
 
 export function PhotoGallery({
   photos,
   locationName,
   className,
+  showCaption,
 }: PhotoGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  // Removed unused showMetadata and setShowMetadata
-  const [showCaption, setShowCaption] = useState(true);
   const [showLightbox, setShowLightbox] = useState(false);
 
   if (!photos || photos.length === 0) {
@@ -102,26 +102,6 @@ export function PhotoGallery({
                 <Maximize2 className="w-6 h-6" />
               </div>
             </div>
-
-            {/* Info Toggle Button - Bottom Right */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "absolute bottom-2 right-2 w-7 h-7 backdrop-blur-sm transition-all z-10",
-                !showCaption
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "bg-black/40 hover:bg-black/60 text-white",
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowCaption(!showCaption);
-              }}
-              title={showCaption ? "Show photo info" : "Show caption"}
-            >
-              <Info className="w-4 h-4" />
-            </Button>
 
             {/* Metadata Panel - Bottom Right (shown when caption is hidden) */}
             {!showCaption && (

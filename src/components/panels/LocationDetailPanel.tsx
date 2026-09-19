@@ -34,6 +34,7 @@ import {
   Lock,
   Users,
   Bookmark,
+  Info,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -73,6 +74,7 @@ export function LocationDetailPanel({
 }: LocationDetailPanelProps) {
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showPhotoCaption, setShowPhotoCaption] = useState(true);
 
   const typeColor =
     location.userSave?.color ||
@@ -127,7 +129,21 @@ export function LocationDetailPanel({
       <div className="px-4 pb-3 border-b shrink-0">
         {/* Title with Close Button */}
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-xl font-bold flex-1">{location.name}</h2>
+          <h2 className="text-xl font-bold flex-1 flex items-center justify-between gap-2">
+            <span>{location.name}</span>
+            {location.type && (
+              <Badge
+                style={{
+                  backgroundColor: typeColor,
+                  color: "white",
+                }}
+                className="h-7 flex items-center gap-1 shrink-0"
+              >
+                <span>{location.type}</span>
+                {getVisibilityIcon()}
+              </Badge>
+            )}
+          </h2>
           {onClose && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -214,17 +230,29 @@ export function LocationDetailPanel({
                 <p>View on map</p>
               </TooltipContent>
             </Tooltip>
-            {location.type && (
-              <Badge
-                style={{
-                  backgroundColor: typeColor,
-                  color: "white",
-                }}
-                className="h-7 flex items-center gap-1"
-              >
-                <span>{location.type}</span>
-                {getVisibilityIcon()}
-              </Badge>
+            {location.photos && location.photos.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={() => setShowPhotoCaption(!showPhotoCaption)}
+                    className={
+                      showPhotoCaption
+                        ? "h-7 w-7 bg-white/90 hover:bg-white shadow-md backdrop-blur-sm"
+                        : "h-7 w-7 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md backdrop-blur-sm"
+                    }
+                  >
+                    <Info className="w-3.5 h-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  className="bg-foreground text-background border-border"
+                >
+                  <p>{showPhotoCaption ? "Show photo info" : "Show caption"}</p>
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
 
@@ -262,6 +290,7 @@ export function LocationDetailPanel({
             <PhotoGallery
               photos={location.photos}
               locationName={location.name}
+              showCaption={showPhotoCaption}
             />
           ) : (
             <div className="relative h-64 bg-linear-to-br from-muted to-muted/50 overflow-hidden rounded-lg">
@@ -346,10 +375,7 @@ export function LocationDetailPanel({
 
           {/* Address & Coordinates Combined */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-sm text-muted-foreground">
-                Address
-              </h3>
+            <div className="flex items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -370,6 +396,9 @@ export function LocationDetailPanel({
                   <p>Copy address</p>
                 </TooltipContent>
               </Tooltip>
+              <h3 className="font-semibold text-sm text-muted-foreground">
+                Address
+              </h3>
             </div>
             <Tooltip>
               <TooltipTrigger asChild>

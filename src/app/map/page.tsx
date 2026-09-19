@@ -575,7 +575,7 @@ function MapPageInner() {
               </SheetTitle>
             </VisuallyHidden>
           </SheetHeader>
-          <div className="h-full">
+          <div className="flex-1 min-h-0 overflow-hidden">
             {locationToEdit?.userSave?.location && locationToEdit?.position && (
               <LocationDetailPanel
                 location={{

@@ -401,7 +401,7 @@ export default function PreviewPage() {
                   <SheetTitle>{selectedLocation.name}</SheetTitle>
                 </VisuallyHidden>
               </SheetHeader>
-              <div className="h-full">
+              <div className="flex-1 min-h-0 overflow-hidden">
                 <LocationDetailPanel
                   location={selectedLocation}
                   source="user"
