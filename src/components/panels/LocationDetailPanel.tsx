@@ -316,10 +316,10 @@ export function LocationDetailPanel({
         </div>
 
         {/* All Content - Single Scrollable Section */}
-        <div className="space-y-4 mt-4">
+        <div className="grid grid-cols-2 gap-4 mt-4">
           {/* Owner Info - Always visible for consistency */}
           {location.userSave?.user && (
-            <div className="space-y-2">
+            <div className="col-span-2 space-y-2">
               <h3 className="font-semibold text-sm text-muted-foreground">
                 Saved By
               </h3>
@@ -413,9 +413,9 @@ export function LocationDetailPanel({
                         {location.address}
                       </p>
                       {location.lat != null && location.lng != null && (
-                        <div className="flex items-center gap-2">
-                          <Navigation className="w-3 h-3 text-muted-foreground" />
-                          <code className="text-xs font-mono text-muted-foreground">
+                        <div className="flex items-start gap-2">
+                          <Navigation className="w-3 h-3 mt-0.5 text-muted-foreground shrink-0" />
+                          <code className="text-left text-xs font-mono text-muted-foreground">
                             {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
                           </code>
                         </div>
@@ -435,18 +435,6 @@ export function LocationDetailPanel({
               </TooltipContent>
             </Tooltip>
           </div>
-
-          {/* Production Notes */}
-          {location.productionNotes && (
-            <div className="space-y-2">
-              <h3 className="font-semibold text-sm text-muted-foreground">
-                Production Notes
-              </h3>
-              <p className="text-sm p-3 bg-muted rounded-lg whitespace-pre-wrap">
-                {location.productionNotes}
-              </p>
-            </div>
-          )}
 
           {/* Production Date */}
           {location.productionDate && (
@@ -474,6 +462,18 @@ export function LocationDetailPanel({
                   })()}
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* Production Notes - full width */}
+          {location.productionNotes && (
+            <div className="col-span-2 space-y-2">
+              <h3 className="font-semibold text-sm text-muted-foreground">
+                Production Notes
+              </h3>
+              <p className="text-sm p-3 bg-muted rounded-lg whitespace-pre-wrap">
+                {location.productionNotes}
+              </p>
             </div>
           )}
 
@@ -692,7 +692,7 @@ export function LocationDetailPanel({
           )}
 
           {/* IDs */}
-          <div className="pt-4 border-t space-y-2">
+          <div className="col-span-2 pt-4 border-t space-y-2">
             <h3 className="font-semibold text-sm text-muted-foreground">IDs</h3>
             <div className="space-y-1 text-xs font-mono bg-muted p-3 rounded-lg">
               <p>
