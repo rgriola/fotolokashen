@@ -48,7 +48,7 @@ import {
 import { PhotoGallery } from "../locations/PhotoGallery";
 import type { Location } from "@/types/location";
 import { getOptimizedAvatarUrl } from "@/lib/storage";
-import { DEFAULT_MARKER_COLOR } from "@/lib/map-icon-colors";
+import { TYPE_COLOR_MAP, DEFAULT_MARKER_COLOR } from "@/lib/map-icon-colors";
 
 interface LocationDetailPanelProps {
   location: Location;
@@ -74,7 +74,11 @@ export function LocationDetailPanel({
   const router = useRouter();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const typeColor = location.userSave?.color || DEFAULT_MARKER_COLOR;
+  const typeColor =
+    location.userSave?.color ||
+    (location.type
+      ? TYPE_COLOR_MAP[location.type] || DEFAULT_MARKER_COLOR
+      : DEFAULT_MARKER_COLOR);
 
   const getVisibilityIcon = () => {
     const visibility = location.userSave?.visibility || "public";

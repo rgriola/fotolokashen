@@ -691,8 +691,10 @@ export function EditLocationForm({
               <Label htmlFor="type">Type *</Label>
               <Select
                 onValueChange={(value) => {
-                  form.setValue("type", value);
-                  form.setValue("color", TYPE_COLOR_MAP[value] || "");
+                  form.setValue("type", value, { shouldDirty: true });
+                  form.setValue("color", TYPE_COLOR_MAP[value] || "", {
+                    shouldDirty: true,
+                  });
                 }}
                 value={form.watch("type") || ""}
               >

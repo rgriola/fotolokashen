@@ -1,5 +1,11 @@
-import { NextRequest } from 'next/server';
-import { requireAuth, apiResponse, apiError, authErrorResponse, clearAuthCookie } from '@/lib/api-middleware';
+import { NextRequest } from "next/server";
+import {
+  requireAuth,
+  apiResponse,
+  apiError,
+  authErrorResponse,
+  clearAuthCookie,
+} from "@/lib/api-middleware";
 
 /**
  * GET /api/auth/me
@@ -33,7 +39,7 @@ export async function GET(request: NextRequest) {
       user: authResult.user,
     });
   } catch (error) {
-    console.error('Get current user error:', error);
-    return apiError('Failed to get user', 500, 'GET_USER_ERROR');
+    console.error("Get current user error:", error);
+    return apiError("Failed to get user", 500, "GET_USER_ERROR");
   }
 }

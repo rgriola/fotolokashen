@@ -5,10 +5,7 @@ import { useLocations } from "@/hooks/useLocations";
 import { usePublicLocations } from "@/hooks/usePublicLocations";
 import { LocationData } from "@/lib/maps-utils";
 import { parseAddressComponents } from "@/lib/address-utils";
-import {
-  DEFAULT_MARKER_COLOR,
-  PUBLIC_LOCATION_COLOR,
-} from "@/lib/map-icon-colors";
+import { getColorForType, PUBLIC_LOCATION_COLOR } from "@/lib/map-icon-colors";
 import type { MarkerData, MapBounds } from "./types";
 
 interface UseMapMarkersOptions {
@@ -96,7 +93,9 @@ export function useMapMarkers({
           },
           isTemporary: false,
           userSave: userSave,
-          color: userSave.color || DEFAULT_MARKER_COLOR,
+          color:
+            userSave.color ||
+            getColorForType(userSave.location!.type || "OTHER"),
           isPublic: false,
         }));
 
