@@ -181,6 +181,7 @@ export async function GET(request: NextRequest) {
       type: save.location.type ?? null,
       rating: save.personalRating ?? null,
       caption: save.caption ?? null,
+      tags: save.tags ?? [],
       savedAt: save.savedAt ? save.savedAt.toISOString() : null,
       photos: save.location.photos.map(attachPhotoSizes),
       user: save.user,

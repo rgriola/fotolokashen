@@ -128,6 +128,7 @@ Used in: `/api/v1/locations/public`, `/api/v1/locations/friends`
   "type": string | null,
   "rating": number | null,
   "caption": string | null,
+  "tags": string[],       // Saver's tags for this location (added 2026-09-20)
   "savedAt": string | null,
   "photos": [             // Primary photo only (for thumbnail)
     {

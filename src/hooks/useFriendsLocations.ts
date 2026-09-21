@@ -12,6 +12,7 @@ interface FriendLocation {
     type: string | null;
     rating: number | null;
     caption: string | null;
+    tags: string[] | null;
     savedAt: string | null;
     photos: {
         imagekitFilePath: string;

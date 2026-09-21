@@ -97,9 +97,23 @@ function LocationsPageInner() {
 
   // Merge locations from all sources (user's saves, public, friends)
   const mergedLocations = useMemo(() => {
+    // Friend/public entries are flattened API responses (no nested `userSave`),
+    // so caption/tags/user live at the top level for those sources — widen the
+    // type here so search can read them without an `as any` escape hatch.
     const locationMap = new globalThis.Map<
       number,
-      Location & { source?: "user" | "friend" | "public" }
+      Location & {
+        source?: "user" | "friend" | "public";
+        caption?: string | null;
+        tags?: string[] | null;
+        user?: {
+          id: number;
+          username: string;
+          firstName: string | null;
+          lastName: string | null;
+          avatar: string | null;
+        };
+      }
     >();
 
     // Add user's own locations first (highest precedence)
@@ -193,10 +207,22 @@ function LocationsPageInner() {
       const cityMatch = loc.city?.toLowerCase().includes(searchLower);
       const stateMatch = loc.state?.toLowerCase().includes(searchLower);
 
-      // Search in user tags (array of strings)
-      const tagsMatch = loc.userSave?.tags?.some((tag: string) =>
+      // Description: own locations nest it under userSave, friend/public are flat
+      const caption = loc.userSave?.caption ?? loc.caption ?? null;
+      const captionMatch = caption?.toLowerCase().includes(searchLower);
+
+      // Tags: same own-vs-friend/public shape difference as caption above
+      const tags = loc.userSave?.tags ?? loc.tags ?? null;
+      const tagsMatch = tags?.some((tag: string) =>
         tag.toLowerCase().includes(searchLower),
       );
+
+      // Owner: only present for friend/public sources (own locations are the current user)
+      const owner = loc.userSave?.user ?? loc.user ?? null;
+      const ownerMatch =
+        owner?.username?.toLowerCase().includes(searchLower) ||
+        owner?.firstName?.toLowerCase().includes(searchLower) ||
+        owner?.lastName?.toLowerCase().includes(searchLower);
 
       return (
         nameMatch ||
@@ -204,7 +230,9 @@ function LocationsPageInner() {
         streetMatch ||
         cityMatch ||
         stateMatch ||
-        tagsMatch
+        captionMatch ||
+        tagsMatch ||
+        ownerMatch
       );
     });
   }
