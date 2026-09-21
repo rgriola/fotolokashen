@@ -1,80 +1,80 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 
 export interface PublicLocation {
+  id: number;
+  placeId: string | null;
+  name: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  lat: number;
+  lng: number;
+  type: string | null;
+  rating: number | null;
+  caption: string | null;
+  tags: string[] | null;
+  savedAt: string | null;
+  photos: {
+    imagekitFilePath: string;
+  }[];
+  user: {
     id: number;
-    placeId: string | null;
-    name: string;
-    address: string | null;
-    city: string | null;
-    state: string | null;
-    lat: number;
-    lng: number;
-    type: string | null;
-    rating: number | null;
-    caption: string | null;
-    tags: string[] | null;
-    savedAt: string | null;
-    photos: {
-        imagekitFilePath: string;
-    }[];
-    user: {
-        id: number;
-        username: string;
-        firstName: string | null;
-        lastName: string | null;
-        avatar: string | null;
-    };
+    username: string;
+    firstName: string | null;
+    lastName: string | null;
+    avatar: string | null;
+  };
 }
 
 interface UsePublicLocationsParams {
-    bounds?: {
-        north: number;
-        south: number;
-        east: number;
-        west: number;
-    };
-    type?: string;
-    limit?: number;
-    enabled?: boolean; // Allow disabling the query
+  bounds?: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  };
+  type?: string;
+  limit?: number;
+  enabled?: boolean; // Allow disabling the query
 }
 
 interface PublicLocationsResponse {
-    locations: PublicLocation[];
-    total: number;
-    limit: number;
+  locations: PublicLocation[];
+  total: number;
+  limit: number;
 }
 
 export function usePublicLocations(params?: UsePublicLocationsParams) {
-    return useQuery<PublicLocationsResponse>({
-        queryKey: ['public-locations', params],
-        queryFn: async () => {
-            const queryParams = new URLSearchParams();
+  return useQuery<PublicLocationsResponse>({
+    queryKey: ["public-locations", params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
 
-            if (params?.bounds) {
-                queryParams.append('bounds', JSON.stringify(params.bounds));
-            }
+      if (params?.bounds) {
+        queryParams.append("bounds", JSON.stringify(params.bounds));
+      }
 
-            if (params?.type) {
-                queryParams.append('type', params.type);
-            }
+      if (params?.type) {
+        queryParams.append("type", params.type);
+      }
 
-            if (params?.limit) {
-                queryParams.append('limit', params.limit.toString());
-            }
+      if (params?.limit) {
+        queryParams.append("limit", params.limit.toString());
+      }
 
-            const url = `/api/v1/locations/public${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-            const response = await fetch(url, {
-                credentials: 'include',
-            });
+      const url = `/api/v1/locations/public${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+      const response = await fetch(url, {
+        credentials: "include",
+      });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to fetch public locations');
-            }
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to fetch public locations");
+      }
 
-            return response.json();
-        },
-        enabled: params?.enabled !== false, // Default to enabled unless explicitly disabled
-        staleTime: 5 * 60 * 1000, // 5 minutes - public locations don't change as frequently
-    });
+      return response.json();
+    },
+    enabled: params?.enabled !== false, // Default to enabled unless explicitly disabled
+    staleTime: 5 * 60 * 1000, // 5 minutes - public locations don't change as frequently
+  });
 }
