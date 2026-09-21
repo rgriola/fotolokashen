@@ -26,10 +26,8 @@ export const LOCATION_TYPE_CONFIG = {
 export const DEFAULT_MARKER_COLOR = "#44F538";
 // Public (non-owned) location pins on the shared map
 export const PUBLIC_LOCATION_COLOR = "#173057";
-
 // Home location marker (distinct constant, not tied to any location type)
 export const HOME_MARKER_COLOR = "#2D5DA8";
-
 // "Your location" dot - Google Maps' standard blue convention
 export const USER_LOCATION_COLOR = "#4285F4"; // Google Don't Change
 
