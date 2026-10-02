@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
-import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
-import { canAccessAdminPanel } from '@/lib/permissions';
-import prisma from '@/lib/prisma';
+import { NextRequest } from "next/server";
+import { requireAuth, apiResponse, apiError } from "@/lib/api-middleware";
+import { canAccessAdminPanel } from "@/lib/permissions";
+import prisma from "@/lib/prisma";
 
 const HEALTH_WINDOW_HOURS = 24;
 
@@ -13,18 +13,26 @@ export async function GET(req: NextRequest) {
   const authResult = await requireAuth(req);
 
   if (!authResult.authorized || !authResult.user) {
-    return apiError('Unauthorized', 401);
+    return apiError("Unauthorized", 401);
   }
 
   if (!canAccessAdminPanel(authResult.user)) {
-    return apiError('Admin access required', 403);
+    return apiError("Admin access required", 403);
   }
 
   try {
     const now = new Date();
-    const since = new Date(now.getTime() - HEALTH_WINDOW_HOURS * 60 * 60 * 1000);
+    const since = new Date(
+      now.getTime() - HEALTH_WINDOW_HOURS * 60 * 60 * 1000,
+    );
 
-    const [inboundReceived, forwardOk, forwardFailed, forwardNotConfigured, lastInbound] = await Promise.all([
+    const [
+      inboundReceived,
+      forwardOk,
+      forwardFailed,
+      forwardNotConfigured,
+      lastInbound,
+    ] = await Promise.all([
       prisma.inboundEmail.count({
         where: {
           receivedAt: { gte: since },
@@ -33,24 +41,24 @@ export async function GET(req: NextRequest) {
       prisma.inboundEmail.count({
         where: {
           receivedAt: { gte: since },
-          forwardStatus: 'ok',
+          forwardStatus: "ok",
         },
       }),
       prisma.inboundEmail.count({
         where: {
           receivedAt: { gte: since },
-          forwardStatus: 'failed',
+          forwardStatus: "failed",
         },
       }),
       prisma.inboundEmail.count({
         where: {
           receivedAt: { gte: since },
-          forwardStatus: 'not_configured',
+          forwardStatus: "not_configured",
         },
       }),
       prisma.inboundEmail.findFirst({
         orderBy: {
-          receivedAt: 'desc',
+          receivedAt: "desc",
         },
         select: {
           id: true,
@@ -63,7 +71,8 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    const status = forwardFailed > 0 || forwardNotConfigured > 0 ? 'warning' : 'healthy';
+    const status =
+      forwardFailed > 0 || forwardNotConfigured > 0 ? "warning" : "healthy";
 
     return apiResponse({
       windowHours: HEALTH_WINDOW_HOURS,
@@ -83,7 +92,7 @@ export async function GET(req: NextRequest) {
         : null,
     });
   } catch (error) {
-    console.error('Error fetching inbound email health:', error);
-    return apiError('Failed to fetch inbound email health', 500);
+    console.error("Error fetching inbound email health:", error);
+    return apiError("Failed to fetch inbound email health", 500);
   }
 }

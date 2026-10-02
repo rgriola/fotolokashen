@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,25 +8,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Copy, 
-  Check, 
-  Users, 
-  Link2, 
-  Globe, 
-  Lock,
-  UserPlus
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { TOAST } from '@/lib/constants/messages';
-import type { Location } from '@/types/location';
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/lib/auth-context';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Copy, Check, Users, Link2, Globe, Lock, UserPlus } from "lucide-react";
+import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
+import type { Location } from "@/types/location";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
 
 interface ShareLocationDialogProps {
   open: boolean;
@@ -34,23 +26,26 @@ interface ShareLocationDialogProps {
   location: Location | null;
 }
 
-type VisibilityType = 'public' | 'private' | 'followers';
-type ShareMethodType = 'link' | 'users';
+type VisibilityType = "public" | "private" | "followers";
+type ShareMethodType = "link" | "users";
 
-export function ShareLocationDialog({ 
-  open, 
-  onOpenChange, 
-  location 
+export function ShareLocationDialog({
+  open,
+  onOpenChange,
+  location,
 }: ShareLocationDialogProps) {
   const { user } = useAuth();
   // Initialize visibility from the location's current visibility (from userSave)
-  const currentVisibility = (location?.userSave?.visibility as VisibilityType) || 'public';
-  const [visibility, setVisibility] = useState<VisibilityType>(currentVisibility);
-  const [shareMethod, setShareMethod] = useState<ShareMethodType>('link');
+  const currentVisibility =
+    (location?.userSave?.visibility as VisibilityType) || "public";
+  const [visibility, setVisibility] =
+    useState<VisibilityType>(currentVisibility);
+  const [shareMethod, setShareMethod] = useState<ShareMethodType>("link");
   const [copied, setCopied] = useState(false);
 
   // Track if visibility has changed from the saved value
-  const hasChanged = visibility !== (location?.userSave?.visibility || 'public');
+  const hasChanged =
+    visibility !== (location?.userSave?.visibility || "public");
 
   // Update visibility when location changes (after reload)
   useEffect(() => {
@@ -63,7 +58,7 @@ export function ShareLocationDialog({
 
   // Generate shareable link
   const getShareLink = () => {
-    if (typeof window === 'undefined' || !user?.username) return '';
+    if (typeof window === "undefined" || !user?.username) return "";
     const baseUrl = window.location.origin;
     return `${baseUrl}/${user.username}/locations/${location.id}`;
   };
@@ -84,12 +79,15 @@ export function ShareLocationDialog({
     try {
       // Use UserSave ID (not Location ID) - the API updates the UserSave visibility
       const userSaveId = location.userSave?.id || location.id;
-      
-      const response = await fetch(`/api/v1/locations/${userSaveId}/visibility`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visibility }),
-      });
+
+      const response = await fetch(
+        `/api/v1/locations/${userSaveId}/visibility`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ visibility }),
+        },
+      );
 
       if (response.ok) {
         toast.success(TOAST.SHARING.VISIBILITY_UPDATED(visibility));
@@ -98,34 +96,37 @@ export function ShareLocationDialog({
         onOpenChange(false);
       } else {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update visibility');
+        throw new Error(errorData.error || "Failed to update visibility");
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : TOAST.SHARING.VISIBILITY_FAILED;
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : TOAST.SHARING.VISIBILITY_FAILED;
       toast.error(errorMessage);
-      console.error('Visibility update error:', error);
+      console.error("Visibility update error:", error);
     }
   };
 
   const visibilityOptions = [
     {
-      value: 'public',
+      value: "public",
       icon: Globe,
-      label: 'Public',
-      description: 'Everyone Can See This'
+      label: "Public",
+      description: "Everyone Can See This",
     },
     {
-      value: 'followers',
+      value: "followers",
       icon: Users,
-      label: 'Followers',
-      description: 'Only People You Follow'
+      label: "Followers",
+      description: "Only People You Follow",
     },
     {
-      value: 'private',
+      value: "private",
       icon: Lock,
-      label: 'Private',
-      description: 'Only You Can See This'
-    }
+      label: "Private",
+      description: "Only You Can See This",
+    },
   ] as const;
 
   return (
@@ -133,18 +134,25 @@ export function ShareLocationDialog({
       <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>Share Location</DialogTitle>
-          <DialogDescription>
-        &quot;{location.name}&quot;
-          </DialogDescription>
+          <DialogDescription>&quot;{location.name}&quot;</DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="link" value={shareMethod} onValueChange={(v) => setShareMethod(v as ShareMethodType)} className="w-full">
+        <Tabs
+          defaultValue="link"
+          value={shareMethod}
+          onValueChange={(v) => setShareMethod(v as ShareMethodType)}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="link" className="flex items-center gap-2">
               <Link2 className="w-4 h-4" />
               Link
             </TabsTrigger>
-            <TabsTrigger value="users" disabled className="flex items-center gap-2 opacity-50 cursor-not-allowed">
+            <TabsTrigger
+              value="users"
+              disabled
+              className="flex items-center gap-2 opacity-50 cursor-not-allowed"
+            >
               <UserPlus className="w-4 h-4" />
               Friends
             </TabsTrigger>
@@ -153,7 +161,9 @@ export function ShareLocationDialog({
           <TabsContent value="link" className="space-y-4 mt-4">
             <div className="space-y-3">
               <Label>Visibility</Label>
-              <p className="text-sm text-muted-foreground">Who can see this location</p>
+              <p className="text-sm text-muted-foreground">
+                Who can see this location
+              </p>
               <div className="flex gap-2">
                 {visibilityOptions.map((option) => {
                   const Icon = option.icon;
@@ -164,20 +174,26 @@ export function ShareLocationDialog({
                       onClick={() => setVisibility(option.value)}
                       className={cn(
                         "flex flex-col items-center justify-center gap-2 p-3 rounded-lg border-2 transition-colors text-center",
-                        isSelected 
-                          ? "border-success bg-success/10 dark:bg-success/10 flex-2" 
-                          : "border-border hover:border-primary/50 flex-1"
+                        isSelected
+                          ? "border-success bg-success/10 dark:bg-success/10 flex-2"
+                          : "border-border hover:border-primary/50 flex-1",
                       )}
                     >
-                      <Icon className={cn(
-                        "w-5 h-5 shrink-0",
-                        isSelected ? "text-success dark:text-success" : "text-muted-foreground"
-                      )} />
+                      <Icon
+                        className={cn(
+                          "w-5 h-5 shrink-0",
+                          isSelected
+                            ? "text-success dark:text-success"
+                            : "text-muted-foreground",
+                        )}
+                      />
                       <div>
-                        <div className={cn(
-                          "font-medium",
-                          isSelected && "text-success dark:text-success"
-                        )}>
+                        <div
+                          className={cn(
+                            "font-medium",
+                            isSelected && "text-success dark:text-success",
+                          )}
+                        >
                           {option.label}
                         </div>
                         <div className="text-sm text-muted-foreground">
@@ -232,12 +248,12 @@ export function ShareLocationDialog({
         </Tabs>
 
         <DialogFooter>
-          {shareMethod === 'link' && (
-            <Button 
+          {shareMethod === "link" && (
+            <Button
               onClick={handleUpdateVisibility}
               disabled={!hasChanged}
               className={cn(
-                hasChanged && "bg-success hover:bg-success/90 text-white"
+                hasChanged && "bg-success hover:bg-success/90 text-white",
               )}
             >
               Update Visibility

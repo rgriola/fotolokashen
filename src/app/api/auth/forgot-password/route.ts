@@ -1,23 +1,24 @@
-import { NextRequest } from 'next/server';
-import { z } from 'zod';
-import prisma from '@/lib/prisma';
-import { apiResponse, apiError } from '@/lib/api-middleware';
-import { sendPasswordResetEmail } from '@/lib/email';
-import { logSecurityEvent, SecurityEventType, getPasswordResetRequestCount } from '@/lib/security';
-import { hashToken } from '@/lib/auth';
-import crypto from 'crypto';
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import prisma from "@/lib/prisma";
+import { apiResponse, apiError } from "@/lib/api-middleware";
+import { sendPasswordResetEmail } from "@/lib/email";
+import {
+  logSecurityEvent,
+  SecurityEventType,
+  getPasswordResetRequestCount,
+} from "@/lib/security";
+import { hashToken } from "@/lib/auth";
+import crypto from "crypto";
 
 // Rate limiting constants
-const MAX_REQUESTS_PER_15_MIN = 2;  // 2 requests in 15 minutes
-const MAX_REQUESTS_PER_HOUR = 3;    // 3 requests in 1 hour (includes the 2 from 15min)
+const MAX_REQUESTS_PER_15_MIN = 2; // 2 requests in 15 minutes
+const MAX_REQUESTS_PER_HOUR = 3; // 3 requests in 1 hour (includes the 2 from 15min)
 const TOKEN_EXPIRY_MINUTES = 15;
 
 // Validation schema
 const forgotPasswordSchema = z.object({
-  email: z.string()
-    .email('Invalid email address')
-    .toLowerCase()
-    .trim(),
+  email: z.string().email("Invalid email address").toLowerCase().trim(),
   platform: z.string().optional(),
 });
 
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       return apiError(
         validation.error.issues[0].message,
         400,
-        'VALIDATION_ERROR'
+        "VALIDATION_ERROR",
       );
     }
 
@@ -48,13 +49,13 @@ export async function POST(request: NextRequest) {
         eventType: SecurityEventType.PASSWORD_RESET_REQUEST,
         request,
         success: false,
-        metadata: { email, reason: 'rate_limited_15min' },
+        metadata: { email, reason: "rate_limited_15min" },
       });
 
       return apiError(
-        'Too many password reset requests. Please wait 15 minutes before trying again.',
+        "Too many password reset requests. Please wait 15 minutes before trying again.",
         429,
-        'RATE_LIMITED'
+        "RATE_LIMITED",
       );
     }
 
@@ -65,13 +66,13 @@ export async function POST(request: NextRequest) {
         eventType: SecurityEventType.PASSWORD_RESET_REQUEST,
         request,
         success: false,
-        metadata: { email, reason: 'rate_limited_1hour' },
+        metadata: { email, reason: "rate_limited_1hour" },
       });
 
       return apiError(
-        'Too many password reset requests. Please wait 1 hour before trying again.',
+        "Too many password reset requests. Please wait 1 hour before trying again.",
         429,
-        'RATE_LIMITED'
+        "RATE_LIMITED",
       );
     }
 
@@ -97,12 +98,14 @@ export async function POST(request: NextRequest) {
           eventType: SecurityEventType.PASSWORD_RESET_REQUEST,
           request,
           success: false,
-          metadata: { email, reason: 'account_inactive' },
+          metadata: { email, reason: "account_inactive" },
         });
       } else {
         // Generate secure reset token
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetTokenExpiry = new Date(Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000);
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const resetTokenExpiry = new Date(
+          Date.now() + TOKEN_EXPIRY_MINUTES * 60 * 1000,
+        );
 
         // Save hashed token to database (raw token sent in email)
         await prisma.user.update({
@@ -118,7 +121,7 @@ export async function POST(request: NextRequest) {
           user.email,
           resetToken,
           user.username,
-          platform
+          platform,
         );
 
         // Log the event
@@ -136,17 +139,22 @@ export async function POST(request: NextRequest) {
         eventType: SecurityEventType.PASSWORD_RESET_REQUEST,
         request,
         success: false,
-        metadata: { email, reason: 'user_not_found' },
+        metadata: { email, reason: "user_not_found" },
       });
     }
 
     // Generic success message regardless of whether user exists
     return apiResponse({
       success: true,
-      message: 'If an account exists with that email, we\'ve sent password reset instructions.',
+      message:
+        "If an account exists with that email, we've sent password reset instructions.",
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
-    return apiError('Failed to process password reset request', 500, 'SERVER_ERROR');
+    console.error("Forgot password error:", error);
+    return apiError(
+      "Failed to process password reset request",
+      500,
+      "SERVER_ERROR",
+    );
   }
 }

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { GoogleMapsProvider } from '@/lib/GoogleMapsProvider';
-import { ReactNode } from 'react';
+import { GoogleMapsProvider } from "@/lib/GoogleMapsProvider";
+import { ReactNode } from "react";
 
 /**
  * Layout wrapper for pages that need Google Maps.
@@ -9,5 +9,5 @@ import { ReactNode } from 'react';
  * in the root layout (which blocked LCP on all pages).
  */
 export function MapsLayout({ children }: { children: ReactNode }) {
-    return <GoogleMapsProvider>{children}</GoogleMapsProvider>;
+  return <GoogleMapsProvider>{children}</GoogleMapsProvider>;
 }

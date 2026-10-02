@@ -1,4 +1,4 @@
-import DescriptionImprover from '@/components/DescriptionImprover';
+import DescriptionImprover from "@/components/DescriptionImprover";
 
 export default function AIDemoPage() {
   return (

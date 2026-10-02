@@ -1,4 +1,4 @@
-import prisma from '@/lib/prisma';
+import prisma from "@/lib/prisma";
 
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,50}$/;
 
@@ -25,17 +25,18 @@ export function validateUsername(username: string): {
   error?: string;
 } {
   if (!username || username.length < 3) {
-    return { valid: false, error: 'Username must be at least 3 characters' };
+    return { valid: false, error: "Username must be at least 3 characters" };
   }
 
   if (username.length > 50) {
-    return { valid: false, error: 'Username must be 50 characters or less' };
+    return { valid: false, error: "Username must be 50 characters or less" };
   }
 
   if (!USERNAME_REGEX.test(username)) {
     return {
       valid: false,
-      error: 'Username can only contain letters, numbers, hyphens, and underscores',
+      error:
+        "Username can only contain letters, numbers, hyphens, and underscores",
     };
   }
 
@@ -44,7 +45,7 @@ export function validateUsername(username: string): {
     if (pattern.test(username)) {
       return {
         valid: false,
-        error: 'This username pattern is reserved',
+        error: "This username pattern is reserved",
       };
     }
   }
@@ -77,7 +78,7 @@ export async function isUsernameAvailable(username: string): Promise<boolean> {
  */
 export async function isUsernameAvailableForUser(
   username: string,
-  userId: number
+  userId: number,
 ): Promise<boolean> {
   const lowerUsername = username.toLowerCase();
 
@@ -116,7 +117,7 @@ export function normalizeUsername(username: string): string {
  * Extract username from formatted string (@username → username)
  */
 export function extractUsername(formattedUsername: string): string {
-  return formattedUsername.startsWith('@')
+  return formattedUsername.startsWith("@")
     ? formattedUsername.slice(1)
     : formattedUsername;
 }

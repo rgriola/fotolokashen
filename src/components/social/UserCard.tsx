@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { FollowButton } from './FollowButton';
+import Image from "next/image";
+import Link from "next/link";
+import { FollowButton } from "./FollowButton";
 
 interface UserCardProps {
   user: {
@@ -15,7 +15,11 @@ interface UserCardProps {
   currentUsername?: string;
 }
 
-export function UserCard({ user, showFollowButton = true, currentUsername }: UserCardProps) {
+export function UserCard({
+  user,
+  showFollowButton = true,
+  currentUsername,
+}: UserCardProps) {
   const isCurrentUser = currentUsername && currentUsername === user.username;
 
   return (
@@ -40,11 +44,17 @@ export function UserCard({ user, showFollowButton = true, currentUsername }: Use
       {/* User Info */}
       <div className="flex-1 min-w-0">
         <Link href={`/${user.username}`} className="hover:underline">
-          <h3 className="font-semibold text-base truncate">{user.displayName}</h3>
-          <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
+          <h3 className="font-semibold text-base truncate">
+            {user.displayName}
+          </h3>
+          <p className="text-sm text-muted-foreground truncate">
+            @{user.username}
+          </p>
         </Link>
         {user.bio && (
-          <p className="text-sm text-foreground mt-1 line-clamp-2">{user.bio}</p>
+          <p className="text-sm text-foreground mt-1 line-clamp-2">
+            {user.bio}
+          </p>
         )}
       </div>
 

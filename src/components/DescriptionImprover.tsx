@@ -1,12 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useImproveDescription } from '@/hooks/useImproveDescription';
+import { useState } from "react";
+import { useImproveDescription } from "@/hooks/useImproveDescription";
 
 export default function DescriptionImprover() {
-  const [description, setDescription] = useState('');
-  const [improvedText, setImprovedText] = useState('');
-  const [mode, setMode] = useState<'improve' | 'extract' | 'rewrite'>('improve');
+  const [description, setDescription] = useState("");
+  const [improvedText, setImprovedText] = useState("");
+  const [mode, setMode] = useState<"improve" | "extract" | "rewrite">(
+    "improve",
+  );
   const { improveDescription, isLoading, error } = useImproveDescription();
 
   const handleImprove = async () => {
@@ -30,8 +32,10 @@ export default function DescriptionImprover() {
             <input
               type="radio"
               value="improve"
-              checked={mode === 'improve'}
-              onChange={(e) => setMode(e.target.value as 'improve' | 'extract' | 'rewrite')}
+              checked={mode === "improve"}
+              onChange={(e) =>
+                setMode(e.target.value as "improve" | "extract" | "rewrite")
+              }
               className="cursor-pointer"
             />
             <span>Improve</span>
@@ -40,8 +44,10 @@ export default function DescriptionImprover() {
             <input
               type="radio"
               value="extract"
-              checked={mode === 'extract'}
-              onChange={(e) => setMode(e.target.value as 'improve' | 'extract' | 'rewrite')}
+              checked={mode === "extract"}
+              onChange={(e) =>
+                setMode(e.target.value as "improve" | "extract" | "rewrite")
+              }
               className="cursor-pointer"
             />
             <span>Extract Key Points</span>
@@ -50,8 +56,10 @@ export default function DescriptionImprover() {
             <input
               type="radio"
               value="rewrite"
-              checked={mode === 'rewrite'}
-              onChange={(e) => setMode(e.target.value as 'improve' | 'extract' | 'rewrite')}
+              checked={mode === "rewrite"}
+              onChange={(e) =>
+                setMode(e.target.value as "improve" | "extract" | "rewrite")
+              }
               className="cursor-pointer"
             />
             <span>Rewrite</span>
@@ -79,7 +87,9 @@ export default function DescriptionImprover() {
         disabled={isLoading || !description.trim()}
         className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:bg-muted disabled:cursor-not-allowed transition-colors"
       >
-        {isLoading ? 'Processing...' : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Description`}
+        {isLoading
+          ? "Processing..."
+          : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Description`}
       </button>
 
       {/* Error Display */}

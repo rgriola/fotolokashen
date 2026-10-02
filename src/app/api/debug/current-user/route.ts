@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { requireAuth, apiResponse } from '@/lib/api-middleware';
+import { NextRequest } from "next/server";
+import { requireAuth, apiResponse } from "@/lib/api-middleware";
 
 /**
  * DEBUG ENDPOINT - GET /api/debug/current-user
@@ -22,6 +22,8 @@ export async function GET(request: NextRequest) {
     hasRole: !!authResult.user?.role,
     role: authResult.user?.role,
     isAdmin: authResult.user?.isAdmin,
-    canAccessAdminPanel: authResult.user?.role === 'staffer' || authResult.user?.role === 'super_admin',
+    canAccessAdminPanel:
+      authResult.user?.role === "staffer" ||
+      authResult.user?.role === "super_admin",
   });
 }

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { cn } from '@/lib/utils';
+import { useState, useRef, useEffect, useCallback } from "react";
+import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ export function ScrollWheelPicker({
   items,
   value,
   onChange,
-  placeholder = 'Select',
+  placeholder = "Select",
   disabled = false,
   hasError = false,
   visibleCount = 5,
@@ -59,7 +59,7 @@ export function ScrollWheelPicker({
     if (!scrollRef.current) return;
     const top = index * ITEM_HEIGHT;
     if (smooth) {
-      scrollRef.current.scrollTo({ top, behavior: 'smooth' });
+      scrollRef.current.scrollTo({ top, behavior: "smooth" });
     } else {
       scrollRef.current.scrollTop = top;
     }
@@ -90,12 +90,15 @@ export function ScrollWheelPicker({
   useEffect(() => {
     if (!open) return;
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
   // ── Debounced scroll-end handler ──
@@ -116,12 +119,15 @@ export function ScrollWheelPicker({
       if (!scrollRef.current) return;
       const scrollTop = scrollRef.current.scrollTop;
       const centeredIndex = Math.round(scrollTop / ITEM_HEIGHT);
-      const clampedIndex = Math.max(0, Math.min(items.length - 1, centeredIndex));
+      const clampedIndex = Math.max(
+        0,
+        Math.min(items.length - 1, centeredIndex),
+      );
 
       // Snap to the nearest item center
       scrollRef.current.scrollTo({
         top: clampedIndex * ITEM_HEIGHT,
-        behavior: 'smooth',
+        behavior: "smooth",
       });
 
       // Only fire onChange if the value actually changed
@@ -141,20 +147,24 @@ export function ScrollWheelPicker({
   }, []);
 
   // ── Click on an item: scroll to it and commit ──
-  const handleItemClick = useCallback((index: number) => {
-    isUserScrolling.current = false;
-    if (scrollTimer.current) clearTimeout(scrollTimer.current);
+  const handleItemClick = useCallback(
+    (index: number) => {
+      isUserScrolling.current = false;
+      if (scrollTimer.current) clearTimeout(scrollTimer.current);
 
-    scrollToIndex(index, true);
+      scrollToIndex(index, true);
 
-    const newValue = items[index]?.value;
-    if (newValue && newValue !== committedValue.current) {
-      committedValue.current = newValue;
-      onChange(newValue);
-    }
-  }, [items, onChange, scrollToIndex]);
+      const newValue = items[index]?.value;
+      if (newValue && newValue !== committedValue.current) {
+        committedValue.current = newValue;
+        onChange(newValue);
+      }
+    },
+    [items, onChange, scrollToIndex],
+  );
 
-  const selectedLabel = selectedIndex >= 0 ? items[selectedIndex].label : placeholder;
+  const selectedLabel =
+    selectedIndex >= 0 ? items[selectedIndex].label : placeholder;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -164,20 +174,30 @@ export function ScrollWheelPicker({
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
         className={cn(
-          'flex w-full items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-colors',
-          'h-9 sm:h-10',
-          'focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring',
-          'disabled:cursor-not-allowed disabled:opacity-50',
-          hasError && 'border-destructive focus:ring-destructive/50',
-          !value && 'text-muted-foreground',
+          "flex w-full items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-colors",
+          "h-9 sm:h-10",
+          "focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-ring",
+          "disabled:cursor-not-allowed disabled:opacity-50",
+          hasError && "border-destructive focus:ring-destructive/50",
+          !value && "text-muted-foreground",
         )}
       >
         <span className="truncate">{selectedLabel}</span>
         <svg
-          className={cn('h-4 w-4 opacity-50 transition-transform', open && 'rotate-180')}
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          className={cn(
+            "h-4 w-4 opacity-50 transition-transform",
+            open && "rotate-180",
+          )}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
 
@@ -212,7 +232,7 @@ export function ScrollWheelPicker({
             style={{
               paddingTop: halfVisible * ITEM_HEIGHT,
               paddingBottom: halfVisible * ITEM_HEIGHT,
-              WebkitOverflowScrolling: 'touch',
+              WebkitOverflowScrolling: "touch",
             }}
           >
             {items.map((item, index) => (
@@ -220,11 +240,11 @@ export function ScrollWheelPicker({
                 key={item.value}
                 onClick={() => handleItemClick(index)}
                 className={cn(
-                  'flex items-center justify-center cursor-pointer select-none transition-colors',
-                  'text-sm',
+                  "flex items-center justify-center cursor-pointer select-none transition-colors",
+                  "text-sm",
                   item.value === value
-                    ? 'text-foreground font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? "text-foreground font-bold"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
                 style={{ height: ITEM_HEIGHT }}
               >

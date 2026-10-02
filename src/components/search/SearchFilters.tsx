@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { X } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 interface SearchFiltersProps {
   filters: {
@@ -14,19 +14,23 @@ interface SearchFiltersProps {
 }
 
 const searchTypes = [
-  { value: 'all', label: 'All' },
-  { value: 'username', label: 'Username' },
-  { value: 'bio', label: 'Bio' },
-  { value: 'geo', label: 'Location' },
+  { value: "all", label: "All" },
+  { value: "username", label: "Username" },
+  { value: "bio", label: "Bio" },
+  { value: "geo", label: "Location" },
 ];
 
-export default function SearchFilters({ filters, onFilterChange }: SearchFiltersProps) {
-  const hasActiveFilters = filters.type !== 'all' || filters.city || filters.country;
+export default function SearchFilters({
+  filters,
+  onFilterChange,
+}: SearchFiltersProps) {
+  const hasActiveFilters =
+    filters.type !== "all" || filters.city || filters.country;
 
   const clearAllFilters = () => {
-    onFilterChange('type', 'all');
-    onFilterChange('city', '');
-    onFilterChange('country', '');
+    onFilterChange("type", "all");
+    onFilterChange("city", "");
+    onFilterChange("country", "");
   };
 
   return (
@@ -53,9 +57,9 @@ export default function SearchFilters({ filters, onFilterChange }: SearchFilters
             {searchTypes.map((type) => (
               <Badge
                 key={type.value}
-                variant={filters.type === type.value ? 'default' : 'outline'}
+                variant={filters.type === type.value ? "default" : "outline"}
                 className="cursor-pointer"
-                onClick={() => onFilterChange('type', type.value)}
+                onClick={() => onFilterChange("type", type.value)}
               >
                 {type.label}
               </Badge>
@@ -66,13 +70,15 @@ export default function SearchFilters({ filters, onFilterChange }: SearchFilters
         {/* Active Filters Display */}
         {(filters.city || filters.country) && (
           <div>
-            <label className="mb-2 block text-sm font-medium">Active Filters</label>
+            <label className="mb-2 block text-sm font-medium">
+              Active Filters
+            </label>
             <div className="flex flex-wrap gap-2">
               {filters.city && (
                 <Badge variant="secondary" className="gap-1">
                   City: {filters.city}
                   <button
-                    onClick={() => onFilterChange('city', '')}
+                    onClick={() => onFilterChange("city", "")}
                     className="ml-1 hover:text-destructive"
                   >
                     <X className="h-3 w-3" />
@@ -83,7 +89,7 @@ export default function SearchFilters({ filters, onFilterChange }: SearchFilters
                 <Badge variant="secondary" className="gap-1">
                   Country: {filters.country}
                   <button
-                    onClick={() => onFilterChange('country', '')}
+                    onClick={() => onFilterChange("country", "")}
                     className="ml-1 hover:text-destructive"
                   >
                     <X className="h-3 w-3" />

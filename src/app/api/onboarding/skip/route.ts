@@ -1,5 +1,5 @@
-import prisma from '@/lib/prisma';
-import { withAuth, apiResponse } from '@/lib/api-middleware';
+import prisma from "@/lib/prisma";
+import { withAuth, apiResponse } from "@/lib/api-middleware";
 
 export const POST = withAuth(async (_request, user) => {
   await prisma.user.update({
@@ -10,5 +10,5 @@ export const POST = withAuth(async (_request, user) => {
     },
   });
 
-  return apiResponse({ success: true, message: 'Onboarding skipped' });
+  return apiResponse({ success: true, message: "Onboarding skipped" });
 });

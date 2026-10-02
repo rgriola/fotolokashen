@@ -39,7 +39,9 @@ import { sendEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 
-const emailSuppressionFindUnique = vi.mocked(prisma.emailSuppression.findUnique);
+const emailSuppressionFindUnique = vi.mocked(
+  prisma.emailSuppression.findUnique,
+);
 const userFindUnique = vi.mocked(prisma.user.findUnique);
 const emailLogCreate = vi.mocked(prisma.emailLog.create);
 // The mocked Resend constructor always returns the same `emails.send` mock instance.
@@ -50,12 +52,17 @@ beforeEach(() => {
   emailSuppressionFindUnique.mockResolvedValue(null as never);
   userFindUnique.mockResolvedValue(null as never);
   emailLogCreate.mockResolvedValue({} as never);
-  resendSend.mockResolvedValue({ data: { id: "test-message-id" }, error: null } as never);
+  resendSend.mockResolvedValue({
+    data: { id: "test-message-id" },
+    error: null,
+  } as never);
 });
 
 describe("sendEmail — suppression enforcement", () => {
   it("blocks a security email when the address has a hard bounce", async () => {
-    emailSuppressionFindUnique.mockResolvedValue({ reason: "hard_bounce" } as never);
+    emailSuppressionFindUnique.mockResolvedValue({
+      reason: "hard_bounce",
+    } as never);
 
     const result = await sendEmail("dead@example.com", "Subject", "<p>hi</p>", {
       category: "security",
@@ -74,22 +81,36 @@ describe("sendEmail — suppression enforcement", () => {
   });
 
   it("does not block a security email on a complaint", async () => {
-    emailSuppressionFindUnique.mockResolvedValue({ reason: "complaint" } as never);
+    emailSuppressionFindUnique.mockResolvedValue({
+      reason: "complaint",
+    } as never);
 
-    const result = await sendEmail("complainer@example.com", "Subject", "<p>hi</p>", {
-      category: "security",
-    });
+    const result = await sendEmail(
+      "complainer@example.com",
+      "Subject",
+      "<p>hi</p>",
+      {
+        category: "security",
+      },
+    );
 
     expect(result).toBe(true);
     expect(resendSend).toHaveBeenCalledTimes(1);
   });
 
   it("blocks a transactional email on a complaint", async () => {
-    emailSuppressionFindUnique.mockResolvedValue({ reason: "complaint" } as never);
+    emailSuppressionFindUnique.mockResolvedValue({
+      reason: "complaint",
+    } as never);
 
-    const result = await sendEmail("complainer@example.com", "Subject", "<p>hi</p>", {
-      category: "transactional",
-    });
+    const result = await sendEmail(
+      "complainer@example.com",
+      "Subject",
+      "<p>hi</p>",
+      {
+        category: "transactional",
+      },
+    );
 
     expect(result).toBe(false);
     expect(resendSend).not.toHaveBeenCalled();
@@ -156,19 +177,21 @@ describe("sendEmail — source-level guard on security wrappers", () => {
     "sendEmailChangeConfirmation",
   ];
 
-  const source = readFileSync(
-    join(process.cwd(), "src/lib/email.ts"),
-    "utf-8",
-  );
+  const source = readFileSync(join(process.cwd(), "src/lib/email.ts"), "utf-8");
 
   it.each(SECURITY_WRAPPERS)(
     '%s passes category: "security" to sendEmail()',
     (name) => {
       const start = source.indexOf(`export async function ${name}`);
-      expect(start, `${name} not found in src/lib/email.ts`).toBeGreaterThan(-1);
+      expect(start, `${name} not found in src/lib/email.ts`).toBeGreaterThan(
+        -1,
+      );
 
       const nextFnStart = source.indexOf("\nexport async function", start + 1);
-      const body = nextFnStart === -1 ? source.slice(start) : source.slice(start, nextFnStart);
+      const body =
+        nextFnStart === -1
+          ? source.slice(start)
+          : source.slice(start, nextFnStart);
 
       expect(body).toMatch(/category:\s*"security"/);
     },
@@ -182,7 +205,9 @@ describe("sendEmail — deliverability headers", () => {
     });
 
     expect(resendSend).toHaveBeenCalledTimes(1);
-    const sendArgs = resendSend.mock.calls[0][0] as { headers: Record<string, string> };
+    const sendArgs = resendSend.mock.calls[0][0] as {
+      headers: Record<string, string>;
+    };
     expect(sendArgs.headers).not.toHaveProperty("List-Unsubscribe");
     expect(sendArgs.headers).not.toHaveProperty("List-Unsubscribe-Post");
   });
@@ -194,7 +219,11 @@ describe("sendEmail — deliverability headers", () => {
     });
 
     expect(resendSend).toHaveBeenCalledTimes(1);
-    const sendArgs = resendSend.mock.calls[0][0] as { headers: Record<string, string> };
-    expect(sendArgs.headers).toMatchObject({ "X-Custom-Header": "custom-value" });
+    const sendArgs = resendSend.mock.calls[0][0] as {
+      headers: Record<string, string>;
+    };
+    expect(sendArgs.headers).toMatchObject({
+      "X-Custom-Header": "custom-value",
+    });
   });
 });

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { UserCard } from './UserCard';
-import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { UserCard } from "./UserCard";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface User {
   id: number;
@@ -24,11 +24,15 @@ interface Pagination {
 
 interface FollowersListProps {
   username: string;
-  type: 'followers' | 'following';
+  type: "followers" | "following";
   currentUsername?: string;
 }
 
-export function FollowersList({ username, type, currentUsername }: FollowersListProps) {
+export function FollowersList({
+  username,
+  type,
+  currentUsername,
+}: FollowersListProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,9 +47,9 @@ export function FollowersList({ username, type, currentUsername }: FollowersList
       try {
         setIsLoading(true);
         const response = await fetch(`${endpoint}?page=1&limit=20`);
-        
+
         if (!response.ok) {
-          throw new Error('Failed to fetch users');
+          throw new Error("Failed to fetch users");
         }
 
         const data = await response.json();
@@ -53,7 +57,9 @@ export function FollowersList({ username, type, currentUsername }: FollowersList
         setPagination(data.pagination);
       } catch (error) {
         console.error(`Error fetching ${type}:`, error);
-        setError(error instanceof Error ? error.message : 'Something went wrong');
+        setError(
+          error instanceof Error ? error.message : "Something went wrong",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -70,9 +76,9 @@ export function FollowersList({ username, type, currentUsername }: FollowersList
       setIsLoadingMore(true);
       const nextPage = pagination.page + 1;
       const response = await fetch(`${endpoint}?page=${nextPage}&limit=20`);
-      
+
       if (!response.ok) {
-        throw new Error('Failed to load more users');
+        throw new Error("Failed to load more users");
       }
 
       const data = await response.json();
@@ -108,10 +114,9 @@ export function FollowersList({ username, type, currentUsername }: FollowersList
     return (
       <div className="text-center py-12 bg-card rounded-lg border">
         <p className="text-muted-foreground">
-          {type === 'followers' 
+          {type === "followers"
             ? `@${username} doesn't have any followers yet.`
-            : `@${username} isn't following anyone yet.`
-          }
+            : `@${username} isn't following anyone yet.`}
         </p>
       </div>
     );

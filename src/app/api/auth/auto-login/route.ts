@@ -1,8 +1,8 @@
-import { NextRequest } from 'next/server';
-import crypto from 'crypto';
-import prisma from '@/lib/prisma';
-import { apiResponse, apiError, serializeUser } from '@/lib/api-middleware';
-import { generateToken, hashToken } from '@/lib/auth';
+import { NextRequest } from "next/server";
+import crypto from "crypto";
+import prisma from "@/lib/prisma";
+import { apiResponse, apiError, serializeUser } from "@/lib/api-middleware";
+import { generateToken, hashToken } from "@/lib/auth";
 
 /**
  * POST /api/auth/auto-login
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const { token, client_id, device_name, ip_address, user_agent } = body;
 
     if (!token || !client_id) {
-      return apiError('Missing required parameters', 400, 'INVALID_REQUEST');
+      return apiError("Missing required parameters", 400, "INVALID_REQUEST");
     }
 
     // Validate client exists
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!client) {
-      return apiError('Invalid client_id', 400, 'INVALID_CLIENT');
+      return apiError("Invalid client_id", 400, "INVALID_CLIENT");
     }
 
     // Find user with this auto-login token (hash incoming token to match stored hash)
@@ -49,8 +49,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      console.log('❌ Auto-login failed: Invalid token');
-      return apiError('Invalid or expired auto-login token', 400, 'INVALID_TOKEN');
+      console.log("❌ Auto-login failed: Invalid token");
+      return apiError(
+        "Invalid or expired auto-login token",
+        400,
+        "INVALID_TOKEN",
+      );
     }
 
     // Check expiry
@@ -60,8 +64,12 @@ export async function POST(request: NextRequest) {
         where: { id: user.id },
         data: { autoLoginToken: null, autoLoginTokenExpiry: null },
       });
-      console.log('❌ Auto-login failed: Token expired');
-      return apiError('Auto-login token has expired. Please log in manually.', 400, 'TOKEN_EXPIRED');
+      console.log("❌ Auto-login failed: Token expired");
+      return apiError(
+        "Auto-login token has expired. Please log in manually.",
+        400,
+        "TOKEN_EXPIRED",
+      );
     }
 
     // Clear the token immediately (single-use)
@@ -82,20 +90,20 @@ export async function POST(request: NextRequest) {
     const sessionExpiresAt = new Date();
     sessionExpiresAt.setDate(sessionExpiresAt.getDate() + 1); // 24 hours
 
-    const reqIp = ip_address ||
-      request.headers.get('x-forwarded-for') ||
-      request.headers.get('x-real-ip') ||
-      'unknown';
-    const reqUA = user_agent ||
-      request.headers.get('user-agent') ||
-      'fotolokashen-ios';
+    const reqIp =
+      ip_address ||
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const reqUA =
+      user_agent || request.headers.get("user-agent") || "fotolokashen-ios";
 
     // Clean up existing iOS sessions
     await prisma.session.deleteMany({
       where: {
         userId: user.id,
         deviceType: {
-          in: ['ios', 'mobile-browser-ios'],
+          in: ["ios", "mobile-browser-ios"],
         },
       },
     });
@@ -105,17 +113,17 @@ export async function POST(request: NextRequest) {
         token: accessToken,
         userId: user.id,
         expiresAt: sessionExpiresAt,
-        deviceType: 'ios',
+        deviceType: "ios",
         ipAddress: reqIp,
         userAgent: reqUA,
         deviceName: device_name || null,
-        loginMethod: 'auto_login_email_verified',
+        loginMethod: "auto_login_email_verified",
         isActive: true,
       },
     });
 
     // Generate refresh token
-    const refreshToken = crypto.randomBytes(32).toString('base64url');
+    const refreshToken = crypto.randomBytes(32).toString("base64url");
     const refreshExpiresAt = new Date();
     refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 30); // 30 days
 
@@ -124,23 +132,23 @@ export async function POST(request: NextRequest) {
         token: refreshToken,
         clientId: client.clientId,
         userId: user.id,
-        scopes: ['read', 'write'],
+        scopes: ["read", "write"],
         expiresAt: refreshExpiresAt,
-        deviceType: 'ios',
+        deviceType: "ios",
       },
     });
 
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('✅ Auto-login successful after email verification');
+    if (process.env.NODE_ENV !== "production") {
+      console.log("✅ Auto-login successful after email verification");
       console.log(`   User ID: ${user.id}`);
     }
 
     return apiResponse({
       access_token: accessToken,
       refresh_token: refreshToken,
-      token_type: 'Bearer',
+      token_type: "Bearer",
       expires_in: 86400,
-      scope: 'read write',
+      scope: "read write",
       user: {
         id: user.id,
         email: user.email,
@@ -149,7 +157,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ Auto-login error:', error);
-    return apiError('Auto-login failed', 500, 'SERVER_ERROR');
+    console.error("❌ Auto-login error:", error);
+    return apiError("Auto-login failed", 500, "SERVER_ERROR");
   }
 }

@@ -53,11 +53,7 @@ interface SuppressionListResponse {
 }
 
 type ReasonFilter =
-  | "all"
-  | "hard_bounce"
-  | "complaint"
-  | "provider_suppressed"
-  | "manual";
+  "all" | "hard_bounce" | "complaint" | "provider_suppressed" | "manual";
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString();

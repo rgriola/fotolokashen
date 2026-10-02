@@ -125,7 +125,9 @@ export function TagInput({ tags, onTagsChange, ai }: TagInputProps) {
             variant="outline"
             size="sm"
             onClick={ai.onSuggestTags}
-            disabled={ai.isLoading || ai.disabled || ai.suggestedTags.length > 0}
+            disabled={
+              ai.isLoading || ai.disabled || ai.suggestedTags.length > 0
+            }
             className="text-xs gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -138,7 +140,9 @@ export function TagInput({ tags, onTagsChange, ai }: TagInputProps) {
       {ai && ai.suggestedTags.length > 0 && (
         <div className="mt-3 p-3 bg-primary/10 border border-primary/20 rounded-lg space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-primary">AI Suggested Tags:</p>
+            <p className="text-xs font-semibold text-primary">
+              AI Suggested Tags:
+            </p>
             <div className="flex gap-1">
               <Button
                 type="button"
@@ -172,7 +176,9 @@ export function TagInput({ tags, onTagsChange, ai }: TagInputProps) {
               </Badge>
             ))}
           </div>
-          <p className="text-xs text-primary italic">Click a tag to add it to your location</p>
+          <p className="text-xs text-primary italic">
+            Click a tag to add it to your location
+          </p>
         </div>
       )}
 

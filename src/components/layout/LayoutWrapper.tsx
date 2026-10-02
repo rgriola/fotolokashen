@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/lib/auth-context';
-import { ReactNode } from 'react';
+import { useAuth } from "@/lib/auth-context";
+import { ReactNode } from "react";
 
 interface LayoutWrapperProps {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 /**
@@ -13,21 +13,13 @@ interface LayoutWrapperProps {
  * - Unauthenticated users: min-h-screen (scrollable layout for marketing pages)
  */
 export function LayoutWrapper({ children }: LayoutWrapperProps) {
-    const { user } = useAuth();
+  const { user } = useAuth();
 
-    // Authenticated users get full-height layout
-    if (user) {
-        return (
-            <div className="flex min-h-screen flex-col">
-                {children}
-            </div>
-        );
-    }
+  // Authenticated users get full-height layout
+  if (user) {
+    return <div className="flex min-h-screen flex-col">{children}</div>;
+  }
 
-    // Unauthenticated users get scrollable layout (for landing/marketing pages)
-    return (
-        <div className="flex min-h-screen flex-col">
-            {children}
-        </div>
-    );
+  // Unauthenticated users get scrollable layout (for landing/marketing pages)
+  return <div className="flex min-h-screen flex-col">{children}</div>;
 }

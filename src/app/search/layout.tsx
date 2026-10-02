@@ -1,5 +1,9 @@
-import { MapsLayout } from '@/components/layout/MapsLayout';
+import { MapsLayout } from "@/components/layout/MapsLayout";
 
-export default function SearchLayout({ children }: { children: React.ReactNode }) {
-    return <MapsLayout>{children}</MapsLayout>;
+export default function SearchLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <MapsLayout>{children}</MapsLayout>;
 }

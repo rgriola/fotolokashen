@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { Lock, UserPlus, Users } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import Image from 'next/image';
-import Link from 'next/link';
+import { Lock, UserPlus, Users } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Link from "next/link";
 
 interface PrivateProfileMessageProps {
   user: {
@@ -13,18 +13,19 @@ interface PrivateProfileMessageProps {
     firstName?: string | null;
     lastName?: string | null;
   };
-  visibility: 'private' | 'followers';
+  visibility: "private" | "followers";
   isAuthenticated: boolean;
 }
 
-export default function PrivateProfileMessage({ 
-  user, 
+export default function PrivateProfileMessage({
+  user,
   visibility,
-  isAuthenticated 
+  isAuthenticated,
 }: PrivateProfileMessageProps) {
-  const displayName = user.firstName && user.lastName
-    ? `${user.firstName} ${user.lastName}`
-    : user.username;
+  const displayName =
+    user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user.username;
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-12">
@@ -55,25 +56,30 @@ export default function PrivateProfileMessage({
               <Lock className="h-8 w-8 text-muted-foreground" />
             </div>
 
-            {visibility === 'private' ? (
+            {visibility === "private" ? (
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold">This Account is Private</h2>
+                <h2 className="text-xl font-semibold">
+                  This Account is Private
+                </h2>
                 <p className="text-muted-foreground">
                   Only the account owner can view this profile
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold">This Account is Private</h2>
+                <h2 className="text-xl font-semibold">
+                  This Account is Private
+                </h2>
                 <p className="text-muted-foreground">
-                  Follow @{user.username} to see their profile, saved locations, and activity
+                  Follow @{user.username} to see their profile, saved locations,
+                  and activity
                 </p>
               </div>
             )}
           </div>
 
           {/* CTA Buttons */}
-          {visibility === 'followers' && isAuthenticated && (
+          {visibility === "followers" && isAuthenticated && (
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button size="lg" className="gap-2">
                 <UserPlus className="h-4 w-4" />
@@ -88,7 +94,7 @@ export default function PrivateProfileMessage({
             </div>
           )}
 
-          {visibility === 'followers' && !isAuthenticated && (
+          {visibility === "followers" && !isAuthenticated && (
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button size="lg" asChild>
                 <Link href="/login">Sign In to Follow</Link>
@@ -99,7 +105,7 @@ export default function PrivateProfileMessage({
             </div>
           )}
 
-          {visibility === 'private' && (
+          {visibility === "private" && (
             <Button size="lg" variant="outline" asChild>
               <Link href="/search">
                 <Users className="h-4 w-4 mr-2" />
@@ -113,7 +119,7 @@ export default function PrivateProfileMessage({
       {/* Additional Info */}
       <div className="mt-6 text-center text-sm text-muted-foreground">
         <p>
-          Looking for someone else?{' '}
+          Looking for someone else?{" "}
           <Link href="/search" className="text-primary hover:underline">
             Search for users
           </Link>

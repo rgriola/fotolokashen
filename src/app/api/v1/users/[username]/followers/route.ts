@@ -1,15 +1,15 @@
-import { NextRequest } from 'next/server';
-import { apiError, apiResponse } from '@/lib/api-middleware';
-import prisma from '@/lib/prisma';
+import { NextRequest } from "next/server";
+import { apiError, apiResponse } from "@/lib/api-middleware";
+import prisma from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
+  { params }: { params: Promise<{ username: string }> },
 ) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
     const offset = (page - 1) * limit;
 
     // Await params (Next.js 15+)
@@ -21,21 +21,21 @@ export async function GET(
       where: {
         username: {
           equals: normalizedUsername,
-          mode: 'insensitive'
-        }
+          mode: "insensitive",
+        },
       },
-      select: { id: true, username: true }
+      select: { id: true, username: true },
     });
 
     if (!targetUser) {
-      return apiError('User not found', 404, 'USER_NOT_FOUND');
+      return apiError("User not found", 404, "USER_NOT_FOUND");
     }
 
     // Get followers with pagination
     const [followers, total] = await Promise.all([
       prisma.userFollow.findMany({
         where: {
-          followingId: targetUser.id
+          followingId: targetUser.id,
         },
         include: {
           follower: {
@@ -45,33 +45,34 @@ export async function GET(
               firstName: true,
               lastName: true,
               avatar: true,
-              bio: true
-            }
-          }
+              bio: true,
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: "desc",
         },
         take: limit,
-        skip: offset
+        skip: offset,
       }),
       prisma.userFollow.count({
         where: {
-          followingId: targetUser.id
-        }
-      })
+          followingId: targetUser.id,
+        },
+      }),
     ]);
 
     // Format response
-    const formattedFollowers = followers.map(follow => ({
+    const formattedFollowers = followers.map((follow) => ({
       id: follow.follower.id,
       username: follow.follower.username,
-      displayName: follow.follower.firstName && follow.follower.lastName
-        ? `${follow.follower.firstName} ${follow.follower.lastName}`
-        : follow.follower.username,
+      displayName:
+        follow.follower.firstName && follow.follower.lastName
+          ? `${follow.follower.firstName} ${follow.follower.lastName}`
+          : follow.follower.username,
       avatar: follow.follower.avatar,
       bio: follow.follower.bio,
-      followedAt: follow.createdAt.toISOString()
+      followedAt: follow.createdAt.toISOString(),
     }));
 
     const totalPages = Math.ceil(total / limit);
@@ -83,12 +84,11 @@ export async function GET(
         page,
         limit,
         totalPages,
-        hasMore: page < totalPages
-      }
+        hasMore: page < totalPages,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching followers:', error);
-    return apiError('Failed to fetch followers', 500);
+    console.error("Error fetching followers:", error);
+    return apiError("Failed to fetch followers", 500);
   }
 }

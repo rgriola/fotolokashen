@@ -5,4 +5,4 @@
  * import path we missed during the storage-adapter migration keeps working.
  * New code must not import from here — use `@/lib/storage`.
  */
-export * from './storage';
+export * from "./storage";

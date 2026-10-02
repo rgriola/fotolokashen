@@ -1,29 +1,37 @@
-import { NextRequest } from 'next/server';
-import { z } from 'zod';
-import prisma from '@/lib/prisma';
-import { hashPassword, generateToken, hashToken } from '@/lib/auth';
-import { apiResponse, apiError, setAuthCookie } from '@/lib/api-middleware';
-import { sendPasswordChangedEmail } from '@/lib/email';
-import { logSecurityEvent, SecurityEventType, getClientIP, getPasswordResetAttemptCount } from '@/lib/security';
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import prisma from "@/lib/prisma";
+import { hashPassword, generateToken, hashToken } from "@/lib/auth";
+import { apiResponse, apiError, setAuthCookie } from "@/lib/api-middleware";
+import { sendPasswordChangedEmail } from "@/lib/email";
+import {
+  logSecurityEvent,
+  SecurityEventType,
+  getClientIP,
+  getPasswordResetAttemptCount,
+} from "@/lib/security";
 
 // Rate limiting constants
-const MAX_RESET_ATTEMPTS_PER_15_MIN = 2;  // 2 successful resets in 15 minutes
-const MAX_RESET_ATTEMPTS_PER_HOUR = 3;    // 3 successful resets in 1 hour
+const MAX_RESET_ATTEMPTS_PER_15_MIN = 2; // 2 successful resets in 15 minutes
+const MAX_RESET_ATTEMPTS_PER_HOUR = 3; // 3 successful resets in 1 hour
 
 // Validation schema
-const resetPasswordSchema = z.object({
-  token: z.string().min(1, 'Reset token is required'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .max(255, 'Password is too long'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
+const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1, "Reset token is required"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number")
+      .max(255, "Password is too long"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 /**
  * POST /api/auth/reset-password
@@ -39,7 +47,7 @@ export async function POST(request: NextRequest) {
       return apiError(
         validation.error.issues[0].message,
         400,
-        'VALIDATION_ERROR'
+        "VALIDATION_ERROR",
       );
     }
 
@@ -88,13 +96,13 @@ export async function POST(request: NextRequest) {
         eventType: SecurityEventType.PASSWORD_RESET_SUCCESS,
         request,
         success: false,
-        metadata: { reason: 'invalid_or_expired_token' },
+        metadata: { reason: "invalid_or_expired_token" },
       });
 
       return apiError(
-        'Invalid or expired reset token. Please request a new password reset.',
+        "Invalid or expired reset token. Please request a new password reset.",
         400,
-        'INVALID_TOKEN'
+        "INVALID_TOKEN",
       );
     }
 
@@ -106,13 +114,13 @@ export async function POST(request: NextRequest) {
         eventType: SecurityEventType.PASSWORD_RESET_SUCCESS,
         request,
         success: false,
-        metadata: { email: user.email, reason: 'rate_limited_15min' },
+        metadata: { email: user.email, reason: "rate_limited_15min" },
       });
 
       return apiError(
-        'Too many password reset attempts. Please wait 15 minutes before trying again.',
+        "Too many password reset attempts. Please wait 15 minutes before trying again.",
         429,
-        'RATE_LIMITED'
+        "RATE_LIMITED",
       );
     }
 
@@ -123,13 +131,13 @@ export async function POST(request: NextRequest) {
         eventType: SecurityEventType.PASSWORD_RESET_SUCCESS,
         request,
         success: false,
-        metadata: { email: user.email, reason: 'rate_limited_1hour' },
+        metadata: { email: user.email, reason: "rate_limited_1hour" },
       });
 
       return apiError(
-        'Too many password reset attempts. Please wait 1 hour before trying again.',
+        "Too many password reset attempts. Please wait 1 hour before trying again.",
         429,
-        'RATE_LIMITED'
+        "RATE_LIMITED",
       );
     }
 
@@ -140,10 +148,10 @@ export async function POST(request: NextRequest) {
         eventType: SecurityEventType.PASSWORD_RESET_SUCCESS,
         request,
         success: false,
-        metadata: { reason: 'account_inactive' },
+        metadata: { reason: "account_inactive" },
       });
 
-      return apiError('Account is deactivated', 403, 'ACCOUNT_DEACTIVATED');
+      return apiError("Account is deactivated", 403, "ACCOUNT_DEACTIVATED");
     }
 
     // Hash new password
@@ -174,7 +182,7 @@ export async function POST(request: NextRequest) {
       user.email,
       user.username,
       ipAddress,
-      new Date()
+      new Date(),
     );
 
     // Log successful password reset
@@ -191,7 +199,8 @@ export async function POST(request: NextRequest) {
       // Email not verified - require verification before login
       return apiResponse({
         success: true,
-        message: 'Password reset successful. Please verify your email before logging in.',
+        message:
+          "Password reset successful. Please verify your email before logging in.",
         requiresVerification: true,
         email: user.email,
       });
@@ -215,7 +224,9 @@ export async function POST(request: NextRequest) {
         city: user.city,
         state: user.state,
         country: user.country,
-        dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().split('T')[0] : null,
+        dateOfBirth: user.dateOfBirth
+          ? user.dateOfBirth.toISOString().split("T")[0]
+          : null,
         language: user.language,
         timezone: user.timezone,
         emailNotifications: user.emailNotifications,
@@ -227,35 +238,36 @@ export async function POST(request: NextRequest) {
         homeLocationUpdated: user.homeLocationUpdated?.toISOString() || null,
         createdAt: user.createdAt.toISOString(),
       },
-      false // Don't use "remember me" for auto-login after password reset
+      false, // Don't use "remember me" for auto-login after password reset
     );
 
     // Create new session
     const expiryDays = 7; // Default session length
-    
+
     // Extract session metadata
-    const sessionIpAddress = request.headers.get('x-forwarded-for') || 
-                             request.headers.get('x-real-ip') || 
-                             'unknown';
-    const sessionUserAgent = request.headers.get('user-agent') || 'unknown';
-    
+    const sessionIpAddress =
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const sessionUserAgent = request.headers.get("user-agent") || "unknown";
+
     // Detect device type from user agent
     const ua = sessionUserAgent.toLowerCase();
-    let deviceType = 'web';
-    if (ua.includes('iphone') || ua.includes('ipad')) {
-      deviceType = 'mobile-browser-ios';
-    } else if (ua.includes('android')) {
-      deviceType = 'mobile-browser-android';
-    } else if (ua.includes('mobile')) {
-      deviceType = 'mobile-browser';
+    let deviceType = "web";
+    if (ua.includes("iphone") || ua.includes("ipad")) {
+      deviceType = "mobile-browser-ios";
+    } else if (ua.includes("android")) {
+      deviceType = "mobile-browser-android";
+    } else if (ua.includes("mobile")) {
+      deviceType = "mobile-browser";
     }
-    
+
     // Extract device name from user agent (simplified)
-    const deviceName = sessionUserAgent.split('(')[1]?.split(')')[0] || null;
-    
+    const deviceName = sessionUserAgent.split("(")[1]?.split(")")[0] || null;
+
     // Note: All sessions were already deleted above for security (line 163)
     // This ensures the new session is the only active one
-    
+
     await prisma.session.create({
       data: {
         userId: user.id,
@@ -266,7 +278,7 @@ export async function POST(request: NextRequest) {
         deviceType: deviceType,
         deviceName: deviceName,
         country: null,
-        loginMethod: 'password_reset',
+        loginMethod: "password_reset",
         isActive: true,
       },
     });
@@ -277,13 +289,13 @@ export async function POST(request: NextRequest) {
       eventType: SecurityEventType.LOGIN,
       request,
       success: true,
-      metadata: { method: 'password_reset_auto_login' },
+      metadata: { method: "password_reset_auto_login" },
     });
 
     // Prepare response
     const response = apiResponse({
       success: true,
-      message: 'Password reset successful. You are now logged in.',
+      message: "Password reset successful. You are now logged in.",
       user: {
         id: user.id,
         email: user.email,
@@ -315,7 +327,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Reset password error:', error);
-    return apiError('Failed to reset password', 500, 'SERVER_ERROR');
+    console.error("Reset password error:", error);
+    return apiError("Failed to reset password", 500, "SERVER_ERROR");
   }
 }

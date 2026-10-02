@@ -1,58 +1,75 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { TOAST } from '@/lib/constants/messages';
-import { Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
-import { DateOfBirthPicker } from './DateOfBirthPicker';
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
+import { Eye, EyeOff, CheckCircle, ArrowLeft } from "lucide-react";
+import { DateOfBirthPicker } from "./DateOfBirthPicker";
 
 // ─── Validation Schema ────────────────────────────────────────────────────────
 
-const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  username: z
-    .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(50, 'Username must be less than 50 characters')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens')
-    .toLowerCase()
-    .trim(),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
-  confirmPassword: z.string(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-}).refine((data) => {
-  if (!data.dateOfBirth || data.dateOfBirth.length !== 10) return false;
-  const birthDate = new Date(data.dateOfBirth);
-  const today = new Date();
-  const age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  const dayDiff = today.getDate() - birthDate.getDate();
-  const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-  return actualAge >= 18;
-}, {
-  message: 'You must be at least 18 years old to create an account.',
-  path: ['dateOfBirth'],
-});
+const registerSchema = z
+  .object({
+    email: z.string().email("Invalid email address"),
+    username: z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(50, "Username must be less than 50 characters")
+      .regex(
+        /^[a-zA-Z0-9_-]+$/,
+        "Username can only contain letters, numbers, underscores, and hyphens",
+      )
+      .toLowerCase()
+      .trim(),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/[0-9]/, "Password must contain at least one number"),
+    confirmPassword: z.string(),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    dateOfBirth: z.string().min(1, "Date of birth is required"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
+  .refine(
+    (data) => {
+      if (!data.dateOfBirth || data.dateOfBirth.length !== 10) return false;
+      const birthDate = new Date(data.dateOfBirth);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const dayDiff = today.getDate() - birthDate.getDate();
+      const actualAge =
+        monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+      return actualAge >= 18;
+    },
+    {
+      message: "You must be at least 18 years old to create an account.",
+      path: ["dateOfBirth"],
+    },
+  );
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
@@ -83,19 +100,21 @@ function getPasswordStrength(pass: string): number {
 
 export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
   const searchParams = useSearchParams();
-  const isIOS = searchParams.get('source') === 'ios';
+  const isIOS = searchParams.get("source") === "ios";
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // ── iOS redirect state: brief message before deep link redirect ──
-  const [iosRedirectMessage, setIosRedirectMessage] = useState<string | null>(null);
+  const [iosRedirectMessage, setIosRedirectMessage] = useState<string | null>(
+    null,
+  );
   const [iosRedirectUrl, setIosRedirectUrl] = useState<string | null>(null);
 
   // ── Success state: shows "Check Your Email" card after registration (web only) ──
   const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [submittedEmail, setSubmittedEmail] = useState('');
+  const [submittedEmail, setSubmittedEmail] = useState("");
 
   // ── iOS redirect timer: show brief message, then deep link redirect ──
   useEffect(() => {
@@ -120,107 +139,122 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
-      dateOfBirth: '', // Intentionally blank — never default to today
+      dateOfBirth: "", // Intentionally blank — never default to today
     },
   });
 
-  const password = watch('password');
-  const confirmPassword = watch('confirmPassword');
+  const password = watch("password");
+  const confirmPassword = watch("confirmPassword");
 
-  const passwordsMatch = password && confirmPassword && password === confirmPassword;
-  const passwordsDontMatch = password && confirmPassword && password !== confirmPassword;
+  const passwordsMatch =
+    password && confirmPassword && password === confirmPassword;
+  const passwordsDontMatch =
+    password && confirmPassword && password !== confirmPassword;
   const passwordStrength = getPasswordStrength(password);
 
   // ── Username handler: force lowercase + strip trailing spaces live ──
   const handleUsernameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       // Force lowercase + trim trailing whitespace silently
-      const cleaned = e.target.value.toLowerCase().replace(/\s+$/, '');
-      setValue('username', cleaned, { shouldValidate: false });
-      clearErrors('username');
+      const cleaned = e.target.value.toLowerCase().replace(/\s+$/, "");
+      setValue("username", cleaned, { shouldValidate: false });
+      clearErrors("username");
     },
-    [setValue, clearErrors]
+    [setValue, clearErrors],
   );
 
   const mapServerErrorToField = useCallback((result: RegisterApiError) => {
     const messageText = result.error || TOAST.AUTH.REGISTER_FAILED;
 
     switch (result.code) {
-      case 'USERNAME_TAKEN':
-      case 'INVALID_USERNAME':
-        return { field: 'username' as const, message: messageText };
-      case 'EMAIL_EXISTS':
-        return { field: 'email' as const, message: messageText };
-      case 'AGE_RESTRICTION':
-        return { field: 'dateOfBirth' as const, message: messageText };
+      case "USERNAME_TAKEN":
+      case "INVALID_USERNAME":
+        return { field: "username" as const, message: messageText };
+      case "EMAIL_EXISTS":
+        return { field: "email" as const, message: messageText };
+      case "AGE_RESTRICTION":
+        return { field: "dateOfBirth" as const, message: messageText };
       default:
         break;
     }
 
     const normalizedMessage = messageText.toLowerCase();
-    if (normalizedMessage.includes('username')) {
-      return { field: 'username' as const, message: messageText };
+    if (normalizedMessage.includes("username")) {
+      return { field: "username" as const, message: messageText };
     }
-    if (normalizedMessage.includes('email')) {
-      return { field: 'email' as const, message: messageText };
+    if (normalizedMessage.includes("email")) {
+      return { field: "email" as const, message: messageText };
     }
-    if (normalizedMessage.includes('date of birth') || normalizedMessage.includes('18 years')) {
-      return { field: 'dateOfBirth' as const, message: messageText };
+    if (
+      normalizedMessage.includes("date of birth") ||
+      normalizedMessage.includes("18 years")
+    ) {
+      return { field: "dateOfBirth" as const, message: messageText };
     }
-    if (normalizedMessage.includes('password')) {
-      return { field: 'password' as const, message: messageText };
+    if (normalizedMessage.includes("password")) {
+      return { field: "password" as const, message: messageText };
     }
 
     return null;
   }, []);
 
-  const onSubmit = useCallback(async (data: RegisterFormData) => {
-    setIsLoading(true);
-    try {
-      const { confirmPassword: _confirm, ...registerData } = data;
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registerData),
-      });
-      const result: RegisterApiError = await response.json();
-      if (!response.ok) {
-        // iOS: EMAIL_EXISTS → redirect to app with reason
-        if (isIOS && result.code === 'EMAIL_EXISTS') {
-          setIosRedirectMessage('You already have an account. Redirecting to login...');
-          setIosRedirectUrl('fotolokashen://auth-redirect?action=login&reason=account_exists');
+  const onSubmit = useCallback(
+    async (data: RegisterFormData) => {
+      setIsLoading(true);
+      try {
+        const { confirmPassword: _confirm, ...registerData } = data;
+        const response = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(registerData),
+        });
+        const result: RegisterApiError = await response.json();
+        if (!response.ok) {
+          // iOS: EMAIL_EXISTS → redirect to app with reason
+          if (isIOS && result.code === "EMAIL_EXISTS") {
+            setIosRedirectMessage(
+              "You already have an account. Redirecting to login...",
+            );
+            setIosRedirectUrl(
+              "fotolokashen://auth-redirect?action=login&reason=account_exists",
+            );
+            return;
+          }
+
+          const fieldError = mapServerErrorToField(result);
+          if (fieldError) {
+            setError(fieldError.field, {
+              type: "server",
+              message: fieldError.message,
+            });
+            if (fieldError.field !== "dateOfBirth") {
+              setFocus(fieldError.field);
+            }
+          }
+
+          toast.error(result.error || TOAST.AUTH.REGISTER_FAILED);
           return;
         }
 
-        const fieldError = mapServerErrorToField(result);
-        if (fieldError) {
-          setError(fieldError.field, { type: 'server', message: fieldError.message });
-          if (fieldError.field !== 'dateOfBirth') {
-            setFocus(fieldError.field);
-          }
+        // iOS: registration success → redirect to app immediately (closes panel)
+        if (isIOS) {
+          setIosRedirectMessage("Account created! Check your email to verify.");
+          setIosRedirectUrl("fotolokashen://await-verification");
+          return;
         }
 
-        toast.error(result.error || TOAST.AUTH.REGISTER_FAILED);
-        return;
+        // Web: show the "Check Your Email" success card
+        setSubmittedEmail(data.email);
+        setRegistrationComplete(true);
+      } catch (error) {
+        console.error("Registration error:", error);
+        toast.error(TOAST.GENERIC.UNEXPECTED);
+      } finally {
+        setIsLoading(false);
       }
-
-      // iOS: registration success → redirect to app immediately (closes panel)
-      if (isIOS) {
-        setIosRedirectMessage('Account created! Check your email to verify.');
-        setIosRedirectUrl('fotolokashen://await-verification');
-        return;
-      }
-
-      // Web: show the "Check Your Email" success card
-      setSubmittedEmail(data.email);
-      setRegistrationComplete(true);
-    } catch (error) {
-      console.error('Registration error:', error);
-      toast.error(TOAST.GENERIC.UNEXPECTED);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isIOS, mapServerErrorToField, setError, setFocus]);
+    },
+    [isIOS, mapServerErrorToField, setError, setFocus],
+  );
 
   // ── iOS Redirect Screen — brief message before deep link fires ──
   if (iosRedirectMessage) {
@@ -230,7 +264,9 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
           <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
-          <CardTitle className="text-xl sm:text-2xl font-bold">{iosRedirectMessage}</CardTitle>
+          <CardTitle className="text-xl sm:text-2xl font-bold">
+            {iosRedirectMessage}
+          </CardTitle>
         </CardHeader>
       </Card>
     );
@@ -244,9 +280,12 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
           <div className="mx-auto w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mb-4">
             <CheckCircle className="w-6 h-6 text-success" />
           </div>
-          <CardTitle className="text-xl sm:text-2xl font-bold">Check Your Email</CardTitle>
+          <CardTitle className="text-xl sm:text-2xl font-bold">
+            Check Your Email
+          </CardTitle>
           <CardDescription>
-            We sent a verification link to<br />
+            We sent a verification link to
+            <br />
             <strong>{submittedEmail}</strong>
           </CardDescription>
         </CardHeader>
@@ -263,7 +302,14 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
           </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
-          <Link href={returnUrl ? `/login?returnUrl=${encodeURIComponent(returnUrl)}&message=${message || ''}` : '/login'} className="w-full">
+          <Link
+            href={
+              returnUrl
+                ? `/login?returnUrl=${encodeURIComponent(returnUrl)}&message=${message || ""}`
+                : "/login"
+            }
+            className="w-full"
+          >
             <Button variant="outline" className="w-full h-9 sm:h-10">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Go to Login
@@ -279,13 +325,15 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
     <Card className="w-full">
       {/* Compact header on mobile */}
       <CardHeader className="space-y-0.5 pb-3 sm:space-y-1 sm:pb-4">
-        <CardTitle className="text-xl sm:text-2xl font-bold">Create Account</CardTitle>
+        <CardTitle className="text-xl sm:text-2xl font-bold">
+          Create Account
+        </CardTitle>
         <CardDescription className="text-xs sm:text-sm">
-          {message === 'location' ? (
+          {message === "location" ? (
             <span className="text-primary font-medium">
-              To view this location please create an account or{' '}
+              To view this location please create an account or{" "}
               <Link
-                href={`/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`}
+                href={`/login${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ""}`}
                 className="underline hover:text-primary-foreground"
               >
                 login if you have one
@@ -297,77 +345,96 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
       </CardHeader>
 
       <CardContent className="pb-3 sm:pb-4">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4" autoComplete="off">
-
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-3 sm:space-y-4"
+          autoComplete="off"
+        >
           {/* First + Last Name row */}
           <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <div className="space-y-1">
-              <Label htmlFor="firstName" className="text-xs sm:text-sm">First Name</Label>
+              <Label htmlFor="firstName" className="text-xs sm:text-sm">
+                First Name
+              </Label>
               <Input
                 id="firstName"
                 type="text"
                 placeholder="John"
                 autoComplete="off"
-                {...register('firstName')}
+                {...register("firstName")}
                 disabled={isLoading}
-                className={`h-9 sm:h-10 text-sm ${errors.firstName ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                className={`h-9 sm:h-10 text-sm ${errors.firstName ? "border-destructive focus-visible:ring-destructive" : ""}`}
               />
               {errors.firstName && (
-                <p className="text-xs text-destructive font-medium">{errors.firstName.message}</p>
+                <p className="text-xs text-destructive font-medium">
+                  {errors.firstName.message}
+                </p>
               )}
             </div>
             <div className="space-y-1">
-              <Label htmlFor="lastName" className="text-xs sm:text-sm">Last Name</Label>
+              <Label htmlFor="lastName" className="text-xs sm:text-sm">
+                Last Name
+              </Label>
               <Input
                 id="lastName"
                 type="text"
                 placeholder="Doe"
                 autoComplete="off"
-                {...register('lastName')}
+                {...register("lastName")}
                 disabled={isLoading}
-                className={`h-9 sm:h-10 text-sm ${errors.lastName ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                className={`h-9 sm:h-10 text-sm ${errors.lastName ? "border-destructive focus-visible:ring-destructive" : ""}`}
               />
               {errors.lastName && (
-                <p className="text-xs text-destructive font-medium">{errors.lastName.message}</p>
+                <p className="text-xs text-destructive font-medium">
+                  {errors.lastName.message}
+                </p>
               )}
             </div>
           </div>
 
           {/* Email */}
           <div className="space-y-1">
-            <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
+            <Label htmlFor="email" className="text-xs sm:text-sm">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
               placeholder="you@example.com"
               autoComplete="off"
-              {...register('email', {
-                onChange: () => clearErrors('email'),
+              {...register("email", {
+                onChange: () => clearErrors("email"),
               })}
               disabled={isLoading}
-              className={`h-9 sm:h-10 text-sm ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+              className={`h-9 sm:h-10 text-sm ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
             />
             {errors.email && (
-              <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
+              <p className="text-xs text-destructive font-medium">
+                {errors.email.message}
+              </p>
             )}
           </div>
 
           {/* Username — forced lowercase, no trailing spaces */}
           <div className="space-y-1">
-            <Label htmlFor="username" className="text-xs sm:text-sm">Username</Label>
+            <Label htmlFor="username" className="text-xs sm:text-sm">
+              Username
+            </Label>
             <Input
               id="username"
               type="text"
               placeholder="johndoe"
               autoComplete="off"
-              {...register('username', {
+              {...register("username", {
                 onChange: handleUsernameChange,
               })}
               disabled={isLoading}
-              className={`h-9 sm:h-10 text-sm ${errors.username ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+              className={`h-9 sm:h-10 text-sm ${errors.username ? "border-destructive focus-visible:ring-destructive" : ""}`}
             />
             {errors.username && (
-              <p className="text-xs text-destructive font-medium">{errors.username.message}</p>
+              <p className="text-xs text-destructive font-medium">
+                {errors.username.message}
+              </p>
             )}
           </div>
 
@@ -379,7 +446,7 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
               <DateOfBirthPicker
                 value={field.value}
                 onChange={(value) => {
-                  clearErrors('dateOfBirth');
+                  clearErrors("dateOfBirth");
                   field.onChange(value);
                 }}
                 disabled={isLoading}
@@ -388,23 +455,27 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
             )}
           />
           {errors.dateOfBirth && (
-            <p className="text-xs text-destructive font-medium -mt-1">{errors.dateOfBirth.message}</p>
+            <p className="text-xs text-destructive font-medium -mt-1">
+              {errors.dateOfBirth.message}
+            </p>
           )}
 
           {/* Password */}
           <div className="space-y-1">
-            <Label htmlFor="password" className="text-xs sm:text-sm">Password</Label>
+            <Label htmlFor="password" className="text-xs sm:text-sm">
+              Password
+            </Label>
             <div className="relative">
               <Input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
                 autoComplete="new-password"
-                {...register('password', {
-                  onChange: () => clearErrors('password'),
+                {...register("password", {
+                  onChange: () => clearErrors("password"),
                 })}
                 disabled={isLoading}
-                className={`h-9 sm:h-10 text-sm pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                className={`h-9 sm:h-10 text-sm pr-10 ${errors.password ? "border-destructive focus-visible:ring-destructive" : ""}`}
               />
               <button
                 type="button"
@@ -412,11 +483,17 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                 tabIndex={-1}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
             {errors.password && (
-              <p className="text-xs text-destructive font-medium">{errors.password.message}</p>
+              <p className="text-xs text-destructive font-medium">
+                {errors.password.message}
+              </p>
             )}
             {/* Password strength bar */}
             {password && (
@@ -425,22 +502,23 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                   {[...Array(5)].map((_, i) => (
                     <div
                       key={i}
-                      className={`h-1 flex-1 rounded ${i < passwordStrength
-                        ? passwordStrength <= 2
-                          ? 'bg-destructive'
-                          : passwordStrength <= 3
-                            ? 'bg-warning'
-                            : 'bg-success'
-                        : 'bg-muted'
-                        }`}
+                      className={`h-1 flex-1 rounded ${
+                        i < passwordStrength
+                          ? passwordStrength <= 2
+                            ? "bg-destructive"
+                            : passwordStrength <= 3
+                              ? "bg-warning"
+                              : "bg-success"
+                          : "bg-muted"
+                      }`}
                     />
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {passwordStrength <= 2 && 'Weak'}
-                  {passwordStrength === 3 && 'Fair'}
-                  {passwordStrength === 4 && 'Good'}
-                  {passwordStrength === 5 && 'Strong'}
+                  {passwordStrength <= 2 && "Weak"}
+                  {passwordStrength === 3 && "Fair"}
+                  {passwordStrength === 4 && "Good"}
+                  {passwordStrength === 5 && "Strong"}
                 </p>
               </div>
             )}
@@ -448,36 +526,59 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
 
           {/* Confirm Password */}
           <div className="space-y-1">
-            <Label htmlFor="confirmPassword" className="text-xs sm:text-sm">Confirm Password</Label>
+            <Label htmlFor="confirmPassword" className="text-xs sm:text-sm">
+              Confirm Password
+            </Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
+                type={showConfirmPassword ? "text" : "password"}
                 placeholder="••••••••"
                 autoComplete="new-password"
-                {...register('confirmPassword', {
-                  onChange: () => clearErrors('confirmPassword'),
+                {...register("confirmPassword", {
+                  onChange: () => clearErrors("confirmPassword"),
                 })}
                 disabled={isLoading}
-                className={`h-9 sm:h-10 text-sm pr-20 ${errors.confirmPassword
-                  ? 'border-destructive focus-visible:ring-destructive'
-                  : passwordsMatch
-                    ? 'border-success focus-visible:ring-success'
-                    : passwordsDontMatch
-                      ? 'border-destructive focus-visible:ring-destructive'
-                      : ''
-                  }`}
+                className={`h-9 sm:h-10 text-sm pr-20 ${
+                  errors.confirmPassword
+                    ? "border-destructive focus-visible:ring-destructive"
+                    : passwordsMatch
+                      ? "border-success focus-visible:ring-success"
+                      : passwordsDontMatch
+                        ? "border-destructive focus-visible:ring-destructive"
+                        : ""
+                }`}
               />
               {/* Match indicator icon */}
               {confirmPassword && (
                 <div className="absolute right-10 top-1/2 -translate-y-1/2">
                   {passwordsMatch ? (
-                    <svg className="h-4 w-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="h-4 w-4 text-success"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   ) : passwordsDontMatch ? (
-                    <svg className="h-4 w-4 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="h-4 w-4 text-destructive"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   ) : null}
                 </div>
@@ -488,29 +589,46 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
                 tabIndex={-1}
               >
-                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
             {confirmPassword && !errors.confirmPassword && (
-              <p className={`text-xs font-medium ${passwordsMatch ? 'text-success' : 'text-destructive'}`}>
-                {passwordsMatch ? '✓ Passwords match' : '✗ Passwords do not match'}
+              <p
+                className={`text-xs font-medium ${passwordsMatch ? "text-success" : "text-destructive"}`}
+              >
+                {passwordsMatch
+                  ? "✓ Passwords match"
+                  : "✗ Passwords do not match"}
               </p>
             )}
             {errors.confirmPassword && (
-              <p className="text-xs text-destructive font-medium">{errors.confirmPassword.message}</p>
+              <p className="text-xs text-destructive font-medium">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
 
-          <Button type="submit" className="w-full h-9 sm:h-10" disabled={isLoading}>
-            {isLoading ? 'Setting You Up...' : 'Create Account'}
+          <Button
+            type="submit"
+            className="w-full h-9 sm:h-10"
+            disabled={isLoading}
+          >
+            {isLoading ? "Setting You Up..." : "Create Account"}
           </Button>
         </form>
       </CardContent>
 
       <CardFooter className="pt-0 pb-4">
         <p className="text-xs sm:text-sm text-muted-foreground">
-          Have an account?{' '}
-          <Link href="/login" className="text-primary hover:underline font-medium">
+          Have an account?{" "}
+          <Link
+            href="/login"
+            className="text-primary hover:underline font-medium"
+          >
             Log in
           </Link>
         </p>

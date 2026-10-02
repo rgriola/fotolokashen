@@ -6,22 +6,22 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ReactNode, useState } from "react";
 
 export function Providers({ children }: { children: ReactNode }) {
-    const [queryClient] = useState(
-        () =>
-            new QueryClient({
-                defaultOptions: {
-                    queries: {
-                        staleTime: 60 * 1000, // 1 minute
-                        refetchOnWindowFocus: false,
-                    },
-                },
-            })
-    );
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60 * 1000, // 1 minute
+            refetchOnWindowFocus: false,
+          },
+        },
+      }),
+  );
 
-    return (
-        <QueryClientProvider client={queryClient}>
-            <AuthProvider>{children}</AuthProvider>
-            {/* <ReactQueryDevtools initialIsOpen={false} /> */}
-        </QueryClientProvider>
-    );
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>{children}</AuthProvider>
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+    </QueryClientProvider>
+  );
 }

@@ -1,7 +1,7 @@
-import { NextRequest } from 'next/server';
-import { requireAuth, apiResponse, apiError } from '@/lib/api-middleware';
-import { canAccessAdminPanel } from '@/lib/permissions';
-import prisma from '@/lib/prisma';
+import { NextRequest } from "next/server";
+import { requireAuth, apiResponse, apiError } from "@/lib/api-middleware";
+import { canAccessAdminPanel } from "@/lib/permissions";
+import prisma from "@/lib/prisma";
 
 /**
  * GET /api/admin/inbound-emails/[id]
@@ -9,16 +9,16 @@ import prisma from '@/lib/prisma';
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authResult = await requireAuth(req);
 
   if (!authResult.authorized || !authResult.user) {
-    return apiError('Unauthorized', 401);
+    return apiError("Unauthorized", 401);
   }
 
   if (!canAccessAdminPanel(authResult.user)) {
-    return apiError('Admin access required', 403);
+    return apiError("Admin access required", 403);
   }
 
   try {
@@ -26,7 +26,7 @@ export async function GET(
     const id = parseInt(resolvedParams.id, 10);
 
     if (Number.isNaN(id)) {
-      return apiError('Invalid inbound email id', 400);
+      return apiError("Invalid inbound email id", 400);
     }
 
     const email = await prisma.inboundEmail.findUnique({
@@ -34,14 +34,14 @@ export async function GET(
       include: {
         attachments: {
           orderBy: {
-            id: 'asc',
+            id: "asc",
           },
         },
       },
     });
 
     if (!email) {
-      return apiError('Inbound email not found', 404);
+      return apiError("Inbound email not found", 404);
     }
 
     return apiResponse({
@@ -54,7 +54,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Error fetching inbound email detail:', error);
-    return apiError('Failed to fetch inbound email detail', 500);
+    console.error("Error fetching inbound email detail:", error);
+    return apiError("Failed to fetch inbound email detail", 500);
   }
 }

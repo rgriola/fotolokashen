@@ -1,11 +1,11 @@
-import { NextRequest } from 'next/server';
-import { apiResponse, apiError } from '@/lib/api-middleware';
-import { rateLimit } from '@/lib/rate-limit';
-import { sendEmail } from '@/lib/email';
+import { NextRequest } from "next/server";
+import { apiResponse, apiError } from "@/lib/api-middleware";
+import { rateLimit } from "@/lib/rate-limit";
+import { sendEmail } from "@/lib/email";
 
 // Environment variables
 const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL;
-const PUBLIC_SUPPORT_ENABLED = process.env.PUBLIC_SUPPORT_ENABLED === 'true';
+const PUBLIC_SUPPORT_ENABLED = process.env.PUBLIC_SUPPORT_ENABLED === "true";
 
 // Validation constants
 const VALIDATION = {
@@ -31,43 +31,52 @@ function validateRequest(body: SupportRequest): string | null {
   const { name, email, subject, message, holdDuration } = body;
 
   // Name validation
-  if (!name || typeof name !== 'string') {
-    return 'Name is required';
+  if (!name || typeof name !== "string") {
+    return "Name is required";
   }
   if (name.length < VALIDATION.name.min || name.length > VALIDATION.name.max) {
     return `Name must be between ${VALIDATION.name.min} and ${VALIDATION.name.max} characters`;
   }
 
   // Email validation
-  if (!email || typeof email !== 'string') {
-    return 'Email is required';
+  if (!email || typeof email !== "string") {
+    return "Email is required";
   }
   if (email.length > VALIDATION.email.max) {
-    return 'Email is too long';
+    return "Email is too long";
   }
   if (!EMAIL_REGEX.test(email)) {
-    return 'Please enter a valid email address';
+    return "Please enter a valid email address";
   }
 
   // Subject validation
-  if (!subject || typeof subject !== 'string') {
-    return 'Subject is required';
+  if (!subject || typeof subject !== "string") {
+    return "Subject is required";
   }
-  if (subject.length < VALIDATION.subject.min || subject.length > VALIDATION.subject.max) {
+  if (
+    subject.length < VALIDATION.subject.min ||
+    subject.length > VALIDATION.subject.max
+  ) {
     return `Subject must be between ${VALIDATION.subject.min} and ${VALIDATION.subject.max} characters`;
   }
 
   // Message validation
-  if (!message || typeof message !== 'string') {
-    return 'Message is required';
+  if (!message || typeof message !== "string") {
+    return "Message is required";
   }
-  if (message.length < VALIDATION.message.min || message.length > VALIDATION.message.max) {
+  if (
+    message.length < VALIDATION.message.min ||
+    message.length > VALIDATION.message.max
+  ) {
     return `Message must be between ${VALIDATION.message.min} and ${VALIDATION.message.max} characters`;
   }
 
   // Hold duration validation (bot check)
-  if (typeof holdDuration !== 'number' || holdDuration < VALIDATION.holdDuration.min) {
-    return 'Human verification failed. Please complete the verification step.';
+  if (
+    typeof holdDuration !== "number" ||
+    holdDuration < VALIDATION.holdDuration.min
+  ) {
+    return "Human verification failed. Please complete the verification step.";
   }
 
   return null;
@@ -75,18 +84,23 @@ function validateRequest(body: SupportRequest): string | null {
 
 function sanitizeInput(input: string): string {
   return input
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
     .trim();
 }
 
-function createEmailHtml(name: string, email: string, subject: string, message: string): string {
-  const timestamp = new Date().toLocaleString('en-US', {
-    timeZone: 'America/New_York',
-    dateStyle: 'full',
-    timeStyle: 'long',
+function createEmailHtml(
+  name: string,
+  email: string,
+  subject: string,
+  message: string,
+): string {
+  const timestamp = new Date().toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    dateStyle: "full",
+    timeStyle: "long",
   });
 
   return `
@@ -146,7 +160,7 @@ ${sanitizeInput(message)}
  */
 export async function POST(request: NextRequest) {
   if (!PUBLIC_SUPPORT_ENABLED) {
-    return apiError('Not found', 404, 'NOT_FOUND');
+    return apiError("Not found", 404, "NOT_FOUND");
   }
 
   try {
@@ -154,15 +168,15 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = await rateLimit(request, {
       limit: 3,
       windowMs: 60 * 60 * 1000, // 1 hour
-      keyPrefix: 'support',
+      keyPrefix: "support",
     });
 
     if (!rateLimitResult.allowed) {
       const retryMinutes = Math.ceil(rateLimitResult.retryAfter / 60000);
       return apiError(
-        `Too many support requests. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}.`,
+        `Too many support requests. Please try again in ${retryMinutes} minute${retryMinutes === 1 ? "" : "s"}.`,
         429,
-        'RATE_LIMIT_EXCEEDED'
+        "RATE_LIMIT_EXCEEDED",
       );
     }
 
@@ -171,13 +185,13 @@ export async function POST(request: NextRequest) {
     try {
       body = await request.json();
     } catch {
-      return apiError('Invalid request body', 400, 'INVALID_JSON');
+      return apiError("Invalid request body", 400, "INVALID_JSON");
     }
 
     // Validate request
     const validationError = validateRequest(body);
     if (validationError) {
-      return apiError(validationError, 400, 'VALIDATION_ERROR');
+      return apiError(validationError, 400, "VALIDATION_ERROR");
     }
 
     const { name, email, subject, message } = body;
@@ -185,37 +199,41 @@ export async function POST(request: NextRequest) {
     // Send email
     try {
       if (!SUPPORT_EMAIL) {
-        return apiError('Support email not configured', 500, 'CONFIG_ERROR');
+        return apiError("Support email not configured", 500, "CONFIG_ERROR");
       }
 
       const sent = await sendEmail(
         SUPPORT_EMAIL,
         `[Support] ${subject}`,
         createEmailHtml(name, email, subject, message),
-        { category: "transactional" }
+        { category: "transactional" },
       );
 
       if (!sent) {
-        return apiError('Failed to send message. Please try again later.', 502, 'EMAIL_SEND_ERROR');
+        return apiError(
+          "Failed to send message. Please try again later.",
+          502,
+          "EMAIL_SEND_ERROR",
+        );
       }
 
       console.log(`✅ Support email sent from ${email}: ${subject}`);
 
       return apiResponse({
         success: true,
-        message: 'Your message has been sent. We\'ll get back to you soon!',
+        message: "Your message has been sent. We'll get back to you soon!",
       });
     } catch (emailError) {
-      console.error('❌ Support email error:', emailError);
+      console.error("❌ Support email error:", emailError);
       return apiError(
-        'Failed to send message. Please try again later.',
+        "Failed to send message. Please try again later.",
         500,
-        'EMAIL_SEND_ERROR'
+        "EMAIL_SEND_ERROR",
       );
     }
   } catch (error) {
-    console.error('Support API error:', error);
-    return apiError('An unexpected error occurred', 500, 'INTERNAL_ERROR');
+    console.error("Support API error:", error);
+    return apiError("An unexpected error occurred", 500, "INTERNAL_ERROR");
   }
 }
 
@@ -225,11 +243,11 @@ export async function POST(request: NextRequest) {
  */
 export async function GET() {
   if (!PUBLIC_SUPPORT_ENABLED) {
-    return apiError('Not found', 404, 'NOT_FOUND');
+    return apiError("Not found", 404, "NOT_FOUND");
   }
 
   return apiResponse({
-    status: 'ok',
-    message: 'Support endpoint is available',
+    status: "ok",
+    message: "Support endpoint is available",
   });
 }

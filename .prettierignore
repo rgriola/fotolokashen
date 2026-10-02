@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+build
+coverage
+.vercel
+package-lock.json
+tsconfig.tsbuildinfo
+skills-lock.json
+next-env.d.ts
+public
+prisma/migrations
+docs
+content
+*.md

@@ -17,21 +17,23 @@ const eslintConfig = defineConfig([
     rules: {
       // Downgrade strict rules to warnings for a pragmatic approach
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", {
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_",
-        "ignoreRestSiblings": true
-      }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
       "react-hooks/exhaustive-deps": "warn",
       "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/purity": "warn", 
+      "react-hooks/purity": "warn",
       "react-hooks/refs": "warn",
       "@next/next/no-img-element": "warn",
       "react/no-unescaped-entities": "off", // Auto-fixed by prettier/formatters
-      "prefer-const": "warn"
-    }
-  }
+      "prefer-const": "warn",
+    },
+  },
 ]);
 
 export default eslintConfig;
-

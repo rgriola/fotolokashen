@@ -1,33 +1,38 @@
-import { NextRequest } from 'next/server';
-import { z } from 'zod';
-import prisma from '@/lib/prisma';
-import { hashPassword, generateToken, generateVerificationToken, hashToken } from '@/lib/auth';
-import { sendVerificationEmail } from '@/lib/email';
-import { apiResponse, apiError, setAuthCookie } from '@/lib/api-middleware';
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import prisma from "@/lib/prisma";
 import {
-  validateUsername,
-  isUsernameAvailable,
-} from '@/lib/username-utils';
+  hashPassword,
+  generateToken,
+  generateVerificationToken,
+  hashToken,
+} from "@/lib/auth";
+import { sendVerificationEmail } from "@/lib/email";
+import { apiResponse, apiError, setAuthCookie } from "@/lib/api-middleware";
+import { validateUsername, isUsernameAvailable } from "@/lib/username-utils";
 
 // Validation schema for registration
 const registerSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().email("Invalid email address"),
   username: z
     .string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(50, 'Username must be less than 50 characters')
-    .regex(/^[a-zA-Z0-9_-]+$/, 'Username can only contain letters, numbers, underscores, and hyphens')
+    .min(3, "Username must be at least 3 characters")
+    .max(50, "Username must be less than 50 characters")
+    .regex(
+      /^[a-zA-Z0-9_-]+$/,
+      "Username can only contain letters, numbers, underscores, and hyphens",
+    )
     .toLowerCase()
     .trim(),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  dateOfBirth: z.string().min(1, "Date of birth is required"),
 });
 
 /**
@@ -44,11 +49,12 @@ export async function POST(request: NextRequest) {
       return apiError(
         validation.error.issues[0].message,
         400,
-        'VALIDATION_ERROR'
+        "VALIDATION_ERROR",
       );
     }
 
-    const { email, username, password, firstName, lastName, dateOfBirth } = validation.data;
+    const { email, username, password, firstName, lastName, dateOfBirth } =
+      validation.data;
 
     // Validate age (must be 18+)
     const birthDate = new Date(dateOfBirth);
@@ -56,34 +62,27 @@ export async function POST(request: NextRequest) {
     const age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
     const dayDiff = today.getDate() - birthDate.getDate();
-    const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-    
+    const actualAge =
+      monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+
     if (actualAge < 18) {
       return apiError(
-        'You must be at least 18 years old to create an account',
+        "You must be at least 18 years old to create an account",
         400,
-        'AGE_RESTRICTION'
+        "AGE_RESTRICTION",
       );
     }
 
     // Validate username format
     const usernameValidation = validateUsername(username);
     if (!usernameValidation.valid) {
-      return apiError(
-        usernameValidation.error!,
-        400,
-        'INVALID_USERNAME'
-      );
+      return apiError(usernameValidation.error!, 400, "INVALID_USERNAME");
     }
 
     // Check if username is available (not reserved or taken)
     const available = await isUsernameAvailable(username);
     if (!available) {
-      return apiError(
-        'Username is taken or reserved',
-        409,
-        'USERNAME_TAKEN'
-      );
+      return apiError("Username is taken or reserved", 409, "USERNAME_TAKEN");
     }
 
     // Check if email already exists
@@ -92,7 +91,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingEmail) {
-      return apiError('Email already registered', 409, 'EMAIL_EXISTS');
+      return apiError("Email already registered", 409, "EMAIL_EXISTS");
     }
 
     // Hash password
@@ -116,7 +115,7 @@ export async function POST(request: NextRequest) {
         emailVerified: false,
         isActive: true,
         isAdmin: false,
-        gpsPermission: 'not_asked',
+        gpsPermission: "not_asked",
         emailNotifications: true,
         twoFactorEnabled: false,
       },
@@ -150,47 +149,61 @@ export async function POST(request: NextRequest) {
     });
 
     // Extract session metadata (moved before email send so deviceType is available)
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                      request.headers.get('x-real-ip') || 
-                      'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
-    
+    const ipAddress =
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const userAgent = request.headers.get("user-agent") || "unknown";
+
     // Detect device type from user agent
     const ua = userAgent.toLowerCase();
-    let deviceType = 'web';
-    if (ua.includes('iphone') || ua.includes('ipad')) {
-      deviceType = 'mobile-browser-ios';
-    } else if (ua.includes('android')) {
-      deviceType = 'mobile-browser-android';
-    } else if (ua.includes('mobile')) {
-      deviceType = 'mobile-browser';
+    let deviceType = "web";
+    if (ua.includes("iphone") || ua.includes("ipad")) {
+      deviceType = "mobile-browser-ios";
+    } else if (ua.includes("android")) {
+      deviceType = "mobile-browser-android";
+    } else if (ua.includes("mobile")) {
+      deviceType = "mobile-browser";
     }
-    
+
     // Extract device name from user agent (simplified)
-    const deviceName = userAgent.split('(')[1]?.split(')')[0] || null;
+    const deviceName = userAgent.split("(")[1]?.split(")")[0] || null;
 
     // Send verification email (don't fail registration if email fails)
     try {
       // Pass platform so the verification link can redirect back to the native app
-      const platform = deviceType === 'mobile-browser-ios' ? 'ios' : undefined;
-      const verificationEmailSent = await sendVerificationEmail(email, verificationToken, username, platform);
+      const platform = deviceType === "mobile-browser-ios" ? "ios" : undefined;
+      const verificationEmailSent = await sendVerificationEmail(
+        email,
+        verificationToken,
+        username,
+        platform,
+      );
       if (!verificationEmailSent) {
-        console.error('[Auth/Register] Verification email was not accepted by provider for:', email);
+        console.error(
+          "[Auth/Register] Verification email was not accepted by provider for:",
+          email,
+        );
       }
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
+      console.error("Failed to send verification email:", emailError);
       // Continue with registration even if email fails
     }
 
     // Generate JWT token
-    const token = generateToken({
-      ...user,
-      bannerImage: user.bannerImage,
-      dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().split('T')[0] : null,
-      gpsPermissionUpdated: user.gpsPermissionUpdated?.toISOString() || null,
-      homeLocationUpdated: user.homeLocationUpdated?.toISOString() || null,
-      createdAt: user.createdAt.toISOString(),
-    }, false);
+    const token = generateToken(
+      {
+        ...user,
+        bannerImage: user.bannerImage,
+        dateOfBirth: user.dateOfBirth
+          ? user.dateOfBirth.toISOString().split("T")[0]
+          : null,
+        gpsPermissionUpdated: user.gpsPermissionUpdated?.toISOString() || null,
+        homeLocationUpdated: user.homeLocationUpdated?.toISOString() || null,
+        createdAt: user.createdAt.toISOString(),
+      },
+      false,
+    );
 
     // Delete existing sessions for this device type to prevent duplicates
     // This allows multi-device (web + iOS) but prevents multiple sessions from same device
@@ -212,7 +225,7 @@ export async function POST(request: NextRequest) {
         deviceType: deviceType,
         deviceName: deviceName,
         country: null, // Could be extracted from IP geolocation service
-        loginMethod: 'registration',
+        loginMethod: "registration",
         isActive: true,
       },
     });
@@ -237,7 +250,8 @@ export async function POST(request: NextRequest) {
           timezone: user.timezone,
           emailNotifications: user.emailNotifications,
           gpsPermission: user.gpsPermission,
-          gpsPermissionUpdated: user.gpsPermissionUpdated?.toISOString() || null,
+          gpsPermissionUpdated:
+            user.gpsPermissionUpdated?.toISOString() || null,
           homeLocationName: user.homeLocationName,
           homeLocationLat: user.homeLocationLat,
           homeLocationLng: user.homeLocationLng,
@@ -247,14 +261,14 @@ export async function POST(request: NextRequest) {
         token,
         requiresVerification: !user.emailVerified,
       },
-      201
+      201,
     );
 
     setAuthCookie(response, token, 60 * 60 * 24 * 7); // 7 days
 
     return response;
   } catch (error) {
-    console.error('Registration error:', error);
-    return apiError('Failed to register user', 500, 'REGISTRATION_ERROR');
+    console.error("Registration error:", error);
+    return apiError("Failed to register user", 500, "REGISTRATION_ERROR");
   }
 }

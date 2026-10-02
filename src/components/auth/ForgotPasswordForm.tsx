@@ -1,227 +1,245 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { TOAST } from '@/lib/constants/messages';
-import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
+import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 
 // Validation schema
 const forgotPasswordSchema = z.object({
-    email: z.string().email('Invalid email address').toLowerCase().trim(),
+  email: z.string().email("Invalid email address").toLowerCase().trim(),
 });
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 interface ForgotPasswordApiError {
-    error?: string;
-    code?: string;
+  error?: string;
+  code?: string;
 }
 
 export function ForgotPasswordForm() {
-    const searchParams = useSearchParams();
-    const isIOS = searchParams.get('source') === 'ios';
+  const searchParams = useSearchParams();
+  const isIOS = searchParams.get("source") === "ios";
 
-    const [isLoading, setIsLoading] = useState(false);
-    const [emailSent, setEmailSent] = useState(false);
-    const [submittedEmail, setSubmittedEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
 
-    // ── iOS: redirect to app after submit (closes Safari panel) ──
-    const [iosRedirect, setIosRedirect] = useState(false);
-    useEffect(() => {
-        if (iosRedirect) {
-            const timer = setTimeout(() => {
-                window.location.href = 'fotolokashen://await-password-reset';
-            }, 1500);
-            return () => clearTimeout(timer);
-        }
-    }, [iosRedirect]);
-
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-        setError,
-        setFocus,
-        clearErrors,
-    } = useForm<ForgotPasswordFormData>({
-        resolver: zodResolver(forgotPasswordSchema),
-    });
-
-    const mapServerErrorToField = (result: ForgotPasswordApiError) => {
-        const messageText = result.error || TOAST.AUTH.RESET_REQUEST_FAILED;
-
-        switch (result.code) {
-            case 'VALIDATION_ERROR':
-            case 'RATE_LIMITED':
-                return { field: 'email' as const, message: messageText };
-            default:
-                break;
-        }
-
-        if (messageText.toLowerCase().includes('email')) {
-            return { field: 'email' as const, message: messageText };
-        }
-
-        return null;
-    };
-
-    const onSubmit = async (data: ForgotPasswordFormData) => {
-        setIsLoading(true);
-        clearErrors('email');
-
-        try {
-            const response = await fetch('/api/auth/forgot-password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...data,
-                    ...(isIOS && { platform: 'ios' }),
-                }),
-            });
-
-            const result: ForgotPasswordApiError = await response.json();
-
-            if (!response.ok) {
-                const fieldError = mapServerErrorToField(result);
-                if (fieldError) {
-                    setError(fieldError.field, { type: 'server', message: fieldError.message });
-                    setFocus(fieldError.field);
-                }
-                toast.error(result.error || TOAST.AUTH.RESET_REQUEST_FAILED);
-                return;
-            }
-
-            // iOS: redirect to app immediately (closes panel)
-            if (isIOS) {
-                setSubmittedEmail(data.email);
-                setIosRedirect(true);
-                return;
-            }
-
-            // Web: show success state
-            setEmailSent(true);
-            setSubmittedEmail(data.email);
-            toast.success(TOAST.AUTH.RESET_EMAIL_CHECK);
-        } catch (error) {
-            console.error('Forgot password error:', error);
-            toast.error(TOAST.GENERIC.UNEXPECTED);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // ── iOS redirect screen ──
+  // ── iOS: redirect to app after submit (closes Safari panel) ──
+  const [iosRedirect, setIosRedirect] = useState(false);
+  useEffect(() => {
     if (iosRedirect) {
-        return (
-            <Card className="w-full max-w-md mx-auto">
-                <CardHeader className="space-y-1 text-center">
-                    <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    </div>
-                    <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
-                    <CardDescription>
-                        If an account exists for <strong>{submittedEmail}</strong>,
-                        you&apos;ll receive a reset link. Redirecting...
-                    </CardDescription>
-                </CardHeader>
-            </Card>
-        );
+      const timer = setTimeout(() => {
+        window.location.href = "fotolokashen://await-password-reset";
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [iosRedirect]);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setError,
+    setFocus,
+    clearErrors,
+  } = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+  });
+
+  const mapServerErrorToField = (result: ForgotPasswordApiError) => {
+    const messageText = result.error || TOAST.AUTH.RESET_REQUEST_FAILED;
+
+    switch (result.code) {
+      case "VALIDATION_ERROR":
+      case "RATE_LIMITED":
+        return { field: "email" as const, message: messageText };
+      default:
+        break;
     }
 
-    if (emailSent) {
-        return (
-            <Card className="w-full max-w-md mx-auto">
-                <CardHeader className="space-y-1 text-center">
-                    <div className="mx-auto w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mb-4">
-                        <CheckCircle className="w-6 h-6 text-success" />
-                    </div>
-                    <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
-                    <CardDescription>
-                        Should Account <strong>{submittedEmail}</strong> Exist, <br />
-                        We Will Throw You An Email.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-                        <p className="text-sm text-primary">
-                            <strong>Make Sure To:</strong>
-                        </p>
-                        <ul className="text-sm text-primary mt-2 space-y-1 list-disc list-inside">
-                            <li>Check your spam or junk folder</li>
-                            <li>This is the correct email</li>
-                            <li>Wait a few minutes and check again</li>
-                        </ul>
-                    </div>
-
-                    <div className="text-center text-sm text-muted-foreground">
-                        <p>The reset link will expire in <strong>15 minutes</strong>.</p>
-                    </div>
-                </CardContent>
-                <CardFooter className="flex flex-col space-y-2">
-                    <Link href="/login" className="w-full">
-                        <Button variant="outline" className="w-full">
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Back to Login
-                        </Button>
-                    </Link>
-                </CardFooter>
-            </Card>
-        );
+    if (messageText.toLowerCase().includes("email")) {
+      return { field: "email" as const, message: messageText };
     }
 
+    return null;
+  };
+
+  const onSubmit = async (data: ForgotPasswordFormData) => {
+    setIsLoading(true);
+    clearErrors("email");
+
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          ...(isIOS && { platform: "ios" }),
+        }),
+      });
+
+      const result: ForgotPasswordApiError = await response.json();
+
+      if (!response.ok) {
+        const fieldError = mapServerErrorToField(result);
+        if (fieldError) {
+          setError(fieldError.field, {
+            type: "server",
+            message: fieldError.message,
+          });
+          setFocus(fieldError.field);
+        }
+        toast.error(result.error || TOAST.AUTH.RESET_REQUEST_FAILED);
+        return;
+      }
+
+      // iOS: redirect to app immediately (closes panel)
+      if (isIOS) {
+        setSubmittedEmail(data.email);
+        setIosRedirect(true);
+        return;
+      }
+
+      // Web: show success state
+      setEmailSent(true);
+      setSubmittedEmail(data.email);
+      toast.success(TOAST.AUTH.RESET_EMAIL_CHECK);
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      toast.error(TOAST.GENERIC.UNEXPECTED);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ── iOS redirect screen ──
+  if (iosRedirect) {
     return (
-        <Card className="w-full max-w-md mx-auto">
-            <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl font-bold">Forgot Password?</CardTitle>
-                <CardDescription>
-                    Enter your email address. You will need to have access to this email to reset your password.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="you@example.com"
-                                {...register('email', {
-                                    onChange: () => clearErrors('email'),
-                                })}
-                                disabled={isLoading}
-                                className={`pl-9 ${errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}`}
-                                aria-invalid={errors.email ? 'true' : 'false'}
-                            />
-                        </div>
-                        {errors.email && (
-                            <p className="text-sm text-destructive font-medium">{errors.email.message}</p>
-                        )}
-                    </div>
-
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? 'Sending...' : 'Send Reset Instructions'}
-                    </Button>
-                </form>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-2">
-                <div className="text-sm text-muted-foreground">
-                    Remember your password?{' '}
-                    <Link href="/login" className="text-primary hover:underline font-medium">
-                        Back to Login
-                    </Link>
-                </div>
-            </CardFooter>
-        </Card>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="space-y-1 text-center">
+          <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+          <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+          <CardDescription>
+            If an account exists for <strong>{submittedEmail}</strong>,
+            you&apos;ll receive a reset link. Redirecting...
+          </CardDescription>
+        </CardHeader>
+      </Card>
     );
+  }
+
+  if (emailSent) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="space-y-1 text-center">
+          <div className="mx-auto w-12 h-12 bg-success/10 rounded-full flex items-center justify-center mb-4">
+            <CheckCircle className="w-6 h-6 text-success" />
+          </div>
+          <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+          <CardDescription>
+            Should Account <strong>{submittedEmail}</strong> Exist, <br />
+            We Will Throw You An Email.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+            <p className="text-sm text-primary">
+              <strong>Make Sure To:</strong>
+            </p>
+            <ul className="text-sm text-primary mt-2 space-y-1 list-disc list-inside">
+              <li>Check your spam or junk folder</li>
+              <li>This is the correct email</li>
+              <li>Wait a few minutes and check again</li>
+            </ul>
+          </div>
+
+          <div className="text-center text-sm text-muted-foreground">
+            <p>
+              The reset link will expire in <strong>15 minutes</strong>.
+            </p>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-2">
+          <Link href="/login" className="w-full">
+            <Button variant="outline" className="w-full">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Login
+            </Button>
+          </Link>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl font-bold">Forgot Password?</CardTitle>
+        <CardDescription>
+          Enter your email address. You will need to have access to this email
+          to reset your password.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                {...register("email", {
+                  onChange: () => clearErrors("email"),
+                })}
+                disabled={isLoading}
+                className={`pl-9 ${errors.email ? "border-destructive focus-visible:ring-destructive" : ""}`}
+                aria-invalid={errors.email ? "true" : "false"}
+              />
+            </div>
+            {errors.email && (
+              <p className="text-sm text-destructive font-medium">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Sending..." : "Send Reset Instructions"}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="flex flex-col space-y-2">
+        <div className="text-sm text-muted-foreground">
+          Remember your password?{" "}
+          <Link
+            href="/login"
+            className="text-primary hover:underline font-medium"
+          >
+            Back to Login
+          </Link>
+        </div>
+      </CardFooter>
+    </Card>
+  );
 }

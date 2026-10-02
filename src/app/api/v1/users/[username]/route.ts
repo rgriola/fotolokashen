@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { apiError } from '@/lib/api-middleware';
-import { normalizeUsername } from '@/lib/username-utils';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { apiError } from "@/lib/api-middleware";
+import { normalizeUsername } from "@/lib/username-utils";
 
 /**
  * GET /api/v1/users/:username
@@ -9,19 +9,21 @@ import { normalizeUsername } from '@/lib/username-utils';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ username: string }> }
+  { params }: { params: Promise<{ username: string }> },
 ) {
   try {
     const { username } = await params;
-    const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
+    const cleanUsername = username.startsWith("@")
+      ? username.slice(1)
+      : username;
 
     // Case-insensitive lookup
     const user = await prisma.user.findFirst({
-      where: { 
+      where: {
         username: {
           equals: normalizeUsername(cleanUsername),
-          mode: 'insensitive'
-        }
+          mode: "insensitive",
+        },
       },
       select: {
         id: true,
@@ -36,7 +38,7 @@ export async function GET(
           select: {
             savedLocations: {
               where: {
-                visibility: 'public',
+                visibility: "public",
               },
             },
           },
@@ -45,7 +47,7 @@ export async function GET(
     });
 
     if (!user) {
-      return apiError('User not found', 404, 'USER_NOT_FOUND');
+      return apiError("User not found", 404, "USER_NOT_FOUND");
     }
 
     // Format response for mobile
@@ -67,11 +69,14 @@ export async function GET(
     };
 
     const response = NextResponse.json(responseData, { status: 200 });
-    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
-    response.headers.set('X-API-Version', '1.0');
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=60, stale-while-revalidate=120",
+    );
+    response.headers.set("X-API-Version", "1.0");
     return response;
   } catch (error) {
-    console.error('[API v1] Error fetching user:', error);
-    return apiError('Failed to fetch user', 500, 'INTERNAL_ERROR');
+    console.error("[API v1] Error fetching user:", error);
+    return apiError("Failed to fetch user", 500, "INTERNAL_ERROR");
   }
 }

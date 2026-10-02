@@ -5,10 +5,7 @@ import type { EmailSuppression } from "@prisma/client";
 export type EmailCategory = "security" | "transactional" | "notification";
 
 export type SuppressionReason =
-  | "hard_bounce"
-  | "complaint"
-  | "provider_suppressed"
-  | "manual";
+  "hard_bounce" | "complaint" | "provider_suppressed" | "manual";
 
 // Higher index = stricter. Used to decide whether a new suppression event
 // should upgrade an existing row's reason.

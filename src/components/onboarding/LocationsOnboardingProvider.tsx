@@ -1,21 +1,30 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import Joyride, { CallBackProps, STATUS, ACTIONS } from 'react-joyride';
-import { locationsSteps } from '@/lib/onboarding/locationsSteps';
-import { useAuth } from '@/lib/auth-context';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import Joyride, { CallBackProps, STATUS, ACTIONS } from "react-joyride";
+import { locationsSteps } from "@/lib/onboarding/locationsSteps";
+import { useAuth } from "@/lib/auth-context";
 
 interface LocationsOnboardingContextValue {
   runTour: boolean;
   restartTour: () => void;
 }
 
-const LocationsOnboardingContext = createContext<LocationsOnboardingContextValue | null>(null);
+const LocationsOnboardingContext =
+  createContext<LocationsOnboardingContextValue | null>(null);
 
 export function useLocationsOnboarding() {
   const context = useContext(LocationsOnboardingContext);
   if (!context) {
-    throw new Error('useLocationsOnboarding must be used within LocationsOnboardingProvider');
+    throw new Error(
+      "useLocationsOnboarding must be used within LocationsOnboardingProvider",
+    );
   }
   return context;
 }
@@ -61,35 +70,35 @@ export function LocationsOnboardingProvider({
 
       // Mark onboarding as complete
       if (status === STATUS.FINISHED) {
-        console.log('Tour finished, marking as complete...');
+        console.log("Tour finished, marking as complete...");
         setIsCompleted(true); // Update local state immediately
-        fetch('/api/onboarding/locations/complete', {
-          method: 'POST',
-          credentials: 'include',
+        fetch("/api/onboarding/locations/complete", {
+          method: "POST",
+          credentials: "include",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         })
-        .then(async (response) => {
-          const data = await response.json();
-          console.log('API response:', response.status, data);
-          if (!response.ok) {
-            throw new Error(data.error || 'Failed to update');
-          }
-          // Notify parent component
-          if (onTourComplete) {
-            onTourComplete();
-          }
-        })
-        .catch(err => {
-          console.error('Failed to mark locations onboarding complete:', err);
-          console.error('Error details:', err.message);
-        });
+          .then(async (response) => {
+            const data = await response.json();
+            console.log("API response:", response.status, data);
+            if (!response.ok) {
+              throw new Error(data.error || "Failed to update");
+            }
+            // Notify parent component
+            if (onTourComplete) {
+              onTourComplete();
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to mark locations onboarding complete:", err);
+            console.error("Error details:", err.message);
+          });
       }
     } else if (([ACTIONS.CLOSE] as string[]).includes(action)) {
       setRunTour(false);
       setStepIndex(0);
-    } else if (type === 'step:after') {
+    } else if (type === "step:after") {
       setStepIndex(index + 1);
     }
   };
@@ -114,7 +123,7 @@ export function LocationsOnboardingProvider({
         callback={handleJoyrideCallback}
         styles={{
           options: {
-            primaryColor: '#4f46e5', // primary
+            primaryColor: "#4f46e5", // primary
             zIndex: 10000,
           },
         }}

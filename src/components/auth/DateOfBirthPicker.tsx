@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Label } from '@/components/ui/label';
-import { ScrollWheelPicker } from '@/components/ui/ScrollWheelPicker';
+import { useState, useEffect } from "react";
+import { Label } from "@/components/ui/label";
+import { ScrollWheelPicker } from "@/components/ui/ScrollWheelPicker";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,18 +17,18 @@ interface DateOfBirthPickerProps {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const MONTHS = [
-  { value: '01', label: 'January' },
-  { value: '02', label: 'February' },
-  { value: '03', label: 'March' },
-  { value: '04', label: 'April' },
-  { value: '05', label: 'May' },
-  { value: '06', label: 'June' },
-  { value: '07', label: 'July' },
-  { value: '08', label: 'August' },
-  { value: '09', label: 'September' },
-  { value: '10', label: 'October' },
-  { value: '11', label: 'November' },
-  { value: '12', label: 'December' },
+  { value: "01", label: "January" },
+  { value: "02", label: "February" },
+  { value: "03", label: "March" },
+  { value: "04", label: "April" },
+  { value: "05", label: "May" },
+  { value: "06", label: "June" },
+  { value: "07", label: "July" },
+  { value: "08", label: "August" },
+  { value: "09", label: "September" },
+  { value: "10", label: "October" },
+  { value: "11", label: "November" },
+  { value: "12", label: "December" },
 ];
 
 function getDaysInMonth(month: string, year: string): number {
@@ -39,7 +39,7 @@ function getDaysInMonth(month: string, year: string): number {
 function buildDays(month: string, year: string) {
   const max = getDaysInMonth(month, year);
   return Array.from({ length: max }, (_, i) => {
-    const val = String(i + 1).padStart(2, '0');
+    const val = String(i + 1).padStart(2, "0");
     return { value: val, label: String(i + 1) };
   });
 }
@@ -71,17 +71,17 @@ export function DateOfBirthPicker({
   disabled = false,
   hasError = false,
 }: DateOfBirthPickerProps) {
-  const [month, setMonth] = useState('');
-  const [day, setDay] = useState('');
-  const [year, setYear] = useState('');
+  const [month, setMonth] = useState("");
+  const [day, setDay] = useState("");
+  const [year, setYear] = useState("");
 
   // Hydrate from external value (e.g. react-hook-form reset)
   useEffect(() => {
     if (value && value.length === 10) {
-      const [y, m, d] = value.split('-');
-      setYear(y || '');
-      setMonth(m || '');
-      setDay(d || '');
+      const [y, m, d] = value.split("-");
+      setYear(y || "");
+      setMonth(m || "");
+      setDay(d || "");
     }
   }, [value]);
 
@@ -90,7 +90,7 @@ export function DateOfBirthPicker({
     if (month && day && year) {
       onChange(`${year}-${month}-${day}`);
     } else {
-      onChange('');
+      onChange("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, day, year]);
@@ -100,7 +100,7 @@ export function DateOfBirthPicker({
     if (day && month && year) {
       const maxDay = getDaysInMonth(month, year);
       if (parseInt(day) > maxDay) {
-        setDay(String(maxDay).padStart(2, '0'));
+        setDay(String(maxDay).padStart(2, "0"));
       }
     }
   }, [month, year, day]);
@@ -141,7 +141,9 @@ export function DateOfBirthPicker({
           visibleCount={7}
         />
       </div>
-      <p className="text-xs text-muted-foreground">Must be at least 18 years old.</p>
+      <p className="text-xs text-muted-foreground">
+        Must be at least 18 years old.
+      </p>
     </div>
   );
 }

@@ -7,27 +7,27 @@
  */
 
 export type {
-    PhotoVariant,
-    PhotoSizes,
-    StorageAdapter,
-    StorageUploadResult,
-    StorageDeleteResult,
-    SignedUploadParams,
-    StorageAuthParams,
-} from './types';
+  PhotoVariant,
+  PhotoSizes,
+  StorageAdapter,
+  StorageUploadResult,
+  StorageDeleteResult,
+  SignedUploadParams,
+  StorageAuthParams,
+} from "./types";
 
 export {
-    IMAGEKIT_URL_ENDPOINT,
-    getImageKitFolder,
-    getImageKitUrl,
-    getPhotoUrl,
-    getPhotoVariants,
-    attachPhotoSizes,
-    getOptimizedAvatarUrl,
-    uploadToImageKit,
-    deleteFromImageKit,
-    deleteImageKitFolder,
-    generateSignedUploadUrl,
-    getImageKitAuthParams,
-    imagekitAdapter,
-} from './imagekit-adapter';
+  IMAGEKIT_URL_ENDPOINT,
+  getImageKitFolder,
+  getImageKitUrl,
+  getPhotoUrl,
+  getPhotoVariants,
+  attachPhotoSizes,
+  getOptimizedAvatarUrl,
+  uploadToImageKit,
+  deleteFromImageKit,
+  deleteImageKitFolder,
+  generateSignedUploadUrl,
+  getImageKitAuthParams,
+  imagekitAdapter,
+} from "./imagekit-adapter";

@@ -1,28 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { TOAST } from '@/lib/constants/messages';
-import { Mail, RefreshCw } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
+import { Mail, RefreshCw } from "lucide-react";
 
 interface EmailVerificationPromptProps {
   email: string;
   onClose?: () => void;
 }
 
-export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPromptProps) {
+export function EmailVerificationPrompt({
+  email,
+  onClose,
+}: EmailVerificationPromptProps) {
   const [isResending, setIsResending] = useState(false);
   const [resentCount, setResentCount] = useState(0);
 
   const handleResendVerification = async () => {
     setIsResending(true);
-    
+
     try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email }),
       });
@@ -31,7 +34,7 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
 
       if (response.ok) {
         toast.success(data.message || TOAST.AUTH.VERIFICATION_SENT);
-        setResentCount(prev => prev + 1);
+        setResentCount((prev) => prev + 1);
       } else {
         toast.error(data.error || TOAST.AUTH.VERIFICATION_FAILED);
       }
@@ -53,7 +56,7 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
             Email Verification Required
           </h3>
           <p className="mt-2 text-sm text-warning">
-            Please verify your email address before accessing the application. 
+            Please verify your email address before accessing the application.
             We sent a verification link to <strong>{email}</strong>
           </p>
           <p className="mt-2 text-sm text-warning">
@@ -69,20 +72,22 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
           variant="outline"
           className="flex items-center gap-2"
         >
-          <RefreshCw className={`h-4 w-4 ${isResending ? 'animate-spin' : ''}`} />
-          {isResending ? 'Sending...' : 'Resend Verification Email'}
+          <RefreshCw
+            className={`h-4 w-4 ${isResending ? "animate-spin" : ""}`}
+          />
+          {isResending ? "Sending..." : "Resend Verification Email"}
         </Button>
 
         {resentCount > 0 && (
           <span className="text-sm text-warning">
-            ✓ Sent {resentCount} time{resentCount > 1 ? 's' : ''}
+            ✓ Sent {resentCount} time{resentCount > 1 ? "s" : ""}
           </span>
         )}
       </div>
 
       <p className="text-xs text-warning pt-2">
-        Didn't receive the email? Check your spam folder or click "Resend" above. 
-        (Limit: 3 emails per hour)
+        Didn't receive the email? Check your spam folder or click "Resend"
+        above. (Limit: 3 emails per hour)
       </p>
     </div>
   );

@@ -1,8 +1,8 @@
-import { NextRequest } from 'next/server';
-import prisma from '@/lib/prisma';
-import { apiResponse, apiError } from '@/lib/api-middleware';
-import { generateVerificationToken, hashToken } from '@/lib/auth';
-import { sendVerificationEmail } from '@/lib/email';
+import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
+import { apiResponse, apiError } from "@/lib/api-middleware";
+import { generateVerificationToken, hashToken } from "@/lib/auth";
+import { sendVerificationEmail } from "@/lib/email";
 
 // Rate limiting: store last send times in memory (simple approach for now)
 const rateLimitMap = new Map<string, number[]>();
@@ -15,75 +15,85 @@ const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
  * Body: { email: string }
  */
 export async function POST(request: NextRequest) {
-    try {
-        const body = await request.json();
-        const { email } = body;
+  try {
+    const body = await request.json();
+    const { email } = body;
 
-        if (!email) {
-            return apiError('Email is required', 400, 'VALIDATION_ERROR');
-        }
-
-        // Find user
-        const user = await prisma.user.findUnique({
-            where: { email: email.toLowerCase() },
-        });
-
-        // Security: Always return success even if user doesn't exist
-        // This prevents email enumeration attacks
-        if (!user) {
-            return apiResponse({ message: 'If that email exists, a verification link has been sent.' });
-        }
-
-        // Check if already verified
-        if (user.emailVerified) {
-            return apiResponse({ message: 'Email is already verified.' });
-        }
-
-        // Rate limiting check
-        const now = Date.now();
-        const userRateLimits = rateLimitMap.get(email) || [];
-
-        // Remove timestamps older than the rate limit window
-        const recentAttempts = userRateLimits.filter(
-            timestamp => now - timestamp < RATE_LIMIT_WINDOW
-        );
-
-        if (recentAttempts.length >= RATE_LIMIT_MAX) {
-            return apiError(
-                `Too many verification emails sent. Please try again in ${Math.ceil((RATE_LIMIT_WINDOW - (now - recentAttempts[0])) / 60000)} minutes.`,
-                429,
-                'RATE_LIMIT_EXCEEDED'
-            );
-        }
-
-        // Generate new verification token with 30-minute expiry
-        const verificationToken = generateVerificationToken();
-        const verificationTokenExpiry = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
-
-        // Update user with new hashed token
-        await prisma.user.update({
-            where: { id: user.id },
-            data: {
-                verificationToken: hashToken(verificationToken),
-                verificationTokenExpiry,
-            },
-        });
-
-        // Send verification email
-        const emailSent = await sendVerificationEmail(user.email, verificationToken, user.username);
-        if (!emailSent) {
-            return apiError('Failed to send verification email. Please try again shortly.', 503, 'EMAIL_SEND_FAILED');
-        }
-
-        // Update rate limit
-        recentAttempts.push(now);
-        rateLimitMap.set(email, recentAttempts);
-
-        return apiResponse({
-            message: 'Verification email sent successfully. Please check your inbox.',
-        });
-    } catch (error) {
-        console.error('Error resending verification email:', error);
-        return apiError('Failed to resend verification email', 500, 'RESEND_ERROR');
+    if (!email) {
+      return apiError("Email is required", 400, "VALIDATION_ERROR");
     }
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    // Security: Always return success even if user doesn't exist
+    // This prevents email enumeration attacks
+    if (!user) {
+      return apiResponse({
+        message: "If that email exists, a verification link has been sent.",
+      });
+    }
+
+    // Check if already verified
+    if (user.emailVerified) {
+      return apiResponse({ message: "Email is already verified." });
+    }
+
+    // Rate limiting check
+    const now = Date.now();
+    const userRateLimits = rateLimitMap.get(email) || [];
+
+    // Remove timestamps older than the rate limit window
+    const recentAttempts = userRateLimits.filter(
+      (timestamp) => now - timestamp < RATE_LIMIT_WINDOW,
+    );
+
+    if (recentAttempts.length >= RATE_LIMIT_MAX) {
+      return apiError(
+        `Too many verification emails sent. Please try again in ${Math.ceil((RATE_LIMIT_WINDOW - (now - recentAttempts[0])) / 60000)} minutes.`,
+        429,
+        "RATE_LIMIT_EXCEEDED",
+      );
+    }
+
+    // Generate new verification token with 30-minute expiry
+    const verificationToken = generateVerificationToken();
+    const verificationTokenExpiry = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+    // Update user with new hashed token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        verificationToken: hashToken(verificationToken),
+        verificationTokenExpiry,
+      },
+    });
+
+    // Send verification email
+    const emailSent = await sendVerificationEmail(
+      user.email,
+      verificationToken,
+      user.username,
+    );
+    if (!emailSent) {
+      return apiError(
+        "Failed to send verification email. Please try again shortly.",
+        503,
+        "EMAIL_SEND_FAILED",
+      );
+    }
+
+    // Update rate limit
+    recentAttempts.push(now);
+    rateLimitMap.set(email, recentAttempts);
+
+    return apiResponse({
+      message: "Verification email sent successfully. Please check your inbox.",
+    });
+  } catch (error) {
+    console.error("Error resending verification email:", error);
+    return apiError("Failed to resend verification email", 500, "RESEND_ERROR");
+  }
 }

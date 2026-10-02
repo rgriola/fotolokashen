@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { MapPin, Search, FileText, Globe } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import Link from "next/link";
+import Image from "next/image";
+import { MapPin, Search, FileText, Globe } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface UserSearchCardProps {
   user: {
@@ -16,28 +16,29 @@ interface UserSearchCardProps {
     bio: string | null;
     city: string | null;
     country: string | null;
-    matchType: 'username' | 'bio' | 'location' | 'geo';
+    matchType: "username" | "bio" | "location" | "geo";
     matchScore?: number;
     context?: string;
   };
 }
 
 export default function UserSearchCard({ user }: UserSearchCardProps) {
-  const displayName = user.firstName && user.lastName
-    ? `${user.firstName} ${user.lastName}`
-    : user.firstName || user.lastName || user.username;
+  const displayName =
+    user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user.firstName || user.lastName || user.username;
 
-  const location = [user.city, user.country].filter(Boolean).join(', ');
+  const location = [user.city, user.country].filter(Boolean).join(", ");
 
   const getMatchIcon = () => {
     switch (user.matchType) {
-      case 'username':
+      case "username":
         return <Search className="h-3 w-3" />;
-      case 'bio':
+      case "bio":
         return <FileText className="h-3 w-3" />;
-      case 'geo':
+      case "geo":
         return <Globe className="h-3 w-3" />;
-      case 'location':
+      case "location":
         return <MapPin className="h-3 w-3" />;
       default:
         return null;
@@ -46,22 +47,25 @@ export default function UserSearchCard({ user }: UserSearchCardProps) {
 
   const getMatchLabel = () => {
     switch (user.matchType) {
-      case 'username':
-        return 'Username match';
-      case 'bio':
-        return 'Bio match';
-      case 'geo':
-        return 'Location match';
-      case 'location':
-        return user.context || 'Location match';
+      case "username":
+        return "Username match";
+      case "bio":
+        return "Bio match";
+      case "geo":
+        return "Location match";
+      case "location":
+        return user.context || "Location match";
       default:
-        return 'Match';
+        return "Match";
     }
   };
 
   return (
     <Link href={`/${user.username}`}>
-      <Card data-tour="people-user-card" className="transition-colors hover:bg-accent">
+      <Card
+        data-tour="people-user-card"
+        className="transition-colors hover:bg-accent"
+      >
         <div className="flex items-center gap-4 p-4">
           {/* Avatar */}
           <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-full bg-muted">
@@ -92,13 +96,13 @@ export default function UserSearchCard({ user }: UserSearchCardProps) {
             <p className="truncate text-sm text-muted-foreground">
               @{user.username}
             </p>
-            
+
             {user.bio && (
               <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                 {user.bio}
               </p>
             )}
-            
+
             {location && (
               <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
                 <MapPin className="h-3 w-3" />

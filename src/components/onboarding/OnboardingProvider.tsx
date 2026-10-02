@@ -1,6 +1,13 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+  useEffect,
+} from "react";
 
 interface OnboardingContextType {
   isRunning: boolean;
@@ -19,7 +26,9 @@ interface OnboardingContextType {
   dismissCompletion: () => void;
 }
 
-const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
+const OnboardingContext = createContext<OnboardingContextType | undefined>(
+  undefined,
+);
 
 interface OnboardingProviderProps {
   children: ReactNode;
@@ -31,14 +40,17 @@ interface OnboardingProviderProps {
   };
 }
 
-export function OnboardingProvider({ children, userOnboardingStatus }: OnboardingProviderProps) {
+export function OnboardingProvider({
+  children,
+  userOnboardingStatus,
+}: OnboardingProviderProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleted, setIsCompleted] = useState(
-    userOnboardingStatus?.onboardingCompleted ?? false
+    userOnboardingStatus?.onboardingCompleted ?? false,
   );
   const [isSkipped, setIsSkipped] = useState(
-    userOnboardingStatus?.onboardingSkipped ?? false
+    userOnboardingStatus?.onboardingSkipped ?? false,
   );
   const [showWelcome, setShowWelcome] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
@@ -80,12 +92,12 @@ export function OnboardingProvider({ children, userOnboardingStatus }: Onboardin
     setCurrentStep(0);
     setShowWelcome(false);
     try {
-      await fetch('/api/onboarding/start', { 
-        method: 'POST',
-        credentials: 'include',
+      await fetch("/api/onboarding/start", {
+        method: "POST",
+        credentials: "include",
       });
     } catch (error) {
-      console.error('Failed to start onboarding:', error);
+      console.error("Failed to start onboarding:", error);
     }
   }, []);
 
@@ -94,12 +106,12 @@ export function OnboardingProvider({ children, userOnboardingStatus }: Onboardin
     setIsCompleted(true);
     setShowCompletionModal(true); // Show completion modal
     try {
-      await fetch('/api/onboarding/complete', { 
-        method: 'POST',
-        credentials: 'include',
+      await fetch("/api/onboarding/complete", {
+        method: "POST",
+        credentials: "include",
       });
     } catch (error) {
-      console.error('Failed to complete onboarding:', error);
+      console.error("Failed to complete onboarding:", error);
     }
   }, []);
 
@@ -108,12 +120,12 @@ export function OnboardingProvider({ children, userOnboardingStatus }: Onboardin
     setIsSkipped(true);
     setShowWelcome(false);
     try {
-      await fetch('/api/onboarding/skip', { 
-        method: 'POST',
-        credentials: 'include',
+      await fetch("/api/onboarding/skip", {
+        method: "POST",
+        credentials: "include",
       });
     } catch (error) {
-      console.error('Failed to skip onboarding:', error);
+      console.error("Failed to skip onboarding:", error);
     }
   }, []);
 
@@ -127,14 +139,14 @@ export function OnboardingProvider({ children, userOnboardingStatus }: Onboardin
     setIsRunning(false);
     setCurrentStep(0);
     try {
-      await fetch('/api/onboarding/reset', { 
-        method: 'POST',
-        credentials: 'include',
+      await fetch("/api/onboarding/reset", {
+        method: "POST",
+        credentials: "include",
       });
       // Show welcome modal again
       setShowWelcome(true);
     } catch (error) {
-      console.error('Failed to reset onboarding:', error);
+      console.error("Failed to reset onboarding:", error);
     }
   }, []);
 
@@ -169,7 +181,7 @@ export function OnboardingProvider({ children, userOnboardingStatus }: Onboardin
 export function useOnboarding() {
   const context = useContext(OnboardingContext);
   if (!context) {
-    throw new Error('useOnboarding must be used within OnboardingProvider');
+    throw new Error("useOnboarding must be used within OnboardingProvider");
   }
   return context;
 }

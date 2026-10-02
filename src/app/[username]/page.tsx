@@ -1,28 +1,28 @@
-import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
-import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
-import prisma from '@/lib/prisma';
-import { normalizeUsername } from '@/lib/username-utils';
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+import prisma from "@/lib/prisma";
+import { normalizeUsername } from "@/lib/username-utils";
 // import { getImageKitUrl } from '@/lib/storage';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
-import { ProfileStats } from '@/components/profile/ProfileStats';
-import PrivateProfileMessage from '@/components/profile/PrivateProfileMessage';
-import { UserLocationsGrid } from '@/components/profile/UserLocationsGrid';
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
+import { ProfileStats } from "@/components/profile/ProfileStats";
+import PrivateProfileMessage from "@/components/profile/PrivateProfileMessage";
+import { UserLocationsGrid } from "@/components/profile/UserLocationsGrid";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-for-development';
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-for-development";
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
 async function getCurrentUserId(): Promise<number | null> {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    
+    const token = cookieStore.get("auth_token")?.value;
+
     if (!token) return null;
-    
+
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
     return decoded.userId;
   } catch {
@@ -37,11 +37,11 @@ interface UserProfilePageProps {
 async function getUserByUsername(username: string) {
   // Case-insensitive lookup
   return await prisma.user.findFirst({
-    where: { 
+    where: {
       username: {
         equals: normalizeUsername(username),
-        mode: 'insensitive'
-      }
+        mode: "insensitive",
+      },
     },
     select: {
       id: true,
@@ -63,13 +63,13 @@ async function getUserByUsername(username: string) {
         select: {
           savedLocations: {
             where: {
-              visibility: 'public'
-            }
+              visibility: "public",
+            },
           },
           followers: true,
           following: true,
-        }
-      }
+        },
+      },
     },
   });
 }
@@ -78,18 +78,18 @@ async function getUserByUsername(username: string) {
 async function canViewProfile(
   profileUserId: number,
   currentUserId: number | null,
-  profileVisibility: string
-): Promise<{ canView: boolean; reason?: 'private' | 'followers' }> {
+  profileVisibility: string,
+): Promise<{ canView: boolean; reason?: "private" | "followers" }> {
   // Public profiles are always visible
-  if (profileVisibility === 'public') {
+  if (profileVisibility === "public") {
     return { canView: true };
   }
 
   // Not authenticated
   if (!currentUserId) {
-    return { 
-      canView: false, 
-      reason: profileVisibility === 'private' ? 'private' : 'followers' 
+    return {
+      canView: false,
+      reason: profileVisibility === "private" ? "private" : "followers",
     };
   }
 
@@ -99,12 +99,12 @@ async function canViewProfile(
   }
 
   // Private profiles only visible to owner
-  if (profileVisibility === 'private') {
-    return { canView: false, reason: 'private' };
+  if (profileVisibility === "private") {
+    return { canView: false, reason: "private" };
   }
 
   // Followers-only: check if current user follows this profile
-  if (profileVisibility === 'followers') {
+  if (profileVisibility === "followers") {
     const isFollowing = await prisma.userFollow.findUnique({
       where: {
         followerId_followingId: {
@@ -118,7 +118,7 @@ async function canViewProfile(
       return { canView: true };
     }
 
-    return { canView: false, reason: 'followers' };
+    return { canView: false, reason: "followers" };
   }
 
   return { canView: true };
@@ -129,7 +129,7 @@ async function canViewLocations(
   profileUserId: number,
   currentUserId: number | null,
   showSavedLocations: string,
-  isFollowing: boolean
+  isFollowing: boolean,
 ): Promise<boolean> {
   // Owner can always view own locations
   if (currentUserId === profileUserId) {
@@ -137,12 +137,12 @@ async function canViewLocations(
   }
 
   // Public locations visible to everyone
-  if (showSavedLocations === 'public') {
+  if (showSavedLocations === "public") {
     return true;
   }
 
   // Followers-only: check if following
-  if (showSavedLocations === 'followers' && isFollowing) {
+  if (showSavedLocations === "followers" && isFollowing) {
     return true;
   }
 
@@ -185,23 +185,27 @@ async function canViewLocations(
 //   });
 // }
 
-export async function generateMetadata({ params }: UserProfilePageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: UserProfilePageProps): Promise<Metadata> {
   const { username } = await params;
   const user = await getUserByUsername(username);
 
   if (!user) {
     return {
-      title: 'User Not Found',
+      title: "User Not Found",
     };
   }
 
-  const displayName = user.firstName && user.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user.username;
+  const displayName =
+    user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user.username;
 
   return {
     title: `${displayName} (@${user.username}) - fotolokashen`,
-    description: user.bio || `View ${displayName}'s public locations on fotolokashen`,
+    description:
+      user.bio || `View ${displayName}'s public locations on fotolokashen`,
     openGraph: {
       title: `${displayName} (@${user.username})`,
       description: user.bio || `View ${displayName}'s public locations`,
@@ -210,7 +214,9 @@ export async function generateMetadata({ params }: UserProfilePageProps): Promis
   };
 }
 
-export default async function UserProfilePage({ params }: UserProfilePageProps) {
+export default async function UserProfilePage({
+  params,
+}: UserProfilePageProps) {
   const { username } = await params;
   const user = await getUserByUsername(username);
 
@@ -226,7 +232,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
   const { canView, reason } = await canViewProfile(
     user.id,
     currentUserId,
-    user.profileVisibility
+    user.profileVisibility,
   );
 
   // If cannot view, show private profile message
@@ -262,15 +268,16 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
     user.id,
     currentUserId,
     user.showSavedLocations,
-    isFollowing
+    isFollowing,
   );
 
   // Only fetch locations if user has permission
   // const locations = canViewSavedLocations ? await getUserPublicLocations(user.id) : [];
-  
-  const displayName = user.firstName && user.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user.username;
+
+  const displayName =
+    user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user.username;
 
   return (
     <div className="min-h-screen bg-background">
@@ -296,7 +303,11 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           {isOwnProfile && (
             <div className="mb-2">
               <Link href="/profile">
-                <Button variant="outline" size="sm" className="gap-2 h-8 text-xs">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 h-8 text-xs"
+                >
                   <Settings className="w-3 h-3" />
                   Back to Settings
                 </Button>
@@ -333,7 +344,9 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
           {/* Bio */}
           {user.bio && (
             <div className="mb-4 p-3 bg-card rounded-lg border">
-              <p className="text-sm text-foreground whitespace-pre-wrap">{user.bio}</p>
+              <p className="text-sm text-foreground whitespace-pre-wrap">
+                {user.bio}
+              </p>
             </div>
           )}
 
@@ -356,11 +369,12 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
                 📍 {user.city}, {user.country}
               </p>
             )}
-            
+
             <p className="text-sm text-muted-foreground">
-              Joined {new Date(user.createdAt).toLocaleDateString('en-US', { 
-                month: 'long', 
-                year: 'numeric' 
+              Joined{" "}
+              {new Date(user.createdAt).toLocaleDateString("en-US", {
+                month: "long",
+                year: "numeric",
               })}
             </p>
           </div>
@@ -379,12 +393,13 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
                   <span className="text-2xl">🔒</span>
                 </div>
                 <div>
-                  <p className="font-semibold mb-1">Saved Locations are Private</p>
+                  <p className="font-semibold mb-1">
+                    Saved Locations are Private
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {user.showSavedLocations === 'followers' 
+                    {user.showSavedLocations === "followers"
                       ? `Follow @${user.username} to see their saved locations`
-                      : `@${user.username}'s saved locations are private`
-                    }
+                      : `@${user.username}'s saved locations are private`}
                   </p>
                 </div>
               </div>

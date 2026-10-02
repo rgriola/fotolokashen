@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { CheckCircle2, Fingerprint } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useState, useRef, useCallback, useEffect } from "react";
+import { CheckCircle2, Fingerprint } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface HoldToVerifyProps {
   /** Duration in milliseconds to hold (default: 3000) */
@@ -61,7 +61,7 @@ export function HoldToVerify({
 
   const handleStart = useCallback(() => {
     if (verified || completedRef.current) return;
-    
+
     setIsHolding(true);
     setShowRetry(false);
     startTimeRef.current = Date.now();
@@ -71,7 +71,7 @@ export function HoldToVerify({
     if (completedRef.current || verified) return;
 
     setIsHolding(false);
-    
+
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
@@ -81,7 +81,7 @@ export function HoldToVerify({
       setShowRetry(true);
       setProgress(0);
       startTimeRef.current = null;
-      
+
       // Hide retry message after 2 seconds
       setTimeout(() => setShowRetry(false), 2000);
     }
@@ -96,16 +96,16 @@ export function HoldToVerify({
     };
   }, []);
 
-  const displayTime = isHolding 
+  const displayTime = isHolding
     ? ((progress / 100) * (duration / 1000)).toFixed(1)
-    : '0.0';
+    : "0.0";
 
   return (
-    <div className={cn('w-full space-y-3', className)}>
+    <div className={cn("w-full space-y-3", className)}>
       <div className="text-sm font-medium text-foreground">
         Human Verification
       </div>
-      
+
       {/* Hold Button */}
       <button
         type="button"
@@ -116,16 +116,16 @@ export function HoldToVerify({
         onTouchEnd={handleEnd}
         disabled={verified}
         className={cn(
-          'relative w-full py-4 px-6 rounded-lg font-medium text-white transition-all duration-200',
-          'flex items-center justify-center gap-3',
-          'select-none touch-none',
+          "relative w-full py-4 px-6 rounded-lg font-medium text-white transition-all duration-200",
+          "flex items-center justify-center gap-3",
+          "select-none touch-none",
           verified
-            ? 'bg-success cursor-default'
+            ? "bg-success cursor-default"
             : isHolding
-            ? 'bg-primary scale-[0.98]'
-            : 'bg-secondary hover:bg-muted-foreground active:scale-[0.98]',
-          'focus:outline-none focus:ring-2 focus:ring-offset-2',
-          verified ? 'focus:ring-success' : 'focus:ring-primary'
+              ? "bg-primary scale-[0.98]"
+              : "bg-secondary hover:bg-muted-foreground active:scale-[0.98]",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2",
+          verified ? "focus:ring-success" : "focus:ring-primary",
         )}
       >
         {verified ? (
@@ -135,8 +135,12 @@ export function HoldToVerify({
           </>
         ) : (
           <>
-            <Fingerprint className={cn('h-5 w-5', isHolding && 'animate-pulse')} />
-            <span>{isHolding ? 'Keep holding...' : 'Hold to verify you\'re human'}</span>
+            <Fingerprint
+              className={cn("h-5 w-5", isHolding && "animate-pulse")}
+            />
+            <span>
+              {isHolding ? "Keep holding..." : "Hold to verify you're human"}
+            </span>
           </>
         )}
       </button>
@@ -145,14 +149,14 @@ export function HoldToVerify({
       <div className="relative h-3 w-full bg-muted rounded-full overflow-hidden">
         <div
           className={cn(
-            'h-full transition-all duration-75 rounded-full',
+            "h-full transition-all duration-75 rounded-full",
             verified
-              ? 'bg-success'
+              ? "bg-success"
               : progress > 66
-              ? 'bg-success'
-              : progress > 33
-              ? 'bg-warning'
-              : 'bg-primary/100'
+                ? "bg-success"
+                : progress > 33
+                  ? "bg-warning"
+                  : "bg-primary/100",
           )}
           style={{ width: `${verified ? 100 : progress}%` }}
         />

@@ -1,26 +1,25 @@
-
-import { notFound } from 'next/navigation';
-import { Metadata } from 'next';
-import prisma from '@/lib/prisma';
-import { normalizeUsername } from '@/lib/username-utils';
-import { getImageKitUrl } from '@/lib/storage';
-import Image from 'next/image';
-import Link from 'next/link';
-import { MapPin, Calendar, Star, ArrowLeft } from 'lucide-react';
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
+import prisma from "@/lib/prisma";
+import { normalizeUsername } from "@/lib/username-utils";
+import { getImageKitUrl } from "@/lib/storage";
+import Image from "next/image";
+import Link from "next/link";
+import { MapPin, Calendar, Star, ArrowLeft } from "lucide-react";
 
 interface PublicLocationPageProps {
   params: Promise<{ username: string; id: string }>;
 }
 
 async function getUserByUsername(username: string) {
-  const cleanUsername = username.startsWith('@') ? username.slice(1) : username;
-  
+  const cleanUsername = username.startsWith("@") ? username.slice(1) : username;
+
   return await prisma.user.findFirst({
-    where: { 
+    where: {
       username: {
         equals: normalizeUsername(cleanUsername),
-        mode: 'insensitive'
-      }
+        mode: "insensitive",
+      },
     },
     select: {
       id: true,
@@ -37,52 +36,58 @@ async function getPublicLocation(userId: number, locationId: number) {
     where: {
       userId,
       locationId,
-      visibility: 'public',
+      visibility: "public",
     },
     include: {
       location: {
         include: {
           photos: {
-            orderBy: [
-              { isPrimary: 'desc' },
-              { uploadedAt: 'asc' }
-            ]
-          }
-        }
-      }
-    }
+            orderBy: [{ isPrimary: "desc" }, { uploadedAt: "asc" }],
+          },
+        },
+      },
+    },
   });
 }
 
-export async function generateMetadata({ params }: PublicLocationPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PublicLocationPageProps): Promise<Metadata> {
   const { username, id } = await params;
   const user = await getUserByUsername(username);
 
   if (!user) {
     return {
-      title: 'User Not Found',
+      title: "User Not Found",
     };
   }
 
   const save = await getPublicLocation(user.id, parseInt(id, 10));
-  
+
   if (!save) {
     return {
-      title: 'Location Not Found',
+      title: "Location Not Found",
     };
   }
 
-  const displayName = user.firstName && user.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user.username;
+  const displayName =
+    user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user.username;
 
   const ogImage = save.location.photos[0]?.imagekitFilePath
-    ? getImageKitUrl(save.location.photos[0].imagekitFilePath, 'w-1200,h-630,c-at_max')
+    ? getImageKitUrl(
+        save.location.photos[0].imagekitFilePath,
+        "w-1200,h-630,c-at_max",
+      )
     : undefined;
 
   return {
     title: `${save.location.name} - ${displayName}'s Location`,
-    description: save.caption || save.location.address || `View ${save.location.name} on ${displayName}'s profile`,
+    description:
+      save.caption ||
+      save.location.address ||
+      `View ${save.location.name} on ${displayName}'s profile`,
     openGraph: {
       title: save.location.name,
       description: save.caption || save.location.address || undefined,
@@ -91,7 +96,9 @@ export async function generateMetadata({ params }: PublicLocationPageProps): Pro
   };
 }
 
-export default async function PublicLocationPage({ params }: PublicLocationPageProps) {
+export default async function PublicLocationPage({
+  params,
+}: PublicLocationPageProps) {
   const { username, id } = await params;
   const user = await getUserByUsername(username);
 
@@ -105,18 +112,20 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
     notFound();
   }
 
-  const displayName = user.firstName && user.lastName 
-    ? `${user.firstName} ${user.lastName}` 
-    : user.username;
+  const displayName =
+    user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user.username;
 
-  const primaryPhoto = save.location.photos.find(p => p.isPrimary) || save.location.photos[0];
+  const primaryPhoto =
+    save.location.photos.find((p) => p.isPrimary) || save.location.photos[0];
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Back Navigation */}
         <div className="mb-6">
-          <Link 
+          <Link
             href={`/${user.username}`}
             className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
@@ -127,7 +136,9 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
 
         {/* Location Header */}
         <div className="mb-6">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">{save.location.name}</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            {save.location.name}
+          </h1>
           {save.location.address && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <MapPin className="w-4 h-4" />
@@ -153,7 +164,7 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
           )}
           <div>
             <p className="font-semibold">{displayName}</p>
-            <Link 
+            <Link
               href={`/${user.username}`}
               className="text-sm text-muted-foreground hover:text-primary"
             >
@@ -166,7 +177,10 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
         {primaryPhoto && (
           <div className="mb-6 rounded-lg overflow-hidden">
             <Image
-              src={getImageKitUrl(primaryPhoto.imagekitFilePath, 'w-1200,h-800,c-at_max')}
+              src={getImageKitUrl(
+                primaryPhoto.imagekitFilePath,
+                "w-1200,h-800,c-at_max",
+              )}
               alt={save.location.name}
               width={1200}
               height={800}
@@ -193,10 +207,12 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
           {save.location.indoorOutdoor && (
             <div className="p-4 bg-card border rounded-lg">
               <p className="text-sm text-muted-foreground mb-1">Type</p>
-              <p className="font-medium capitalize">{save.location.indoorOutdoor}</p>
+              <p className="font-medium capitalize">
+                {save.location.indoorOutdoor}
+              </p>
             </div>
           )}
-          
+
           {save.location.rating && (
             <div className="p-4 bg-card border rounded-lg">
               <p className="text-sm text-muted-foreground mb-1">Rating</p>
@@ -236,11 +252,17 @@ export default async function PublicLocationPage({ params }: PublicLocationPageP
             <h2 className="text-2xl font-bold mb-4">More Photos</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {save.location.photos
-                .filter(photo => photo.id !== primaryPhoto?.id)
+                .filter((photo) => photo.id !== primaryPhoto?.id)
                 .map((photo) => (
-                  <div key={photo.id} className="relative aspect-square rounded-lg overflow-hidden">
+                  <div
+                    key={photo.id}
+                    className="relative aspect-square rounded-lg overflow-hidden"
+                  >
                     <Image
-                      src={getImageKitUrl(photo.imagekitFilePath, 'w-400,h-400,c-at_max')}
+                      src={getImageKitUrl(
+                        photo.imagekitFilePath,
+                        "w-400,h-400,c-at_max",
+                      )}
                       alt={photo.caption || save.location.name}
                       fill
                       className="object-cover"

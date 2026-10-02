@@ -1,12 +1,12 @@
-import { PublicUser } from '@/types/user';
+import { PublicUser } from "@/types/user";
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
-export type GlobalRole = 'user' | 'staffer' | 'super_admin';
-export type TeamRole = 'viewer' | 'editor' | 'admin' | 'owner';
-export type ProjectRole = 'viewer' | 'editor' | 'admin' | 'owner';
+export type GlobalRole = "user" | "staffer" | "super_admin";
+export type TeamRole = "viewer" | "editor" | "admin" | "owner";
+export type ProjectRole = "viewer" | "editor" | "admin" | "owner";
 
 export interface UserWithRole {
   id: number;
@@ -24,12 +24,12 @@ export interface ProjectMember {
 
 // Location type for permission checks
 interface LocationForPermission {
-    createdBy: number;
+  createdBy: number;
 }
 
 // UserSave type for permission checks
 interface UserSaveForPermission {
-    userId: number;
+  userId: number;
 }
 
 /**
@@ -37,10 +37,10 @@ interface UserSaveForPermission {
  * Only the creator OR an admin can edit location information
  */
 export function canEditLocation(
-    user: PublicUser,
-    location: LocationForPermission
+  user: PublicUser,
+  location: LocationForPermission,
 ): boolean {
-    return user.id === location.createdBy || user.isAdmin === true;
+  return user.id === location.createdBy || user.isAdmin === true;
 }
 
 /**
@@ -48,10 +48,10 @@ export function canEditLocation(
  * Only the user who saved the location can delete it from their saves
  */
 export function canDeleteUserSave(
-    user: PublicUser,
-    userSave: UserSaveForPermission
+  user: PublicUser,
+  userSave: UserSaveForPermission,
 ): boolean {
-    return user.id === userSave.userId;
+  return user.id === userSave.userId;
 }
 
 // ============================================================================
@@ -62,81 +62,97 @@ export function canDeleteUserSave(
  * Check if user can access the admin panel
  * Required: staffer or super_admin
  */
-export function canAccessAdminPanel(user: PublicUser | UserWithRole | null | undefined): boolean {
+export function canAccessAdminPanel(
+  user: PublicUser | UserWithRole | null | undefined,
+): boolean {
   if (!user) return false;
   // PublicUser now always has role field, fallback to isAdmin for backward compat
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  return role === 'staffer' || role === 'super_admin';
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+  return role === "staffer" || role === "super_admin";
 }
 
 /**
  * Check if user can send system-wide emails
  * Required: super_admin only
  */
-export function canSendSystemEmails(user: PublicUser | UserWithRole | null | undefined): boolean {
+export function canSendSystemEmails(
+  user: PublicUser | UserWithRole | null | undefined,
+): boolean {
   if (!user) return false;
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  return role === 'super_admin';
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+  return role === "super_admin";
 }
 
 /**
  * Check if user can manage all users (change roles, delete accounts)
  * Required: super_admin only
  */
-export function canManageAllUsers(user: PublicUser | UserWithRole | null | undefined): boolean {
+export function canManageAllUsers(
+  user: PublicUser | UserWithRole | null | undefined,
+): boolean {
   if (!user) return false;
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  return role === 'super_admin';
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+  return role === "super_admin";
 }
 
 /**
  * Check if user can change user roles
  * Required: super_admin only
  */
-export function canChangeUserRoles(user: PublicUser | UserWithRole | null | undefined): boolean {
+export function canChangeUserRoles(
+  user: PublicUser | UserWithRole | null | undefined,
+): boolean {
   if (!user) return false;
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  return role === 'super_admin';
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+  return role === "super_admin";
 }
 
 /**
  * Check if user can edit email templates
  * Required: super_admin only
  */
-export function canEditEmailTemplates(user: PublicUser | UserWithRole | null | undefined): boolean {
+export function canEditEmailTemplates(
+  user: PublicUser | UserWithRole | null | undefined,
+): boolean {
   if (!user) return false;
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  return role === 'super_admin';
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+  return role === "super_admin";
 }
 
 /**
  * Check if user can resend verification emails
  * Required: staffer or super_admin
  */
-export function canResendVerificationEmails(user: PublicUser | UserWithRole | null | undefined): boolean {
+export function canResendVerificationEmails(
+  user: PublicUser | UserWithRole | null | undefined,
+): boolean {
   if (!user) return false;
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  return role === 'staffer' || role === 'super_admin';
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+  return role === "staffer" || role === "super_admin";
 }
 
 /**
  * Check if user can view user management table
  * Required: staffer or super_admin
  */
-export function canViewUserManagement(user: PublicUser | UserWithRole | null | undefined): boolean {
+export function canViewUserManagement(
+  user: PublicUser | UserWithRole | null | undefined,
+): boolean {
   if (!user) return false;
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  return role === 'staffer' || role === 'super_admin';
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+  return role === "staffer" || role === "super_admin";
 }
 
 /**
  * Check if user can moderate content
  * Required: staffer or super_admin
  */
-export function canModerateContent(user: PublicUser | UserWithRole | null | undefined): boolean {
+export function canModerateContent(
+  user: PublicUser | UserWithRole | null | undefined,
+): boolean {
   if (!user) return false;
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  return role === 'staffer' || role === 'super_admin';
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+  return role === "staffer" || role === "super_admin";
 }
 
 // ============================================================================
@@ -147,27 +163,33 @@ export function canModerateContent(user: PublicUser | UserWithRole | null | unde
  * Check if user can send emails to team members
  * Required: Team admin or owner role
  */
-export function canSendTeamEmails(teamRole: TeamRole | null | undefined): boolean {
+export function canSendTeamEmails(
+  teamRole: TeamRole | null | undefined,
+): boolean {
   if (!teamRole) return false;
-  return teamRole === 'admin' || teamRole === 'owner';
+  return teamRole === "admin" || teamRole === "owner";
 }
 
 /**
  * Check if user can manage team members (invite, remove)
  * Required: Team admin or owner role
  */
-export function canManageTeamMembers(teamRole: TeamRole | null | undefined): boolean {
+export function canManageTeamMembers(
+  teamRole: TeamRole | null | undefined,
+): boolean {
   if (!teamRole) return false;
-  return teamRole === 'admin' || teamRole === 'owner';
+  return teamRole === "admin" || teamRole === "owner";
 }
 
 /**
  * Check if user can edit team settings
  * Required: Team admin or owner role
  */
-export function canEditTeamSettings(teamRole: TeamRole | null | undefined): boolean {
+export function canEditTeamSettings(
+  teamRole: TeamRole | null | undefined,
+): boolean {
   if (!teamRole) return false;
-  return teamRole === 'admin' || teamRole === 'owner';
+  return teamRole === "admin" || teamRole === "owner";
 }
 
 /**
@@ -176,16 +198,18 @@ export function canEditTeamSettings(teamRole: TeamRole | null | undefined): bool
  */
 export function canDeleteTeam(teamRole: TeamRole | null | undefined): boolean {
   if (!teamRole) return false;
-  return teamRole === 'owner';
+  return teamRole === "owner";
 }
 
 /**
  * Check if user can edit team content
  * Required: Team editor, admin, or owner role
  */
-export function canEditTeamContent(teamRole: TeamRole | null | undefined): boolean {
+export function canEditTeamContent(
+  teamRole: TeamRole | null | undefined,
+): boolean {
   if (!teamRole) return false;
-  return teamRole === 'editor' || teamRole === 'admin' || teamRole === 'owner';
+  return teamRole === "editor" || teamRole === "admin" || teamRole === "owner";
 }
 
 // ============================================================================
@@ -196,45 +220,59 @@ export function canEditTeamContent(teamRole: TeamRole | null | undefined): boole
  * Check if user can send emails to project members
  * Required: Project admin or owner role
  */
-export function canSendProjectEmails(projectRole: ProjectRole | null | undefined): boolean {
+export function canSendProjectEmails(
+  projectRole: ProjectRole | null | undefined,
+): boolean {
   if (!projectRole) return false;
-  return projectRole === 'admin' || projectRole === 'owner';
+  return projectRole === "admin" || projectRole === "owner";
 }
 
 /**
  * Check if user can manage project members (invite, remove)
  * Required: Project admin or owner role
  */
-export function canManageProjectMembers(projectRole: ProjectRole | null | undefined): boolean {
+export function canManageProjectMembers(
+  projectRole: ProjectRole | null | undefined,
+): boolean {
   if (!projectRole) return false;
-  return projectRole === 'admin' || projectRole === 'owner';
+  return projectRole === "admin" || projectRole === "owner";
 }
 
 /**
  * Check if user can edit project settings
  * Required: Project admin or owner role
  */
-export function canEditProjectSettings(projectRole: ProjectRole | null | undefined): boolean {
+export function canEditProjectSettings(
+  projectRole: ProjectRole | null | undefined,
+): boolean {
   if (!projectRole) return false;
-  return projectRole === 'admin' || projectRole === 'owner';
+  return projectRole === "admin" || projectRole === "owner";
 }
 
 /**
  * Check if user can delete the project
  * Required: Project owner role only
  */
-export function canDeleteProject(projectRole: ProjectRole | null | undefined): boolean {
+export function canDeleteProject(
+  projectRole: ProjectRole | null | undefined,
+): boolean {
   if (!projectRole) return false;
-  return projectRole === 'owner';
+  return projectRole === "owner";
 }
 
 /**
  * Check if user can edit project content (locations, photos)
  * Required: Project editor, admin, or owner role
  */
-export function canEditProjectContent(projectRole: ProjectRole | null | undefined): boolean {
+export function canEditProjectContent(
+  projectRole: ProjectRole | null | undefined,
+): boolean {
   if (!projectRole) return false;
-  return projectRole === 'editor' || projectRole === 'admin' || projectRole === 'owner';
+  return (
+    projectRole === "editor" ||
+    projectRole === "admin" ||
+    projectRole === "owner"
+  );
 }
 
 // ============================================================================
@@ -247,15 +285,15 @@ export function canEditProjectContent(projectRole: ProjectRole | null | undefine
  */
 export function canSendEmailsToTeam(
   user: PublicUser | UserWithRole | null | undefined,
-  teamRole: TeamRole | null | undefined
+  teamRole: TeamRole | null | undefined,
 ): boolean {
   if (!user) return false;
-  
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  
+
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+
   // Super admin can send to any team
-  if (role === 'super_admin') return true;
-  
+  if (role === "super_admin") return true;
+
   // Team admin/owner can send to their own team
   return canSendTeamEmails(teamRole);
 }
@@ -266,15 +304,15 @@ export function canSendEmailsToTeam(
  */
 export function canSendEmailsToProject(
   user: PublicUser | UserWithRole | null | undefined,
-  projectRole: ProjectRole | null | undefined
+  projectRole: ProjectRole | null | undefined,
 ): boolean {
   if (!user) return false;
-  
-  const role = user.role || (user.isAdmin ? 'staffer' : 'user');
-  
+
+  const role = user.role || (user.isAdmin ? "staffer" : "user");
+
   // Super admin can send to any project
-  if (role === 'super_admin') return true;
-  
+  if (role === "super_admin") return true;
+
   // Project admin/owner can send to their own project
   return canSendProjectEmails(projectRole);
 }
@@ -288,11 +326,11 @@ export function canSendEmailsToProject(
  */
 export function getRoleDisplayName(role: GlobalRole): string {
   const roleNames: Record<GlobalRole, string> = {
-    user: 'User',
-    staffer: 'Staff',
-    super_admin: 'Super Admin',
+    user: "User",
+    staffer: "Staff",
+    super_admin: "Super Admin",
   };
-  return roleNames[role] || 'Unknown';
+  return roleNames[role] || "Unknown";
 }
 
 /**
@@ -300,12 +338,12 @@ export function getRoleDisplayName(role: GlobalRole): string {
  */
 export function getTeamRoleDisplayName(role: TeamRole): string {
   const roleNames: Record<TeamRole, string> = {
-    viewer: 'Viewer',
-    editor: 'Editor',
-    admin: 'Admin',
-    owner: 'Owner',
+    viewer: "Viewer",
+    editor: "Editor",
+    admin: "Admin",
+    owner: "Owner",
   };
-  return roleNames[role] || 'Unknown';
+  return roleNames[role] || "Unknown";
 }
 
 /**
@@ -313,24 +351,26 @@ export function getTeamRoleDisplayName(role: TeamRole): string {
  */
 export function getProjectRoleDisplayName(role: ProjectRole): string {
   const roleNames: Record<ProjectRole, string> = {
-    viewer: 'Viewer',
-    editor: 'Editor',
-    admin: 'Admin',
-    owner: 'Owner',
+    viewer: "Viewer",
+    editor: "Editor",
+    admin: "Admin",
+    owner: "Owner",
   };
-  return roleNames[role] || 'Unknown';
+  return roleNames[role] || "Unknown";
 }
 
 /**
  * Check if role is valid
  */
 export function isValidGlobalRole(role: string): role is GlobalRole {
-  return ['user', 'staffer', 'super_admin'].includes(role);
+  return ["user", "staffer", "super_admin"].includes(role);
 }
 
 /**
  * Check if team/project role is valid
  */
-export function isValidMemberRole(role: string): role is TeamRole | ProjectRole {
-  return ['viewer', 'editor', 'admin', 'owner'].includes(role);
+export function isValidMemberRole(
+  role: string,
+): role is TeamRole | ProjectRole {
+  return ["viewer", "editor", "admin", "owner"].includes(role);
 }

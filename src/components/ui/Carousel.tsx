@@ -11,7 +11,11 @@ interface CarouselProps {
   className?: string;
 }
 
-export function Carousel({ images, alt = "Photo", className = "" }: CarouselProps) {
+export function Carousel({
+  images,
+  alt = "Photo",
+  className = "",
+}: CarouselProps) {
   const [index, setIndex] = React.useState(0);
   const total = images.length;
 

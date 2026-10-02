@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth-context';
-import { canAccessAdminPanel } from '@/lib/permissions';
-import { toast } from 'sonner';
-import { TOAST } from '@/lib/constants/messages';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { canAccessAdminPanel } from "@/lib/permissions";
+import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -24,13 +24,15 @@ export function AdminRoute({ children }: AdminRouteProps) {
     // Only check after loading is complete
     if (!isLoading) {
       if (!user) {
-        console.log('[AdminRoute] No authenticated user, redirecting to login');
+        console.log("[AdminRoute] No authenticated user, redirecting to login");
         toast.error(TOAST.AUTH.LOGIN_REQUIRED);
-        router.push('/login');
+        router.push("/login");
       } else if (!canAccessAdminPanel(user)) {
-        console.log('[AdminRoute] User does not have admin access, redirecting to home');
+        console.log(
+          "[AdminRoute] User does not have admin access, redirecting to home",
+        );
         toast.error(TOAST.AUTH.ADMIN_ACCESS_DENIED);
-        router.push('/');
+        router.push("/");
       }
     }
   }, [user, isLoading, router]);
@@ -41,7 +43,9 @@ export function AdminRoute({ children }: AdminRouteProps) {
       <div className="min-h-screen flex items-center justify-center bg-muted">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-muted-foreground">Verifying admin access...</p>
+          <p className="mt-4 text-muted-foreground">
+            Verifying admin access...
+          </p>
         </div>
       </div>
     );

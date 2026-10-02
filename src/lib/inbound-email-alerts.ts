@@ -1,5 +1,5 @@
-import prisma from '@/lib/prisma';
-import { env } from '@/lib/env';
+import prisma from "@/lib/prisma";
+import { env } from "@/lib/env";
 
 export const INBOUND_ALERT_DEFAULT_WINDOW_HOURS = 24;
 export const INBOUND_ALERT_MAX_WINDOW_HOURS = 7 * 24;
@@ -28,7 +28,11 @@ export interface FailedForwardSnapshot {
   samples: FailedForwardSample[];
 }
 
-export function parsePositiveInt(value: string | null | undefined, fallback: number, max: number): number {
+export function parsePositiveInt(
+  value: string | null | undefined,
+  fallback: number,
+  max: number,
+): number {
   if (!value) {
     return fallback;
   }
@@ -43,81 +47,94 @@ export function parsePositiveInt(value: string | null | undefined, fallback: num
 
 function cleanSingleLine(value: string | null | undefined): string {
   if (!value) {
-    return '';
+    return "";
   }
 
-  return value.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return value
+    .replace(/[\n\r]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-export function buildInboundForwardSlackText(snapshot: FailedForwardSnapshot): string {
+export function buildInboundForwardSlackText(
+  snapshot: FailedForwardSnapshot,
+): string {
   const lines: string[] = [];
-  const level = snapshot.shouldAlert ? ':warning:' : ':white_check_mark:';
+  const level = snapshot.shouldAlert ? ":warning:" : ":white_check_mark:";
 
   lines.push(`${level} Inbound Email Health (${snapshot.windowHours}h)`);
   lines.push(`Generated: ${snapshot.generatedAt}`);
   lines.push(`Inbound received: ${snapshot.metrics.inboundReceived}`);
   lines.push(`Forward failed: ${snapshot.metrics.forwardFailed}`);
-  lines.push(`Forward not configured: ${snapshot.metrics.forwardNotConfigured}`);
+  lines.push(
+    `Forward not configured: ${snapshot.metrics.forwardNotConfigured}`,
+  );
 
   if (snapshot.samples.length > 0) {
-    lines.push('Recent failed/not-configured samples:');
+    lines.push("Recent failed/not-configured samples:");
     for (const sample of snapshot.samples) {
-      const subject = cleanSingleLine(sample.subject) || '(no subject)';
-      const recipient = cleanSingleLine(sample.toCsv) || 'unknown recipient';
-      const status = cleanSingleLine(sample.forwardStatus) || 'unknown';
-      const error = cleanSingleLine(sample.forwardError) || 'none';
-      lines.push(`- #${sample.id} [${status}] to ${recipient} | ${subject} | error: ${error}`);
+      const subject = cleanSingleLine(sample.subject) || "(no subject)";
+      const recipient = cleanSingleLine(sample.toCsv) || "unknown recipient";
+      const status = cleanSingleLine(sample.forwardStatus) || "unknown";
+      const error = cleanSingleLine(sample.forwardError) || "none";
+      lines.push(
+        `- #${sample.id} [${status}] to ${recipient} | ${subject} | error: ${error}`,
+      );
     }
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 export async function loadInboundForwardSnapshot(
   windowHours: number,
-  sampleLimit: number
+  sampleLimit: number,
 ): Promise<FailedForwardSnapshot> {
   const now = new Date();
   const since = new Date(now.getTime() - windowHours * 60 * 60 * 1000);
 
-  const [inboundReceived, forwardFailed, forwardNotConfigured, samples] = await Promise.all([
-    prisma.inboundEmail.count({
-      where: {
-        receivedAt: { gte: since },
-      },
-    }),
-    prisma.inboundEmail.count({
-      where: {
-        receivedAt: { gte: since },
-        forwardStatus: 'failed',
-      },
-    }),
-    prisma.inboundEmail.count({
-      where: {
-        receivedAt: { gte: since },
-        forwardStatus: 'not_configured',
-      },
-    }),
-    prisma.inboundEmail.findMany({
-      where: {
-        receivedAt: { gte: since },
-        OR: [{ forwardStatus: 'failed' }, { forwardStatus: 'not_configured' }],
-      },
-      orderBy: {
-        receivedAt: 'desc',
-      },
-      take: sampleLimit,
-      select: {
-        id: true,
-        subject: true,
-        fromRaw: true,
-        toCsv: true,
-        receivedAt: true,
-        forwardStatus: true,
-        forwardError: true,
-      },
-    }),
-  ]);
+  const [inboundReceived, forwardFailed, forwardNotConfigured, samples] =
+    await Promise.all([
+      prisma.inboundEmail.count({
+        where: {
+          receivedAt: { gte: since },
+        },
+      }),
+      prisma.inboundEmail.count({
+        where: {
+          receivedAt: { gte: since },
+          forwardStatus: "failed",
+        },
+      }),
+      prisma.inboundEmail.count({
+        where: {
+          receivedAt: { gte: since },
+          forwardStatus: "not_configured",
+        },
+      }),
+      prisma.inboundEmail.findMany({
+        where: {
+          receivedAt: { gte: since },
+          OR: [
+            { forwardStatus: "failed" },
+            { forwardStatus: "not_configured" },
+          ],
+        },
+        orderBy: {
+          receivedAt: "desc",
+        },
+        take: sampleLimit,
+        select: {
+          id: true,
+          subject: true,
+          fromRaw: true,
+          toCsv: true,
+          receivedAt: true,
+          forwardStatus: true,
+          forwardError: true,
+        },
+      }),
+    ]);
 
   return {
     generatedAt: now.toISOString(),
@@ -139,17 +156,22 @@ export function getInboundAlertSlackWebhookUrl(): string | null {
   return env.SLACK_WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL || null;
 }
 
-export async function sendSlackAlert(webhookUrl: string, text: string): Promise<void> {
+export async function sendSlackAlert(
+  webhookUrl: string,
+  text: string,
+): Promise<void> {
   const response = await fetch(webhookUrl, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ text }),
   });
 
   if (!response.ok) {
     const body = await response.text();
-    throw new Error(`Slack alert send failed (${response.status}): ${body.slice(0, 200)}`);
+    throw new Error(
+      `Slack alert send failed (${response.status}): ${body.slice(0, 200)}`,
+    );
   }
 }

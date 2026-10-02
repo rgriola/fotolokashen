@@ -3,8 +3,8 @@
  * Supports username, bio, location, and geographic search
  */
 
-import prisma from './prisma';
-import { Prisma } from '@prisma/client';
+import prisma from "./prisma";
+import { Prisma } from "@prisma/client";
 
 export interface SearchResult {
   id: number;
@@ -15,12 +15,12 @@ export interface SearchResult {
   bio: string | null;
   city: string | null;
   country: string | null;
-  matchType: 'username' | 'bio' | 'location' | 'geo';
+  matchType: "username" | "bio" | "location" | "geo";
   matchScore?: number;
   context?: string;
 }
 
-export type SearchType = 'username' | 'bio' | 'location' | 'geo' | 'all';
+export type SearchType = "username" | "bio" | "location" | "geo" | "all";
 
 /**
  * Search users by username, first name, or last name using fuzzy matching
@@ -29,7 +29,7 @@ export type SearchType = 'username' | 'bio' | 'location' | 'geo' | 'all';
 export async function searchByUsername(
   query: string,
   limit: number = 20,
-  currentUserId?: number
+  currentUserId?: number,
 ): Promise<SearchResult[]> {
   if (!query || query.trim().length < 2) {
     return [];
@@ -89,19 +89,19 @@ export async function searchByUsername(
           LIMIT ${limit}
         `;
 
-    return users.map(user => ({
+    return users.map((user) => ({
       ...user,
-      matchType: 'username' as const,
+      matchType: "username" as const,
       matchScore: user.score,
     }));
   } catch (error) {
-    console.error('Username search error:', error);
+    console.error("Username search error:", error);
     // Fallback to simple ILIKE search if trigram extension not available
     const where: Prisma.UserWhereInput = {
       OR: [
-        { username: { contains: normalizedQuery, mode: 'insensitive' } },
-        { firstName: { contains: normalizedQuery, mode: 'insensitive' } },
-        { lastName: { contains: normalizedQuery, mode: 'insensitive' } },
+        { username: { contains: normalizedQuery, mode: "insensitive" } },
+        { firstName: { contains: normalizedQuery, mode: "insensitive" } },
+        { lastName: { contains: normalizedQuery, mode: "insensitive" } },
       ],
       deletedAt: null,
       showInSearch: true,
@@ -122,13 +122,13 @@ export async function searchByUsername(
       },
       take: limit,
       orderBy: {
-        username: 'asc',
+        username: "asc",
       },
     });
 
-    return users.map(user => ({
+    return users.map((user) => ({
       ...user,
-      matchType: 'username' as const,
+      matchType: "username" as const,
     }));
   }
 }
@@ -139,7 +139,7 @@ export async function searchByUsername(
  */
 export async function searchByBio(
   keywords: string,
-  limit: number = 20
+  limit: number = 20,
 ): Promise<SearchResult[]> {
   if (!keywords || keywords.trim().length < 3) {
     return [];
@@ -149,7 +149,9 @@ export async function searchByBio(
 
   try {
     // Use PostgreSQL full-text search
-    const users = await prisma.$queryRaw<Array<SearchResult & { score: number }>>`
+    const users = await prisma.$queryRaw<
+      Array<SearchResult & { score: number }>
+    >`
       SELECT 
         id,
         username,
@@ -161,30 +163,30 @@ export async function searchByBio(
         country,
         ts_rank(
           to_tsvector('english', COALESCE(bio, '')), 
-          to_tsquery('english', ${normalizedKeywords.replace(/\s+/g, ' & ')})
+          to_tsquery('english', ${normalizedKeywords.replace(/\s+/g, " & ")})
         ) as score
       FROM users
       WHERE 
-        to_tsvector('english', COALESCE(bio, '')) @@ to_tsquery('english', ${normalizedKeywords.replace(/\s+/g, ' & ')})
+        to_tsvector('english', COALESCE(bio, '')) @@ to_tsquery('english', ${normalizedKeywords.replace(/\s+/g, " & ")})
         AND "deletedAt" IS NULL
         AND "showInSearch" = true
       ORDER BY score DESC
       LIMIT ${limit}
     `;
 
-    return users.map(user => ({
+    return users.map((user) => ({
       ...user,
-      matchType: 'bio' as const,
+      matchType: "bio" as const,
       matchScore: user.score,
     }));
   } catch (error) {
-    console.error('Bio search error:', error);
+    console.error("Bio search error:", error);
     // Fallback to simple contains search
     const users = await prisma.user.findMany({
       where: {
         bio: {
           contains: normalizedKeywords,
-          mode: 'insensitive',
+          mode: "insensitive",
         },
         deletedAt: null,
       },
@@ -201,9 +203,9 @@ export async function searchByBio(
       take: limit,
     });
 
-    return users.map(user => ({
+    return users.map((user) => ({
       ...user,
-      matchType: 'bio' as const,
+      matchType: "bio" as const,
     }));
   }
 }
@@ -215,28 +217,28 @@ export async function searchByGeography(
   city?: string,
   country?: string,
   limit: number = 20,
-  currentUserId?: number
+  currentUserId?: number,
 ): Promise<SearchResult[]> {
   if (!city && !country) {
     return [];
   }
 
   const orConditions: Prisma.UserWhereInput[] = [];
-  
+
   if (city) {
     orConditions.push({
       city: {
         equals: city,
-        mode: 'insensitive' as Prisma.QueryMode,
+        mode: "insensitive" as Prisma.QueryMode,
       },
     });
   }
-  
+
   if (country) {
     orConditions.push({
       country: {
         equals: country,
-        mode: 'insensitive' as Prisma.QueryMode,
+        mode: "insensitive" as Prisma.QueryMode,
       },
     });
   }
@@ -262,18 +264,19 @@ export async function searchByGeography(
     },
     take: limit,
     orderBy: {
-      username: 'asc',
+      username: "asc",
     },
   });
 
-  return users.map(user => ({
+  return users.map((user) => ({
     ...user,
-    matchType: 'geo' as const,
-    context: city && country 
-      ? `From ${city}, ${country}`
-      : city 
-      ? `From ${city}`
-      : `From ${country}`,
+    matchType: "geo" as const,
+    context:
+      city && country
+        ? `From ${city}, ${country}`
+        : city
+          ? `From ${city}`
+          : `From ${country}`,
   }));
 }
 
@@ -284,7 +287,7 @@ export async function searchByGeography(
 export async function searchByLocation(
   locationId: number,
   currentUserId: number,
-  limit: number = 20
+  limit: number = 20,
 ): Promise<SearchResult[]> {
   const users = await prisma.user.findMany({
     where: {
@@ -295,7 +298,7 @@ export async function searchByLocation(
           locationId,
           // Only show users with public or unlisted saves
           // (followers-only and private excluded for privacy)
-          visibility: { in: ['public', 'unlisted'] },
+          visibility: { in: ["public", "unlisted"] },
         },
       },
     },
@@ -318,11 +321,11 @@ export async function searchByLocation(
     },
     take: limit,
     orderBy: {
-      username: 'asc',
+      username: "asc",
     },
   });
 
-  return users.map(user => ({
+  return users.map((user) => ({
     id: user.id,
     username: user.username,
     firstName: user.firstName,
@@ -331,8 +334,8 @@ export async function searchByLocation(
     bio: user.bio,
     city: user.city,
     country: user.country,
-    matchType: 'location' as const,
-    context: 'Saved this location',
+    matchType: "location" as const,
+    context: "Saved this location",
   }));
 }
 
@@ -342,9 +345,9 @@ export async function searchByLocation(
  */
 export async function searchUsers(
   query: string,
-  type: SearchType = 'all',
+  type: SearchType = "all",
   limit: number = 20,
-  currentUserId?: number
+  currentUserId?: number,
 ): Promise<SearchResult[]> {
   if (!query || query.trim().length < 2) {
     return [];
@@ -353,24 +356,34 @@ export async function searchUsers(
   let results: SearchResult[] = [];
 
   // Search by type
-  if (type === 'username' || type === 'all') {
+  if (type === "username" || type === "all") {
     const usernameResults = await searchByUsername(query, limit, currentUserId);
     results = [...results, ...usernameResults];
   }
 
-  if (type === 'bio' || type === 'all') {
+  if (type === "bio" || type === "all") {
     const bioResults = await searchByBio(query, limit);
     results = [...results, ...bioResults];
   }
 
-  if (type === 'geo' || type === 'all') {
+  if (type === "geo" || type === "all") {
     // Try to parse city/country from query
-    const parts = query.split(',').map(p => p.trim());
+    const parts = query.split(",").map((p) => p.trim());
     if (parts.length === 2) {
-      const geoResults = await searchByGeography(parts[0], parts[1], limit, currentUserId);
+      const geoResults = await searchByGeography(
+        parts[0],
+        parts[1],
+        limit,
+        currentUserId,
+      );
       results = [...results, ...geoResults];
     } else if (parts.length === 1) {
-      const geoResults = await searchByGeography(undefined, parts[0], limit, currentUserId);
+      const geoResults = await searchByGeography(
+        undefined,
+        parts[0],
+        limit,
+        currentUserId,
+      );
       results = [...results, ...geoResults];
     }
   }
@@ -379,7 +392,12 @@ export async function searchUsers(
   const deduped = new Map<number, SearchResult>();
   for (const result of results) {
     const existing = deduped.get(result.id);
-    if (!existing || (result.matchScore && existing.matchScore && result.matchScore > existing.matchScore)) {
+    if (
+      !existing ||
+      (result.matchScore &&
+        existing.matchScore &&
+        result.matchScore > existing.matchScore)
+    ) {
       deduped.set(result.id, result);
     }
   }
@@ -402,12 +420,12 @@ export async function searchUsers(
 export async function getUsernameSuggestions(
   query: string,
   limit: number = 10,
-  currentUserId?: number
+  currentUserId?: number,
 ): Promise<string[]> {
   if (!query || query.trim().length < 2) {
     return [];
   }
 
   const users = await searchByUsername(query, limit, currentUserId);
-  return users.map(u => u.username);
+  return users.map((u) => u.username);
 }

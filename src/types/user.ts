@@ -1,115 +1,114 @@
 export interface User {
-    id: number
-    email: string
-    username: string
-    passwordHash: string
-    firstName: string | null
-    lastName: string | null
-    emailVerified: boolean
-    verificationToken: string | null
-    verificationTokenExpiry: Date | null
-    resetToken: string | null
-    resetTokenExpiry: Date | null
-    isActive: boolean
-    isAdmin: boolean
-    role: string  // 'user', 'staffer', 'super_admin'
+  id: number;
+  email: string;
+  username: string;
+  passwordHash: string;
+  firstName: string | null;
+  lastName: string | null;
+  emailVerified: boolean;
+  verificationToken: string | null;
+  verificationTokenExpiry: Date | null;
+  resetToken: string | null;
+  resetTokenExpiry: Date | null;
+  isActive: boolean;
+  isAdmin: boolean;
+  role: string; // 'user', 'staffer', 'super_admin'
 
-    // GPS Permission
-    gpsPermission: string | null  // 'not_asked', 'granted', 'denied'
-    gpsPermissionUpdated: Date | null
+  // GPS Permission
+  gpsPermission: string | null; // 'not_asked', 'granted', 'denied'
+  gpsPermissionUpdated: Date | null;
 
-    // Home Location (default map center)
-    homeLocationName: string | null
-    homeLocationLat: number | null
-    homeLocationLng: number | null
-    homeLocationUpdated: Date | null
+  // Home Location (default map center)
+  homeLocationName: string | null;
+  homeLocationLat: number | null;
+  homeLocationLng: number | null;
+  homeLocationUpdated: Date | null;
 
-    // Profile fields
-    avatar: string | null
-    bannerImage: string | null
-    bio: string | null
-    phoneNumber: string | null
-    city: string | null
-    state: string | null
-    country: string | null
-    dateOfBirth: Date | null
-    timezone: string | null
-    language: string | null
+  // Profile fields
+  avatar: string | null;
+  bannerImage: string | null;
+  bio: string | null;
+  phoneNumber: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  dateOfBirth: Date | null;
+  timezone: string | null;
+  language: string | null;
 
-    // Preferences
-    emailNotifications: boolean
+  // Preferences
+  emailNotifications: boolean;
 
-    // Two-Factor Authentication
-    twoFactorEnabled: boolean
-    twoFactorSecret: string | null
+  // Two-Factor Authentication
+  twoFactorEnabled: boolean;
+  twoFactorSecret: string | null;
 
-    // OAuth
-    googleId: string | null
-    appleId: string | null
+  // OAuth
+  googleId: string | null;
+  appleId: string | null;
 
-    // Activity
-    lastLoginAt: Date | null
+  // Activity
+  lastLoginAt: Date | null;
 
-    // Soft delete
-    deletedAt: Date | null
+  // Soft delete
+  deletedAt: Date | null;
 
-    createdAt: Date
-    updatedAt: Date
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface PublicUser {
-    id: number
-    email: string
-    username: string
-    firstName: string | null
-    lastName: string | null
-    emailVerified: boolean
-    isActive: boolean
-    isAdmin: boolean
-    role: string  // 'user', 'staffer', 'super_admin'
+  id: number;
+  email: string;
+  username: string;
+  firstName: string | null;
+  lastName: string | null;
+  emailVerified: boolean;
+  isActive: boolean;
+  isAdmin: boolean;
+  role: string; // 'user', 'staffer', 'super_admin'
 
-    // Profile fields (public)
-    avatar: string | null
-    bannerImage: string | null
-    city: string | null
-    state: string | null
-    country: string | null
-    dateOfBirth: string | null  // ISO string (date only: YYYY-MM-DD)
-    language: string | null
-    timezone: string | null
+  // Profile fields (public)
+  avatar: string | null;
+  bannerImage: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  dateOfBirth: string | null; // ISO string (date only: YYYY-MM-DD)
+  language: string | null;
+  timezone: string | null;
 
-    // Preferences
-    emailNotifications: boolean
+  // Preferences
+  emailNotifications: boolean;
 
-    // GPS Permission
-    gpsPermission: string | null  // 'not_asked', 'granted', 'denied'
-    gpsPermissionUpdated: string | null  // ISO string
+  // GPS Permission
+  gpsPermission: string | null; // 'not_asked', 'granted', 'denied'
+  gpsPermissionUpdated: string | null; // ISO string
 
-    // Home Location (default map center)
-    homeLocationName: string | null
-    homeLocationLat: number | null
-    homeLocationLng: number | null
-    homeLocationUpdated: string | null  // ISO string
+  // Home Location (default map center)
+  homeLocationName: string | null;
+  homeLocationLat: number | null;
+  homeLocationLng: number | null;
+  homeLocationUpdated: string | null; // ISO string
 
-    createdAt: string  // ISO string
+  createdAt: string; // ISO string
 }
 
-
 export interface AuthResponse {
-    user: PublicUser
-    token: string
+  user: PublicUser;
+  token: string;
 }
 
 export interface LoginRequest {
-    email: string
-    password: string
-    rememberMe?: boolean
+  email: string;
+  password: string;
+  rememberMe?: boolean;
 }
 
 export interface RegisterRequest {
-    email: string
-    username: string
-    password: string
-    firstName?: string
-    lastName?: string
+  email: string;
+  username: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
 }

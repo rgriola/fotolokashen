@@ -30,7 +30,6 @@ interface UserSave {
   location: Location;
 }
 
-
 interface UserLocationsGridProps {
   username: string;
   displayName: string;
@@ -39,7 +38,11 @@ interface UserLocationsGridProps {
 
 const PAGE_SIZE = 9;
 
-export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: UserLocationsGridProps) {
+export function UserLocationsGrid({
+  username,
+  displayName,
+  googleMapsApiKey,
+}: UserLocationsGridProps) {
   const [page, setPage] = useState(1);
   const [locations, setLocations] = useState<UserSave[]>([]);
   const [loading, setLoading] = useState(false);
@@ -50,9 +53,11 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
   const fetchLocations = async (pageNum: number) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/v1/users/${username}/locations?page=${pageNum}&limit=${PAGE_SIZE}`);
+      const res = await fetch(
+        `/api/v1/users/${username}/locations?page=${pageNum}&limit=${PAGE_SIZE}`,
+      );
       if (!res.ok) {
-        console.error('Failed to fetch locations:', res.statusText);
+        console.error("Failed to fetch locations:", res.statusText);
         setHasMore(false);
         setLoading(false);
         setInitialLoading(false);
@@ -61,15 +66,17 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
       const data = await res.json();
       if (data.locations) {
         // Deduplicate locations by save.id to prevent duplicate keys
-        setLocations(prev => {
-          const existingIds = new Set(prev.map(loc => loc.id));
-          const newLocations = data.locations.filter((loc: UserSave) => !existingIds.has(loc.id));
+        setLocations((prev) => {
+          const existingIds = new Set(prev.map((loc) => loc.id));
+          const newLocations = data.locations.filter(
+            (loc: UserSave) => !existingIds.has(loc.id),
+          );
           return [...prev, ...newLocations];
         });
         setHasMore(data.pagination.hasMore);
       }
     } catch (error) {
-      console.error('Error fetching locations:', error);
+      console.error("Error fetching locations:", error);
       setHasMore(false);
     } finally {
       setLoading(false);
@@ -97,7 +104,10 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
-          <div key={i} className="bg-card rounded-lg border overflow-hidden animate-pulse">
+          <div
+            key={i}
+            className="bg-card rounded-lg border overflow-hidden animate-pulse"
+          >
             <div className="w-full h-48 bg-muted" />
             <div className="p-4 space-y-2">
               <div className="h-5 bg-muted rounded w-3/4" />
@@ -124,12 +134,13 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {locations.map((save) => {
           // Validate coordinates before creating map URL
-          const hasValidCoords = save.location.latitude && save.location.longitude;
-          const mapImageUrl = hasValidCoords 
+          const hasValidCoords =
+            save.location.latitude && save.location.longitude;
+          const mapImageUrl = hasValidCoords
             ? `https://maps.googleapis.com/maps/api/staticmap?center=${save.location.latitude},${save.location.longitude}&zoom=16&size=600x400&scale=2&maptype=roadmap&markers=color:red%7C${save.location.latitude},${save.location.longitude}&key=${googleMapsApiKey}`
-            : '';
+            : "";
           const hasValidPhoto = save.location.photos[0]?.imagekitFilePath;
-          
+
           return (
             <Link
               key={save.id}
@@ -140,7 +151,10 @@ export function UserLocationsGrid({ username, displayName, googleMapsApiKey }: U
               {hasValidPhoto ? (
                 <div className="relative w-full h-48 bg-muted">
                   <Image
-                    src={getPhotoUrl(save.location.photos[0].imagekitFilePath, 'card')}
+                    src={getPhotoUrl(
+                      save.location.photos[0].imagekitFilePath,
+                      "card",
+                    )}
                     alt={save.location.name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

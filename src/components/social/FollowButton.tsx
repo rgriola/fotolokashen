@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { TOAST } from '@/lib/constants/messages';
-import { Loader2 } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { TOAST } from "@/lib/constants/messages";
+import { Loader2 } from "lucide-react";
 
 interface FollowButtonProps {
   username: string;
   initialFollowStatus?: boolean;
-  variant?: 'default' | 'compact';
+  variant?: "default" | "compact";
   className?: string;
 }
 
-export function FollowButton({ 
-  username, 
+export function FollowButton({
+  username,
   initialFollowStatus = false,
-  variant = 'default',
-  className = ''
+  variant = "default",
+  className = "",
 }: FollowButtonProps) {
   const router = useRouter();
   const [isFollowing, setIsFollowing] = useState(initialFollowStatus);
@@ -29,15 +29,17 @@ export function FollowButton({
   useEffect(() => {
     async function checkFollowStatus() {
       try {
-        const response = await fetch(`/api/v1/users/me/follow-status/${username}`);
-        
+        const response = await fetch(
+          `/api/v1/users/me/follow-status/${username}`,
+        );
+
         if (response.ok) {
           const data = await response.json();
           setIsFollowing(data.isFollowing);
         }
       } catch (error) {
         // Silently fail - user might not be logged in
-        console.error('Error checking follow status:', error);
+        console.error("Error checking follow status:", error);
       }
     }
 
@@ -48,14 +50,14 @@ export function FollowButton({
     setIsLoading(true);
 
     try {
-      const endpoint = isFollowing 
+      const endpoint = isFollowing
         ? `/api/v1/users/${username}/unfollow`
         : `/api/v1/users/${username}/follow`;
 
       const response = await fetch(endpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
       });
 
@@ -65,11 +67,11 @@ export function FollowButton({
         // Handle errors
         if (response.status === 401) {
           toast.error(TOAST.SOCIAL.LOGIN_REQUIRED);
-          router.push('/login');
+          router.push("/login");
           return;
         }
 
-        throw new Error(data.error || 'Failed to update follow status');
+        throw new Error(data.error || "Failed to update follow status");
       }
 
       // Optimistic update
@@ -77,37 +79,38 @@ export function FollowButton({
 
       // Show success message
       toast.success(
-        isFollowing 
-          ? TOAST.SOCIAL.UNFOLLOWED(username) 
-          : TOAST.SOCIAL.FOLLOWED(username)
+        isFollowing
+          ? TOAST.SOCIAL.UNFOLLOWED(username)
+          : TOAST.SOCIAL.FOLLOWED(username),
       );
 
       // Refresh the page to update follower counts
       router.refresh();
-
     } catch (error) {
-      console.error('Error updating follow status:', error);
-      toast.error(error instanceof Error ? error.message : TOAST.SOCIAL.FOLLOW_FAILED);
+      console.error("Error updating follow status:", error);
+      toast.error(
+        error instanceof Error ? error.message : TOAST.SOCIAL.FOLLOW_FAILED,
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   // Compact variant for list views
-  if (variant === 'compact') {
+  if (variant === "compact") {
     return (
       <Button
         data-tour="people-follow"
         onClick={handleFollow}
         disabled={isLoading}
         size="sm"
-        variant={isFollowing ? 'outline' : 'default'}
+        variant={isFollowing ? "outline" : "default"}
         className={className}
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <span>{isFollowing ? 'Following' : 'Follow'}</span>
+          <span>{isFollowing ? "Following" : "Follow"}</span>
         )}
       </Button>
     );
@@ -118,7 +121,7 @@ export function FollowButton({
     <Button
       onClick={handleFollow}
       disabled={isLoading}
-      variant={isFollowing ? 'outline' : 'default'}
+      variant={isFollowing ? "outline" : "default"}
       className={className}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -130,10 +133,7 @@ export function FollowButton({
         </>
       ) : (
         <span>
-          {isFollowing 
-            ? (isHovered ? 'Unfollow' : 'Following')
-            : 'Follow'
-          }
+          {isFollowing ? (isHovered ? "Unfollow" : "Following") : "Follow"}
         </span>
       )}
     </Button>

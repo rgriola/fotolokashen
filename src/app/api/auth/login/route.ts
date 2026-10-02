@@ -1,10 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import prisma from '@/lib/prisma';
-import { comparePassword, generateToken, generateVerificationToken, hashToken } from '@/lib/auth';
-import { apiResponse, apiError, setAuthCookie } from '@/lib/api-middleware';
-import { rateLimit, RateLimitPresets, addRateLimitHeaders } from '@/lib/rate-limit';
-import { sendVerificationEmail } from '@/lib/email';
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import prisma from "@/lib/prisma";
+import {
+  comparePassword,
+  generateToken,
+  generateVerificationToken,
+  hashToken,
+} from "@/lib/auth";
+import { apiResponse, apiError, setAuthCookie } from "@/lib/api-middleware";
+import {
+  rateLimit,
+  RateLimitPresets,
+  addRateLimitHeaders,
+} from "@/lib/rate-limit";
+import { sendVerificationEmail } from "@/lib/email";
 
 // Rate limiting constants
 const MAX_FAILED_ATTEMPTS = 5;
@@ -12,13 +21,15 @@ const LOCKOUT_DURATION_MINUTES = 30;
 
 // Validation schema for login with enhanced security
 const loginSchema = z.object({
-  email: z.string()
-    .email('Invalid email address')
-    .toLowerCase()  // Normalize email
-    .trim(),        // Remove whitespace
-  password: z.string()
-    .min(1, 'Password is required')
-    .max(255, 'Password is too long'),  // Prevent DOS attacks with huge passwords
+  email: z
+    .string()
+    .email("Invalid email address")
+    .toLowerCase() // Normalize email
+    .trim(), // Remove whitespace
+  password: z
+    .string()
+    .min(1, "Password is required")
+    .max(255, "Password is too long"), // Prevent DOS attacks with huge passwords
   rememberMe: z.boolean().optional(),
 });
 
@@ -30,15 +41,15 @@ export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting BEFORE any database queries
     const rateLimitResult = await rateLimit(request, {
-      ...RateLimitPresets.MODERATE,  // 10 requests per 15 minutes
-      keyPrefix: 'login',
+      ...RateLimitPresets.MODERATE, // 10 requests per 15 minutes
+      keyPrefix: "login",
     });
 
     if (!rateLimitResult.allowed) {
       const response = apiError(
         `Too many login attempts. Please try again in ${Math.ceil(rateLimitResult.retryAfter / 1000)} seconds.`,
         429,
-        'RATE_LIMIT_EXCEEDED'
+        "RATE_LIMIT_EXCEEDED",
       );
       addRateLimitHeaders(response.headers, rateLimitResult);
       return response;
@@ -52,7 +63,7 @@ export async function POST(request: NextRequest) {
       return apiError(
         validation.error.issues[0].message,
         400,
-        'VALIDATION_ERROR'
+        "VALIDATION_ERROR",
       );
     }
 
@@ -98,16 +109,18 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       // Use generic error message to prevent email enumeration
-      return apiError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
+      return apiError("Invalid email or password", 401, "INVALID_CREDENTIALS");
     }
 
     // Check if account is currently locked
     if (user.lockedUntil && user.lockedUntil > new Date()) {
-      const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
+      const minutesLeft = Math.ceil(
+        (user.lockedUntil.getTime() - Date.now()) / 60000,
+      );
       return apiError(
-        `Account is temporarily locked due to multiple failed login attempts. Please try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}.`,
+        `Account is temporarily locked due to multiple failed login attempts. Please try again in ${minutesLeft} minute${minutesLeft !== 1 ? "s" : ""}.`,
         429,
-        'ACCOUNT_LOCKED'
+        "ACCOUNT_LOCKED",
       );
     }
 
@@ -126,19 +139,20 @@ export async function POST(request: NextRequest) {
     // This prevents enumeration while providing helpful UX
     if (!user.emailVerified) {
       // Check if verification token exists and is expired
-      const tokenExpired = !user.verificationTokenExpiry || 
-                           user.verificationTokenExpiry < new Date();
-      
+      const tokenExpired =
+        !user.verificationTokenExpiry ||
+        user.verificationTokenExpiry < new Date();
+
       // Check rate limiting for verification emails (max 1 per 5 minutes)
       const lastSent = user.lastVerificationEmailSent;
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
       const canResend = !lastSent || lastSent < fiveMinutesAgo;
-      
+
       if (tokenExpired && canResend) {
         // Generate new token (30 min expiry)
         const newToken = generateVerificationToken();
         const newExpiry = new Date(Date.now() + 30 * 60 * 1000);
-        
+
         // Update user in database (store hashed token)
         await prisma.user.update({
           where: { id: user.id },
@@ -148,59 +162,66 @@ export async function POST(request: NextRequest) {
             lastVerificationEmailSent: new Date(),
           },
         });
-        
+
         // Send new verification email
-        const verificationEmailSent = await sendVerificationEmail(user.email, newToken, user.username);
+        const verificationEmailSent = await sendVerificationEmail(
+          user.email,
+          newToken,
+          user.username,
+        );
         if (!verificationEmailSent) {
           return NextResponse.json(
             {
-              error: 'Email not verified. We could not send a new verification link right now. Please try again shortly.',
-              code: 'EMAIL_RESEND_FAILED',
+              error:
+                "Email not verified. We could not send a new verification link right now. Please try again shortly.",
+              code: "EMAIL_RESEND_FAILED",
               requiresVerification: true,
               email: user.email,
               tokenResent: false,
             },
-            { status: 503 }
+            { status: 503 },
           );
         }
-        
+
         return NextResponse.json(
           {
-            error: 'Email not verified. A new verification link has been sent to your email.',
-            code: 'EMAIL_NOT_VERIFIED_RESENT',
+            error:
+              "Email not verified. A new verification link has been sent to your email.",
+            code: "EMAIL_NOT_VERIFIED_RESENT",
             requiresVerification: true,
             email: user.email,
             tokenResent: true,
           },
-          { status: 403 }
+          { status: 403 },
         );
       } else if (tokenExpired && !canResend) {
         // Token expired but rate limited
-        const retryAfter = lastSent 
+        const retryAfter = lastSent
           ? Math.ceil((lastSent.getTime() - fiveMinutesAgo.getTime()) / 1000)
           : 0;
-        
+
         return NextResponse.json(
           {
             error: `Verification email was sent recently. Please check your inbox or try again in ${Math.ceil(retryAfter / 60)} minute(s).`,
-            code: 'EMAIL_RATE_LIMITED',
+            code: "EMAIL_RATE_LIMITED",
             requiresVerification: true,
             email: user.email,
             retryAfter,
           },
-          { status: 429 }
+          { status: 429 },
         );
       } else {
         // Token still valid
         return NextResponse.json(
           {
-            error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
-            code: 'EMAIL_NOT_VERIFIED',
+            error:
+              "Please verify your email address before logging in. Check your inbox for the verification link.",
+            code: "EMAIL_NOT_VERIFIED",
             requiresVerification: true,
             email: user.email,
             tokenResent: false,
           },
-          { status: 403 }
+          { status: 403 },
         );
       }
     }
@@ -213,7 +234,9 @@ export async function POST(request: NextRequest) {
 
       // Lock account if max attempts reached
       if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
-        const lockUntil = new Date(Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000);
+        const lockUntil = new Date(
+          Date.now() + LOCKOUT_DURATION_MINUTES * 60 * 1000,
+        );
         await prisma.user.update({
           where: { id: user.id },
           data: {
@@ -225,7 +248,7 @@ export async function POST(request: NextRequest) {
         return apiError(
           `Account locked due to ${MAX_FAILED_ATTEMPTS} failed login attempts. Please try again in ${LOCKOUT_DURATION_MINUTES} minutes.`,
           429,
-          'ACCOUNT_LOCKED'
+          "ACCOUNT_LOCKED",
         );
       }
 
@@ -239,9 +262,9 @@ export async function POST(request: NextRequest) {
 
       const attemptsLeft = MAX_FAILED_ATTEMPTS - newFailedAttempts;
       return apiError(
-        `Invalid email or password. ${attemptsLeft} attempt${attemptsLeft !== 1 ? 's' : ''} remaining before account lockout.`,
+        `Invalid email or password. ${attemptsLeft} attempt${attemptsLeft !== 1 ? "s" : ""} remaining before account lockout.`,
         401,
-        'INVALID_CREDENTIALS'
+        "INVALID_CREDENTIALS",
       );
     }
 
@@ -259,15 +282,15 @@ export async function POST(request: NextRequest) {
     // Check if email is verified
     if (!user.emailVerified) {
       return apiError(
-        'Please verify your email before logging in. Check your inbox for the verification link.',
+        "Please verify your email before logging in. Check your inbox for the verification link.",
         403,
-        'EMAIL_NOT_VERIFIED'
+        "EMAIL_NOT_VERIFIED",
       );
     }
 
     // Check if account is active
     if (!user.isActive) {
-      return apiError('Account is deactivated', 403, 'ACCOUNT_DEACTIVATED');
+      return apiError("Account is deactivated", 403, "ACCOUNT_DEACTIVATED");
     }
 
     // Generate JWT token
@@ -287,7 +310,9 @@ export async function POST(request: NextRequest) {
         city: user.city,
         state: user.state,
         country: user.country,
-        dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().split('T')[0] : null,
+        dateOfBirth: user.dateOfBirth
+          ? user.dateOfBirth.toISOString().split("T")[0]
+          : null,
         language: user.language,
         timezone: user.timezone,
         emailNotifications: user.emailNotifications,
@@ -299,7 +324,7 @@ export async function POST(request: NextRequest) {
         homeLocationUpdated: user.homeLocationUpdated?.toISOString() || null,
         createdAt: user.createdAt.toISOString(),
       },
-      rememberMe || false
+      rememberMe || false,
     );
 
     // Single-session enforcement: Delete all existing sessions for this user
@@ -318,24 +343,25 @@ export async function POST(request: NextRequest) {
     // });
 
     // Extract session metadata
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                      request.headers.get('x-real-ip') || 
-                      'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
-    
+    const ipAddress =
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const userAgent = request.headers.get("user-agent") || "unknown";
+
     // Detect device type from user agent
     const ua = userAgent.toLowerCase();
-    let deviceType = 'web';
-    if (ua.includes('iphone') || ua.includes('ipad')) {
-      deviceType = 'mobile-browser-ios';
-    } else if (ua.includes('android')) {
-      deviceType = 'mobile-browser-android';
-    } else if (ua.includes('mobile')) {
-      deviceType = 'mobile-browser';
+    let deviceType = "web";
+    if (ua.includes("iphone") || ua.includes("ipad")) {
+      deviceType = "mobile-browser-ios";
+    } else if (ua.includes("android")) {
+      deviceType = "mobile-browser-android";
+    } else if (ua.includes("mobile")) {
+      deviceType = "mobile-browser";
     }
-    
+
     // Extract device name from user agent (simplified)
-    const deviceName = userAgent.split('(')[1]?.split(')')[0] || null;
+    const deviceName = userAgent.split("(")[1]?.split(")")[0] || null;
 
     // Delete existing sessions for this device type to prevent duplicates
     // This allows multi-device (web + iOS) but prevents multiple sessions from same device
@@ -358,7 +384,7 @@ export async function POST(request: NextRequest) {
         deviceType: deviceType,
         deviceName: deviceName,
         country: null, // Could be extracted from IP geolocation service
-        loginMethod: 'email_password',
+        loginMethod: "email_password",
         isActive: true,
       },
     });
@@ -381,7 +407,9 @@ export async function POST(request: NextRequest) {
         city: user.city,
         state: user.state,
         country: user.country,
-        dateOfBirth: user.dateOfBirth ? user.dateOfBirth.toISOString().split('T')[0] : null,
+        dateOfBirth: user.dateOfBirth
+          ? user.dateOfBirth.toISOString().split("T")[0]
+          : null,
         language: user.language,
         timezone: user.timezone,
         emailNotifications: user.emailNotifications,
@@ -402,7 +430,7 @@ export async function POST(request: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error('Login error:', error);
-    return apiError('Failed to login', 500, 'LOGIN_ERROR');
+    console.error("Login error:", error);
+    return apiError("Failed to login", 500, "LOGIN_ERROR");
   }
 }

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -21,8 +21,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     // Only redirect after loading is complete and user is not found
     if (!isLoading && !user) {
-      console.log('[ProtectedRoute] No authenticated user, redirecting to login');
-      window.location.href = '/login';
+      console.log(
+        "[ProtectedRoute] No authenticated user, redirecting to login",
+      );
+      window.location.href = "/login";
     }
   }, [user, isLoading]);
 
@@ -46,4 +48,3 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   // User is authenticated, render the protected content
   return <>{children}</>;
 }
-

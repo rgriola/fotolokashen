@@ -1,51 +1,51 @@
-import { useQuery } from '@tanstack/react-query';
-import type { UserSave } from '@/types/location';
+import { useQuery } from "@tanstack/react-query";
+import type { UserSave } from "@/types/location";
 
 interface UseLocationsParams {
-    search?: string;
-    type?: string;
-    bounds?: {
-        north: number;
-        south: number;
-        east: number;
-        west: number;
-    };
+  search?: string;
+  type?: string;
+  bounds?: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  };
 }
 
 interface LocationsResponse {
-    locations: UserSave[];
-    total: number;
+  locations: UserSave[];
+  total: number;
 }
 
 export function useLocations(params?: UseLocationsParams) {
-    return useQuery<LocationsResponse>({
-        queryKey: ['locations', params],
-        queryFn: async () => {
-            const queryParams = new URLSearchParams();
+  return useQuery<LocationsResponse>({
+    queryKey: ["locations", params],
+    queryFn: async () => {
+      const queryParams = new URLSearchParams();
 
-            if (params?.search) {
-                queryParams.append('search', params.search);
-            }
+      if (params?.search) {
+        queryParams.append("search", params.search);
+      }
 
-            if (params?.type) {
-                queryParams.append('type', params.type);
-            }
+      if (params?.type) {
+        queryParams.append("type", params.type);
+      }
 
-            if (params?.bounds) {
-                queryParams.append('bounds', JSON.stringify(params.bounds));
-            }
+      if (params?.bounds) {
+        queryParams.append("bounds", JSON.stringify(params.bounds));
+      }
 
-            const url = `/api/locations${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
-            const response = await fetch(url, {
-                credentials: 'include',
-            });
+      const url = `/api/locations${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
+      const response = await fetch(url, {
+        credentials: "include",
+      });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to fetch locations');
-            }
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to fetch locations");
+      }
 
-            return response.json();
-        },
-    });
+      return response.json();
+    },
+  });
 }

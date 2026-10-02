@@ -1,21 +1,30 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import Joyride, { CallBackProps, STATUS, ACTIONS } from 'react-joyride';
-import { peopleSteps } from '@/lib/onboarding/peopleSteps';
-import { useAuth } from '@/lib/auth-context';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import Joyride, { CallBackProps, STATUS, ACTIONS } from "react-joyride";
+import { peopleSteps } from "@/lib/onboarding/peopleSteps";
+import { useAuth } from "@/lib/auth-context";
 
 interface PeopleOnboardingContextValue {
   runTour: boolean;
   restartTour: () => void;
 }
 
-const PeopleOnboardingContext = createContext<PeopleOnboardingContextValue | null>(null);
+const PeopleOnboardingContext =
+  createContext<PeopleOnboardingContextValue | null>(null);
 
 export function usePeopleOnboarding() {
   const context = useContext(PeopleOnboardingContext);
   if (!context) {
-    throw new Error('usePeopleOnboarding must be used within PeopleOnboardingProvider');
+    throw new Error(
+      "usePeopleOnboarding must be used within PeopleOnboardingProvider",
+    );
   }
   return context;
 }
@@ -61,35 +70,35 @@ export function PeopleOnboardingProvider({
 
       // Mark onboarding as complete
       if (status === STATUS.FINISHED) {
-        console.log('People tour finished, marking as complete...');
+        console.log("People tour finished, marking as complete...");
         setIsCompleted(true); // Update local state immediately
-        fetch('/api/onboarding/people/complete', {
-          method: 'POST',
-          credentials: 'include',
+        fetch("/api/onboarding/people/complete", {
+          method: "POST",
+          credentials: "include",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         })
-        .then(async (response) => {
-          const data = await response.json();
-          console.log('People API response:', response.status, data);
-          if (!response.ok) {
-            throw new Error(data.error || 'Failed to update');
-          }
-          // Notify parent component
-          if (onTourComplete) {
-            onTourComplete();
-          }
-        })
-        .catch(err => {
-          console.error('Failed to mark people onboarding complete:', err);
-          console.error('Error details:', err.message);
-        });
+          .then(async (response) => {
+            const data = await response.json();
+            console.log("People API response:", response.status, data);
+            if (!response.ok) {
+              throw new Error(data.error || "Failed to update");
+            }
+            // Notify parent component
+            if (onTourComplete) {
+              onTourComplete();
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to mark people onboarding complete:", err);
+            console.error("Error details:", err.message);
+          });
       }
     } else if (([ACTIONS.CLOSE] as string[]).includes(action)) {
       setRunTour(false);
       setStepIndex(0);
-    } else if (type === 'step:after') {
+    } else if (type === "step:after") {
       setStepIndex(index + 1);
     }
   };
@@ -114,7 +123,7 @@ export function PeopleOnboardingProvider({
         callback={handleJoyrideCallback}
         styles={{
           options: {
-            primaryColor: '#4f46e5', // primary
+            primaryColor: "#4f46e5", // primary
             zIndex: 10000,
           },
         }}
