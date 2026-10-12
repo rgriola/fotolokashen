@@ -134,14 +134,22 @@ async function handleAuthorizationCodeGrant(
       return apiError("Invalid code_verifier", 400, "INVALID_GRANT");
     }
 
-    // Mark code as used
-    await prisma.oAuthAuthorizationCode.update({
-      where: { code },
+    // Atomically claim the code: only one concurrent request can flip
+    // `used: false -> true`. This closes a race where a duplicate token
+    // request (e.g. the iOS app's OAuth callback firing twice for the same
+    // redirect) could otherwise read `used: false` for both requests and
+    // issue two sessions for a single authorization code.
+    const claimResult = await prisma.oAuthAuthorizationCode.updateMany({
+      where: { code, used: false },
       data: {
         used: true,
         usedAt: new Date(),
       },
     });
+
+    if (claimResult.count === 0) {
+      return apiError("Authorization code already used", 400, "INVALID_GRANT");
+    }
 
     // Generate access token (JWT)
     const user = serializeUser(authCode.user);

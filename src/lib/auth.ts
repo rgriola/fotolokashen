@@ -53,6 +53,11 @@ export function generateToken(
     role: user.role,
     avatar: user.avatar,
     bannerImage: user.bannerImage,
+    // Unique per-token claim: without this, two tokens signed for the same
+    // user within the same second (e.g. a racing duplicate OAuth token
+    // request) are byte-for-byte identical, which violates the sessions
+    // table's unique `token` constraint.
+    jti: crypto.randomUUID(),
   };
 
   return jwt.sign(payload, JWT_SECRET, {
@@ -72,6 +77,7 @@ export interface JWTPayload {
   role: string;
   avatar: string | null;
   bannerImage: string | null;
+  jti?: string;
   iat?: number;
   exp?: number;
 }
