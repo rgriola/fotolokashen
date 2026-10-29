@@ -137,6 +137,7 @@ export function ChangeUsernameForm() {
       </CardHeader>
       <CardContent>
         <form
+          method="post"
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4 max-w-md mx-auto"
         >

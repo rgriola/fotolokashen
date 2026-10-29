@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
   // isomorphic-dompurify uses jsdom which has ES Module issues in serverless
   serverExternalPackages: ["exifr", "jsdom", "parse5", "isomorphic-dompurify"],
 
+  // Dev-only: allow the iOS Debug build (BACKEND_BASE_URL = http://<mac>.local:3000)
+  // to reach Next.js dev resources such as /_next/hmr.
+  allowedDevOrigins: ["rods-macbook-air.local", "*.local"],
+
   // Turbopack is default in Next.js 16 - empty config silences webpack migration warning
   turbopack: {},
 

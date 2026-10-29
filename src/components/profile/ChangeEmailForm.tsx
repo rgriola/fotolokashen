@@ -127,6 +127,7 @@ export function ChangeEmailForm() {
       </CardHeader>
       <CardContent>
         <form
+          method="post"
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-4 max-w-md mx-auto"
         >

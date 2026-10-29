@@ -346,6 +346,7 @@ export function RegisterForm({ returnUrl, message }: RegisterFormProps) {
 
       <CardContent className="pb-3 sm:pb-4">
         <form
+          method="post"
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-3 sm:space-y-4"
           autoComplete="off"

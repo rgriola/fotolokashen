@@ -288,6 +288,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
       </CardHeader>
       <CardContent>
         <form
+          method="post"
           onSubmit={handleSubmit(onSubmit)}
           className="space-y-3 sm:space-y-4"
         >
