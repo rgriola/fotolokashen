@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { TOAST } from "@/lib/constants/messages";
+import { buildOAuthCallbackUrl } from "@/lib/oauthCallback";
 import { Eye, EyeOff } from "lucide-react";
 
 // Validation schema
@@ -58,6 +59,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
     codeChallengeMethod?: string;
     scope?: string;
     responseType?: string;
+    state?: string;
   }>({});
 
   useEffect(() => {
@@ -70,6 +72,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
         searchParams.get("code_challenge_method") || undefined,
       scope: searchParams.get("scope") || undefined,
       responseType: searchParams.get("response_type") || undefined,
+      state: searchParams.get("state") ?? undefined,
     });
   }, [searchParams]);
 
@@ -203,6 +206,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
               code_challenge: oauthParams.codeChallenge,
               code_challenge_method: oauthParams.codeChallengeMethod || "S256",
               scope: oauthParams.scope || "read write",
+              state: oauthParams.state,
             }),
           });
 
@@ -226,13 +230,13 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
           // Direct window.location.href to a custom URL scheme (fotolokashen://...)
           // can be blocked by browser security inside ASWebAuthenticationSession.
           // The /app/auth-callback page handles the custom-scheme redirect for us.
-          const callbackUrl = new URL(
-            "/app/auth-callback",
-            window.location.origin,
+          const callbackUrl = buildOAuthCallbackUrl(
+            new URL("/app/auth-callback", window.location.origin).toString(),
+            oauthResult.authorization_code,
+            oauthResult.state,
           );
-          callbackUrl.searchParams.set("code", oauthResult.authorization_code);
-          setOauthDebug(`4/4: Navigating to ${callbackUrl.toString()}`);
-          window.location.href = callbackUrl.toString();
+          setOauthDebug("4/4: Returning to app...");
+          window.location.assign(callbackUrl);
           return;
         } catch (oauthError) {
           setOauthDebug(`CATCH: ${oauthError}`);

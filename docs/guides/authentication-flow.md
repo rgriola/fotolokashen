@@ -1,7 +1,7 @@
 # Authentication & Registration Flow
 
 > Cross-platform authentication reference for Fotolokashen — web and iOS.  
-> **Last Updated:** April 2026 — reflects SHA-256 token hashing, auto-login flow, and iOS UX gaps.
+> **Last Updated:** October 29, 2026, 18:55 EDT — OAuth state passthrough restored locally; production deployment and strict-client verification pending.
 
 ---
 
@@ -13,6 +13,24 @@
 | **iOS** | OAuth 2.0 PKCE | `ASWebAuthenticationSession` (Safari panel) | iOS Keychain |
 
 Both platforms share the **same API**, the **same registration page**, and the **same email verification system**. The difference is the `platform=ios` parameter which controls post-verification redirect behavior.
+
+### iOS OAuth state passthrough
+
+The login form preserves optional `state` from the incoming login URL in the
+authorization POST. The authorization endpoint echoes it, and the login form
+forwards that returned value to `/app/auth-callback`. Both the automatic redirect
+and manual open-app button preserve it in the custom-scheme callback. Query
+values are URL-encoded; absent state stays absent for older iOS clients.
+
+The stricter iOS build requires one nonempty state matching its current login.
+The October 29 production verification error was reported from an Xcode-installed
+strict build still labeled 1.6.2, not the older App Store installation. Local web
+source was missing state forwarding in the login form and callback page; this
+does not establish which commit production is running.
+
+After deploying this fix, verify login, logout, and login again on the strict
+build against production, plus login on the older App Store client. Do not remove
+iOS state validation to accommodate a callback missing state.
 
 ---
 

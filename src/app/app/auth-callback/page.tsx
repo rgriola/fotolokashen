@@ -11,6 +11,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { buildOAuthCallbackUrl } from "@/lib/oauthCallback";
 
 /**
  * /app/auth-callback — Universal Link fallback page
@@ -28,19 +29,24 @@ import { Button } from "@/components/ui/button";
 function AuthCallbackContent() {
   const searchParams = useSearchParams();
   const code = searchParams.get("code");
+  const state = searchParams.get("state");
   const [attemptedDeepLink, setAttemptedDeepLink] = useState(false);
 
   useEffect(() => {
     if (code) {
       // Try the custom URL scheme as fallback
-      window.location.href = `fotolokashen://oauth-callback?code=${code}`;
+      window.location.href = buildOAuthCallbackUrl(
+        "fotolokashen://oauth-callback",
+        code,
+        state,
+      );
       // If we're still here after 2 seconds, the app isn't installed
       const timer = setTimeout(() => {
         setAttemptedDeepLink(true);
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [code]);
+  }, [code, state]);
 
   if (!code) {
     return (
@@ -66,7 +72,11 @@ function AuthCallbackContent() {
           <Button
             className="w-full"
             onClick={() => {
-              window.location.href = `fotolokashen://oauth-callback?code=${code}`;
+              window.location.href = buildOAuthCallbackUrl(
+                "fotolokashen://oauth-callback",
+                code,
+                state,
+              );
             }}
           >
             Open fotolokashen App
