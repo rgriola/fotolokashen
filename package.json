@@ -55,7 +55,7 @@
     "imagekitio-react": "^4.3.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.561.0",
-    "next": "16.1.6",
+    "next": "^16.4.3",
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.11",
     "openai": "^6.16.0",
