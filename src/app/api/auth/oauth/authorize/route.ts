@@ -37,6 +37,13 @@ export async function POST(request: NextRequest) {
       state,
     } = body;
 
+    if (
+      state !== undefined &&
+      (typeof state !== "string" || state.length === 0 || state.length > 512)
+    ) {
+      return apiError("Invalid state", 400, "INVALID_REQUEST");
+    }
+
     // Validate required parameters
     if (
       !client_id ||
@@ -118,7 +125,7 @@ export async function POST(request: NextRequest) {
     // Return authorization code
     return apiResponse({
       authorization_code: authorizationCode,
-      ...(state && { state }),
+      ...(state !== undefined && { state }),
     });
   } catch (error) {
     console.error("OAuth authorization error:", error);

@@ -58,6 +58,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
     codeChallengeMethod?: string;
     scope?: string;
     responseType?: string;
+    state?: string;
   }>({});
 
   useEffect(() => {
@@ -70,6 +71,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
         searchParams.get("code_challenge_method") || undefined,
       scope: searchParams.get("scope") || undefined,
       responseType: searchParams.get("response_type") || undefined,
+      state: searchParams.get("state") || undefined,
     });
   }, [searchParams]);
 
@@ -203,6 +205,7 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
               code_challenge: oauthParams.codeChallenge,
               code_challenge_method: oauthParams.codeChallengeMethod || "S256",
               scope: oauthParams.scope || "read write",
+              state: oauthParams.state,
             }),
           });
 
@@ -213,6 +216,18 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
               `2/4 FAIL: ${oauthResponse.status} - ${JSON.stringify(oauthResult)}`,
             );
             console.error("[OAuth] Authorization failed:", oauthResult);
+            toast.error(TOAST.AUTH.OAUTH_FAILED);
+            return;
+          }
+
+          if (
+            oauthParams.state !== undefined &&
+            oauthResult.state !== oauthParams.state
+          ) {
+            setOauthDebug("2/4 FAIL: OAuth state was not preserved.");
+            console.error(
+              "[OAuth] Authorization response state did not match.",
+            );
             toast.error(TOAST.AUTH.OAUTH_FAILED);
             return;
           }
@@ -231,8 +246,11 @@ export function LoginForm({ returnUrl, message }: LoginFormProps) {
             window.location.origin,
           );
           callbackUrl.searchParams.set("code", oauthResult.authorization_code);
+          if (typeof oauthResult.state === "string") {
+            callbackUrl.searchParams.set("state", oauthResult.state);
+          }
           setOauthDebug(`4/4: Navigating to ${callbackUrl.toString()}`);
-          window.location.href = callbackUrl.toString();
+          window.location.assign(callbackUrl.toString());
           return;
         } catch (oauthError) {
           setOauthDebug(`CATCH: ${oauthError}`);
