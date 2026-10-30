@@ -40,9 +40,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user with this auto-login token (hash incoming token to match stored hash)
+    const tokenHash = hashToken(token);
     const user = await prisma.user.findFirst({
       where: {
-        autoLoginToken: hashToken(token),
+        autoLoginToken: tokenHash,
         emailVerified: true,
         isActive: true,
       },
@@ -58,10 +59,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check expiry
-    if (user.autoLoginTokenExpiry && user.autoLoginTokenExpiry < new Date()) {
+    if (!user.autoLoginTokenExpiry || user.autoLoginTokenExpiry <= new Date()) {
       // Clear the expired token
-      await prisma.user.update({
-        where: { id: user.id },
+      await prisma.user.updateMany({
+        where: {
+          id: user.id,
+          autoLoginToken: tokenHash,
+          autoLoginTokenExpiry: user.autoLoginTokenExpiry,
+        },
         data: { autoLoginToken: null, autoLoginTokenExpiry: null },
       });
       console.log("❌ Auto-login failed: Token expired");
@@ -73,14 +78,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Clear the token immediately (single-use)
-    await prisma.user.update({
-      where: { id: user.id },
+    const consumed = await prisma.user.updateMany({
+      where: {
+        id: user.id,
+        autoLoginToken: tokenHash,
+        autoLoginTokenExpiry: { gt: new Date() },
+        emailVerified: true,
+        isActive: true,
+      },
       data: {
         autoLoginToken: null,
         autoLoginTokenExpiry: null,
         lastLoginAt: new Date(),
       },
     });
+    if (consumed.count !== 1) {
+      return apiError(
+        "Invalid or expired auto-login token",
+        400,
+        "INVALID_TOKEN",
+      );
+    }
 
     // Generate access token (JWT)
     const serialized = serializeUser(user);

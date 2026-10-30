@@ -1,7 +1,7 @@
 # Authentication & Registration Flow
 
 > Cross-platform authentication reference for Fotolokashen — web and iOS.  
-> **Last Updated:** October 29, 2026, 18:55 EDT — OAuth state passthrough restored locally; production deployment and strict-client verification pending.
+> **Last Updated:** October 29, 2026, 20:11 EDT — strict-client production OAuth login user-confirmed; atomic auto-login token consumption tested locally, deployment pending.
 
 ---
 
@@ -35,6 +35,20 @@ iOS state validation to accommodate a callback missing state.
 ---
 
 ## Web Registration Flow
+
+### Auto-login token enforcement
+
+Email verification for iOS generates a 32-byte random token, stores its hash and
+sets a five-minute expiry. The auto-login exchange rejects null or expired
+expiry, and conditionally consumes the matching, unexpired token before issuing
+credentials. Only one concurrent request can win; replay cannot issue another
+credential set. Expired-token cleanup matches the original hash and expiry so
+it cannot clear a newer token. Failure after consumption intentionally leaves
+the one-time token unusable; the user can log in manually.
+
+Five focused regression tests cover concurrent use, null/past/current expiry,
+and unsuccessful atomic consumption. All 41 selected auth/API contract tests
+pass locally. The auto-login change still requires deployment.
 
 ```
 User → /register → fills form → POST /api/auth/register
