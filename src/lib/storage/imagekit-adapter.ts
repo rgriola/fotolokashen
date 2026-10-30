@@ -224,6 +224,7 @@ export async function deleteFromImageKit(
     await imagekit.deleteFile(fileId);
     return { success: true };
   } catch (error: unknown) {
+    if (isStorageNotFound(error)) return { success: true };
     console.error("ImageKit delete error:", error);
     return {
       success: false,
@@ -244,12 +245,42 @@ export async function deleteImageKitFolder(
     await imagekit.deleteFolder(folderPath);
     return { success: true };
   } catch (error: unknown) {
+    if (isStorageNotFound(error)) return { success: true };
     console.error("ImageKit folder delete error:", error);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Folder delete failed",
     };
   }
+}
+
+function isStorageNotFound(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  if (!("$ResponseMetadata" in error)) return false;
+  const metadata = error.$ResponseMetadata;
+  return (
+    typeof metadata === "object" &&
+    metadata !== null &&
+    "statusCode" in metadata &&
+    metadata.statusCode === 404
+  );
+}
+
+export async function requestStoragePurge(url: string): Promise<string> {
+  const result = await getImageKitInstance().purgeCache(url);
+  if (typeof result.requestId !== "string" || !result.requestId) {
+    throw new Error("Storage purge response is missing a request ID");
+  }
+  return result.requestId;
+}
+
+export async function getStoragePurgeStatus(
+  requestId: string,
+): Promise<"pending" | "completed"> {
+  const result = await getImageKitInstance().getPurgeCacheStatus(requestId);
+  if (result.status === "Completed") return "completed";
+  if (result.status === "Pending") return "pending";
+  throw new Error("Storage purge returned an unexpected status");
 }
 
 /**

@@ -1,12 +1,15 @@
-import { NextRequest } from "next/server";
+import { after, NextRequest } from "next/server";
 import { requireAdmin, apiResponse, apiError } from "@/lib/api-middleware";
 import prisma from "@/lib/prisma";
-import { deleteFromImageKit, deleteImageKitFolder } from "@/lib/storage";
 import { sendAccountDeletionEmail } from "@/lib/email";
-import { getUserRootFolder } from "@/lib/constants/upload";
+import {
+  deleteAccountAndQueueMedia,
+  processAccountMediaCleanup,
+} from "@/lib/account-deletion";
 
 // Runtime config for edge/node
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /**
  * DELETE /api/admin/users/[id]
@@ -60,21 +63,6 @@ export async function DELETE(
         username: true,
         firstName: true,
         lastName: true,
-        uploadedPhotos: {
-          select: {
-            id: true,
-            imagekitFileId: true,
-            imagekitFilePath: true,
-          },
-        },
-        _count: {
-          select: {
-            sessions: true,
-            createdLocations: true,
-            uploadedPhotos: true,
-            savedLocations: true,
-          },
-        },
       },
     });
 
@@ -82,74 +70,23 @@ export async function DELETE(
       return apiError("User not found", 404);
     }
 
-    // Delete photos from storage (ImageKit CDN today)
-    if (user.uploadedPhotos.length > 0) {
-      console.log(
-        `[DeleteUser] Deleting ${user.uploadedPhotos.length} photos from storage...`,
-      );
-
-      // Delete individual photo files
-      for (const photo of user.uploadedPhotos) {
-        const result = await deleteFromImageKit(photo.imagekitFileId);
-        if (result.success) {
-          console.log(`[DeleteUser] Deleted photo ${photo.id} from storage`);
-        } else {
-          console.error(
-            `[DeleteUser] Failed to delete photo ${photo.id} from storage:`,
-            result.error,
-          );
-          // Continue even if CDN deletion fails
-        }
-      }
-
-      // Delete the user's entire folder from storage
-      // Uses environment-aware path: /production/users/{userId}/ or /development/users/{userId}/
-      const userFolderPath = getUserRootFolder(userId);
-      console.log(
-        `[DeleteUser] Attempting to delete user folder: ${userFolderPath}`,
-      );
-      const folderResult = await deleteImageKitFolder(userFolderPath);
-      if (folderResult.success) {
-        console.log(
-          `[DeleteUser] Deleted user folder ${userFolderPath} from storage`,
-        );
-      } else {
-        console.error(
-          `[DeleteUser] Failed to delete user folder from storage:`,
-          folderResult.error,
-        );
-        // Continue even if folder deletion fails (might not exist or already empty)
-      }
-    }
-
-    // Delete user (cascade will handle Sessions, Locations, Photos, Saves)
-    await prisma.user.delete({
-      where: { id: userId },
+    const cleanupId = await deleteAccountAndQueueMedia(userId, {
+      userId: adminUser.id,
+      ipAddress:
+        req.headers.get("x-forwarded-for") ||
+        req.headers.get("x-real-ip") ||
+        "unknown",
+      userAgent: req.headers.get("user-agent") || "unknown",
     });
-
-    // Create audit log
-    await prisma.securityLog.create({
-      data: {
-        userId: adminUser.id,
-        eventType: "ADMIN_USER_DELETED",
-        ipAddress:
-          req.headers.get("x-forwarded-for") ||
-          req.headers.get("x-real-ip") ||
-          "unknown",
-        userAgent: req.headers.get("user-agent") || "unknown",
-        success: true,
-        metadata: {
-          deletedUserId: user.id,
-          deletedUserEmail: user.email,
-          deletedUserUsername: user.username,
-          deletedUserName:
-            user.firstName && user.lastName
-              ? `${user.firstName} ${user.lastName}`
-              : user.firstName || user.lastName || user.username,
-          deletedCounts: user._count,
-          deletedAt: new Date().toISOString(),
-        },
-      },
+    if (!cleanupId) return apiError("User not found", 404);
+    after(async () => {
+      try {
+        await processAccountMediaCleanup(cleanupId);
+      } catch {
+        console.error("[DeleteUser] Queued media cleanup could not run", {
+          cleanupId,
+        });
+      }
     });
 
     // Send deletion notification email to user
@@ -178,6 +115,7 @@ export async function DELETE(
     return apiResponse({
       success: true,
       message: `User ${user.email} deleted successfully`,
+      mediaCleanup: "queued",
       deletedUser: {
         id: user.id,
         email: user.email,
@@ -188,22 +126,26 @@ export async function DELETE(
     console.error("Error deleting user:", error);
 
     // Log failed deletion attempt
-    await prisma.securityLog.create({
-      data: {
-        userId: adminUser.id,
-        eventType: "ADMIN_USER_DELETE_FAILED",
-        ipAddress:
-          req.headers.get("x-forwarded-for") ||
-          req.headers.get("x-real-ip") ||
-          "unknown",
-        userAgent: req.headers.get("user-agent") || "unknown",
-        success: false,
-        metadata: {
-          targetUserId: userId,
-          error: error instanceof Error ? error.message : "Unknown error",
+    try {
+      await prisma.securityLog.create({
+        data: {
+          userId: adminUser.id,
+          eventType: "ADMIN_USER_DELETE_FAILED",
+          ipAddress:
+            req.headers.get("x-forwarded-for") ||
+            req.headers.get("x-real-ip") ||
+            "unknown",
+          userAgent: req.headers.get("user-agent") || "unknown",
+          success: false,
+          metadata: {
+            targetUserId: userId,
+            error: error instanceof Error ? error.message : "Unknown error",
+          },
         },
-      },
-    });
+      });
+    } catch (logError) {
+      console.error("[DeleteUser] Failed to record deletion failure", logError);
+    }
 
     return apiError("Failed to delete user", 500);
   }

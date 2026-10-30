@@ -27,6 +27,8 @@ export {
   uploadToImageKit,
   deleteFromImageKit,
   deleteImageKitFolder,
+  requestStoragePurge,
+  getStoragePurgeStatus,
   generateSignedUploadUrl,
   getImageKitAuthParams,
   imagekitAdapter,

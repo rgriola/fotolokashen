@@ -349,6 +349,28 @@ model TeamMember {
   @@map("team_members")
 }
 
+// Intentionally independent of User so hard deletion cannot cascade cleanup away.
+model AccountMediaCleanup {
+  id                  String    @id @default(cuid())
+  fileIds             String[]  @map("file_ids")
+  folderPath          String    @map("folder_path")
+  purgeUrls           String[]  @map("purge_urls")
+  pendingPurgeUrls    String[]  @map("pending_purge_urls")
+  purgeRequestIds     String[]  @map("purge_request_ids")
+  finalSweepCompleted Boolean   @default(false) @map("final_sweep_completed")
+  sweepAfter          DateTime  @map("sweep_after")
+  nextAttemptAt       DateTime  @default(now()) @map("next_attempt_at")
+  attempts            Int       @default(0)
+  lockToken           String?   @map("lock_token")
+  lockedUntil         DateTime? @map("locked_until")
+  lastError           String?   @map("last_error")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@index([nextAttemptAt])
+  @@map("account_media_cleanup")
+}
+
 model SecurityLog {
   id        Int      @id @default(autoincrement())
   userId    Int?

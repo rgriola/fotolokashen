@@ -108,6 +108,10 @@ export function DeleteAccountSection() {
               <li>Remove all your data from our servers and CDN</li>
               <li>End all your active sessions</li>
             </ul>
+            <p>
+              Account access ends immediately. Media cleanup is queued for
+              automatic retry if storage is unavailable.
+            </p>
           </div>
           <Button
             variant="destructive"
@@ -150,6 +154,10 @@ export function DeleteAccountSection() {
               <li>All uploaded photos</li>
               <li>All data from our servers and CDN</li>
             </ul>
+            <p className="text-sm text-muted-foreground">
+              Account deletion is immediate. Media removal may finish in the
+              background, with automatic retries if needed.
+            </p>
             <p className="font-semibold text-destructive text-sm">
               This action cannot be undone!
             </p>

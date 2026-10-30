@@ -2,6 +2,10 @@
   "buildCommand": "npm run build:production",
   "crons": [
     {
+      "path": "/api/cron/account-media-cleanup",
+      "schedule": "0 13 * * *"
+    },
+    {
       "path": "/api/cron/inbound-email-forward-alert",
       "schedule": "0 12 * * *"
     }

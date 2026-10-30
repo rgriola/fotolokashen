@@ -1,7 +1,7 @@
 # Authentication & Registration Flow
 
 > Cross-platform authentication reference for Fotolokashen — web and iOS.  
-> **Last Updated:** October 29, 2026, 20:11 EDT — strict-client production OAuth login user-confirmed; atomic auto-login token consumption tested locally, deployment pending.
+> **Last Updated:** October 30, 2026, 13:52 EDT — durable account/media deletion implemented and tested locally; deployment and disposable staging verification pending.
 
 ---
 
@@ -204,6 +204,113 @@ Handle the new `register-redirect` scheme:
 - Only fire the redirect for `EMAIL_EXISTS` — other errors stay inline (wrong password format, username taken, etc.)
 
 **Status: ❌ Not implemented — this is a known open issue.**
+
+---
+
+## Account Deletion and Durable Media Cleanup
+
+Updated October 30, 2026, 13:52 EDT.
+
+`DELETE /api/auth/delete-account` accepts only the authenticated user's ID.
+Both self-deletion and `DELETE /api/admin/users/[id]` use
+`src/lib/account-deletion.ts`. A serializable database transaction:
+
+1. Snapshots avatar/banner file IDs and photos deleted by either the uploader
+   or location-creator cascade, including legacy file paths.
+2. Creates an independent `account_media_cleanup` row with storage identifiers,
+   purge targets, timestamps and retry/lease state.
+3. Hard-deletes the user, cascading sessions, OAuth codes/refresh tokens and
+   related records.
+4. Records the committed deletion without copying the deleted user's name,
+   email or username into the audit metadata.
+
+If any step fails, the transaction rolls back both the deletion and cleanup
+enqueue. The queue intentionally has no user foreign key. Self-deletion keeps
+the existing HTTP 200 `{ success: true, message: string }` contract and adds
+`mediaCleanup: "queued"`; it does not claim that CDN removal is already complete.
+Web and native confirmation copy explain background media removal.
+
+Next.js `after()` attempts cleanup after responding. The authenticated
+`GET /api/cron/account-media-cleanup` worker resumes committed jobs if that work
+fails or is interrupted. Only `Authorization: Bearer <CRON_SECRET>` is accepted;
+missing configuration fails closed. The worker returns aggregate counts, HTTP
+503 for failed cleanup attempts and HTTP 500 for infrastructure failures.
+
+### Storage and cache guarantees
+
+- Each claim has a five-minute lease and unique ownership token. A terminated
+  worker becomes retryable; a stale worker cannot overwrite its successor's
+  checkpoints. Each successful file removal is checkpointed.
+- An attempt removes at most 25 files, submits at most ten invalidations and
+  checks at most ten purge statuses. A scheduled invocation selects five due
+  jobs. Errors retain work and schedule an eligible retry one hour later.
+- Only an SDK-confirmed HTTP 404 is treated as an already-deleted file/folder.
+  Authorization, quota and server failures are not treated as success.
+- Folder removal runs even if the account never uploaded a tracked photo.
+  A final sweep runs no earlier than two hours after enqueue to catch uploads
+  authorized before deletion; the installed SDK currently defaults to
+  30-minute upload signatures. Reassess this delay if upload authorization or
+  in-flight upload duration changes.
+- **Deleting storage does not invalidate CDN caches.** The queue separately
+  submits wildcard invalidations for the user-folder URL and legacy media URLs,
+  covering the application's query-string transformation URLs. It reissues
+  invalidations after the final sweep and retains the job until ImageKit
+  reports every request `Completed`, not merely accepted.
+- This is not a promise to recall browser/downloaded copies, external image
+  hosts, unrelated CDN layers, or arbitrary historical path-prefixed
+  transformations. Verify actual served URL variants in staging; any additional
+  delivery host/pattern needs explicit purge coverage before claiming full CDN
+  erasure.
+
+ImageKit's documented [cache invalidation rules](https://imagekit.io/docs/cdn-caching-and-purging)
+allow these trailing wildcards for nested folders and complete file paths.
+Purge requests consume the account's plan allowance and can incur charges.
+No live ImageKit deletion or purge was performed during local validation.
+
+### Deployment and remaining verification
+
+1. Apply `20261030134500_account_media_cleanup` to the intended **staging**
+   database before deploying this backend. Use the existing migration workflow;
+   never use `db push --accept-data-loss` against production.
+2. Configure `CRON_SECRET` in each worker environment. The committed Vercel
+   schedule is **daily at 13:00 UTC**, consistent with the existing daily cron.
+   The one-minute purge poll / one-hour retry timestamps are eligibility times,
+   not a scheduler: completion can take multiple daily invocations. For a
+   tighter deletion SLA or higher volume, explicitly configure more frequent
+   authenticated scheduling supported by the deployment plan. Vercel scheduled
+   crons run on production deployments; preview/staging needs a separately
+   configured authenticated scheduler or controlled manual invocations.
+3. Monitor worker response/log counters and queue age, attempts and `last_error`;
+   investigate persistent failures/backlog. Do not remove pending rows to make
+   monitoring appear successful. Completed jobs are deleted automatically.
+4. With a **disposable staging account**, upload photos, avatar and banner; retain
+   their original and transformed URLs. Delete the account, then verify the
+   user/related rows and all web/mobile sessions/OAuth credentials are gone.
+5. Confirm the cleanup row survives simulated storage/quota failure, resumes
+   after service recovery and disappears only after the final sweep and
+   confirmed cache invalidation. Verify media URLs no longer serve originals
+   or transformed copies. Include avatar/banner-only and no-media accounts.
+6. Only after staging evidence, deploy the migration/configuration/backend to
+   production and verify worker scheduling/health without deleting real accounts.
+
+Local validation: 110 selected regression tests passed, including 18 against a
+disposable loopback PostgreSQL database with real migrations, cascade deletion,
+atomic rollback, worker ownership/recovery, durable checkpoints and mocked
+ImageKit failure/purge completion. TypeScript and focused ESLint passed.
+
+To run the database tests, create a disposable local database named
+`fotolokashen_account_deletion_test`, set `ACCOUNT_DELETION_TEST_DATABASE_URL`
+to its `127.0.0.1` PostgreSQL URL, then:
+
+```bash
+DATABASE_URL="$ACCOUNT_DELETION_TEST_DATABASE_URL" npx prisma migrate deploy
+npx prisma generate
+npm test -- src/lib/__tests__/accountDeletion.integration.test.ts
+```
+
+The test suite refuses other hosts/database names and deletes fixtures in that
+database. Without the explicit test URL, these integration tests are reported
+as skipped; the normal unit tests do not connect to a real database.
 
 ---
 
